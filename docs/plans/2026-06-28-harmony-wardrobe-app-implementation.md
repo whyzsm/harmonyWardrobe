@@ -23,7 +23,7 @@
 
 - [x] Task 1: Initialize HarmonyOS Stage Project
 - [x] Task 2: Add Project Architecture Skeleton
-- [ ] Task 3: Define Domain Models And Constants
+- [x] Task 3: Define Domain Models And Constants
 - [ ] Task 4: Implement ID, Date, Result, And Text Utilities
 - [ ] Task 5: Implement N-Gram Tokenizer Tests And Utility
 - [ ] Task 6: Implement SQLite Migration Contract
