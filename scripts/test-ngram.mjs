@@ -62,6 +62,8 @@ assert.deepEqual(ngrams('a b', 3, 1), []);
 assert.deepEqual(ngrams('abc', 0, 2), []);
 assert.deepEqual(ngrams('abc', 1.5, 2), []);
 assert.deepEqual(ngrams('abc', 1, Infinity), []);
+assert.deepEqual(ngrams('abc', Number.MAX_SAFE_INTEGER + 1, Number.MAX_SAFE_INTEGER + 1), []);
+assert.deepEqual(ngrams('abc', 1, Number.MAX_SAFE_INTEGER), ['a', 'b', 'c', 'ab', 'bc', 'abc']);
 assert.deepEqual(ngrams('𠀀衣', 1, 2), ['𠀀', '衣', '𠀀衣']);
 
 console.log('PASS');

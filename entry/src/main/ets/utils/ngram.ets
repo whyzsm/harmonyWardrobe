@@ -3,7 +3,7 @@ export function buildSearchNgrams(input: string, minGram = 1, maxGram = 3): stri
     return [];
   }
 
-  if (!Number.isInteger(minGram) || !Number.isInteger(maxGram)) {
+  if (!Number.isSafeInteger(minGram) || !Number.isSafeInteger(maxGram)) {
     return [];
   }
 
@@ -21,8 +21,10 @@ export function buildSearchNgrams(input: string, minGram = 1, maxGram = 3): stri
 
   const grams: string[] = [];
   const seen = new Set<string>();
+  const longestTokenLength = tokens.reduce((maxLength, token) => Math.max(maxLength, Array.from(token).length), 0);
+  const effectiveMaxGram = Math.min(maxGram, longestTokenLength);
 
-  for (let size = minGram; size <= maxGram; size += 1) {
+  for (let size = minGram; size <= effectiveMaxGram; size += 1) {
     for (const token of tokens) {
       const characters = Array.from(token);
       if (characters.length < size) {
