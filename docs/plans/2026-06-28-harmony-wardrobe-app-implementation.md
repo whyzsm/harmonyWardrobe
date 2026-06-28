@@ -21,7 +21,7 @@
 
 ## Task Checklist
 
-- [ ] Task 1: Initialize HarmonyOS Stage Project
+- [x] Task 1: Initialize HarmonyOS Stage Project
 - [ ] Task 2: Add Project Architecture Skeleton
 - [ ] Task 3: Define Domain Models And Constants
 - [ ] Task 4: Implement ID, Date, Result, And Text Utilities
