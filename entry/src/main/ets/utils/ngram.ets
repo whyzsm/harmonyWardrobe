@@ -1,5 +1,13 @@
 export function buildSearchNgrams(input: string, minGram = 1, maxGram = 3): string[] {
-  if (minGram > maxGram) {
+  if (!Number.isFinite(minGram) || !Number.isFinite(maxGram)) {
+    return [];
+  }
+
+  if (!Number.isInteger(minGram) || !Number.isInteger(maxGram)) {
+    return [];
+  }
+
+  if (minGram < 1 || maxGram < 1 || minGram > maxGram) {
     return [];
   }
 
@@ -16,12 +24,13 @@ export function buildSearchNgrams(input: string, minGram = 1, maxGram = 3): stri
 
   for (let size = minGram; size <= maxGram; size += 1) {
     for (const token of tokens) {
-      if (token.length < size) {
+      const characters = Array.from(token);
+      if (characters.length < size) {
         continue;
       }
 
-      for (let start = 0; start <= token.length - size; start += 1) {
-        const gram = token.substring(start, start + size);
+      for (let start = 0; start <= characters.length - size; start += 1) {
+        const gram = characters.slice(start, start + size).join('');
         if (!seen.has(gram)) {
           seen.add(gram);
           grams.push(gram);
