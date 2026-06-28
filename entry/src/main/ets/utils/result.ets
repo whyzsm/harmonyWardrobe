@@ -1,7 +1,13 @@
-export interface AppResult<T> {
-  isOk: boolean;
-  value?: T;
-  error?: string;
+export type AppResult<T> = OkResult<T> | ErrResult;
+
+export interface OkResult<T> {
+  isOk: true;
+  value: T;
+}
+
+export interface ErrResult {
+  isOk: false;
+  error: string;
 }
 
 export function ok<T>(value: T): AppResult<T> {
@@ -11,7 +17,7 @@ export function ok<T>(value: T): AppResult<T> {
   };
 }
 
-export function err<T>(error: string): AppResult<T> {
+export function err<T = never>(error: string): AppResult<T> {
   return {
     isOk: false,
     error
