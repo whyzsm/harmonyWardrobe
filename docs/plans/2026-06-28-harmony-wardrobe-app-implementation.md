@@ -25,7 +25,7 @@
 - [x] Task 2: Add Project Architecture Skeleton
 - [x] Task 3: Define Domain Models And Constants
 - [x] Task 4: Implement ID, Date, Result, And Text Utilities
-- [ ] Task 5: Implement N-Gram Tokenizer Tests And Utility
+- [x] Task 5: Implement N-Gram Tokenizer Tests And Utility
 - [ ] Task 6: Implement SQLite Migration Contract
 - [ ] Task 7: Implement Database Provider
 - [ ] Task 8: Implement Schema Migration V1
