@@ -1,0 +1,8 @@
+{
+  "modelVersion": "5.0.0",
+  "name": "harmony-wardrobe",
+  "version": "1.0.0",
+  "description": "Local-only HarmonyOS wardrobe app.",
+  "dependencies": {},
+  "devDependencies": {}
+}

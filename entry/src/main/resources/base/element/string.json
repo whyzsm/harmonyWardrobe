@@ -1,0 +1,16 @@
+{
+  "string": [
+    {
+      "name": "app_name",
+      "value": "Harmony Wardrobe"
+    },
+    {
+      "name": "module_desc",
+      "value": "Harmony Wardrobe entry module"
+    },
+    {
+      "name": "entry_ability_desc",
+      "value": "Harmony Wardrobe main ability"
+    }
+  ]
+}
