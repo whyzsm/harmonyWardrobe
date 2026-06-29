@@ -7,6 +7,7 @@ import {
 
 const PHOTOS_DIR_NAME = 'photos';
 const DEFAULT_PHOTO_EXTENSION = 'jpg';
+const ALLOWED_PHOTO_EXTENSIONS: string[] = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'];
 
 export interface PhotoStorageOptions {
   clock?: () => string;
@@ -32,6 +33,10 @@ function trimLeadingSlashes(path: string): string {
 function joinPath(parent: string, child: string): string {
   const cleanParent = trimTrailingSlashes(parent);
   const cleanChild = trimLeadingSlashes(child);
+
+  if (parent === '/') {
+    return `/${cleanChild}`;
+  }
 
   if (cleanParent.length === 0) {
     return cleanChild;
@@ -65,20 +70,30 @@ function sanitizeExtension(extension: string | undefined, mimeType: string | und
     .replace(/[^A-Za-z0-9]+/g, '')
     .toLowerCase();
 
-  if (cleanExtension.length > 0) {
-    return cleanExtension.substring(0, 12);
+  if (ALLOWED_PHOTO_EXTENSIONS.includes(cleanExtension)) {
+    return cleanExtension;
   }
 
-  if (mimeType === 'image/png') {
+  const cleanMimeType = (mimeType ?? '').split(';')[0].trim().toLowerCase();
+
+  if (cleanMimeType === 'image/png') {
     return 'png';
   }
 
-  if (mimeType === 'image/webp') {
+  if (cleanMimeType === 'image/webp') {
     return 'webp';
   }
 
-  if (mimeType === 'image/heic') {
+  if (cleanMimeType === 'image/heic') {
     return 'heic';
+  }
+
+  if (cleanMimeType === 'image/heif') {
+    return 'heif';
+  }
+
+  if (cleanMimeType === 'image/jpeg' || cleanMimeType === 'image/jpg') {
+    return 'jpg';
   }
 
   return DEFAULT_PHOTO_EXTENSION;
@@ -123,8 +138,8 @@ function sanitizeTimestamp(timestamp: string): string {
   return timestamp.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
-function errorMessage(error: Error): string {
-  return error.message;
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error ?? 'Delete failed');
 }
 
 export class PhotoStorage {
@@ -172,7 +187,7 @@ export class PhotoStorage {
       return {
         localUri,
         deleted: false,
-        error: errorMessage(error as Error),
+        error: errorMessage(error),
         retryable: true
       };
     }

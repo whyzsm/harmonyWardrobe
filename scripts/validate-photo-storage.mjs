@@ -217,6 +217,21 @@ await assert.rejects(
   /copy failed/
 );
 
+const failingEnsureDirectory = new context.PhotoStorage('/sandbox/root', {
+  async ensureDirectory() {
+    throw new Error('mkdir failed');
+  },
+  async copyFile() {},
+  async deleteFile() {}
+}, {
+  clock: () => '2026-06-29T01:02:03.000Z',
+  idFactory: () => 'id-003'
+});
+await assert.rejects(
+  () => failingEnsureDirectory.copyToAppStorage({ uri: 'file:///tmp/source/fail.jpg', fileName: 'fail.jpg' }),
+  /mkdir failed/
+);
+
 const failingDelete = new context.PhotoStorage('/sandbox/root', {
   async ensureDirectory() {},
   async copyFile() {},
@@ -229,5 +244,71 @@ assert.equal(deleteFailure.localUri, '/sandbox/root/photos/missing.jpg');
 assert.equal(deleteFailure.deleted, false);
 assert.equal(deleteFailure.retryable, true);
 assert.match(deleteFailure.error, /delete failed/);
+
+for (const thrownValue of [undefined, null, 'delete failed']) {
+  const failingDeleteWithUnknownError = new context.PhotoStorage('/sandbox/root', {
+    async ensureDirectory() {},
+    async copyFile() {},
+    async deleteFile() {
+      throw thrownValue;
+    }
+  });
+  const failure = await failingDeleteWithUnknownError.deleteLocalPhoto('/sandbox/root/photos/missing.jpg');
+
+  assert.equal(failure.localUri, '/sandbox/root/photos/missing.jpg');
+  assert.equal(failure.deleted, false);
+  assert.equal(failure.retryable, true);
+  assert.equal(failure.error, String(thrownValue ?? 'Delete failed'));
+}
+
+const rootOperations = [];
+const rootStorage = new context.PhotoStorage('/', {
+  async ensureDirectory(path) {
+    rootOperations.push(['ensureDirectory', path]);
+  },
+  async copyFile(sourceUri, destinationUri) {
+    rootOperations.push(['copyFile', sourceUri, destinationUri]);
+  },
+  async deleteFile() {}
+}, {
+  clock: () => '2026-06-29T01:02:03.000Z',
+  idFactory: () => 'id-004'
+});
+const rootStoredPhoto = await rootStorage.copyToAppStorage({
+  uri: 'file:///tmp/source/photo.jpg',
+  fileName: 'photo.jpg',
+  mimeType: 'image/jpeg'
+});
+assert.equal(rootStoredPhoto.localUri, '/photos/2026-06-29T01-02-03-000Z-id-004-photo.jpg');
+assert.deepEqual(rootOperations[0], ['ensureDirectory', '/photos']);
+
+const pngFromMimeStorage = new context.PhotoStorage('/sandbox/root', {
+  async ensureDirectory() {},
+  async copyFile() {},
+  async deleteFile() {}
+}, {
+  clock: () => '2026-06-29T01:02:03.000Z',
+  idFactory: () => 'id-005'
+});
+const pngFromMime = await pngFromMimeStorage.copyToAppStorage({
+  uri: 'file:///tmp/source/cache.tmp',
+  fileName: 'cache.tmp',
+  mimeType: 'image/png'
+});
+assert.equal(pngFromMime.fileName, '2026-06-29T01-02-03-000Z-id-005-cache.tmp.png');
+
+const defaultJpgStorage = new context.PhotoStorage('/sandbox/root', {
+  async ensureDirectory() {},
+  async copyFile() {},
+  async deleteFile() {}
+}, {
+  clock: () => '2026-06-29T01:02:03.000Z',
+  idFactory: () => 'id-006'
+});
+const jpgFromDangerousExtension = await defaultJpgStorage.copyToAppStorage({
+  uri: 'file:///tmp/source/malware.exe',
+  fileName: 'malware.exe'
+});
+assert.equal(jpgFromDangerousExtension.fileName, '2026-06-29T01-02-03-000Z-id-006-malware.exe.jpg');
 
 console.log('PASS');
