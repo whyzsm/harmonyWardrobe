@@ -60,7 +60,17 @@ function createRunnableBuilderSource() {
 assertIncludes("import { buildSearchNgrams } from '../../utils/ngram';", 'Builder must import buildSearchNgrams');
 assertIncludes("import { normalizeSearchText } from '../../utils/text';", 'Builder must import normalizeSearchText');
 assertIncludes("import { SearchEntityType } from './SearchModels';", 'Builder must import SearchEntityType');
-assertIncludes('clothingNames?: string[]', 'Outfit builder must accept optional clothingNames');
+assertMatches(
+  /export\s+function\s+buildOutfitSearchDocument\s*\(\s*outfit:\s*OutfitTemplate,\s*clothingNames:\s*string\[\]\s*\):\s*SearchDocument/,
+  'Outfit builder must require clothingNames'
+);
+assertMatches(
+  /export\s+function\s+buildOutfitSearchDocument[\s\S]*\.\.\.clothingNames/,
+  'Outfit builder must consume clothingNames'
+);
+if (source.includes('clothingNames ?? []')) {
+  throw new Error('Outfit builder must not silently default missing clothingNames');
+}
 assertInterfaceFields('SearchDocument', ['entityType', 'entityId', 'title', 'body', 'category', 'storeName', 'ngrams']);
 
 for (const builder of [
@@ -92,9 +102,26 @@ function normalizeSearchText(input) {
 }
 
 function buildSearchNgrams(input) {
-  return normalizeSearchText(input)
+  const tokens = normalizeSearchText(input)
     .split(/\s+/)
+    .map((token) => token.replace(/[^\p{Script=Han}\p{Letter}\p{Number}]+/gu, ''))
     .filter((token) => token.length > 0);
+
+  const grams = [];
+  const seen = new Set();
+  for (const token of tokens) {
+    for (let size = 1; size <= Math.min(3, Array.from(token).length); size += 1) {
+      for (let start = 0; start <= Array.from(token).length - size; start += 1) {
+        const gram = Array.from(token).slice(start, start + size).join('');
+        if (!seen.has(gram)) {
+          seen.add(gram);
+          grams.push(gram);
+        }
+      }
+    }
+  }
+
+  return grams;
 }
 
 const context = {
@@ -129,8 +156,8 @@ assert.equal(clothingDocument.category, 'outerwear');
 assert.equal(clothingDocument.storeName, 'soho store');
 assert.match(clothingDocument.body, /冬季 折扣/);
 assert.doesNotMatch(`${clothingDocument.body} ${clothingDocument.ngrams}`, /undefined/);
-assert.match(clothingDocument.ngrams, /wool/);
-assert.match(clothingDocument.ngrams, /soho/);
+assert.match(clothingDocument.ngrams, /\bwoo\b/);
+assert.match(clothingDocument.ngrams, /\bsoh\b/);
 
 const outfitDocument = context.buildOutfitSearchDocument({
   id: 'outfit-1',
@@ -141,7 +168,7 @@ assert.equal(outfitDocument.entityType, SearchEntityType.Outfit);
 assert.match(outfitDocument.body, /client meeting/);
 assert.match(outfitDocument.body, /silk shirt/);
 assert.match(outfitDocument.body, /wide pants/);
-assert.match(outfitDocument.ngrams, /silk/);
+assert.match(outfitDocument.ngrams, /\bsil\b/);
 
 const wearLogDocument = context.buildWearLogSearchDocument({
   id: 'wear-1',
@@ -166,7 +193,8 @@ const wishlistDocument = context.buildWishlistSearchDocument({
 assert.equal(wishlistDocument.entityType, SearchEntityType.Wishlist);
 assert.equal(wishlistDocument.storeName, undefined);
 assert.match(wishlistDocument.body, /299\.5/);
-assert.match(wishlistDocument.ngrams, /299\.5/);
+assert.match(wishlistDocument.ngrams, /\b299\b/);
+assert.match(wishlistDocument.ngrams, /\b5\b/);
 assert.doesNotMatch(`${wishlistDocument.body} ${wishlistDocument.ngrams}`, /undefined/);
 
 console.log('PASS');

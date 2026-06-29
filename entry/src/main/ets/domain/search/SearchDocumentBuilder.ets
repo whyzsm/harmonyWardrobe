@@ -76,11 +76,11 @@ export function buildClothingSearchDocument(item: ClothingItem): SearchDocument 
   };
 }
 
-export function buildOutfitSearchDocument(outfit: OutfitTemplate, clothingNames?: string[]): SearchDocument {
+export function buildOutfitSearchDocument(outfit: OutfitTemplate, clothingNames: string[]): SearchDocument {
   const title = normalizeSearchText(outfit.title);
   const body = joinSearchText([
     outfit.note,
-    ...(clothingNames ?? [])
+    ...clothingNames
   ]);
 
   return {
