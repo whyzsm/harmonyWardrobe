@@ -57,15 +57,33 @@ export class DatabaseProvider implements MigrationDatabase {
 
   async transaction<T>(operation: () => Promise<T>): Promise<T> {
     const store = await this.getStore();
-    store.beginTransaction();
+    try {
+      store.beginTransaction();
+    } catch (error) {
+      throw new DatabaseError('Failed to begin database transaction.', error as Error);
+    }
 
     try {
       const result = await operation();
-      store.commit();
+      try {
+        store.commit();
+      } catch (error) {
+        throw new DatabaseError('Failed to commit database transaction.', error as Error);
+      }
       return result;
     } catch (error) {
-      store.rollBack();
-      throw error;
+      let rollbackCause: Error | undefined;
+      try {
+        store.rollBack();
+      } catch (rollbackError) {
+        rollbackCause = rollbackError as Error;
+      }
+
+      if (error instanceof DatabaseError) {
+        throw new DatabaseError(error.message, error.cause, rollbackCause);
+      }
+
+      throw new DatabaseError('Failed to execute database transaction.', error as Error, rollbackCause);
     }
   }
 }
