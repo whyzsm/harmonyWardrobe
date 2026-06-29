@@ -146,6 +146,14 @@ function errorMessage(error: Error | string | null | undefined): string {
   return error instanceof Error ? error.message : String(error ?? 'Delete failed');
 }
 
+function safeString(error: Object): string {
+  try {
+    return String(error);
+  } catch (_error) {
+    return 'Delete failed';
+  }
+}
+
 export class PhotoStorage {
   private readonly rootDir: string;
   private readonly fileSystem: PhotoFileSystem;
@@ -201,7 +209,7 @@ export class PhotoStorage {
       if (error instanceof Error || typeof error === 'string' || error === null || error === undefined) {
         deleteError = errorMessage(error);
       } else {
-        deleteError = String(error);
+        deleteError = safeString(error);
       }
 
       return {

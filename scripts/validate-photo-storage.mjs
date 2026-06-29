@@ -117,6 +117,7 @@ function createRunnableStorageSource(source) {
     .replace(/:\s*string\s*\|\s*undefined/g, '')
     .replace(/:\s*Error\s*\|\s*undefined/g, '')
     .replace(/:\s*Error/g, '')
+    .replace(/:\s*Object/g, '')
     .replace(/:\s*boolean/g, '')
     .replace(/:\s*number/g, '')
     .replace(/:\s*string/g, '');
@@ -306,6 +307,31 @@ for (const thrownValue of [undefined, null, 'delete failed']) {
   assert.equal(failure.deleted, false);
   assert.equal(failure.retryable, true);
   assert.equal(failure.error, String(thrownValue ?? 'Delete failed'));
+}
+
+for (const thrownValue of [
+  { reason: 'object failed' },
+  Object.create(null),
+  {
+    toString() {
+      throw new Error('toString failed');
+    }
+  }
+]) {
+  const failingDeleteWithObjectError = new context.PhotoStorage('/sandbox/root', {
+    async ensureDirectory() {},
+    async copyFile() {},
+    async deleteFile() {
+      throw thrownValue;
+    }
+  });
+  const failure = await failingDeleteWithObjectError.deleteLocalPhoto('/sandbox/root/photos/missing.jpg');
+
+  assert.equal(failure.localUri, '/sandbox/root/photos/missing.jpg');
+  assert.equal(failure.deleted, false);
+  assert.equal(failure.retryable, true);
+  assert.equal(typeof failure.error, 'string');
+  assert.ok(failure.error.length > 0);
 }
 
 const rootOperations = [];
