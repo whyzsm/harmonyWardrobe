@@ -31,7 +31,7 @@
 - [x] Task 8: Implement Schema Migration V1
 - [x] Task 9: Implement Search Index Schema And Capability Detection
 - [x] Task 10: Implement Search Document Builder
-- [ ] Task 11: Implement Search Repository
+- [x] Task 11: Implement Search Repository
 - [ ] Task 12: Implement Photo Storage Contract
 - [ ] Task 13: Implement Photo Picker Adapter
 - [ ] Task 14: Implement Clothing Repository
