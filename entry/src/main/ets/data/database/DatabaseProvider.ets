@@ -14,6 +14,7 @@ export class DatabaseProvider implements MigrationDatabase {
   private readonly context: common.Context;
   private readonly config: relationalStore.StoreConfig;
   private store?: relationalStore.RdbStore;
+  private openStorePromise?: Promise<relationalStore.RdbStore>;
 
   constructor(context: common.Context, databaseName: string = DATABASE_NAME) {
     this.context = context;
@@ -28,11 +29,22 @@ export class DatabaseProvider implements MigrationDatabase {
       return this.store;
     }
 
+    if (this.openStorePromise) {
+      return this.openStorePromise;
+    }
+
+    this.openStorePromise = this.openStore();
+    return this.openStorePromise;
+  }
+
+  private async openStore(): Promise<relationalStore.RdbStore> {
     try {
-      this.store = await relationalStore.getRdbStore(this.context, this.config);
-      await this.store.executeSql(ENABLE_FOREIGN_KEYS_SQL);
-      return this.store;
+      const store = await relationalStore.getRdbStore(this.context, this.config);
+      await store.executeSql(ENABLE_FOREIGN_KEYS_SQL);
+      this.store = store;
+      return store;
     } catch (error) {
+      this.openStorePromise = undefined;
       throw new DatabaseError('Failed to open wardrobe database.', error as Error);
     }
   }
