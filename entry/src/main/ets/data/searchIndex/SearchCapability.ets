@@ -1,7 +1,7 @@
 import { MigrationDatabase } from '../migrations/Migration';
 import {
   CREATE_SEARCH_INDEX_FALLBACK_SQLS,
-  CREATE_SEARCH_INDEX_FTS_SQL
+  CREATE_SEARCH_INDEX_FTS_SQLS
 } from './SearchIndexSchema';
 
 export type SearchIndexMode = 'fts5' | 'fallback';
@@ -10,15 +10,38 @@ export interface SearchCapability {
   mode: SearchIndexMode;
 }
 
-export async function detectSearchCapability(database: MigrationDatabase): Promise<SearchCapability> {
-  try {
-    await database.executeSql(CREATE_SEARCH_INDEX_FTS_SQL);
-    return { mode: 'fts5' };
-  } catch (_error) {
-    for (const sql of CREATE_SEARCH_INDEX_FALLBACK_SQLS) {
-      await database.executeSql(sql);
-    }
+export const CREATE_SEARCH_FTS_PROBE_SQL = `
+  CREATE VIRTUAL TABLE IF NOT EXISTS temp.search_fts_probe USING fts5 (
+    value,
+    tokenize = 'unicode61'
+  )
+`;
 
-    return { mode: 'fallback' };
+export const DROP_SEARCH_FTS_PROBE_SQL = 'DROP TABLE IF EXISTS temp.search_fts_probe';
+
+async function executeSqls(database: MigrationDatabase, sqls: string[]): Promise<void> {
+  for (const sql of sqls) {
+    await database.executeSql(sql);
   }
+}
+
+export async function canUseFts5(database: MigrationDatabase): Promise<boolean> {
+  try {
+    await database.executeSql(CREATE_SEARCH_FTS_PROBE_SQL);
+    return true;
+  } catch (_error) {
+    return false;
+  } finally {
+    await database.executeSql(DROP_SEARCH_FTS_PROBE_SQL);
+  }
+}
+
+export async function detectSearchCapability(database: MigrationDatabase): Promise<SearchCapability> {
+  if (await canUseFts5(database)) {
+    await executeSqls(database, CREATE_SEARCH_INDEX_FTS_SQLS);
+    return { mode: 'fts5' };
+  }
+
+  await executeSqls(database, CREATE_SEARCH_INDEX_FALLBACK_SQLS);
+  return { mode: 'fallback' };
 }
