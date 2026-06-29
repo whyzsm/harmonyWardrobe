@@ -26,10 +26,23 @@ function assertMatches(source, pattern, message) {
 }
 
 function assertNoUnsafeTypes(path, source) {
-  const unsafeType = source.match(/:\s*(?:unknown|any)\b/);
+  const unsafeType = source.match(/(?:^|[\s<(:,=|&])(?:unknown|any)(?=\b|[>\s,;)|&])/m);
   if (unsafeType) {
-    throw new Error(`${path} must not use unsafe type annotation ${unsafeType[0]}`);
+    throw new Error(`${path} must not use unsafe type ${unsafeType[0].trim()}`);
   }
+}
+
+function assertRejectsUnsafeType(source, expectedUnsafeType) {
+  try {
+    assertNoUnsafeTypes('negative-self-check.ets', source);
+  } catch (error) {
+    if (!String(error.message).includes(expectedUnsafeType)) {
+      throw new Error(`Unsafe type self-check rejected for the wrong reason: ${error.message}`);
+    }
+    return;
+  }
+
+  throw new Error(`Unsafe type self-check must reject ${expectedUnsafeType}`);
 }
 
 function findMatchingBrace(source, openBraceIndex) {
@@ -108,6 +121,12 @@ function createRunnableStorageSource(source) {
     .replace(/:\s*number/g, '')
     .replace(/:\s*string/g, '');
 }
+
+assertRejectsUnsafeType('function bad(value: any): string { return String(value); }', 'any');
+assertRejectsUnsafeType('const bad = value as any;', 'any');
+assertRejectsUnsafeType('const values: Array<any> = [];', 'any');
+assertRejectsUnsafeType('const values: Record<string, unknown> = {};', 'unknown');
+assertRejectsUnsafeType('type Bad = unknown;', 'unknown');
 
 const models = readRequired(modelsPath);
 const storage = readRequired(storagePath);
