@@ -37,7 +37,7 @@
 - [x] Task 14: Implement Clothing Repository
 - [x] Task 15: Implement Outfit Repository
 - [x] Task 16: Implement Wear Log Repository
-- [ ] Task 17: Implement Wishlist Repository
+- [x] Task 17: Implement Wishlist Repository
 - [ ] Task 18: Implement Repository Integration Tests
 - [ ] Task 19: Implement App Navigation Shell
 - [ ] Task 20: Implement Shared UI Components
