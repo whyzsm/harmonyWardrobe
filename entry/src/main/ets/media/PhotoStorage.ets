@@ -138,6 +138,10 @@ function sanitizeTimestamp(timestamp: string): string {
   return timestamp.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
+function hasParentPathSegment(path: string): boolean {
+  return path.split(/[\/\\]/).includes('..');
+}
+
 function errorMessage(error: Error | string | null | undefined): string {
   return error instanceof Error ? error.message : String(error ?? 'Delete failed');
 }
@@ -175,6 +179,15 @@ export class PhotoStorage {
   }
 
   async deleteLocalPhoto(localUri: string): Promise<PhotoDeleteResult> {
+    if (!this.isManagedPhotoUri(localUri)) {
+      return {
+        localUri,
+        deleted: false,
+        error: 'Photo path is outside managed storage.',
+        retryable: true
+      };
+    }
+
     try {
       await this.fileSystem.deleteFile(localUri);
 
@@ -202,5 +215,10 @@ export class PhotoStorage {
 
   private photosDir(): string {
     return joinPath(this.rootDir, PHOTOS_DIR_NAME);
+  }
+
+  private isManagedPhotoUri(localUri: string): boolean {
+    const photosDir = this.photosDir();
+    return !hasParentPathSegment(localUri) && localUri.startsWith(`${photosDir}/`);
   }
 }

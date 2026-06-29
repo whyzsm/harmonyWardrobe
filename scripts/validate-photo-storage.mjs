@@ -176,6 +176,9 @@ assertMatches(deleteBody, /catch\s*\(/, 'deleteLocalPhoto must catch delete fail
 assertMatches(deleteBody, /deleted\s*:\s*false/, 'deleteLocalPhoto must return deleted false on failure');
 assertMatches(deleteBody, /retryable\s*:\s*true/, 'deleteLocalPhoto failures must be retryable');
 assertMatches(deleteBody, /deleted\s*:\s*true/, 'deleteLocalPhoto must return deleted true on success');
+assertMatches(storage, /isManagedPhotoUri/, 'deleteLocalPhoto must validate managed photo paths');
+assertMatches(storage, /hasParentPathSegment/, 'deleteLocalPhoto must reject parent path traversal');
+assertMatches(storage, /startsWith\s*\(\s*`\$\{photosDir\}\/`/, 'deleteLocalPhoto must keep deletions inside photosDir');
 
 for (const networkNeedle of [
   '@ohos.net',
@@ -230,6 +233,21 @@ const deleteSuccess = await storageService.deleteLocalPhoto(storedPhoto.localUri
 assert.equal(deleteSuccess.localUri, storedPhoto.localUri);
 assert.equal(deleteSuccess.deleted, true);
 assert.equal(deleteSuccess.retryable, false);
+
+const deleteOperationCount = operations.length;
+const traversalDelete = await storageService.deleteLocalPhoto('/sandbox/root/photos/../db.sqlite');
+assert.equal(traversalDelete.localUri, '/sandbox/root/photos/../db.sqlite');
+assert.equal(traversalDelete.deleted, false);
+assert.equal(traversalDelete.retryable, true);
+assert.match(traversalDelete.error, /outside managed storage/);
+assert.equal(operations.length, deleteOperationCount);
+
+const outsideDelete = await storageService.deleteLocalPhoto('/sandbox/root/db.sqlite');
+assert.equal(outsideDelete.localUri, '/sandbox/root/db.sqlite');
+assert.equal(outsideDelete.deleted, false);
+assert.equal(outsideDelete.retryable, true);
+assert.match(outsideDelete.error, /outside managed storage/);
+assert.equal(operations.length, deleteOperationCount);
 
 const failingCopy = new context.PhotoStorage('/sandbox/root', {
   async ensureDirectory() {},
