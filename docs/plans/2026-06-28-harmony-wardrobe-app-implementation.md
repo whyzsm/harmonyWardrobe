@@ -33,7 +33,7 @@
 - [x] Task 10: Implement Search Document Builder
 - [x] Task 11: Implement Search Repository
 - [x] Task 12: Implement Photo Storage Contract
-- [ ] Task 13: Implement Photo Picker Adapter
+- [x] Task 13: Implement Photo Picker Adapter
 - [ ] Task 14: Implement Clothing Repository
 - [ ] Task 15: Implement Outfit Repository
 - [ ] Task 16: Implement Wear Log Repository
