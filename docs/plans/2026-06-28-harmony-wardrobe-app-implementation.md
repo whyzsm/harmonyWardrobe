@@ -683,6 +683,15 @@ Expected: FAIL.
 
 Wrap HarmonyOS gallery/camera APIs behind `pickFromGallery()` and `captureFromCamera()`. Return selected local temp URIs for `PhotoStorage` to copy.
 
+Engineering acceptance:
+
+- Keep provider injection available so tests and future UI flows can exercise gallery/camera without launching native system UI.
+- Provide a Harmony provider factory that wires gallery and camera providers from an ability context.
+- Reject empty camera result URIs before returning a `PhotoSource`.
+- Normalize gallery selection limits to a finite positive range with a conservative upper bound.
+- Keep the adapter side-effect narrow: no `PhotoStorage` copy, network calls, permission requests, router/navigation, toast/prompt UI, or business repository access.
+- Avoid unsafe `any`/`unknown` in the adapter contract.
+
 **Step 4: Run test — confirm it passes**
 
 Command: `node scripts/validate-photo-picker.mjs`

@@ -47,6 +47,15 @@ function assertRejectsUnsafeType(source, expectedUnsafeType) {
 function assertNoForbiddenNeedles(source) {
   for (const forbiddenNeedle of [
     'PhotoStorage',
+    'abilityAccessCtrl',
+    'requestPermissionsFromUser',
+    '@ohos.router',
+    'router',
+    '@ohos.promptAction',
+    'promptAction',
+    'startAbility',
+    'Repository',
+    'data/repositories',
     '@ohos.net',
     '@ohos.request',
     '@ohos.net.http',
@@ -59,6 +68,19 @@ function assertNoForbiddenNeedles(source) {
       throw new Error(`PhotoPickerAdapter must not import or call ${forbiddenNeedle}`);
     }
   }
+}
+
+function assertRejectsForbiddenNeedle(source, expectedNeedle) {
+  try {
+    assertNoForbiddenNeedles(source);
+  } catch (error) {
+    if (!String(error.message).includes(expectedNeedle)) {
+      throw new Error(`Forbidden needle self-check rejected for the wrong reason: ${error.message}`);
+    }
+    return;
+  }
+
+  throw new Error(`Forbidden needle self-check must reject ${expectedNeedle}`);
 }
 
 function plain(value) {
@@ -112,6 +134,14 @@ assertRejectsUnsafeType('const bad = value as any;', 'any');
 assertRejectsUnsafeType('const values: Array<any> = [];', 'any');
 assertRejectsUnsafeType('const values: Record<string, unknown> = {};', 'unknown');
 assertRejectsUnsafeType('type Bad = unknown;', 'unknown');
+assertRejectsForbiddenNeedle('const bad = PhotoStorage;', 'PhotoStorage');
+assertRejectsForbiddenNeedle('requestPermissionsFromUser();', 'requestPermissionsFromUser');
+assertRejectsForbiddenNeedle("import router from '@ohos.router';", '@ohos.router');
+assertRejectsForbiddenNeedle('promptAction.showToast({ message: "bad" });', 'promptAction');
+assertRejectsForbiddenNeedle('context.startAbility({});', 'startAbility');
+assertRejectsForbiddenNeedle("import { SearchRepository } from '../data/repositories/SearchRepository';", 'Repository');
+assertRejectsForbiddenNeedle("import repo from '../data/repositories/photo-adapter-store';", 'data/repositories');
+assertRejectsForbiddenNeedle('fetch("https://example.com");', 'fetch(');
 
 const adapter = readRequired(adapterPath);
 
@@ -234,6 +264,41 @@ assert.equal(cameraPickCalls[0].profile.cameraPosition, 'back');
 
 cameraPickerResultUri = '   ';
 await assert.rejects(() => harmonyCameraProvider.capturePhoto(), /camera.*URI/i);
+
+const defaultAdapter = new context.PhotoPickerAdapter();
+const defaultGallerySources = await defaultAdapter.pickFromGallery({ maxSelectNumber: 3 });
+assert.deepEqual(plain(defaultGallerySources), [
+  { uri: 'photo://gallery-one', mimeType: 'image/*' }
+]);
+assert.equal(photoSelectOptions.length, 2);
+assert.equal(photoSelectOptions[1].MIMEType, 'image/*');
+assert.equal(photoSelectOptions[1].maxSelectNumber, 3);
+assert.strictEqual(photoPickerSelectCalls[1], photoSelectOptions[1]);
+await assert.rejects(() => defaultAdapter.captureFromCamera(), /Camera provider is required/i);
+
+cameraPickerResultUri = 'camera://factory-photo';
+const factoryAdapter = context.PhotoPickerAdapter.withHarmonyProviders(harmonyContext);
+const factoryGallerySources = await factoryAdapter.pickFromGallery({ maxSelectNumber: 5 });
+assert.deepEqual(plain(factoryGallerySources), [
+  { uri: 'photo://gallery-one', mimeType: 'image/*' }
+]);
+assert.equal(photoSelectOptions.length, 3);
+assert.equal(photoSelectOptions[2].MIMEType, 'image/*');
+assert.equal(photoSelectOptions[2].maxSelectNumber, 5);
+assert.strictEqual(photoPickerSelectCalls[2], photoSelectOptions[2]);
+
+const factoryCameraSource = await factoryAdapter.captureFromCamera();
+assert.deepEqual(plain(factoryCameraSource), {
+  uri: 'camera://factory-photo',
+  mimeType: 'image/*'
+});
+assert.equal(cameraPickCalls.length, 3);
+assert.strictEqual(cameraPickCalls[2].context, harmonyContext);
+assert.deepEqual(cameraPickCalls[2].mediaTypes, ['photo']);
+assert.equal(cameraPickCalls[2].profile.cameraPosition, 'back');
+
+cameraPickerResultUri = '   ';
+await assert.rejects(() => factoryAdapter.captureFromCamera(), /camera.*URI/i);
 
 const galleryCalls = [];
 const cameraCalls = [];
