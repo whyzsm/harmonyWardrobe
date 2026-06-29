@@ -166,21 +166,47 @@ export class SearchRepository {
     });
   }
 
-  async deleteDocument(entityType: SearchEntityType, entityId: string): Promise<void> {
-    await this.database.transaction(async () => {
-      const existing = await this.readDocumentRow(entityType, entityId);
-      if (existing === undefined) {
-        return;
-      }
+  async upsertDocumentInTransaction(document: SearchDocument): Promise<void> {
+    const existing = await this.readDocumentRow(document.entityType, document.entityId);
 
+    if (existing === undefined) {
+      await this.insertDocument(document);
+    } else {
       if (this.mode === 'fts5') {
         await this.deleteFtsDocument(existing);
-      } else {
-        await this.deleteFallbackNgrams(existing.id);
       }
 
-      await this.database.executeSql(DELETE_DOCUMENT_SQL, [entityType, entityId]);
+      await this.updateDocument(document);
+    }
+
+    const savedDocument = await this.requireDocumentRow(document.entityType, document.entityId);
+    if (this.mode === 'fts5') {
+      await this.insertFtsDocument(savedDocument);
+      return;
+    }
+
+    await this.rebuildFallbackNgrams(savedDocument.id, document.ngrams);
+  }
+
+  async deleteDocument(entityType: SearchEntityType, entityId: string): Promise<void> {
+    await this.database.transaction(async () => {
+      await this.deleteDocumentInTransaction(entityType, entityId);
     });
+  }
+
+  async deleteDocumentInTransaction(entityType: SearchEntityType, entityId: string): Promise<void> {
+    const existing = await this.readDocumentRow(entityType, entityId);
+    if (existing === undefined) {
+      return;
+    }
+
+    if (this.mode === 'fts5') {
+      await this.deleteFtsDocument(existing);
+    } else {
+      await this.deleteFallbackNgrams(existing.id);
+    }
+
+    await this.database.executeSql(DELETE_DOCUMENT_SQL, [entityType, entityId]);
   }
 
   async search(query: string, limit: number = 20): Promise<SearchResult[]> {
@@ -222,28 +248,6 @@ export class SearchRepository {
         }
       }
     });
-  }
-
-  private async upsertDocumentInTransaction(document: SearchDocument): Promise<void> {
-    const existing = await this.readDocumentRow(document.entityType, document.entityId);
-
-    if (existing === undefined) {
-      await this.insertDocument(document);
-    } else {
-      if (this.mode === 'fts5') {
-        await this.deleteFtsDocument(existing);
-      }
-
-      await this.updateDocument(document);
-    }
-
-    const savedDocument = await this.requireDocumentRow(document.entityType, document.entityId);
-    if (this.mode === 'fts5') {
-      await this.insertFtsDocument(savedDocument);
-      return;
-    }
-
-    await this.rebuildFallbackNgrams(savedDocument.id, document.ngrams);
   }
 
   private async insertDocument(document: SearchDocument): Promise<void> {

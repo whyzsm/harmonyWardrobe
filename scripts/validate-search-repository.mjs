@@ -72,7 +72,14 @@ assertMatches(
   'SearchRepository constructor must accept database and mode'
 );
 
-for (const method of ['upsertDocument', 'deleteDocument', 'search', 'rebuildSearchIndex']) {
+for (const method of [
+  'upsertDocument',
+  'upsertDocumentInTransaction',
+  'deleteDocument',
+  'deleteDocumentInTransaction',
+  'search',
+  'rebuildSearchIndex'
+]) {
   extractMethodBody(repository, method);
 }
 
@@ -90,7 +97,9 @@ for (const needle of [
 }
 
 const upsertBody = extractMethodBody(repository, 'upsertDocument');
+const upsertInTransactionBody = extractMethodBody(repository, 'upsertDocumentInTransaction');
 const deleteBody = extractMethodBody(repository, 'deleteDocument');
+const deleteInTransactionBody = extractMethodBody(repository, 'deleteDocumentInTransaction');
 const searchBody = extractMethodBody(repository, 'search');
 const rebuildBody = extractMethodBody(repository, 'rebuildSearchIndex');
 const searchFallbackBody = extractMethodBody(repository, 'searchFallback');
@@ -102,6 +111,11 @@ for (const [name, body] of [
 ]) {
   assertIncludes(body, 'this.database.transaction', `${name} must use database.transaction`);
 }
+
+assertIncludes(upsertBody, 'this.upsertDocumentInTransaction', 'upsertDocument must delegate to the transaction-scoped upsert method');
+assertIncludes(deleteBody, 'this.deleteDocumentInTransaction', 'deleteDocument must delegate to the transaction-scoped delete method');
+assertMatches(upsertInTransactionBody, /this\.readDocumentRow/, 'upsertDocumentInTransaction must read existing documents');
+assertMatches(deleteInTransactionBody, /DELETE_DOCUMENT_SQL/, 'deleteDocumentInTransaction must delete the document row');
 
 assertMatches(repository, /this\.mode\s*===\s*'fts5'|this\.mode\s*!==\s*'fallback'/, 'SearchRepository must branch on SearchIndexMode');
 assertIncludes(repository, "VALUES('delete'", 'FTS mode must use the FTS5 special delete command');

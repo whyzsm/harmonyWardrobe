@@ -7,7 +7,7 @@ const CREATE_CLOTHING_ITEMS_SQL = `
     category TEXT NOT NULL,
     note TEXT,
     purchase_store_name TEXT,
-    purchase_price REAL,
+    purchase_price INTEGER,
     purchase_date TEXT,
     purchase_note TEXT,
     created_at TEXT NOT NULL,

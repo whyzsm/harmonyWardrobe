@@ -60,3 +60,8 @@ if (!/outfit_id TEXT,\s+outfit_title_snapshot/s.test(text) || !text.includes('ON
   console.error('Wear logs must keep snapshots while allowing outfit template deletion.');
   process.exit(1);
 }
+
+if (!/purchase_price INTEGER/.test(text)) {
+  console.error('Clothing purchase_price must be stored as INTEGER cents to avoid decimal truncation.');
+  process.exit(1);
+}
