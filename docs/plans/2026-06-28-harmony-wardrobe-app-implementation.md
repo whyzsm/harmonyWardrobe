@@ -35,7 +35,7 @@
 - [x] Task 12: Implement Photo Storage Contract
 - [x] Task 13: Implement Photo Picker Adapter
 - [x] Task 14: Implement Clothing Repository
-- [ ] Task 15: Implement Outfit Repository
+- [x] Task 15: Implement Outfit Repository
 - [ ] Task 16: Implement Wear Log Repository
 - [ ] Task 17: Implement Wishlist Repository
 - [ ] Task 18: Implement Repository Integration Tests
