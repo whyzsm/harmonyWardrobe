@@ -26,7 +26,7 @@
 - [x] Task 3: Define Domain Models And Constants
 - [x] Task 4: Implement ID, Date, Result, And Text Utilities
 - [x] Task 5: Implement N-Gram Tokenizer Tests And Utility
-- [ ] Task 6: Implement SQLite Migration Contract
+- [x] Task 6: Implement SQLite Migration Contract
 - [ ] Task 7: Implement Database Provider
 - [ ] Task 8: Implement Schema Migration V1
 - [ ] Task 9: Implement Search Index Schema And Capability Detection
