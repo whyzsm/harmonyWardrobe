@@ -60,12 +60,19 @@ function extractTryCatchBlock(source) {
   const openBraceIndex = source.indexOf('{', match.index);
   const closeBraceIndex = findMatchingBrace(source, openBraceIndex);
   const tail = source.slice(closeBraceIndex + 1);
+  const catchMatch = /^\s*catch\s*(?:\([^)]*\)\s*)?\{/.exec(tail);
 
-  if (!/^\s*catch\s*\([^)]*\)\s*\{/.test(tail)) {
+  if (!catchMatch) {
     throw new Error('Missing catch block for try');
   }
 
-  return source.slice(openBraceIndex + 1, closeBraceIndex);
+  const catchOpenBraceIndex = source.indexOf('{', closeBraceIndex + 1 + catchMatch.index);
+  const catchCloseBraceIndex = findMatchingBrace(source, catchOpenBraceIndex);
+
+  return {
+    tryBody: source.slice(openBraceIndex + 1, closeBraceIndex),
+    catchBody: source.slice(catchOpenBraceIndex + 1, catchCloseBraceIndex)
+  };
 }
 
 function topLevelTextOnly(source) {
@@ -86,6 +93,70 @@ function topLevelTextOnly(source) {
 
   return result;
 }
+
+function assertNoThrowOrReturn(source, sourceName) {
+  if (/\b(?:throw|return)\b/.test(source)) {
+    throw new Error(`${sourceName} must not throw or return`);
+  }
+}
+
+function assertBestEffortFts5CleanupFinally(finallyBlock) {
+  if (!/DROP_SEARCH_FTS_PROBE_SQL/.test(finallyBlock)) {
+    throw new Error('Search capability must drop the FTS probe table in finally');
+  }
+
+  const finallyTopLevelText = topLevelTextOnly(finallyBlock);
+  assertNoThrowOrReturn(finallyTopLevelText, 'Search capability FTS cleanup finally top level');
+
+  if (/^\s*await\s+database\.executeSql\s*\(\s*DROP_SEARCH_FTS_PROBE_SQL\s*\)/m.test(finallyTopLevelText)) {
+    throw new Error('Search capability must not directly await probe cleanup in finally');
+  }
+
+  const cleanupTryCatchBlock = extractTryCatchBlock(finallyBlock);
+  if (!/await\s+database\.executeSql\s*\(\s*DROP_SEARCH_FTS_PROBE_SQL\s*\)/.test(cleanupTryCatchBlock.tryBody)) {
+    throw new Error('Search capability must run probe cleanup inside a nested try block');
+  }
+
+  assertNoThrowOrReturn(cleanupTryCatchBlock.catchBody, 'Search capability FTS cleanup catch');
+}
+
+function assertRejectsBadFts5CleanupFinally(finallyBlock, expectedMessage) {
+  try {
+    assertBestEffortFts5CleanupFinally(finallyBlock);
+  } catch (error) {
+    if (!String(error.message).includes(expectedMessage)) {
+      throw new Error(`Negative self-check rejected for the wrong reason: ${error.message}`);
+    }
+    return;
+  }
+
+  throw new Error(`Negative self-check must reject ${expectedMessage}`);
+}
+
+assertRejectsBadFts5CleanupFinally(`
+  try {
+    await database.executeSql(DROP_SEARCH_FTS_PROBE_SQL);
+  } catch (_error) {
+    throw _error;
+  }
+`, 'cleanup catch');
+
+assertRejectsBadFts5CleanupFinally(`
+  try {
+    await database.executeSql(DROP_SEARCH_FTS_PROBE_SQL);
+  } catch (_error) {
+    return false;
+  }
+`, 'cleanup catch');
+
+assertRejectsBadFts5CleanupFinally(`
+  try {
+    await database.executeSql(DROP_SEARCH_FTS_PROBE_SQL);
+  } catch (_error) {
+  }
+
+  return false;
+`, 'finally top level');
 
 const schema = fs.readFileSync('entry/src/main/ets/data/searchIndex/SearchIndexSchema.ets', 'utf8');
 assertContains(schema, 'Search schema', [
@@ -126,18 +197,7 @@ if (!/CREATE_SEARCH_FTS_PROBE_SQL/.test(canUseFts5Body)) {
 }
 
 const canUseFts5FinallyBlock = extractKeywordBlock(canUseFts5Body, 'finally');
-if (!/DROP_SEARCH_FTS_PROBE_SQL/.test(canUseFts5FinallyBlock)) {
-  throw new Error('Search capability must drop the FTS probe table in finally');
-}
-
-if (/^\s*await\s+database\.executeSql\s*\(\s*DROP_SEARCH_FTS_PROBE_SQL\s*\)/m.test(topLevelTextOnly(canUseFts5FinallyBlock))) {
-  throw new Error('Search capability must not directly await probe cleanup in finally');
-}
-
-const canUseFts5CleanupTryBlock = extractTryCatchBlock(canUseFts5FinallyBlock);
-if (!/await\s+database\.executeSql\s*\(\s*DROP_SEARCH_FTS_PROBE_SQL\s*\)/.test(canUseFts5CleanupTryBlock)) {
-  throw new Error('Search capability must run probe cleanup inside a nested try block');
-}
+assertBestEffortFts5CleanupFinally(canUseFts5FinallyBlock);
 
 assertOmits(schema, 'Search schema', [
   'idx_search_index_documents_entity',
