@@ -65,3 +65,8 @@ if (!/purchase_price INTEGER/.test(text)) {
   console.error('Clothing purchase_price must be stored as INTEGER cents to avoid decimal truncation.');
   process.exit(1);
 }
+
+if (!/wishlist_items[\s\S]*price INTEGER/.test(text)) {
+  console.error('Wishlist price must be stored as INTEGER cents to avoid decimal truncation.');
+  process.exit(1);
+}

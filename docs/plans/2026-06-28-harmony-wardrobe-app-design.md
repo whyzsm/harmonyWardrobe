@@ -288,7 +288,7 @@ CREATE TABLE wishlist_items (
   id TEXT PRIMARY KEY,
   title TEXT NOT NULL,
   store_name TEXT,
-  price REAL,
+  price INTEGER,
   note TEXT,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
@@ -301,6 +301,8 @@ CREATE TABLE wishlist_photos (
   sort_order INTEGER NOT NULL
 );
 ```
+
+Price fields stored as `INTEGER` represent cents; domain models keep decimal prices for UI and business logic.
 
 ## Search Design
 

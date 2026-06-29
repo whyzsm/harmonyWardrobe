@@ -86,7 +86,7 @@ const CREATE_WISHLIST_ITEMS_SQL = `
     id TEXT PRIMARY KEY NOT NULL,
     title TEXT NOT NULL,
     store_name TEXT,
-    price REAL,
+    price INTEGER,
     note TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
