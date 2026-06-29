@@ -64,6 +64,7 @@ for (const needle of [
   'SearchRepository',
   'SearchIndexMode',
   'buildClothingSearchDocument',
+  'buildOutfitSearchDocument',
   'SearchEntityType',
   'ClothingItem',
   'PurchaseInfo',
@@ -78,7 +79,8 @@ for (const needle of [
   'updateClothing',
   'deleteClothing',
   'listClothing',
-  'getClothingById'
+  'getClothingById',
+  'rebuildOutfitSearchDocumentsForClothing'
 ]) {
   assertIncludes(source, needle);
 }
@@ -122,6 +124,12 @@ assertMatches(source, /ORDER\s+BY\s+updated_at\s+DESC/i, 'listClothing must orde
 assertMatches(source, /COALESCE\(\s*note,\s*(?:\\?['"]){2}\s*\)/i, 'listClothing search must tolerate null notes');
 assertMatches(source, /upsertDocumentInTransaction\s*\(\s*buildClothingSearchDocument/i, 'create/update must update search index inside the clothing transaction');
 assertMatches(source, /deleteDocumentInTransaction\s*\(\s*SearchEntityType\.Clothing/i, 'delete must remove search index document inside the clothing transaction');
+assertMatches(source, /SELECT_OUTFIT_IDS_BY_CLOTHING_ID_SQL/, 'clothing updates must find affected outfits');
+assertMatches(source, /rebuildOutfitSearchDocumentsForClothing\s*\(\s*item\.id\s*\)/, 'clothing update must rebuild affected outfit search documents');
+assertMatches(source, /rebuildOutfitSearchDocuments\s*\(\s*affectedOutfitIds\s*\)/, 'clothing delete must rebuild affected outfit search documents after relation removal');
+assertMatches(source, /buildOutfitSearchDocument\s*\(/, 'affected outfit search documents must be rebuilt with outfit search documents');
+assertMatches(source, /WHERE\s+id\s+IN\s+\(\{placeholders\}\)/i, 'affected outfit clothing name lookup must use generated SQL placeholders');
+assertMatches(source, /SELECT_CLOTHING_NAMES_SQL\.replace\s*\(\s*['"`]\{placeholders\}['"`]\s*,\s*placeholders\s*\)/, 'affected outfit clothing name lookup must replace placeholders only, not values');
 assertMatches(source, /getClothingById\s*\([^)]*\)\s*:\s*Promise<ClothingItem\s*\|\s*undefined>/, 'getClothingById must return ClothingItem | undefined');
 
 assertOrdered(

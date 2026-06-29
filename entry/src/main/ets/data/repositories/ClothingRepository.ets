@@ -7,7 +7,10 @@ import { SearchRepository } from './SearchRepository';
 import { SearchIndexMode } from '../searchIndex/SearchCapability';
 import { ClothingCategory } from '../../domain/clothing/ClothingCategory';
 import { ClothingItem, PurchaseInfo } from '../../domain/clothing/ClothingModels';
-import { buildClothingSearchDocument } from '../../domain/search/SearchDocumentBuilder';
+import {
+  buildClothingSearchDocument,
+  buildOutfitSearchDocument
+} from '../../domain/search/SearchDocumentBuilder';
 import { SearchEntityType } from '../../domain/search/SearchModels';
 import { createId } from '../../utils/id';
 import { toIsoDateTime } from '../../utils/date';
@@ -80,6 +83,37 @@ const SELECT_CLOTHING_PHOTOS_SQL = `
   ORDER BY sort_order ASC
 `;
 
+const SELECT_OUTFIT_IDS_BY_CLOTHING_ID_SQL = `
+  SELECT outfit_id
+  FROM outfit_items
+  WHERE clothing_id = ?
+  ORDER BY outfit_id ASC
+`;
+
+const SELECT_OUTFIT_BY_ID_FOR_SEARCH_SQL = `
+  SELECT
+    id,
+    title,
+    COALESCE(note, '') AS note,
+    created_at,
+    updated_at
+  FROM outfit_templates
+  WHERE id = ?
+`;
+
+const SELECT_OUTFIT_CLOTHING_IDS_SQL = `
+  SELECT clothing_id
+  FROM outfit_items
+  WHERE outfit_id = ?
+  ORDER BY sort_order ASC
+`;
+
+const SELECT_CLOTHING_NAMES_SQL = `
+  SELECT id, name
+  FROM clothing_items
+  WHERE id IN ({placeholders})
+`;
+
 const BASE_LIST_CLOTHING_SQL = `
   SELECT
     id,
@@ -108,6 +142,14 @@ interface ClothingRow {
   purchasePrice?: number;
   purchaseDate?: string;
   purchaseNote?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface OutfitSearchRow {
+  id: string;
+  title: string;
+  note?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -253,6 +295,7 @@ export class ClothingRepository {
 
       await this.replacePhotoRows(item.id, item.photoUris);
       await this.searchRepository.upsertDocumentInTransaction(buildClothingSearchDocument(item));
+      await this.rebuildOutfitSearchDocumentsForClothing(item.id);
 
       return item;
     });
@@ -260,9 +303,11 @@ export class ClothingRepository {
 
   async deleteClothing(id: string): Promise<void> {
     await this.database.transaction(async () => {
+      const affectedOutfitIds = await this.readOutfitIdsByClothingId(id);
       await this.database.executeSql(DELETE_CLOTHING_PHOTOS_SQL, [id]);
       await this.database.executeSql(DELETE_CLOTHING_SQL, [id]);
       await this.searchRepository.deleteDocumentInTransaction(SearchEntityType.Clothing, id);
+      await this.rebuildOutfitSearchDocuments(affectedOutfitIds);
     });
   }
 
@@ -363,6 +408,125 @@ export class ClothingRepository {
     }
 
     return rows;
+  }
+
+  private async rebuildOutfitSearchDocumentsForClothing(clothingId: string): Promise<void> {
+    await this.rebuildOutfitSearchDocuments(await this.readOutfitIdsByClothingId(clothingId));
+  }
+
+  private async rebuildOutfitSearchDocuments(outfitIds: string[]): Promise<void> {
+    for (const outfitId of outfitIds) {
+      const outfit = await this.readOutfitForSearch(outfitId);
+      if (outfit === undefined) {
+        await this.searchRepository.deleteDocumentInTransaction(SearchEntityType.Outfit, outfitId);
+        continue;
+      }
+
+      const clothingItemIds = await this.readOutfitClothingItemIds(outfitId);
+      const clothingNames = await this.loadClothingNames(clothingItemIds);
+      await this.searchRepository.upsertDocumentInTransaction(buildOutfitSearchDocument({
+        id: outfit.id,
+        title: outfit.title,
+        photoUris: [],
+        clothingItemIds,
+        note: outfit.note,
+        createdAt: outfit.createdAt,
+        updatedAt: outfit.updatedAt
+      }, clothingNames));
+    }
+  }
+
+  private async readOutfitIdsByClothingId(clothingId: string): Promise<string[]> {
+    const resultSet = await this.database.querySql(SELECT_OUTFIT_IDS_BY_CLOTHING_ID_SQL, [clothingId]);
+    const outfitIds: string[] = [];
+
+    try {
+      let hasRow = resultSet.goToFirstRow();
+      while (hasRow) {
+        const outfitId = resultSet.getString('outfit_id');
+        if (outfitId.length > 0) {
+          outfitIds.push(outfitId);
+        }
+        hasRow = resultSet.goToNextRow();
+      }
+    } finally {
+      resultSet.close();
+    }
+
+    return outfitIds;
+  }
+
+  private async readOutfitForSearch(outfitId: string): Promise<OutfitSearchRow | undefined> {
+    const resultSet = await this.database.querySql(SELECT_OUTFIT_BY_ID_FOR_SEARCH_SQL, [outfitId]);
+
+    try {
+      if (!resultSet.goToFirstRow()) {
+        return undefined;
+      }
+
+      return {
+        id: resultSet.getString('id'),
+        title: resultSet.getString('title'),
+        note: optionalString(resultSet.getString('note')),
+        createdAt: resultSet.getString('created_at'),
+        updatedAt: resultSet.getString('updated_at')
+      };
+    } finally {
+      resultSet.close();
+    }
+  }
+
+  private async readOutfitClothingItemIds(outfitId: string): Promise<string[]> {
+    const resultSet = await this.database.querySql(SELECT_OUTFIT_CLOTHING_IDS_SQL, [outfitId]);
+    const clothingItemIds: string[] = [];
+
+    try {
+      let hasRow = resultSet.goToFirstRow();
+      while (hasRow) {
+        const clothingItemId = resultSet.getString('clothing_id');
+        if (clothingItemId.length > 0) {
+          clothingItemIds.push(clothingItemId);
+        }
+        hasRow = resultSet.goToNextRow();
+      }
+    } finally {
+      resultSet.close();
+    }
+
+    return clothingItemIds;
+  }
+
+  private async loadClothingNames(clothingItemIds: string[]): Promise<string[]> {
+    if (clothingItemIds.length === 0) {
+      return [];
+    }
+
+    const placeholders = clothingItemIds.map(() => '?').join(', ');
+    const resultSet = await this.database.querySql(
+      SELECT_CLOTHING_NAMES_SQL.replace('{placeholders}', placeholders),
+      clothingItemIds
+    );
+    const namesById = new Map<string, string>();
+
+    try {
+      let hasRow = resultSet.goToFirstRow();
+      while (hasRow) {
+        namesById.set(resultSet.getString('id'), resultSet.getString('name'));
+        hasRow = resultSet.goToNextRow();
+      }
+    } finally {
+      resultSet.close();
+    }
+
+    const clothingNames: string[] = [];
+    for (const clothingItemId of clothingItemIds) {
+      const clothingName = namesById.get(clothingItemId);
+      if (clothingName !== undefined) {
+        clothingNames.push(clothingName);
+      }
+    }
+
+    return clothingNames;
   }
 
   private readClothingRow(resultSet: MigrationResultSet): ClothingRow {
