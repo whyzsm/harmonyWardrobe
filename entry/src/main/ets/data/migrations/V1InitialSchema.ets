@@ -1,7 +1,5 @@
 import { Migration, MigrationDatabase } from './Migration';
 
-const ENABLE_FOREIGN_KEYS_SQL = 'PRAGMA foreign_keys = ON';
-
 const CREATE_CLOTHING_ITEMS_SQL = `
   CREATE TABLE IF NOT EXISTS clothing_items (
     id TEXT PRIMARY KEY NOT NULL,
@@ -61,7 +59,7 @@ const CREATE_OUTFIT_ITEMS_SQL = `
 const CREATE_WEAR_LOGS_SQL = `
   CREATE TABLE IF NOT EXISTS wear_logs (
     id TEXT PRIMARY KEY NOT NULL,
-    outfit_id TEXT NOT NULL,
+    outfit_id TEXT,
     outfit_title_snapshot TEXT NOT NULL,
     clothing_item_ids_snapshot TEXT NOT NULL,
     worn_date TEXT NOT NULL,
@@ -69,7 +67,7 @@ const CREATE_WEAR_LOGS_SQL = `
     note TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
-    FOREIGN KEY (outfit_id) REFERENCES outfit_templates(id) ON DELETE RESTRICT
+    FOREIGN KEY (outfit_id) REFERENCES outfit_templates(id) ON DELETE SET NULL
   )
 `;
 
@@ -136,8 +134,6 @@ export class V1InitialSchema implements Migration {
   name: string = 'initial_schema';
 
   async up(database: MigrationDatabase): Promise<void> {
-    await database.executeSql(ENABLE_FOREIGN_KEYS_SQL);
-
     for (const sql of CREATE_TABLE_SQLS) {
       await database.executeSql(sql);
     }

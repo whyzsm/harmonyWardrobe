@@ -37,6 +37,11 @@ for (const forbidden of ['CREATE VIRTUAL TABLE', 'search_index_fts', 'fts5', 'ng
   }
 }
 
+if (text.includes('PRAGMA foreign_keys')) {
+  console.error('Foreign keys must be enabled when opening the database, not inside the V1 migration transaction.');
+  process.exit(1);
+}
+
 for (const needle of [
   'outfit_title_snapshot',
   'clothing_item_ids_snapshot',
@@ -49,4 +54,9 @@ for (const needle of [
     console.error(`Missing schema detail ${needle}`);
     process.exit(1);
   }
+}
+
+if (!/outfit_id TEXT,\s+outfit_title_snapshot/s.test(text) || !text.includes('ON DELETE SET NULL')) {
+  console.error('Wear logs must keep snapshots while allowing outfit template deletion.');
+  process.exit(1);
 }

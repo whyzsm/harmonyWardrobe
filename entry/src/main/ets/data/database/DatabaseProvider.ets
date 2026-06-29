@@ -8,6 +8,7 @@ import {
 import { DatabaseError } from './DatabaseError';
 
 const DATABASE_NAME = 'harmony_wardrobe.db';
+const ENABLE_FOREIGN_KEYS_SQL = 'PRAGMA foreign_keys = ON';
 
 export class DatabaseProvider implements MigrationDatabase {
   private readonly context: common.Context;
@@ -29,6 +30,7 @@ export class DatabaseProvider implements MigrationDatabase {
 
     try {
       this.store = await relationalStore.getRdbStore(this.context, this.config);
+      await this.store.executeSql(ENABLE_FOREIGN_KEYS_SQL);
       return this.store;
     } catch (error) {
       throw new DatabaseError('Failed to open wardrobe database.', error as Error);
