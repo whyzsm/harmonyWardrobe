@@ -25,6 +25,13 @@ function assertMatches(source, pattern, message) {
   }
 }
 
+function assertNoUnsafeTypes(path, source) {
+  const unsafeType = source.match(/:\s*(?:unknown|any)\b/);
+  if (unsafeType) {
+    throw new Error(`${path} must not use unsafe type annotation ${unsafeType[0]}`);
+  }
+}
+
 function findMatchingBrace(source, openBraceIndex) {
   let depth = 0;
 
@@ -93,10 +100,10 @@ function createRunnableStorageSource(source) {
     .replace(/:\s*Promise<[^>]+>/g, '')
     .replace(/:\s*Array<[^>]+>/g, '')
     .replace(/:\s*string\[\]/g, '')
+    .replace(/:\s*Error\s*\|\s*string\s*\|\s*null\s*\|\s*undefined/g, '')
     .replace(/:\s*string\s*\|\s*undefined/g, '')
     .replace(/:\s*Error\s*\|\s*undefined/g, '')
     .replace(/:\s*Error/g, '')
-    .replace(/:\s*unknown/g, '')
     .replace(/:\s*boolean/g, '')
     .replace(/:\s*number/g, '')
     .replace(/:\s*string/g, '');
@@ -104,6 +111,9 @@ function createRunnableStorageSource(source) {
 
 const models = readRequired(modelsPath);
 const storage = readRequired(storagePath);
+
+assertNoUnsafeTypes(modelsPath, models);
+assertNoUnsafeTypes(storagePath, storage);
 
 assertInterfaceFields(models, 'PhotoSource', ['uri', 'fileName', 'mimeType']);
 assertInterfaceFields(models, 'StoredPhoto', ['localUri', 'fileName', 'createdAt']);

@@ -138,7 +138,7 @@ function sanitizeTimestamp(timestamp: string): string {
   return timestamp.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
 
-function errorMessage(error: unknown): string {
+function errorMessage(error: Error | string | null | undefined): string {
   return error instanceof Error ? error.message : String(error ?? 'Delete failed');
 }
 
@@ -184,10 +184,17 @@ export class PhotoStorage {
         retryable: false
       };
     } catch (error) {
+      let deleteError = 'Delete failed';
+      if (error instanceof Error || typeof error === 'string' || error === null || error === undefined) {
+        deleteError = errorMessage(error);
+      } else {
+        deleteError = String(error);
+      }
+
       return {
         localUri,
         deleted: false,
-        error: errorMessage(error),
+        error: deleteError,
         retryable: true
       };
     }
