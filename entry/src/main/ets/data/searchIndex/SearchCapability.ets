@@ -32,7 +32,10 @@ export async function canUseFts5(database: MigrationDatabase): Promise<boolean> 
   } catch (_error) {
     return false;
   } finally {
-    await database.executeSql(DROP_SEARCH_FTS_PROBE_SQL);
+    try {
+      await database.executeSql(DROP_SEARCH_FTS_PROBE_SQL);
+    } catch (_error) {
+    }
   }
 }
 

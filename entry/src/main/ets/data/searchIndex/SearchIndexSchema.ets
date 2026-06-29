@@ -39,7 +39,6 @@ export const CREATE_SEARCH_INDEX_FALLBACK_NGRAMS_SQL = `
 `;
 
 export const CREATE_SEARCH_INDEX_DOCUMENT_INDEX_SQLS: string[] = [
-  'CREATE INDEX IF NOT EXISTS idx_search_index_documents_entity ON search_index_documents(entity_type, entity_id)',
   'CREATE INDEX IF NOT EXISTS idx_search_index_documents_category ON search_index_documents(category)',
   'CREATE INDEX IF NOT EXISTS idx_search_index_documents_store_name ON search_index_documents(store_name)'
 ];
@@ -51,8 +50,7 @@ export const CREATE_SEARCH_INDEX_FTS_SQLS: string[] = [
 ];
 
 export const CREATE_SEARCH_INDEX_FALLBACK_INDEX_SQLS: string[] = [
-  'CREATE INDEX IF NOT EXISTS idx_search_index_ngrams_ngram ON search_index_ngrams(ngram)',
-  'CREATE INDEX IF NOT EXISTS idx_search_index_ngrams_document_id ON search_index_ngrams(document_id)'
+  'CREATE INDEX IF NOT EXISTS idx_search_index_ngrams_ngram ON search_index_ngrams(ngram)'
 ];
 
 export const CREATE_SEARCH_INDEX_FALLBACK_SQLS: string[] = [
