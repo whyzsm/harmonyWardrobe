@@ -10,6 +10,7 @@ export interface MigrationResultSet {
 export interface MigrationDatabase {
   executeSql(sql: string, bindArgs?: MigrationSqlValue[]): Promise<void>;
   querySql(sql: string, bindArgs?: MigrationSqlValue[]): Promise<MigrationResultSet>;
+  transaction<T>(operation: () => Promise<T>): Promise<T>;
 }
 
 export interface Migration {

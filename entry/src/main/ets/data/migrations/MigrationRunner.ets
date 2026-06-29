@@ -25,7 +25,7 @@ export class MigrationRunner {
 
   constructor(database: MigrationDatabase, migrations: Migration[]) {
     this.database = database;
-    this.migrations = migrations.slice().sort((left, right) => left.version - right.version);
+    this.migrations = this.validateAndSortMigrations(migrations);
   }
 
   async runMigrations(): Promise<void> {
@@ -37,10 +37,30 @@ export class MigrationRunner {
         continue;
       }
 
-      await migration.up(this.database);
-      await this.recordMigration(migration);
+      await this.database.transaction(async () => {
+        await migration.up(this.database);
+        await this.recordMigration(migration);
+      });
       appliedVersions.add(migration.version);
     }
+  }
+
+  private validateAndSortMigrations(migrations: Migration[]): Migration[] {
+    const seenVersions = new Set<number>();
+
+    for (const migration of migrations) {
+      if (!Number.isSafeInteger(migration.version) || migration.version < 1) {
+        throw new Error(`Invalid migration version: ${migration.version}`);
+      }
+
+      if (seenVersions.has(migration.version)) {
+        throw new Error(`Duplicate migration version: ${migration.version}`);
+      }
+
+      seenVersions.add(migration.version);
+    }
+
+    return migrations.slice().sort((left, right) => left.version - right.version);
   }
 
   private async ensureSchemaMigrationsTable(): Promise<void> {
