@@ -40,7 +40,7 @@
 - [x] Task 17: Implement Wishlist Repository
 - [x] Task 18: Implement Repository Integration Tests
 - [x] Task 19: Implement App Navigation Shell
-- [ ] Task 20: Implement Shared UI Components
+- [x] Task 20: Implement Shared UI Components
 - [ ] Task 21: Implement Wardrobe Page
 - [ ] Task 22: Implement Clothing Create/Edit Flow
 - [ ] Task 23: Implement Outfits Page
