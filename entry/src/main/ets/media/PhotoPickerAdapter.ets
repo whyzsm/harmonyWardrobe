@@ -1,9 +1,11 @@
-import { cameraPicker } from '@kit.CameraKit';
+import { camera, cameraPicker } from '@kit.CameraKit';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
 import common from '@ohos.app.ability.common';
 import { PhotoSource } from './PhotoModels';
 
 const DEFAULT_MAX_SELECT_NUMBER = 20;
+const MAX_GALLERY_SELECT_NUMBER = 20;
+const DEFAULT_CAMERA_POSITION: camera.CameraPosition = camera.CameraPosition.CAMERA_POSITION_BACK;
 const IMAGE_MIME_TYPE = 'image/*';
 
 export interface GalleryPickOptions {
@@ -44,23 +46,34 @@ export class HarmonyCameraCaptureProvider implements CameraCaptureProvider {
   }
 
   async capturePhoto(options?: CameraCaptureOptions): Promise<string> {
-    const profile = options?.profile ?? new cameraPicker.PickerProfile();
+    const profile = options?.profile ?? this.createDefaultPickerProfile();
     const result = await cameraPicker.pick(
       this.context,
       [cameraPicker.PickerMediaType.PHOTO],
       profile
     );
 
+    if (result.resultUri.trim().length === 0) {
+      throw new Error('HarmonyOS camera did not return a photo URI.');
+    }
+
     return result.resultUri;
+  }
+
+  private createDefaultPickerProfile(): cameraPicker.PickerProfile {
+    const profile = new cameraPicker.PickerProfile();
+    profile.cameraPosition = DEFAULT_CAMERA_POSITION;
+    return profile;
   }
 }
 
 function normalizeMaxSelectNumber(value?: number): number {
-  if (value === undefined || !Number.isFinite(value) || value <= 0) {
+  if (value === undefined || !Number.isFinite(value)) {
     return DEFAULT_MAX_SELECT_NUMBER;
   }
 
-  return Math.floor(value);
+  const flooredValue = Math.floor(value);
+  return Math.min(MAX_GALLERY_SELECT_NUMBER, Math.max(1, flooredValue));
 }
 
 export class PhotoPickerAdapter {
