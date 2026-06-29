@@ -9,6 +9,7 @@ import { SearchEntityType, SearchResult } from '../../domain/search/SearchModels
 import { buildSearchNgrams } from '../../utils/ngram';
 
 const DEFAULT_SEARCH_LIMIT = 20;
+const MAX_SEARCH_LIMIT = 100;
 
 const SELECT_DOCUMENT_SQL = `
   SELECT
@@ -190,7 +191,7 @@ export class SearchRepository {
 
     let normalizedLimit = DEFAULT_SEARCH_LIMIT;
     if (Number.isFinite(limit) && limit > 0) {
-      normalizedLimit = Math.max(1, Math.floor(limit));
+      normalizedLimit = Math.min(MAX_SEARCH_LIMIT, Math.max(1, Math.floor(limit)));
     }
 
     if (this.mode === 'fts5') {
@@ -354,11 +355,12 @@ export class SearchRepository {
       JOIN search_index_documents documents ON documents.id = ngrams.document_id
       WHERE ngrams.ngram IN (${placeholders})
       GROUP BY documents.id, documents.entity_type, documents.entity_id, documents.title
+      HAVING COUNT(DISTINCT ngrams.ngram) = ?
       ORDER BY matched_count DESC, documents.title ASC
       LIMIT ?
     `;
 
-    return this.readSearchResults(sql, [...tokens, limit]);
+    return this.readSearchResults(sql, [...tokens, tokens.length, limit]);
   }
 
   private async readSearchResults(sql: string, bindArgs: MigrationSqlValue[]): Promise<SearchResult[]> {
