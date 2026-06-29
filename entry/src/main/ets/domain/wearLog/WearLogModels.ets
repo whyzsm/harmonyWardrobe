@@ -1,6 +1,6 @@
 export interface WearLog {
   id: string;
-  outfitTemplateId: string;
+  outfitTemplateId?: string;
   outfitTitleSnapshot: string;
   clothingItemIdsSnapshot: string[];
   wornDate: string;

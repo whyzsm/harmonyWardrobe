@@ -130,7 +130,7 @@ interface OutfitRow {
 
 interface WearLogRow {
   id: string;
-  outfitTemplateId: string;
+  outfitTemplateId?: string;
   outfitTitleSnapshot: string;
   clothingItemIdsSnapshot: string[];
   wornDate: string;
@@ -207,7 +207,26 @@ function normalizeClothingItemIds(clothingItemIds?: string[]): string[] {
   return normalized;
 }
 
-function parseSnapshotIds(value: string): string[] {
+function decodeClothingItemIdsSnapshot(value: string): string[] {
+  try {
+    const parsed = JSON.parse(value) as string[];
+    if (Array.isArray(parsed)) {
+      const ids: string[] = [];
+      for (const id of parsed) {
+        if (typeof id === 'string' && id.trim().length > 0) {
+          ids.push(id.trim());
+        }
+      }
+      return ids;
+    }
+  } catch (error) {
+    return decodeLegacyClothingItemIdsSnapshot(value);
+  }
+
+  return decodeLegacyClothingItemIdsSnapshot(value);
+}
+
+function decodeLegacyClothingItemIdsSnapshot(value: string): string[] {
   const ids: string[] = [];
   for (const id of value.split(',')) {
     const trimmed = id.trim();
@@ -508,9 +527,9 @@ export class OutfitRepository {
   private readWearLogRow(resultSet: MigrationResultSet): WearLogRow {
     return {
       id: resultSet.getString('id'),
-      outfitTemplateId: resultSet.getString('outfit_id'),
+      outfitTemplateId: optionalString(resultSet.getString('outfit_id')),
       outfitTitleSnapshot: resultSet.getString('outfit_title_snapshot'),
-      clothingItemIdsSnapshot: parseSnapshotIds(resultSet.getString('clothing_item_ids_snapshot')),
+      clothingItemIdsSnapshot: decodeClothingItemIdsSnapshot(resultSet.getString('clothing_item_ids_snapshot')),
       wornDate: resultSet.getString('worn_date'),
       placeText: optionalString(resultSet.getString('place_text')),
       note: optionalString(resultSet.getString('note')),
