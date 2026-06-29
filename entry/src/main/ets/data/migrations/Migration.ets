@@ -4,6 +4,7 @@ export interface MigrationResultSet {
   goToFirstRow(): boolean;
   goToNextRow(): boolean;
   getNumber(columnName: string): number;
+  getString(columnName: string): string;
   close(): void;
 }
 

@@ -121,6 +121,10 @@ class DatabaseResultSet implements MigrationResultSet {
     return this.resultSet.getLong(this.resultSet.getColumnIndex(columnName));
   }
 
+  getString(columnName: string): string {
+    return this.resultSet.getString(this.resultSet.getColumnIndex(columnName));
+  }
+
   close(): void {
     this.resultSet.close();
   }

@@ -3,7 +3,7 @@ import fs from 'node:fs';
 const migration = fs.readFileSync('entry/src/main/ets/data/migrations/Migration.ets', 'utf8');
 const runner = fs.readFileSync('entry/src/main/ets/data/migrations/MigrationRunner.ets', 'utf8');
 
-for (const needle of ['Migration', 'version', 'up', 'transaction']) {
+for (const needle of ['Migration', 'version', 'up', 'transaction', 'getString']) {
   if (!migration.includes(needle)) throw new Error(`Migration.ets missing ${needle}`);
 }
 for (const needle of ['MigrationRunner', 'schema_migrations', 'runMigrations', 'validateAndSortMigrations', 'Duplicate migration version', 'Invalid migration version', 'transaction']) {
