@@ -1,21 +1,42 @@
+import { TodayPage } from './TodayPage';
+import { WardrobePage } from './WardrobePage';
+import { OutfitsPage } from './OutfitsPage';
+import { CalendarPage } from './CalendarPage';
+import { ShoppingPage } from './ShoppingPage';
+
 @Entry
 @Component
 struct Index {
   build() {
-    Column({ space: 12 }) {
-      Text('Harmony Wardrobe')
-        .fontSize(28)
-        .fontWeight(FontWeight.Bold)
-        .fontColor('#1F2933')
+    Tabs({ barPosition: BarPosition.End }) {
+      TabContent() {
+        TodayPage()
+      }
+      .tabBar('今日')
 
-      Text('Local wardrobe journal')
-        .fontSize(16)
-        .fontColor('#52616B')
+      TabContent() {
+        WardrobePage()
+      }
+      .tabBar('衣橱')
+
+      TabContent() {
+        OutfitsPage()
+      }
+      .tabBar('套装')
+
+      TabContent() {
+        CalendarPage()
+      }
+      .tabBar('日历')
+
+      TabContent() {
+        ShoppingPage()
+      }
+      .tabBar('逛街')
     }
     .width('100%')
     .height('100%')
-    .justifyContent(FlexAlign.Center)
-    .alignItems(HorizontalAlign.Center)
-    .backgroundColor('#F7F3EF')
+    .barMode(BarMode.Fixed)
+    .backgroundColor('#F8FAFC')
   }
 }
