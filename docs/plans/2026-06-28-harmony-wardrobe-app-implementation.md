@@ -36,7 +36,7 @@
 - [x] Task 13: Implement Photo Picker Adapter
 - [x] Task 14: Implement Clothing Repository
 - [x] Task 15: Implement Outfit Repository
-- [ ] Task 16: Implement Wear Log Repository
+- [x] Task 16: Implement Wear Log Repository
 - [ ] Task 17: Implement Wishlist Repository
 - [ ] Task 18: Implement Repository Integration Tests
 - [ ] Task 19: Implement App Navigation Shell
