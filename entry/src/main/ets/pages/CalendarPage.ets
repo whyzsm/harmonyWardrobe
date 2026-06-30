@@ -1,19 +1,55 @@
 import { EmptyState } from '../components/EmptyState';
 import { MonthCalendar } from '../components/MonthCalendar';
+import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { WearLogRepository } from '../data/repositories/WearLogRepository';
+import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { WearLog } from '../domain/wearLog/WearLogModels';
+import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
+import { PhotoStorage } from '../media/PhotoStorage';
 import { monthKey, toIsoDate } from '../utils/date';
+import { WearLogEditPage } from './WearLogEditPage';
 
 @Component
 export struct CalendarPage {
+  outfitRepository?: OutfitRepository = undefined;
+  wearLogRepository?: WearLogRepository = undefined;
+  photoPickerAdapter?: PhotoPickerAdapter = undefined;
+  photoStorage?: PhotoStorage = undefined;
+
   @State private currentMonth: string = monthKey(new Date());
   @State private selectedDate: string = toIsoDate(new Date());
   @State private markedDates: string[] = [];
   @State private selectedDateLogs: WearLog[] = [];
+  @State private outfits: OutfitTemplate[] = [];
   @State private editingWearLogId: string = '';
+  @State private showWearLogEditor: boolean = false;
   @State private loading: boolean = false;
   @State private errorMessage: string = '';
-  private wearLogRepository?: WearLogRepository = undefined;
+
+  aboutToAppear(): void {
+    this.loadCalendar();
+  }
+
+  private async loadCalendar(): Promise<void> {
+    if (this.wearLogRepository === undefined) {
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = '';
+
+    try {
+      if (this.outfitRepository !== undefined) {
+        this.outfits = await this.outfitRepository.listOutfits();
+      }
+      await this.loadMonthMarkers();
+      await this.loadSelectedDateLogs();
+    } catch (error) {
+      this.errorMessage = error instanceof Error ? error.message : '加载日历失败';
+    } finally {
+      this.loading = false;
+    }
+  }
 
   private async loadMonthMarkers(): Promise<void> {
     if (this.wearLogRepository === undefined) {
@@ -38,19 +74,55 @@ export struct CalendarPage {
 
   private startBackfillWearLog(): void {
     this.editingWearLogId = '';
+    this.showWearLogEditor = true;
   }
 
   private editWearLog(wearLog: WearLog): void {
     this.editingWearLogId = wearLog.id;
+    this.showWearLogEditor = true;
+  }
+
+  private editingWearLog(): WearLog | undefined {
+    if (this.editingWearLogId.length === 0) {
+      return undefined;
+    }
+
+    for (const wearLog of this.selectedDateLogs) {
+      if (wearLog.id === this.editingWearLogId) {
+        return wearLog;
+      }
+    }
+
+    return undefined;
+  }
+
+  private closeWearLogEditor(): void {
+    this.showWearLogEditor = false;
+    this.editingWearLogId = '';
   }
 
   private retry(): void {
-    this.loading = false;
-    this.errorMessage = '';
+    this.loadCalendar();
   }
 
   build() {
-    Scroll() {
+    if (this.showWearLogEditor) {
+      WearLogEditPage({
+        initialWearLog: this.editingWearLog(),
+        outfits: this.outfits,
+        wearLogRepository: this.wearLogRepository,
+        photoPickerAdapter: this.photoPickerAdapter,
+        photoStorage: this.photoStorage,
+        onSave: (_wearLog: WearLog) => {
+          this.closeWearLogEditor();
+          this.loadCalendar();
+        },
+        onCancel: () => {
+          this.closeWearLogEditor();
+        }
+      })
+    } else {
+      Scroll() {
       Column({ space: 16 }) {
         Row() {
           Column({ space: 4 }) {
@@ -176,5 +248,6 @@ export struct CalendarPage {
     .width('100%')
     .height('100%')
     .backgroundColor('#F8FAFC')
+    }
   }
 }

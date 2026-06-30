@@ -1,20 +1,62 @@
 import { EmptyState } from '../components/EmptyState';
 import { OutfitCard } from '../components/OutfitCard';
 import { SearchBar } from '../components/SearchBar';
+import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
+import { SearchRepository } from '../data/repositories/SearchRepository';
+import { WearLogRepository } from '../data/repositories/WearLogRepository';
+import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { OutfitTemplate } from '../domain/outfit/OutfitModels';
+import { WearLog } from '../domain/wearLog/WearLogModels';
+import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
+import { PhotoStorage } from '../media/PhotoStorage';
+import { OutfitEditPage } from './OutfitEditPage';
 import { SearchResultsPage } from './SearchResultsPage';
+import { WearLogEditPage } from './WearLogEditPage';
 
 @Component
 export struct OutfitsPage {
+  outfitRepository?: OutfitRepository = undefined;
+  clothingRepository?: ClothingRepository = undefined;
+  wearLogRepository?: WearLogRepository = undefined;
+  searchRepository?: SearchRepository = undefined;
+  photoPickerAdapter?: PhotoPickerAdapter = undefined;
+  photoStorage?: PhotoStorage = undefined;
+
   @State private searchQuery: string = '';
   @State private outfits: OutfitTemplate[] = [];
+  @State private clothingItems: ClothingItem[] = [];
   @State private selectedOutfitId: string = '';
+  @State private showOutfitEditor: boolean = false;
+  @State private showWearLogEditor: boolean = false;
   @State private showUnifiedSearch: boolean = false;
   @State private unifiedSearchQuery: string = '';
   @State private loading: boolean = false;
   @State private errorMessage: string = '';
-  private outfitRepository?: OutfitRepository = undefined;
+
+  aboutToAppear(): void {
+    this.loadOutfits();
+  }
+
+  private async loadOutfits(): Promise<void> {
+    if (this.outfitRepository === undefined) {
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = '';
+
+    try {
+      this.outfits = await this.outfitRepository.listOutfits();
+      if (this.clothingRepository !== undefined) {
+        this.clothingItems = await this.clothingRepository.listClothing();
+      }
+    } catch (error) {
+      this.errorMessage = error instanceof Error ? error.message : '加载套装失败';
+    } finally {
+      this.loading = false;
+    }
+  }
 
   private filterOutfits(): OutfitTemplate[] {
     const normalizedQuery = this.searchQuery.trim().toLowerCase();
@@ -32,12 +74,58 @@ export struct OutfitsPage {
     return outfit.photoUris.length > 0 ? outfit.photoUris[0] : '';
   }
 
+  private selectedOutfit(): OutfitTemplate | undefined {
+    if (this.selectedOutfitId.length === 0) {
+      return undefined;
+    }
+
+    for (const outfit of this.outfits) {
+      if (outfit.id === this.selectedOutfitId) {
+        return outfit;
+      }
+    }
+
+    return undefined;
+  }
+
   private onCreateOutfit(): void {
     this.selectedOutfitId = '';
+    this.showOutfitEditor = true;
   }
 
   private onRecordWear(outfit?: OutfitTemplate): void {
     this.selectedOutfitId = outfit?.id ?? '';
+    this.showWearLogEditor = true;
+  }
+
+  private upsertOutfit(savedOutfit: OutfitTemplate): void {
+    const nextOutfits: OutfitTemplate[] = [];
+    let replaced = false;
+
+    for (const outfit of this.outfits) {
+      if (outfit.id === savedOutfit.id) {
+        nextOutfits.push(savedOutfit);
+        replaced = true;
+      } else {
+        nextOutfits.push(outfit);
+      }
+    }
+
+    if (!replaced) {
+      nextOutfits.unshift(savedOutfit);
+    }
+
+    this.outfits = nextOutfits;
+  }
+
+  private closeOutfitEditor(): void {
+    this.showOutfitEditor = false;
+    this.selectedOutfitId = '';
+  }
+
+  private closeWearLogEditor(): void {
+    this.showWearLogEditor = false;
+    this.selectedOutfitId = '';
   }
 
   private openUnifiedSearch(query: string): void {
@@ -46,14 +134,43 @@ export struct OutfitsPage {
   }
 
   private retry(): void {
-    this.loading = false;
-    this.errorMessage = '';
+    this.loadOutfits();
   }
 
   build() {
-    if (this.showUnifiedSearch) {
+    if (this.showOutfitEditor) {
+      OutfitEditPage({
+        initialOutfit: this.selectedOutfit(),
+        clothingItems: this.clothingItems,
+        outfitRepository: this.outfitRepository,
+        photoPickerAdapter: this.photoPickerAdapter,
+        photoStorage: this.photoStorage,
+        onSave: (outfit: OutfitTemplate) => {
+          this.upsertOutfit(outfit);
+          this.closeOutfitEditor();
+        },
+        onCancel: () => {
+          this.closeOutfitEditor();
+        }
+      })
+    } else if (this.showWearLogEditor) {
+      WearLogEditPage({
+        initialOutfitTemplateId: this.selectedOutfitId,
+        outfits: this.outfits,
+        wearLogRepository: this.wearLogRepository,
+        photoPickerAdapter: this.photoPickerAdapter,
+        photoStorage: this.photoStorage,
+        onSave: (_wearLog: WearLog) => {
+          this.closeWearLogEditor();
+        },
+        onCancel: () => {
+          this.closeWearLogEditor();
+        }
+      })
+    } else if (this.showUnifiedSearch) {
       SearchResultsPage({
         query: this.unifiedSearchQuery,
+        searchRepository: this.searchRepository,
         outfitRepository: this.outfitRepository,
         onClose: () => {
           this.showUnifiedSearch = false;
@@ -146,6 +263,10 @@ export struct OutfitsPage {
                   itemCount: outfit.clothingItemIds.length,
                   photoUri: this.firstPhotoUri(outfit)
                 })
+                  .onClick(() => {
+                    this.selectedOutfitId = outfit.id;
+                    this.showOutfitEditor = true;
+                  })
 
                 Button('记录一次穿着')
                   .height(36)

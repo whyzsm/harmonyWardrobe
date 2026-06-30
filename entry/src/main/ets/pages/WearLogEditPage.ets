@@ -20,10 +20,11 @@ function optionalText(value: string): string | undefined {
 @Component
 export struct WearLogEditPage {
   @Prop initialWearLog?: WearLog = undefined;
+  @Prop initialOutfitTemplateId: string = '';
   @Prop outfits: OutfitTemplate[] = [];
-  @Prop wearLogRepository?: WearLogRepository = undefined;
-  @Prop photoPickerAdapter?: PhotoPickerAdapter = undefined;
-  @Prop photoStorage?: PhotoStorage = undefined;
+  wearLogRepository?: WearLogRepository = undefined;
+  photoPickerAdapter?: PhotoPickerAdapter = undefined;
+  photoStorage?: PhotoStorage = undefined;
   onSave: (wearLog: WearLog) => void = () => {};
   onCancel: () => void = () => {};
 
@@ -37,6 +38,7 @@ export struct WearLogEditPage {
 
   aboutToAppear(): void {
     if (this.initialWearLog === undefined) {
+      this.outfitTemplateId = this.initialOutfitTemplateId;
       return;
     }
 

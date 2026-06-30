@@ -4,19 +4,49 @@ import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { WearLogRepository } from '../data/repositories/WearLogRepository';
 import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { WearLog } from '../domain/wearLog/WearLogModels';
+import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
+import { PhotoStorage } from '../media/PhotoStorage';
 import { toIsoDate } from '../utils/date';
+import { WearLogEditPage } from './WearLogEditPage';
 
 @Component
 export struct TodayPage {
+  outfitRepository?: OutfitRepository = undefined;
+  wearLogRepository?: WearLogRepository = undefined;
+  photoPickerAdapter?: PhotoPickerAdapter = undefined;
+  photoStorage?: PhotoStorage = undefined;
+
   @State private todayIsoDate: string = toIsoDate(new Date());
   @State private todaysWearLog?: WearLog = undefined;
   @State private recentOutfits: OutfitTemplate[] = [];
   @State private recentWearLogs: WearLog[] = [];
   @State private selectedOutfitId: string = '';
+  @State private showWearLogEditor: boolean = false;
   @State private loading: boolean = false;
   @State private errorMessage: string = '';
-  private outfitRepository?: OutfitRepository = undefined;
-  private wearLogRepository?: WearLogRepository = undefined;
+
+  aboutToAppear(): void {
+    this.loadToday();
+  }
+
+  private async loadToday(): Promise<void> {
+    if (this.outfitRepository === undefined || this.wearLogRepository === undefined) {
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = '';
+
+    try {
+      this.recentOutfits = await this.outfitRepository.listOutfits();
+      this.recentWearLogs = await this.wearLogRepository.listWearLogsByDate(this.todayIsoDate);
+      this.todaysWearLog = this.recentWearLogs.length > 0 ? this.recentWearLogs[0] : undefined;
+    } catch (error) {
+      this.errorMessage = error instanceof Error ? error.message : '加载今日穿搭失败';
+    } finally {
+      this.loading = false;
+    }
+  }
 
   private firstOutfitPhotoUri(outfit: OutfitTemplate): string {
     return outfit.photoUris.length > 0 ? outfit.photoUris[0] : '';
@@ -28,15 +58,36 @@ export struct TodayPage {
 
   private recordToday(outfit?: OutfitTemplate): void {
     this.selectedOutfitId = outfit?.id ?? '';
+    this.showWearLogEditor = true;
+  }
+
+  private closeWearLogEditor(): void {
+    this.showWearLogEditor = false;
+    this.selectedOutfitId = '';
   }
 
   private retry(): void {
-    this.loading = false;
-    this.errorMessage = '';
+    this.loadToday();
   }
 
   build() {
-    Scroll() {
+    if (this.showWearLogEditor) {
+      WearLogEditPage({
+        initialOutfitTemplateId: this.selectedOutfitId,
+        outfits: this.recentOutfits,
+        wearLogRepository: this.wearLogRepository,
+        photoPickerAdapter: this.photoPickerAdapter,
+        photoStorage: this.photoStorage,
+        onSave: (_wearLog: WearLog) => {
+          this.closeWearLogEditor();
+          this.loadToday();
+        },
+        onCancel: () => {
+          this.closeWearLogEditor();
+        }
+      })
+    } else {
+      Scroll() {
       Column({ space: 16 }) {
         Column({ space: 4 }) {
           Text('今天')
@@ -197,5 +248,6 @@ export struct TodayPage {
     .width('100%')
     .height('100%')
     .backgroundColor('#F8FAFC')
+    }
   }
 }

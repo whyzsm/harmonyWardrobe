@@ -20,9 +20,9 @@ function optionalText(value: string): string | undefined {
 export struct OutfitEditPage {
   @Prop initialOutfit?: OutfitTemplate = undefined;
   @Prop clothingItems: ClothingItem[] = [];
-  @Prop outfitRepository?: OutfitRepository = undefined;
-  @Prop photoPickerAdapter?: PhotoPickerAdapter = undefined;
-  @Prop photoStorage?: PhotoStorage = undefined;
+  outfitRepository?: OutfitRepository = undefined;
+  photoPickerAdapter?: PhotoPickerAdapter = undefined;
+  photoStorage?: PhotoStorage = undefined;
   onSave: (outfit: OutfitTemplate) => void = () => {};
   onCancel: () => void = () => {};
 

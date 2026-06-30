@@ -24,10 +24,10 @@ function entityTypeLabel(entityType: SearchEntityType): string {
 @Component
 export struct SearchResultsPage {
   @Prop query: string = '';
-  @Prop searchRepository?: SearchRepository = undefined;
-  @Prop clothingRepository?: ClothingRepository = undefined;
-  @Prop outfitRepository?: OutfitRepository = undefined;
-  @Prop wishlistRepository?: WishlistRepository = undefined;
+  searchRepository?: SearchRepository = undefined;
+  clothingRepository?: ClothingRepository = undefined;
+  outfitRepository?: OutfitRepository = undefined;
+  wishlistRepository?: WishlistRepository = undefined;
   onClose: () => void = () => {};
 
   @State private searchResults: SearchResult[] = [];

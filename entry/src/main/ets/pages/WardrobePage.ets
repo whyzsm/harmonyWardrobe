@@ -3,8 +3,11 @@ import { CategoryTabs } from '../components/CategoryTabs';
 import { ClothingCard } from '../components/ClothingCard';
 import { EmptyState } from '../components/EmptyState';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
+import { SearchRepository } from '../data/repositories/SearchRepository';
 import { ClothingCategory } from '../domain/clothing/ClothingCategory';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
+import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
+import { PhotoStorage } from '../media/PhotoStorage';
 import { ClothingEditPage } from './ClothingEditPage';
 import { SearchResultsPage } from './SearchResultsPage';
 
@@ -37,6 +40,11 @@ function categoryLabel(category: ClothingCategory): string {
 
 @Component
 export struct WardrobePage {
+  clothingRepository?: ClothingRepository = undefined;
+  searchRepository?: SearchRepository = undefined;
+  photoPickerAdapter?: PhotoPickerAdapter = undefined;
+  photoStorage?: PhotoStorage = undefined;
+
   @State private searchQuery: string = '';
   @State private selectedCategoryLabel: string = '全部';
   @State private clothingItems: ClothingItem[] = [];
@@ -46,7 +54,27 @@ export struct WardrobePage {
   @State private unifiedSearchQuery: string = '';
   @State private loading: boolean = false;
   @State private errorMessage: string = '';
-  private clothingRepository?: ClothingRepository = undefined;
+
+  aboutToAppear(): void {
+    this.loadClothingItems();
+  }
+
+  private async loadClothingItems(): Promise<void> {
+    if (this.clothingRepository === undefined) {
+      return;
+    }
+
+    this.loading = true;
+    this.errorMessage = '';
+
+    try {
+      this.clothingItems = await this.clothingRepository.listClothing();
+    } catch (error) {
+      this.errorMessage = error instanceof Error ? error.message : '加载衣橱失败';
+    } finally {
+      this.loading = false;
+    }
+  }
 
   private selectedCategory(): ClothingCategory | undefined {
     for (const filter of WARDROBE_CATEGORY_FILTERS) {
@@ -139,8 +167,7 @@ export struct WardrobePage {
   }
 
   private retry(): void {
-    this.loading = false;
-    this.errorMessage = '';
+    this.loadClothingItems();
   }
 
   build() {
@@ -148,6 +175,8 @@ export struct WardrobePage {
       ClothingEditPage({
         initialItem: this.editingItem(),
         clothingRepository: this.clothingRepository,
+        photoPickerAdapter: this.photoPickerAdapter,
+        photoStorage: this.photoStorage,
         onSave: (item: ClothingItem) => {
           this.upsertClothingItem(item);
           this.closeEditor();
@@ -159,6 +188,7 @@ export struct WardrobePage {
     } else if (this.showUnifiedSearch) {
       SearchResultsPage({
         query: this.unifiedSearchQuery,
+        searchRepository: this.searchRepository,
         clothingRepository: this.clothingRepository,
         onClose: () => {
           this.showUnifiedSearch = false;

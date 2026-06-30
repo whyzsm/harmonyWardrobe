@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 
 const text = fs.readFileSync('entry/src/main/ets/data/database/DatabaseProvider.ets', 'utf8');
-for (const needle of ['relationalStore', 'getStore', 'executeSql', 'transaction', 'rollBack', 'rollbackCause', 'PRAGMA foreign_keys = ON', 'openStorePromise', 'openStore', 'getString']) {
+for (const needle of ['relationalStore', 'getStore', 'executeSql', 'transaction', 'rollBack', 'rollbackCause', 'PRAGMA foreign_keys = ON', 'openStorePromise', 'openStore', 'getString', 'messageWithSql', 'compactSql', 'bindArgs.length === 0', 'store.executeSql(sql)', 'store.querySql(sql)']) {
   if (!text.includes(needle)) {
     console.error(`DatabaseProvider missing ${needle}`);
     process.exit(1);

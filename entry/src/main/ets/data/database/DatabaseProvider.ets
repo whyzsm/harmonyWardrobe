@@ -10,6 +10,18 @@ import { DatabaseError } from './DatabaseError';
 const DATABASE_NAME = 'harmony_wardrobe.db';
 const ENABLE_FOREIGN_KEYS_SQL = 'PRAGMA foreign_keys = ON';
 
+function compactSql(sql: string): string {
+  return sql.replace(/\s+/g, ' ').trim();
+}
+
+function messageWithSql(message: string, sql: string, cause: Error): string {
+  if (cause.message.length === 0) {
+    return `${message} SQL: ${compactSql(sql)}`;
+  }
+
+  return `${message} SQL: ${compactSql(sql)} Cause: ${cause.message}`;
+}
+
 export class DatabaseProvider implements MigrationDatabase {
   private readonly context: common.Context;
   private readonly config: relationalStore.StoreConfig;
@@ -53,9 +65,14 @@ export class DatabaseProvider implements MigrationDatabase {
     const store = await this.getStore();
 
     try {
-      await store.executeSql(sql, bindArgs);
+      if (bindArgs.length === 0) {
+        await store.executeSql(sql);
+      } else {
+        await store.executeSql(sql, bindArgs);
+      }
     } catch (error) {
-      throw new DatabaseError('Failed to execute database statement.', error as Error);
+      const cause = error as Error;
+      throw new DatabaseError(messageWithSql('Failed to execute database statement.', sql, cause), cause);
     }
   }
 
@@ -63,9 +80,14 @@ export class DatabaseProvider implements MigrationDatabase {
     const store = await this.getStore();
 
     try {
+      if (bindArgs.length === 0) {
+        return new DatabaseResultSet(await store.querySql(sql));
+      }
+
       return new DatabaseResultSet(await store.querySql(sql, bindArgs));
     } catch (error) {
-      throw new DatabaseError('Failed to query wardrobe database.', error as Error);
+      const cause = error as Error;
+      throw new DatabaseError(messageWithSql('Failed to query wardrobe database.', sql, cause), cause);
     }
   }
 

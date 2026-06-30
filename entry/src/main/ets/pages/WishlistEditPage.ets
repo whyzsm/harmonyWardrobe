@@ -17,9 +17,9 @@ function optionalText(value: string): string | undefined {
 @Component
 export struct WishlistEditPage {
   @Prop initialItem?: WishlistItem = undefined;
-  @Prop wishlistRepository?: WishlistRepository = undefined;
-  @Prop photoPickerAdapter?: PhotoPickerAdapter = undefined;
-  @Prop photoStorage?: PhotoStorage = undefined;
+  wishlistRepository?: WishlistRepository = undefined;
+  photoPickerAdapter?: PhotoPickerAdapter = undefined;
+  photoStorage?: PhotoStorage = undefined;
   onSave: (item: WishlistItem) => void = () => {};
   onCancel: () => void = () => {};
 
