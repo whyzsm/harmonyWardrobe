@@ -42,7 +42,7 @@
 - [x] Task 19: Implement App Navigation Shell
 - [x] Task 20: Implement Shared UI Components
 - [x] Task 21: Implement Wardrobe Page
-- [ ] Task 22: Implement Clothing Create/Edit Flow
+- [x] Task 22: Implement Clothing Create/Edit Flow
 - [ ] Task 23: Implement Outfits Page
 - [ ] Task 24: Implement Outfit Create/Edit Flow
 - [ ] Task 25: Implement Today Page
