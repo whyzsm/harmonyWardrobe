@@ -1636,12 +1636,12 @@ Write `docs/delivery/first-release-verification.md` with:
 
 Before declaring implementation complete:
 
-- [ ] Every task checkbox in this plan is checked.
-- [ ] Every validation script passes.
-- [ ] HarmonyOS build status is documented.
-- [ ] Manual QA status is documented.
-- [ ] No network permission exists in module configuration.
-- [ ] Photos are stored locally, not in SQLite blobs.
-- [ ] SQLite business tables are source of truth.
-- [ ] Search index can be rebuilt.
-- [ ] Known limitations are documented.
+- [x] Every task checkbox in this plan is checked.
+- [x] Every validation script passes.
+- [x] HarmonyOS build status is documented.
+- [x] Manual QA status is documented.
+- [x] No network permission exists in module configuration.
+- [x] Photos are stored locally, not in SQLite blobs.
+- [x] SQLite business tables are source of truth.
+- [x] Search index can be rebuilt.
+- [x] Known limitations are documented.
