@@ -1,30 +1,125 @@
+import { EmptyState } from '../components/EmptyState';
+import { OutfitCard } from '../components/OutfitCard';
+import { SearchBar } from '../components/SearchBar';
+import { OutfitRepository } from '../data/repositories/OutfitRepository';
+import { OutfitTemplate } from '../domain/outfit/OutfitModels';
+
 @Component
 export struct OutfitsPage {
+  @State private searchQuery: string = '';
+  @State private outfits: OutfitTemplate[] = [];
+  @State private selectedOutfitId: string = '';
+  private outfitRepository?: OutfitRepository = undefined;
+
+  private filterOutfits(): OutfitTemplate[] {
+    const normalizedQuery = this.searchQuery.trim().toLowerCase();
+    if (normalizedQuery.length === 0) {
+      return this.outfits;
+    }
+
+    return this.outfits.filter((outfit: OutfitTemplate) => {
+      return outfit.title.toLowerCase().includes(normalizedQuery) ||
+        (outfit.note !== undefined && outfit.note.toLowerCase().includes(normalizedQuery));
+    });
+  }
+
+  private firstPhotoUri(outfit: OutfitTemplate): string {
+    return outfit.photoUris.length > 0 ? outfit.photoUris[0] : '';
+  }
+
+  private onCreateOutfit(): void {
+    this.selectedOutfitId = '';
+  }
+
+  private onRecordWear(outfit?: OutfitTemplate): void {
+    this.selectedOutfitId = outfit?.id ?? '';
+  }
+
   build() {
-    Column({ space: 18 }) {
-      Text('套装')
-        .fontSize(30)
-        .fontWeight(FontWeight.Bold)
-        .fontColor('#111827')
+    Column({ space: 16 }) {
+      Row() {
+        Column({ space: 4 }) {
+          Text('套装')
+            .fontSize(30)
+            .fontWeight(FontWeight.Bold)
+            .fontColor('#111827')
 
-      Text('组合常穿搭配，方便每天快速记录。')
-        .fontSize(16)
-        .fontColor('#475569')
+          Text('组合常穿搭配，方便每天快速记录。')
+            .fontSize(15)
+            .fontColor('#475569')
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
 
-      Column({ space: 8 }) {
-        Text('套装模板')
-          .fontSize(18)
-          .fontWeight(FontWeight.Medium)
-          .fontColor('#1F2937')
-
-        Text('创建套装后会在这里显示。')
+        Button('创建套装')
+          .height(40)
           .fontSize(14)
-          .fontColor('#64748B')
+          .fontColor('#FFFFFF')
+          .backgroundColor('#0F172A')
+          .borderRadius(8)
+          .onClick(() => {
+            this.onCreateOutfit();
+          })
       }
       .width('100%')
-      .padding(16)
-      .borderRadius(8)
-      .backgroundColor('#FFFFFF')
+      .alignItems(VerticalAlign.Center)
+
+      SearchBar({
+        value: this.searchQuery,
+        placeholder: '搜索套装、备注',
+        onChange: (value: string) => {
+          this.searchQuery = value;
+        }
+      })
+
+      Button('记录一次穿着')
+        .height(40)
+        .fontSize(14)
+        .fontColor('#0F172A')
+        .backgroundColor('#FFFFFF')
+        .borderRadius(8)
+        .border({ width: 1, color: '#CBD5E1' })
+        .onClick(() => {
+          this.onRecordWear();
+        })
+
+      if (this.filterOutfits().length === 0) {
+        EmptyState({
+          title: '还没有套装',
+          description: '创建套装后会在这里显示，也可以从套装快速记录一次穿着。'
+        })
+      } else {
+        Grid() {
+          ForEach(this.filterOutfits(), (outfit: OutfitTemplate) => {
+            GridItem() {
+              Column({ space: 8 }) {
+                OutfitCard({
+                  title: outfit.title,
+                  itemCount: outfit.clothingItemIds.length,
+                  photoUri: this.firstPhotoUri(outfit)
+                })
+
+                Button('记录一次穿着')
+                  .height(36)
+                  .width('100%')
+                  .fontSize(13)
+                  .fontColor('#0F172A')
+                  .backgroundColor('#FFFFFF')
+                  .borderRadius(8)
+                  .border({ width: 1, color: '#CBD5E1' })
+                  .onClick(() => {
+                    this.onRecordWear(outfit);
+                  })
+              }
+            }
+          }, (outfit: OutfitTemplate) => outfit.id)
+        }
+        .columnsTemplate('1fr 1fr')
+        .columnsGap(12)
+        .rowsGap(12)
+        .width('100%')
+        .layoutWeight(1)
+      }
     }
     .width('100%')
     .height('100%')
