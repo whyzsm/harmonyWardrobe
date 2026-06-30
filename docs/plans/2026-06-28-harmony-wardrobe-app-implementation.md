@@ -48,7 +48,7 @@
 - [x] Task 25: Implement Today Page
 - [x] Task 26: Implement Wear Log Create/Edit Flow
 - [x] Task 27: Implement Calendar Page
-- [ ] Task 28: Implement Shopping Page
+- [x] Task 28: Implement Shopping Page
 - [ ] Task 29: Implement Wishlist Create/Edit Flow
 - [ ] Task 30: Implement Unified Search Experience
 - [ ] Task 31: Implement Delete And Orphan Cleanup
