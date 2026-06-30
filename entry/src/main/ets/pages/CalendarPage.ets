@@ -11,6 +11,8 @@ export struct CalendarPage {
   @State private markedDates: string[] = [];
   @State private selectedDateLogs: WearLog[] = [];
   @State private editingWearLogId: string = '';
+  @State private loading: boolean = false;
+  @State private errorMessage: string = '';
   private wearLogRepository?: WearLogRepository = undefined;
 
   private async loadMonthMarkers(): Promise<void> {
@@ -42,6 +44,11 @@ export struct CalendarPage {
     this.editingWearLogId = wearLog.id;
   }
 
+  private retry(): void {
+    this.loading = false;
+    this.errorMessage = '';
+  }
+
   build() {
     Scroll() {
       Column({ space: 16 }) {
@@ -71,6 +78,29 @@ export struct CalendarPage {
         }
         .width('100%')
         .alignItems(VerticalAlign.Center)
+
+        if (this.loading) {
+          Text('loading / 正在加载日历...')
+            .fontSize(14)
+            .fontColor('#64748B')
+        }
+
+        if (this.errorMessage.length > 0) {
+          Row({ space: 8 }) {
+            Text(`error / ${this.errorMessage}`)
+              .fontSize(14)
+              .fontColor('#B91C1C')
+              .layoutWeight(1)
+
+            Button('retry')
+              .height(34)
+              .fontSize(13)
+              .onClick(() => {
+                this.retry();
+              })
+          }
+          .width('100%')
+        }
 
         Column({ space: 12 }) {
           Text(this.currentMonth)

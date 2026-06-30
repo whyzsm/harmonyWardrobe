@@ -13,6 +13,8 @@ export struct TodayPage {
   @State private recentOutfits: OutfitTemplate[] = [];
   @State private recentWearLogs: WearLog[] = [];
   @State private selectedOutfitId: string = '';
+  @State private loading: boolean = false;
+  @State private errorMessage: string = '';
   private outfitRepository?: OutfitRepository = undefined;
   private wearLogRepository?: WearLogRepository = undefined;
 
@@ -26,6 +28,11 @@ export struct TodayPage {
 
   private recordToday(outfit?: OutfitTemplate): void {
     this.selectedOutfitId = outfit?.id ?? '';
+  }
+
+  private retry(): void {
+    this.loading = false;
+    this.errorMessage = '';
   }
 
   build() {
@@ -43,6 +50,29 @@ export struct TodayPage {
         }
         .width('100%')
         .alignItems(HorizontalAlign.Start)
+
+        if (this.loading) {
+          Text('loading / 正在加载今日穿搭...')
+            .fontSize(14)
+            .fontColor('#64748B')
+        }
+
+        if (this.errorMessage.length > 0) {
+          Row({ space: 8 }) {
+            Text(`error / ${this.errorMessage}`)
+              .fontSize(14)
+              .fontColor('#B91C1C')
+              .layoutWeight(1)
+
+            Button('retry')
+              .height(34)
+              .fontSize(13)
+              .onClick(() => {
+                this.retry();
+              })
+          }
+          .width('100%')
+        }
 
         if (this.todaysWearLog === undefined) {
           EmptyState({

@@ -20,6 +20,8 @@ export struct ShoppingPage {
   @State private selectedWishlistItemId: string = '';
   @State private showUnifiedSearch: boolean = false;
   @State private unifiedSearchQuery: string = '';
+  @State private loading: boolean = false;
+  @State private errorMessage: string = '';
   private wishlistRepository?: WishlistRepository = undefined;
 
   private filterWishlistItems(): WishlistItem[] {
@@ -46,6 +48,11 @@ export struct ShoppingPage {
   private openUnifiedSearch(query: string): void {
     this.unifiedSearchQuery = query;
     this.showUnifiedSearch = query.trim().length > 0;
+  }
+
+  private retry(): void {
+    this.loading = false;
+    this.errorMessage = '';
   }
 
   build() {
@@ -85,6 +92,29 @@ export struct ShoppingPage {
       }
       .width('100%')
       .alignItems(VerticalAlign.Center)
+
+      if (this.loading) {
+        Text('loading / 正在加载心愿...')
+          .fontSize(14)
+          .fontColor('#64748B')
+      }
+
+      if (this.errorMessage.length > 0) {
+        Row({ space: 8 }) {
+          Text(`error / ${this.errorMessage}`)
+            .fontSize(14)
+            .fontColor('#B91C1C')
+            .layoutWeight(1)
+
+          Button('retry')
+            .height(34)
+            .fontSize(13)
+            .onClick(() => {
+              this.retry();
+            })
+        }
+        .width('100%')
+      }
 
       SearchBar({
         value: this.searchQuery,

@@ -44,6 +44,8 @@ export struct WardrobePage {
   @State private editingClothingId: string = '';
   @State private showUnifiedSearch: boolean = false;
   @State private unifiedSearchQuery: string = '';
+  @State private loading: boolean = false;
+  @State private errorMessage: string = '';
   private clothingRepository?: ClothingRepository = undefined;
 
   private selectedCategory(): ClothingCategory | undefined {
@@ -136,6 +138,11 @@ export struct WardrobePage {
     this.showUnifiedSearch = query.trim().length > 0;
   }
 
+  private retry(): void {
+    this.loading = false;
+    this.errorMessage = '';
+  }
+
   build() {
     if (this.showEditor) {
       ClothingEditPage({
@@ -185,6 +192,29 @@ export struct WardrobePage {
       }
       .width('100%')
       .alignItems(VerticalAlign.Center)
+
+      if (this.loading) {
+        Text('loading / 正在加载衣橱...')
+          .fontSize(14)
+          .fontColor('#64748B')
+      }
+
+      if (this.errorMessage.length > 0) {
+        Row({ space: 8 }) {
+          Text(`error / ${this.errorMessage}`)
+            .fontSize(14)
+            .fontColor('#B91C1C')
+            .layoutWeight(1)
+
+          Button('retry')
+            .height(34)
+            .fontSize(13)
+            .onClick(() => {
+              this.retry();
+            })
+        }
+        .width('100%')
+      }
 
       SearchBar({
         value: this.searchQuery,
