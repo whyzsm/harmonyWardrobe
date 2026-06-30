@@ -13,9 +13,9 @@ export struct SearchBar {
       .padding({ left: AppTheme.spacing.md, right: AppTheme.spacing.md })
       .fontSize(15)
       .fontColor(AppTheme.color.text)
-      .placeholderColor(AppTheme.color.disabled)
+      .placeholderColor(AppTheme.color.textDisabled)
       .backgroundColor(AppTheme.color.surface)
-      .borderRadius(AppTheme.radius.md)
+      .borderRadius(AppTheme.radius.lg)
       .border({ width: 1, color: AppTheme.color.border })
       .onChange((value: string) => {
         this.onChange(value);

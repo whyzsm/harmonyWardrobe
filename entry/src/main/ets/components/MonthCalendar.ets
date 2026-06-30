@@ -1,3 +1,5 @@
+import { AppTheme } from '../theme/Tokens';
+
 interface CalendarDay {
   key: string;
   date: string;
@@ -75,21 +77,21 @@ export struct MonthCalendar {
           Column({ space: 4 }) {
             Text(day.dayNumber)
               .fontSize(14)
-              .fontColor(day.date === this.selectedDate ? '#FFFFFF' : '#111827')
+              .fontColor(day.date === this.selectedDate ? AppTheme.color.surface : AppTheme.color.text)
 
             if (day.marked) {
               Text('•')
                 .fontSize(16)
-                .fontColor(day.date === this.selectedDate ? '#FFFFFF' : '#0F172A')
+                .fontColor(day.date === this.selectedDate ? AppTheme.color.surface : AppTheme.color.primary)
             }
           }
           .width('100%')
           .height(44)
           .justifyContent(FlexAlign.Center)
           .alignItems(HorizontalAlign.Center)
-          .borderRadius(8)
-          .backgroundColor(day.date === this.selectedDate ? '#0F172A' : '#FFFFFF')
-          .border({ width: 1, color: day.marked ? '#0F172A' : '#E2E8F0' })
+          .borderRadius(AppTheme.radius.md)
+          .backgroundColor(day.date === this.selectedDate ? AppTheme.color.primary : AppTheme.color.surface)
+          .border({ width: 1, color: day.marked ? AppTheme.color.primary : AppTheme.color.border })
           .onClick(() => {
             if (day.inMonth) {
               this.onSelectDate(day.date);

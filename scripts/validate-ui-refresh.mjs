@@ -46,3 +46,24 @@ for (const file of componentFiles) {
   forbidIncludes(source, "'#0F172A'", `${file} old near-black action`);
   forbidIncludes(source, "'#E2E8F0'", `${file} old slate border`);
 }
+
+const controlFiles = [
+  'entry/src/main/ets/components/SearchBar.ets',
+  'entry/src/main/ets/components/CategoryTabs.ets',
+  'entry/src/main/ets/components/MonthCalendar.ets',
+  'entry/src/main/ets/components/EmptyState.ets'
+];
+
+for (const file of controlFiles) {
+  const source = fs.readFileSync(file, 'utf8');
+  requireIncludes(source, "import { AppTheme } from '../theme/Tokens';", `${file} theme import`);
+  requireIncludes(source, 'AppTheme.color.', `${file} theme colors`);
+  forbidIncludes(source, "'#0F172A'", `${file} old selected state`);
+  forbidIncludes(source, "'#E2E8F0'", `${file} old border`);
+}
+
+requireIncludes(
+  fs.readFileSync('entry/src/main/ets/components/MonthCalendar.ets', 'utf8'),
+  'AppTheme.color.primary',
+  'MonthCalendar selected blue'
+);

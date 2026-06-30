@@ -21,8 +21,8 @@ export struct EmptyState {
     .width('100%')
     .padding(AppTheme.spacing.xl)
     .alignItems(HorizontalAlign.Center)
-    .borderRadius(AppTheme.radius.md)
-    .backgroundColor(AppTheme.color.surface)
+    .borderRadius(AppTheme.radius.lg)
+    .backgroundColor(AppTheme.color.surfaceRaised)
     .border({ width: 1, color: AppTheme.color.border })
   }
 }
