@@ -3,15 +3,39 @@ import fs from 'node:fs';
 const indexPath = 'entry/src/main/ets/pages/Index.ets';
 const index = fs.readFileSync(indexPath, 'utf8');
 
-for (const tab of ['TodayPage', 'WardrobePage', 'OutfitsPage', 'CalendarPage', 'ShoppingPage']) {
+for (const tab of ['TodayPage', 'WardrobePage', 'CalendarPage', 'ShoppingPage']) {
   if (!index.includes(tab)) {
     throw new Error(`Index missing ${tab}`);
   }
 }
 
-for (const label of ['今日', '衣橱', '套装', '日历', '逛街']) {
+for (const label of ['首页', '衣橱', '+', '日历', '逛街']) {
   if (!index.includes(label)) {
     throw new Error(`Index missing nav label ${label}`);
+  }
+}
+
+for (const forbidden of [".tabBar('今日')", ".tabBar('套装')"]) {
+  if (index.includes(forbidden)) {
+    throw new Error(`Index still contains forbidden nav tab ${forbidden}`);
+  }
+}
+
+for (const action of ['添加衣服', '创建套装', '记录今日']) {
+  if (!index.includes(action)) {
+    throw new Error(`Index missing quick action ${action}`);
+  }
+}
+
+for (const editor of ['ClothingEditPage', 'OutfitEditPage', 'WearLogEditPage']) {
+  if (!index.includes(editor)) {
+    throw new Error(`Index missing quick action editor ${editor}`);
+  }
+}
+
+for (const styleNeedle of ['AppTheme.color.primary', 'AppTheme.color.surface', '.width(56)', '.height(48)']) {
+  if (!index.includes(styleNeedle)) {
+    throw new Error(`Index missing center plus style ${styleNeedle}`);
   }
 }
 

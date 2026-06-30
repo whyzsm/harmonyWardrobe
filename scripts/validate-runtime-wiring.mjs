@@ -77,7 +77,11 @@ for (const needle of [
   'searchRepository: this.runtime.searchRepository',
   'photoPickerAdapter: this.runtime.photoPickerAdapter',
   'photoStorage: this.runtime.photoStorage',
-  'OutfitsPage({',
+  'ClothingEditPage({',
+  'OutfitEditPage({',
+  'WearLogEditPage({',
+  'this.runtime.outfitRepository.listOutfits()',
+  'this.runtime.clothingRepository.listClothing()',
   'CalendarPage({',
   'ShoppingPage({',
   'runtime / 正在初始化'
