@@ -2,6 +2,7 @@
 export struct CategoryTabs {
   @Prop categories: string[] = [];
   @Prop selected: string = '';
+  onSelect: (category: string) => void = () => {};
 
   build() {
     Scroll() {
@@ -14,6 +15,9 @@ export struct CategoryTabs {
             .backgroundColor(category === this.selected ? '#0F172A' : '#FFFFFF')
             .borderRadius(8)
             .border({ width: 1, color: category === this.selected ? '#0F172A' : '#E2E8F0' })
+            .onClick(() => {
+              this.onSelect(category);
+            })
         }, (category: string) => category)
       }
       .padding({ right: 20 })

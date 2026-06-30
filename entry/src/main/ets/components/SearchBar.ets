@@ -2,6 +2,7 @@
 export struct SearchBar {
   @Prop value: string = '';
   @Prop placeholder: string = '搜索';
+  onChange: (value: string) => void = () => {};
 
   build() {
     TextInput({ text: this.value, placeholder: this.placeholder })
@@ -14,5 +15,8 @@ export struct SearchBar {
       .backgroundColor('#FFFFFF')
       .borderRadius(8)
       .border({ width: 1, color: '#E2E8F0' })
+      .onChange((value: string) => {
+        this.onChange(value);
+      })
   }
 }

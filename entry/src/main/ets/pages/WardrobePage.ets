@@ -1,30 +1,142 @@
+import { SearchBar } from '../components/SearchBar';
+import { CategoryTabs } from '../components/CategoryTabs';
+import { ClothingCard } from '../components/ClothingCard';
+import { EmptyState } from '../components/EmptyState';
+import { ClothingRepository } from '../data/repositories/ClothingRepository';
+import { ClothingCategory } from '../domain/clothing/ClothingCategory';
+import { ClothingItem } from '../domain/clothing/ClothingModels';
+
+interface WardrobeCategoryFilter {
+  label: string;
+  category?: ClothingCategory;
+}
+
+const WARDROBE_CATEGORY_FILTERS: WardrobeCategoryFilter[] = [
+  { label: '全部' },
+  { label: '上衣', category: ClothingCategory.Top },
+  { label: '裤装', category: ClothingCategory.Pants },
+  { label: '裙装', category: ClothingCategory.Skirt },
+  { label: '外套', category: ClothingCategory.Outerwear },
+  { label: '鞋', category: ClothingCategory.Shoes },
+  { label: '包', category: ClothingCategory.Bag },
+  { label: '配饰', category: ClothingCategory.Accessory },
+  { label: '其他', category: ClothingCategory.Other }
+];
+
+function categoryLabel(category: ClothingCategory): string {
+  for (const filter of WARDROBE_CATEGORY_FILTERS) {
+    if (filter.category === category) {
+      return filter.label;
+    }
+  }
+
+  return '其他';
+}
+
 @Component
 export struct WardrobePage {
+  @State private searchQuery: string = '';
+  @State private selectedCategoryLabel: string = '全部';
+  @State private clothingItems: ClothingItem[] = [];
+  private clothingRepository?: ClothingRepository = undefined;
+
+  private selectedCategory(): ClothingCategory | undefined {
+    for (const filter of WARDROBE_CATEGORY_FILTERS) {
+      if (filter.label === this.selectedCategoryLabel) {
+        return filter.category;
+      }
+    }
+
+    return undefined;
+  }
+
+  private filterClothingItems(): ClothingItem[] {
+    const selectedCategory = this.selectedCategory();
+    const normalizedQuery = this.searchQuery.trim().toLowerCase();
+
+    return this.clothingItems.filter((item: ClothingItem) => {
+      const matchesCategory = selectedCategory === undefined || item.category === selectedCategory;
+      const matchesQuery = normalizedQuery.length === 0 ||
+        item.name.toLowerCase().includes(normalizedQuery) ||
+        (item.note !== undefined && item.note.toLowerCase().includes(normalizedQuery));
+
+      return matchesCategory && matchesQuery;
+    });
+  }
+
+  private categoryLabels(): string[] {
+    return WARDROBE_CATEGORY_FILTERS.map((filter: WardrobeCategoryFilter) => filter.label);
+  }
+
+  private firstPhotoUri(item: ClothingItem): string {
+    return item.photoUris.length > 0 ? item.photoUris[0] : '';
+  }
+
   build() {
-    Column({ space: 18 }) {
-      Text('衣橱')
-        .fontSize(30)
-        .fontWeight(FontWeight.Bold)
-        .fontColor('#111827')
+    Column({ space: 16 }) {
+      Row() {
+        Column({ space: 4 }) {
+          Text('衣橱')
+            .fontSize(30)
+            .fontWeight(FontWeight.Bold)
+            .fontColor('#111827')
 
-      Text('管理上衣、裤装、裙装、外套、鞋包和配饰。')
-        .fontSize(16)
-        .fontColor('#475569')
+          Text('管理上衣、裤装、裙装、外套、鞋包和配饰。')
+            .fontSize(15)
+            .fontColor('#475569')
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
 
-      Column({ space: 8 }) {
-        Text('衣物列表')
-          .fontSize(18)
-          .fontWeight(FontWeight.Medium)
-          .fontColor('#1F2937')
-
-        Text('添加衣服后会在这里显示。')
+        Button('添加衣服')
+          .height(40)
           .fontSize(14)
-          .fontColor('#64748B')
+          .fontColor('#FFFFFF')
+          .backgroundColor('#0F172A')
+          .borderRadius(8)
       }
       .width('100%')
-      .padding(16)
-      .borderRadius(8)
-      .backgroundColor('#FFFFFF')
+      .alignItems(VerticalAlign.Center)
+
+      SearchBar({
+        value: this.searchQuery,
+        placeholder: '搜索衣服、备注',
+        onChange: (value: string) => {
+          this.searchQuery = value;
+        }
+      })
+
+      CategoryTabs({
+        categories: this.categoryLabels(),
+        selected: this.selectedCategoryLabel,
+        onSelect: (category: string) => {
+          this.selectedCategoryLabel = category;
+        }
+      })
+
+      if (this.filterClothingItems().length === 0) {
+        EmptyState({
+          title: '还没有衣物',
+          description: '添加衣服后会在这里显示，也可以按分类和关键词筛选。'
+        })
+      } else {
+        Grid() {
+          ForEach(this.filterClothingItems(), (item: ClothingItem) => {
+            GridItem() {
+              ClothingCard({
+                name: item.name,
+                category: categoryLabel(item.category),
+                photoUri: this.firstPhotoUri(item)
+              })
+            }
+          }, (item: ClothingItem) => item.id)
+        }
+        .columnsTemplate('1fr 1fr')
+        .columnsGap(12)
+        .rowsGap(12)
+        .width('100%')
+        .layoutWeight(1)
+      }
     }
     .width('100%')
     .height('100%')
