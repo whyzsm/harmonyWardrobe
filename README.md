@@ -41,12 +41,20 @@ for script in scripts/*.mjs; do node "$script"; done
 git diff --check
 ```
 
-中文：运行 HarmonyOS 构建时，使用本机 DevEco command-line-tools 的 `hvigorw`：
+中文：运行 HarmonyOS 构建时，使用本机 DevEco command-line-tools 的 `hvigorw`。完整 App 构建命令：
 
-English: To run the HarmonyOS build, use `hvigorw` from the local DevEco command-line-tools installation:
+English: To run the HarmonyOS build, use `hvigorw` from the local DevEco command-line-tools installation. Full App build command:
 
 ```bash
 <command-line-tools>/bin/hvigorw assembleApp --no-daemon --no-incremental --no-parallel --stacktrace
+```
+
+中文：只构建 entry 模块 HAP 时，使用 module 模式并指定 product、module 和 target：
+
+English: To build only the entry module HAP, use module mode and specify product, module, and target:
+
+```bash
+<command-line-tools>/bin/hvigorw --mode module -p product=default -p module=entry@default assembleHap --no-daemon --no-incremental --no-parallel --stacktrace
 ```
 
 中文：本仓库提交了 Hvigor 项目配置，但不提交 `.hvigor/`、`build/` 或 `entry/build/` 生成物。

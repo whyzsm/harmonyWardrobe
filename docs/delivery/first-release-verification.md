@@ -48,17 +48,25 @@ English: Result: passed, with no trailing whitespace or patch-format issues.
 
 ## 构建结果 / Build Result
 
-中文：已执行 HarmonyOS app 构建：
+中文：已执行 HarmonyOS App 构建：
 
-English: The HarmonyOS app build was executed:
+English: The HarmonyOS App build was executed:
 
 ```bash
 /Users/seminzhu/Downloads/command-line-tools/bin/hvigorw assembleApp --no-daemon --no-incremental --no-parallel --stacktrace
 ```
 
-中文：结果：通过，输出 `BUILD SUCCESSFUL`。构建产物生成在 ignored 的 `build/` 与 `entry/build/` 目录中。
+中文：已执行 entry 模块 HAP 构建：
 
-English: Result: passed, with `BUILD SUCCESSFUL` in the output. Build artifacts were generated under ignored `build/` and `entry/build/` directories.
+English: The entry module HAP build was executed:
+
+```bash
+/Users/seminzhu/Downloads/command-line-tools/bin/hvigorw --mode module -p product=default -p module=entry@default assembleHap --no-daemon --no-incremental --no-parallel --stacktrace
+```
+
+中文：结果：两条构建命令均通过，输出 `BUILD SUCCESSFUL`。构建产物生成在 ignored 的 `build/` 与 `entry/build/` 目录中。
+
+English: Result: both build commands passed, with `BUILD SUCCESSFUL` in the output. Build artifacts were generated under ignored `build/` and `entry/build/` directories.
 
 中文：本次为支持可复现构建，补充了 Hvigor 项目配置、entry 模块构建配置、entry 模块 oh-package、启动窗口图标与背景资源。未添加网络权限或本机签名配置。
 
