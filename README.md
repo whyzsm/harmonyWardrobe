@@ -1,38 +1,62 @@
-### 3 分钟了解如何进入开发
+# Harmony Wardrobe / Harmony Wardrobe
 
-欢迎使用云效代码管理 Codeup，通过阅读以下内容，你可以快速熟悉 Codeup ，并立即开始今天的工作。
+## 项目简介 / Project Overview
 
-### 提交**文件**
+中文：Harmony Wardrobe 是一个本地优先的 HarmonyOS Stage 衣橱管理应用，用于记录衣物、穿搭模板、每日穿着、日历回顾、购物心愿和统一搜索。
 
-Codeup 支持两种方式进行代码提交：网页端提交，以及本地 Git 客户端提交。
+English: Harmony Wardrobe is a local-first HarmonyOS Stage wardrobe app for clothing records, outfit templates, daily wear logs, calendar recall, shopping wishlist items, and unified search.
 
-* 如需体验本地命令行操作，请先安装 Git 工具，安装方法参见[安装Git](https://help.aliyun.com/document_detail/153800.html)。
+中文：应用不依赖网络服务；业务数据保存在本地 SQLite 表中，照片由媒体层复制到应用本地存储后以 URI 引用。
 
-* 如需体验 SSH 方式克隆和提交代码，请先在平台账号内配置 SSH 公钥，配置方法参见[配置 SSH 密钥](https://help.aliyun.com/document_detail/153709.html)。
+English: The app does not depend on network services; business data is stored in local SQLite tables, and photos are copied by the media layer into app-local storage and referenced by URI.
 
-* 如需体验 HTTP 方式克隆和提交代码，请先在平台账号内配置克隆账密，配置方法参见[配置 HTTPS 克隆账号密码](https://help.aliyun.com/document_detail/153710.html)。
+## 功能范围 / Feature Scope
 
-现在，你可以在 Codeup 中提交代码文件了，跟着文档「[__提交第一行代码__](https://help.aliyun.com/document_detail/153707.html?spm=a2c4g.153710.0.0.3c213774PFSMIV#6a5dbb1063ai5)」一起操作试试看吧。
+中文：首版包含 Today、Wardrobe、Outfits、Calendar 和 Shopping 五个主标签页，并支持衣物、穿搭、穿着日志、心愿单的新增、编辑、删除和空态、加载态、错误态展示。
 
-<img src="https://img.alicdn.com/imgextra/i3/O1CN013zHrNR1oXgGu8ccvY_!!6000000005235-0-tps-2866-1268.jpg" width="100%" />
+English: The first release includes five main tabs: Today, Wardrobe, Outfits, Calendar, and Shopping, with create, edit, delete, empty, loading, and error states for clothing, outfits, wear logs, and wishlist items.
 
+中文：搜索能力通过可重建的派生索引实现，优先使用 SQLite FTS5；当运行时不支持 FTS5 时，使用普通 n-gram fallback 表。
 
-### 进行代码检测
+English: Search is implemented through a rebuildable derived index, preferring SQLite FTS5 and falling back to a normal n-gram table when the runtime does not support FTS5.
 
-开发过程中，为了更好的维护你的代码质量，你可以开启 Codeup 内置开箱即用的「[代码检测服务](https://help.aliyun.com/document_detail/434321.html)」，开启后提交或合并请求的变更将自动触发检测，识别代码编写规范和安全漏洞问题，并及时提供结果报表和修复建议。
+## 目录结构 / Directory Structure
 
-<img src="https://img.alicdn.com/imgextra/i2/O1CN01BRzI1I1IO0CR2i4Aw_!!6000000000882-0-tps-2862-1362.jpg" width="100%" />
+中文：核心代码位于 `entry/src/main/ets`，按 `pages`、`components`、`domain`、`data`、`media` 和 `utils` 分层。
 
-### 开展代码评审
+English: Core code lives under `entry/src/main/ets`, layered into `pages`, `components`, `domain`, `data`, `media`, and `utils`.
 
-功能开发完毕后，通常你需要发起「[代码评审并执行合并](https://help.aliyun.com/document_detail/153872.html)」，Codeup 支持多人协作的代码评审服务，你可以通过「[保护分支设置合并规则](https://help.aliyun.com/document_detail/153873.html?spm=a2c4g.203108.0.0.430765d1l9tTRR#p-4on-aep-l5q)」策略及「[__合并请求设置__](https://help.aliyun.com/document_detail/153874.html?spm=a2c4g.153871.0.0.3d38686cJpcdJI)」对合并过程进行流程化管控，同时提供在线代码评审及冲突解决能力，让评审过程更加流畅。
+中文：验证脚本位于 `scripts/*.mjs`；架构、计划、QA 和交付说明位于 `docs/`。
 
-<img src="https://img.alicdn.com/imgextra/i1/O1CN01MaBDFH1WWcGnQqMHy_!!6000000002796-0-tps-2592-1336.jpg" width="100%" />
+English: Validation scripts live in `scripts/*.mjs`; architecture, plans, QA, and delivery notes live under `docs/`.
 
-### 成员协作
+## 本地验证 / Local Verification
 
-是时候邀请成员一起编写卓越的代码工程了，请点击左下角「成员」邀请你的小伙伴开始协作吧！
+中文：运行全部静态和契约验证：
 
-### 更多
+English: Run all static and contract validations:
 
-Git 使用教学、高级功能指引等更多说明，参见[Codeup帮助文档](https://help.aliyun.com/document_detail/153402.html)。
+```bash
+for script in scripts/*.mjs; do node "$script"; done
+git diff --check
+```
+
+中文：本仓库当前没有提交 `hvigorw` wrapper。执行 HarmonyOS 构建前，需要在本机安装并配置可用的 HarmonyOS/DevEco 构建工具，或补充项目认可的构建入口。
+
+English: This repository currently does not commit an `hvigorw` wrapper. Before running a HarmonyOS build, install and configure the local HarmonyOS/DevEco build toolchain or add the project-approved build entry.
+
+## 手工 QA / Manual QA
+
+中文：离线手工 QA 脚本位于 `docs/qa/manual-test-script.md`，覆盖 Today、Wardrobe、Outfits、Calendar、Shopping、photo、search 和 offline persistence。
+
+English: The offline manual QA script is in `docs/qa/manual-test-script.md`, covering Today, Wardrobe, Outfits, Calendar, Shopping, photo, search, and offline persistence.
+
+中文：首版交付验证记录位于 `docs/delivery/first-release-verification.md`，其中区分已执行验证、未执行构建或真机 QA 的原因，以及替代验证证据。
+
+English: First-release verification notes are in `docs/delivery/first-release-verification.md`, separating executed validations, reasons for skipped build or device QA, and substitute evidence.
+
+## 约束 / Constraints
+
+中文：不要添加网络权限，不要把照片二进制写入 SQLite，不要提交 `.hvigor/outputs/build-logs/build.log`。
+
+English: Do not add network permission, do not store photo binaries in SQLite, and do not commit `.hvigor/outputs/build-logs/build.log`.
