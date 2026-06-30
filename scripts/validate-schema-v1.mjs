@@ -70,3 +70,42 @@ if (!/wishlist_items[\s\S]*price INTEGER/.test(text)) {
   console.error('Wishlist price must be stored as INTEGER cents to avoid decimal truncation.');
   process.exit(1);
 }
+
+const repairCallIndex = text.indexOf('await ensureClothingPurchaseColumns(database)');
+const indexLoopIndex = text.indexOf('for (const sql of CREATE_INDEX_SQLS)');
+if (repairCallIndex < 0 || indexLoopIndex < 0 || repairCallIndex > indexLoopIndex) {
+  console.error('V1 schema must repair clothing purchase columns before creating purchase indexes.');
+  process.exit(1);
+}
+
+const v2File = 'entry/src/main/ets/data/migrations/V2ClothingPurchaseColumns.ets';
+const runtimeFile = 'entry/src/main/ets/app/WardrobeRuntime.ets';
+if (!fs.existsSync(v2File)) {
+  console.error(`${v2File} must exist to repair old installed databases missing purchase columns.`);
+  process.exit(1);
+}
+
+const v2Text = fs.readFileSync(v2File, 'utf8');
+for (const needle of [
+  'V2ClothingPurchaseColumns',
+  'version: number = 2',
+  'clothing_purchase_columns',
+  'PRAGMA table_info(clothing_items)',
+  'purchase_store_name',
+  'purchase_price',
+  'purchase_date',
+  'purchase_note',
+  'ALTER TABLE clothing_items ADD COLUMN',
+  'hasColumn'
+]) {
+  if (!v2Text.includes(needle)) {
+    console.error(`V2 clothing purchase migration missing ${needle}`);
+    process.exit(1);
+  }
+}
+
+const runtimeText = fs.readFileSync(runtimeFile, 'utf8');
+if (!runtimeText.includes('v2ClothingPurchaseColumns') || !runtimeText.includes('[v1InitialSchema, v2ClothingPurchaseColumns]')) {
+  console.error('WardrobeRuntime must run the V2 clothing purchase migration after V1.');
+  process.exit(1);
+}

@@ -3,6 +3,7 @@ import { fileIo } from '@kit.CoreFileKit';
 import { DatabaseProvider } from '../data/database/DatabaseProvider';
 import { MigrationRunner } from '../data/migrations/MigrationRunner';
 import { v1InitialSchema } from '../data/migrations/V1InitialSchema';
+import { v2ClothingPurchaseColumns } from '../data/migrations/V2ClothingPurchaseColumns';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { SearchRepository } from '../data/repositories/SearchRepository';
@@ -62,7 +63,7 @@ export class WardrobeRuntime {
 
   static async create(context: common.Context): Promise<WardrobeRuntime> {
     const database = new DatabaseProvider(context);
-    const migrationRunner = new MigrationRunner(database, [v1InitialSchema]);
+    const migrationRunner = new MigrationRunner(database, [v1InitialSchema, v2ClothingPurchaseColumns]);
     await migrationRunner.runMigrations();
     await WardrobeRuntime.ensureBaseSchema(database);
 
@@ -85,5 +86,6 @@ export class WardrobeRuntime {
 
   private static async ensureBaseSchema(database: DatabaseProvider): Promise<void> {
     await v1InitialSchema.up(database);
+    await v2ClothingPurchaseColumns.up(database);
   }
 }

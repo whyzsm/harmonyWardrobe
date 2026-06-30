@@ -1,4 +1,5 @@
 import { Migration, MigrationDatabase } from './Migration';
+import { ensureClothingPurchaseColumns } from './V2ClothingPurchaseColumns';
 
 const CREATE_CLOTHING_ITEMS_SQL = `
   CREATE TABLE IF NOT EXISTS clothing_items (
@@ -137,6 +138,8 @@ export class V1InitialSchema implements Migration {
     for (const sql of CREATE_TABLE_SQLS) {
       await database.executeSql(sql);
     }
+
+    await ensureClothingPurchaseColumns(database);
 
     for (const sql of CREATE_INDEX_SQLS) {
       await database.executeSql(sql);

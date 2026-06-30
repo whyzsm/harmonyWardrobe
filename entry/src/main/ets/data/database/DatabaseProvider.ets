@@ -22,6 +22,18 @@ function messageWithSql(message: string, sql: string, cause: Error): string {
   return `${message} SQL: ${compactSql(sql)} Cause: ${cause.message}`;
 }
 
+function messageWithCause(message: string, cause: Error): string {
+  if (cause.message.length === 0) {
+    return message;
+  }
+
+  return `${message} Cause: ${cause.message}`;
+}
+
+function isDatabaseError(error: Error): boolean {
+  return error instanceof DatabaseError || error.name === 'DatabaseError';
+}
+
 export class DatabaseProvider implements MigrationDatabase {
   private readonly context: common.Context;
   private readonly config: relationalStore.StoreConfig;
@@ -96,7 +108,8 @@ export class DatabaseProvider implements MigrationDatabase {
     try {
       store.beginTransaction();
     } catch (error) {
-      throw new DatabaseError('Failed to begin database transaction.', error as Error);
+      const cause = error as Error;
+      throw new DatabaseError(messageWithCause('Failed to begin database transaction.', cause), cause);
     }
 
     try {
@@ -104,7 +117,8 @@ export class DatabaseProvider implements MigrationDatabase {
       try {
         store.commit();
       } catch (error) {
-        throw new DatabaseError('Failed to commit database transaction.', error as Error);
+        const cause = error as Error;
+        throw new DatabaseError(messageWithCause('Failed to commit database transaction.', cause), cause);
       }
       return result;
     } catch (error) {
@@ -115,11 +129,13 @@ export class DatabaseProvider implements MigrationDatabase {
         rollbackCause = rollbackError as Error;
       }
 
-      if (error instanceof DatabaseError) {
-        throw new DatabaseError(error.message, error.cause, rollbackCause);
+      const cause = error as Error;
+      if (isDatabaseError(cause)) {
+        const databaseError = cause as DatabaseError;
+        throw new DatabaseError(databaseError.message, databaseError.cause, rollbackCause);
       }
 
-      throw new DatabaseError('Failed to execute database transaction.', error as Error, rollbackCause);
+      throw new DatabaseError(messageWithCause('Failed to execute database transaction.', cause), cause, rollbackCause);
     }
   }
 }
