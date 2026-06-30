@@ -6,6 +6,7 @@ const required = [
   'entry/src/main/ets/entryability/EntryAbility.ets',
   'entry/src/main/ets/pages/Index.ets',
   'entry/src/main/resources/base/element/string.json',
+  'entry/src/main/resources/base/profile/main_pages.json',
   'build-profile.json5',
   'hvigorfile.ts',
   'oh-package.json5'
@@ -36,4 +37,14 @@ const missingDirs = requiredDirs.filter((dir) => !fs.existsSync(dir) || !fs.stat
 if (missingDirs.length > 0) {
   console.error(`Missing directories:\n${missingDirs.map((dir) => `- ${dir}`).join('\n')}`);
   process.exit(1);
+}
+
+const moduleJson = fs.readFileSync('entry/src/main/module.json5', 'utf8');
+if (!moduleJson.includes('"pages": "$profile:main_pages"')) {
+  throw new Error('module.json5 must declare pages profile');
+}
+
+const mainPages = JSON.parse(fs.readFileSync('entry/src/main/resources/base/profile/main_pages.json', 'utf8'));
+if (!Array.isArray(mainPages.src) || !mainPages.src.includes('pages/Index')) {
+  throw new Error('main_pages.json must route pages/Index');
 }

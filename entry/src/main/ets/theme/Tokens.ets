@@ -1,4 +1,36 @@
-export const AppTheme = {
+export interface AppThemeColorTokens {
+  primary: string;
+  primaryStrong: string;
+  surface: string;
+  surfaceMuted: string;
+  border: string;
+  text: string;
+  textMuted: string;
+  danger: string;
+  disabled: string;
+}
+
+export interface AppThemeRadiusTokens {
+  sm: number;
+  md: number;
+  lg: number;
+}
+
+export interface AppThemeSpacingTokens {
+  xs: number;
+  sm: number;
+  md: number;
+  lg: number;
+  xl: number;
+}
+
+export interface AppThemeTokens {
+  color: AppThemeColorTokens;
+  radius: AppThemeRadiusTokens;
+  spacing: AppThemeSpacingTokens;
+}
+
+export const AppTheme: AppThemeTokens = {
   color: {
     primary: '#0F766E',
     primaryStrong: '#115E59',
