@@ -1,4 +1,5 @@
 import { ClothingItem } from '../domain/clothing/ClothingModels';
+import { AppTheme } from '../theme/Tokens';
 
 @Component
 export struct ClothingPicker {
@@ -15,12 +16,12 @@ export struct ClothingPicker {
       Text('选择衣物')
         .fontSize(16)
         .fontWeight(FontWeight.Medium)
-        .fontColor('#1F2937')
+        .fontColor(AppTheme.color.text)
 
       if (this.items.length === 0) {
         Text('暂无衣物，可先去衣橱添加。')
           .fontSize(14)
-          .fontColor('#64748B')
+          .fontColor(AppTheme.color.textMuted)
       } else {
         ForEach(this.items, (item: ClothingItem) => {
           Row() {
@@ -28,28 +29,28 @@ export struct ClothingPicker {
               Text(item.name)
                 .fontSize(15)
                 .fontWeight(FontWeight.Medium)
-                .fontColor('#111827')
+                .fontColor(AppTheme.color.text)
 
               Text(item.category)
                 .fontSize(12)
-                .fontColor('#64748B')
+                .fontColor(AppTheme.color.textMuted)
             }
             .layoutWeight(1)
             .alignItems(HorizontalAlign.Start)
 
             Text(this.isSelected(item.id) ? '已选' : '选择')
               .fontSize(13)
-              .fontColor(this.isSelected(item.id) ? '#FFFFFF' : '#0F172A')
+              .fontColor(this.isSelected(item.id) ? AppTheme.color.surface : AppTheme.color.primary)
               .padding({ left: 10, right: 10, top: 6, bottom: 6 })
-              .borderRadius(8)
-              .backgroundColor(this.isSelected(item.id) ? '#0F172A' : '#FFFFFF')
-              .border({ width: 1, color: this.isSelected(item.id) ? '#0F172A' : '#CBD5E1' })
+              .borderRadius(AppTheme.radius.md)
+              .backgroundColor(this.isSelected(item.id) ? AppTheme.color.primary : AppTheme.color.surface)
+              .border({ width: 1, color: this.isSelected(item.id) ? AppTheme.color.primary : AppTheme.color.border })
           }
           .width('100%')
           .padding(10)
-          .borderRadius(8)
-          .backgroundColor('#FFFFFF')
-          .border({ width: 1, color: this.isSelected(item.id) ? '#0F172A' : '#E2E8F0' })
+          .borderRadius(AppTheme.radius.md)
+          .backgroundColor(AppTheme.color.surface)
+          .border({ width: 1, color: this.isSelected(item.id) ? AppTheme.color.primary : AppTheme.color.border })
           .onClick(() => {
             this.onToggle(item.id);
           })

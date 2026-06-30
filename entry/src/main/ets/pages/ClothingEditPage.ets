@@ -9,6 +9,7 @@ import { ClothingItem, PurchaseInfo } from '../domain/clothing/ClothingModels';
 import { PhotoSource } from '../media/PhotoModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
+import { AppTheme } from '../theme/Tokens';
 
 interface ClothingCategoryOption {
   label: string;
@@ -191,11 +192,11 @@ export struct ClothingEditPage {
             Text(this.initialItem === undefined ? '添加衣服' : '编辑衣服')
               .fontSize(28)
               .fontWeight(FontWeight.Bold)
-              .fontColor('#111827')
+              .fontColor(AppTheme.color.text)
 
             Text('补全照片、分类、备注和购买信息。')
               .fontSize(14)
-              .fontColor('#64748B')
+              .fontColor(AppTheme.color.textMuted)
           }
           .layoutWeight(1)
           .alignItems(HorizontalAlign.Start)
@@ -203,10 +204,10 @@ export struct ClothingEditPage {
           Button('取消')
             .height(40)
             .fontSize(14)
-            .fontColor('#334155')
-            .backgroundColor('#FFFFFF')
+            .fontColor(AppTheme.color.textMuted)
+            .backgroundColor(AppTheme.color.surface)
             .borderRadius(8)
-            .border({ width: 1, color: '#CBD5E1' })
+            .border({ width: 1, color: AppTheme.color.border })
             .onClick(() => {
               this.onCancel();
             })
@@ -220,8 +221,8 @@ export struct ClothingEditPage {
           Button('从相册选择')
             .height(40)
             .fontSize(14)
-            .backgroundColor('#0F172A')
-            .fontColor('#FFFFFF')
+            .backgroundColor(AppTheme.color.primary)
+            .fontColor(AppTheme.color.surface)
             .borderRadius(8)
             .onClick(() => {
               this.pickGalleryPhotos();
@@ -230,10 +231,10 @@ export struct ClothingEditPage {
           Button('拍照')
             .height(40)
             .fontSize(14)
-            .backgroundColor('#FFFFFF')
-            .fontColor('#0F172A')
+            .backgroundColor(AppTheme.color.surface)
+            .fontColor(AppTheme.color.primary)
             .borderRadius(8)
-            .border({ width: 1, color: '#CBD5E1' })
+            .border({ width: 1, color: AppTheme.color.border })
             .onClick(() => {
               this.capturePhoto();
             })
@@ -243,9 +244,9 @@ export struct ClothingEditPage {
         TextInput({ text: this.name, placeholder: 'name / 衣物名称' })
           .height(44)
           .fontSize(15)
-          .backgroundColor('#FFFFFF')
+          .backgroundColor(AppTheme.color.surface)
           .borderRadius(8)
-          .border({ width: 1, color: '#E2E8F0' })
+          .border({ width: 1, color: AppTheme.color.border })
           .onChange((value: string) => {
             this.name = value;
           })
@@ -254,7 +255,7 @@ export struct ClothingEditPage {
           Text(`category / 分类：${labelForCategory(this.category)}`)
             .fontSize(14)
             .fontWeight(FontWeight.Medium)
-            .fontColor('#334155')
+            .fontColor(AppTheme.color.textMuted)
 
           Flex({ wrap: FlexWrap.Wrap }) {
             ForEach(CATEGORY_OPTIONS, (option: ClothingCategoryOption) => {
@@ -262,10 +263,10 @@ export struct ClothingEditPage {
                 .height(36)
                 .margin({ right: 8, bottom: 8 })
                 .fontSize(13)
-                .fontColor(option.value === this.category ? '#FFFFFF' : '#334155')
-                .backgroundColor(option.value === this.category ? '#0F172A' : '#FFFFFF')
+                .fontColor(option.value === this.category ? AppTheme.color.surface : AppTheme.color.textMuted)
+                .backgroundColor(option.value === this.category ? AppTheme.color.primary : AppTheme.color.surface)
                 .borderRadius(8)
-                .border({ width: 1, color: option.value === this.category ? '#0F172A' : '#CBD5E1' })
+                .border({ width: 1, color: option.value === this.category ? AppTheme.color.primary : AppTheme.color.border })
                 .onClick(() => {
                   this.category = option.value;
                 })
@@ -278,9 +279,9 @@ export struct ClothingEditPage {
         TextInput({ text: this.note, placeholder: 'note / 备注' })
           .height(44)
           .fontSize(15)
-          .backgroundColor('#FFFFFF')
+          .backgroundColor(AppTheme.color.surface)
           .borderRadius(8)
-          .border({ width: 1, color: '#E2E8F0' })
+          .border({ width: 1, color: AppTheme.color.border })
           .onChange((value: string) => {
             this.note = value;
           })
@@ -289,14 +290,14 @@ export struct ClothingEditPage {
           Text('purchase / 购买信息')
             .fontSize(16)
             .fontWeight(FontWeight.Medium)
-            .fontColor('#1F2937')
+            .fontColor(AppTheme.color.text)
 
           TextInput({ text: this.storeName, placeholder: 'storeName / 门店' })
             .height(42)
             .fontSize(14)
-            .backgroundColor('#FFFFFF')
+            .backgroundColor(AppTheme.color.surface)
             .borderRadius(8)
-            .border({ width: 1, color: '#E2E8F0' })
+            .border({ width: 1, color: AppTheme.color.border })
             .onChange((value: string) => {
               this.storeName = value;
             })
@@ -305,9 +306,9 @@ export struct ClothingEditPage {
             .height(42)
             .fontSize(14)
             .type(InputType.Number)
-            .backgroundColor('#FFFFFF')
+            .backgroundColor(AppTheme.color.surface)
             .borderRadius(8)
-            .border({ width: 1, color: '#E2E8F0' })
+            .border({ width: 1, color: AppTheme.color.border })
             .onChange((value: string) => {
               this.price = value;
             })
@@ -315,9 +316,9 @@ export struct ClothingEditPage {
           TextInput({ text: this.purchaseDate, placeholder: 'purchaseDate / 购买日期 YYYY-MM-DD' })
             .height(42)
             .fontSize(14)
-            .backgroundColor('#FFFFFF')
+            .backgroundColor(AppTheme.color.surface)
             .borderRadius(8)
-            .border({ width: 1, color: '#E2E8F0' })
+            .border({ width: 1, color: AppTheme.color.border })
             .onChange((value: string) => {
               this.purchaseDate = value;
             })
@@ -325,9 +326,9 @@ export struct ClothingEditPage {
           TextInput({ text: this.purchaseNote, placeholder: 'purchase note / 购买备注' })
             .height(42)
             .fontSize(14)
-            .backgroundColor('#FFFFFF')
+            .backgroundColor(AppTheme.color.surface)
             .borderRadius(8)
-            .border({ width: 1, color: '#E2E8F0' })
+            .border({ width: 1, color: AppTheme.color.border })
             .onChange((value: string) => {
               this.purchaseNote = value;
             })
@@ -335,22 +336,22 @@ export struct ClothingEditPage {
         .width('100%')
         .padding(12)
         .borderRadius(8)
-        .backgroundColor('#FFFFFF')
-        .border({ width: 1, color: '#E2E8F0' })
+        .backgroundColor(AppTheme.color.surface)
+        .border({ width: 1, color: AppTheme.color.border })
         .alignItems(HorizontalAlign.Start)
 
         if (this.errorMessage.length > 0) {
           Text(this.errorMessage)
             .fontSize(13)
-            .fontColor('#B91C1C')
+            .fontColor(AppTheme.color.danger)
         }
 
         Button(this.isSaving ? '保存中...' : '保存')
           .height(44)
           .width('100%')
           .fontSize(15)
-          .fontColor('#FFFFFF')
-          .backgroundColor(this.canSave() ? '#0F172A' : '#94A3B8')
+          .fontColor(AppTheme.color.surface)
+          .backgroundColor(this.canSave() ? AppTheme.color.primary : AppTheme.color.disabled)
           .borderRadius(8)
           .enabled(this.canSave())
           .onClick(() => {
@@ -363,6 +364,6 @@ export struct ClothingEditPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#F8FAFC')
+    .backgroundColor(AppTheme.color.surfaceMuted)
   }
 }

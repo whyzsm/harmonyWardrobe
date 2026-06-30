@@ -85,3 +85,22 @@ for (const file of mainPageFiles) {
   forbidIncludes(source, "'#F8FAFC'", `${file} old background`);
   forbidIncludes(source, "'#B91C1C'", `${file} old danger`);
 }
+
+const flowFiles = [
+  'entry/src/main/ets/pages/ClothingEditPage.ets',
+  'entry/src/main/ets/pages/OutfitEditPage.ets',
+  'entry/src/main/ets/pages/WearLogEditPage.ets',
+  'entry/src/main/ets/pages/WishlistEditPage.ets',
+  'entry/src/main/ets/pages/SearchResultsPage.ets',
+  'entry/src/main/ets/components/ClothingPicker.ets',
+  'entry/src/main/ets/components/OutfitPicker.ets',
+  'entry/src/main/ets/components/PhotoGrid.ets'
+];
+
+for (const file of flowFiles) {
+  const source = fs.readFileSync(file, 'utf8');
+  requireIncludes(source, 'AppTheme', `${file} theme usage`);
+  forbidIncludes(source, "'#0F172A'", `${file} old black primary action`);
+  forbidIncludes(source, "'#F8FAFC'", `${file} old background`);
+  forbidIncludes(source, "'#B91C1C'", `${file} old danger`);
+}

@@ -1,3 +1,5 @@
+import { AppTheme } from '../theme/Tokens';
+
 @Component
 export struct PhotoGrid {
   @Prop photoUris: string[] = [];
@@ -10,13 +12,13 @@ export struct PhotoGrid {
             .width('100%')
             .height('100%')
             .objectFit(ImageFit.Cover)
-            .borderRadius(8)
+            .borderRadius(AppTheme.radius.md)
         }
       }, (photoUri: string) => photoUri)
     }
     .columnsTemplate('1fr 1fr 1fr')
-    .columnsGap(8)
-    .rowsGap(8)
+    .columnsGap(AppTheme.spacing.sm)
+    .rowsGap(AppTheme.spacing.sm)
     .width('100%')
     .height(this.photoUris.length === 0 ? 0 : 220)
   }
