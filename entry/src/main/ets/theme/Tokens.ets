@@ -1,12 +1,19 @@
 export interface AppThemeColorTokens {
   primary: string;
   primaryStrong: string;
+  primaryPressed: string;
+  primarySoft: string;
   surface: string;
+  surfaceRaised: string;
   surfaceMuted: string;
   border: string;
   text: string;
   textMuted: string;
+  textDisabled: string;
+  success: string;
+  warning: string;
   danger: string;
+  accent: string;
   disabled: string;
 }
 
@@ -32,15 +39,22 @@ export interface AppThemeTokens {
 
 export const AppTheme: AppThemeTokens = {
   color: {
-    primary: '#0F766E',
-    primaryStrong: '#115E59',
+    primary: '#4894FE',
+    primaryStrong: '#246BFE',
+    primaryPressed: '#246BFE',
+    primarySoft: '#EAF3FF',
     surface: '#FFFFFF',
-    surfaceMuted: '#F8FAFC',
-    border: '#E2E8F0',
+    surfaceRaised: '#FFFFFF',
+    surfaceMuted: '#F6F8FC',
+    border: '#E5EAF2',
     text: '#111827',
-    textMuted: '#64748B',
-    danger: '#B91C1C',
-    disabled: '#94A3B8'
+    textMuted: '#6B7280',
+    textDisabled: '#9CA3AF',
+    success: '#22C55E',
+    warning: '#FFB020',
+    danger: '#EF4444',
+    accent: '#FF7A90',
+    disabled: '#9CA3AF'
   },
   radius: {
     sm: 6,
