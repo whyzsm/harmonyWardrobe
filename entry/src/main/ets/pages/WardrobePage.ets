@@ -6,6 +6,7 @@ import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { ClothingCategory } from '../domain/clothing/ClothingCategory';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { ClothingEditPage } from './ClothingEditPage';
+import { SearchResultsPage } from './SearchResultsPage';
 
 interface WardrobeCategoryFilter {
   label: string;
@@ -41,6 +42,8 @@ export struct WardrobePage {
   @State private clothingItems: ClothingItem[] = [];
   @State private showEditor: boolean = false;
   @State private editingClothingId: string = '';
+  @State private showUnifiedSearch: boolean = false;
+  @State private unifiedSearchQuery: string = '';
   private clothingRepository?: ClothingRepository = undefined;
 
   private selectedCategory(): ClothingCategory | undefined {
@@ -128,6 +131,11 @@ export struct WardrobePage {
     this.clothingItems = nextItems;
   }
 
+  private openUnifiedSearch(query: string): void {
+    this.unifiedSearchQuery = query;
+    this.showUnifiedSearch = query.trim().length > 0;
+  }
+
   build() {
     if (this.showEditor) {
       ClothingEditPage({
@@ -139,6 +147,14 @@ export struct WardrobePage {
         },
         onCancel: () => {
           this.closeEditor();
+        }
+      })
+    } else if (this.showUnifiedSearch) {
+      SearchResultsPage({
+        query: this.unifiedSearchQuery,
+        clothingRepository: this.clothingRepository,
+        onClose: () => {
+          this.showUnifiedSearch = false;
         }
       })
     } else {
@@ -175,6 +191,7 @@ export struct WardrobePage {
         placeholder: '搜索衣服、备注',
         onChange: (value: string) => {
           this.searchQuery = value;
+          this.openUnifiedSearch(value);
         }
       })
 

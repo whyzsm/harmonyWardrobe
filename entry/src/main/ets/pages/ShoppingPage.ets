@@ -3,6 +3,7 @@ import { SearchBar } from '../components/SearchBar';
 import { WishlistCard } from '../components/WishlistCard';
 import { WishlistRepository } from '../data/repositories/WishlistRepository';
 import { WishlistItem } from '../domain/wishlist/WishlistModels';
+import { SearchResultsPage } from './SearchResultsPage';
 
 function firstPhotoUri(item: WishlistItem): string {
   return item.photoUris.length > 0 ? item.photoUris[0] : '';
@@ -17,6 +18,8 @@ export struct ShoppingPage {
   @State private searchQuery: string = '';
   @State private wishlistItems: WishlistItem[] = [];
   @State private selectedWishlistItemId: string = '';
+  @State private showUnifiedSearch: boolean = false;
+  @State private unifiedSearchQuery: string = '';
   private wishlistRepository?: WishlistRepository = undefined;
 
   private filterWishlistItems(): WishlistItem[] {
@@ -40,8 +43,22 @@ export struct ShoppingPage {
     this.selectedWishlistItemId = item.id;
   }
 
+  private openUnifiedSearch(query: string): void {
+    this.unifiedSearchQuery = query;
+    this.showUnifiedSearch = query.trim().length > 0;
+  }
+
   build() {
-    Column({ space: 16 }) {
+    if (this.showUnifiedSearch) {
+      SearchResultsPage({
+        query: this.unifiedSearchQuery,
+        wishlistRepository: this.wishlistRepository,
+        onClose: () => {
+          this.showUnifiedSearch = false;
+        }
+      })
+    } else {
+      Column({ space: 16 }) {
       Row() {
         Column({ space: 4 }) {
           Text('心仪单品')
@@ -74,6 +91,7 @@ export struct ShoppingPage {
         placeholder: '搜索心仪单品、门店、备注',
         onChange: (value: string) => {
           this.searchQuery = value;
+          this.openUnifiedSearch(value);
         }
       })
 
@@ -101,5 +119,6 @@ export struct ShoppingPage {
     .padding(20)
     .alignItems(HorizontalAlign.Start)
     .backgroundColor('#F8FAFC')
+    }
   }
 }

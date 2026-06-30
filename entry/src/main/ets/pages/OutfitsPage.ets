@@ -3,12 +3,15 @@ import { OutfitCard } from '../components/OutfitCard';
 import { SearchBar } from '../components/SearchBar';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { OutfitTemplate } from '../domain/outfit/OutfitModels';
+import { SearchResultsPage } from './SearchResultsPage';
 
 @Component
 export struct OutfitsPage {
   @State private searchQuery: string = '';
   @State private outfits: OutfitTemplate[] = [];
   @State private selectedOutfitId: string = '';
+  @State private showUnifiedSearch: boolean = false;
+  @State private unifiedSearchQuery: string = '';
   private outfitRepository?: OutfitRepository = undefined;
 
   private filterOutfits(): OutfitTemplate[] {
@@ -35,8 +38,22 @@ export struct OutfitsPage {
     this.selectedOutfitId = outfit?.id ?? '';
   }
 
+  private openUnifiedSearch(query: string): void {
+    this.unifiedSearchQuery = query;
+    this.showUnifiedSearch = query.trim().length > 0;
+  }
+
   build() {
-    Column({ space: 16 }) {
+    if (this.showUnifiedSearch) {
+      SearchResultsPage({
+        query: this.unifiedSearchQuery,
+        outfitRepository: this.outfitRepository,
+        onClose: () => {
+          this.showUnifiedSearch = false;
+        }
+      })
+    } else {
+      Column({ space: 16 }) {
       Row() {
         Column({ space: 4 }) {
           Text('套装')
@@ -69,6 +86,7 @@ export struct OutfitsPage {
         placeholder: '搜索套装、备注',
         onChange: (value: string) => {
           this.searchQuery = value;
+          this.openUnifiedSearch(value);
         }
       })
 
@@ -126,5 +144,6 @@ export struct OutfitsPage {
     .padding(20)
     .alignItems(HorizontalAlign.Start)
     .backgroundColor('#F8FAFC')
+    }
   }
 }
