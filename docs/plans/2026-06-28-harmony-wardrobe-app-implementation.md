@@ -51,7 +51,7 @@
 - [x] Task 28: Implement Shopping Page
 - [x] Task 29: Implement Wishlist Create/Edit Flow
 - [x] Task 30: Implement Unified Search Experience
-- [ ] Task 31: Implement Delete And Orphan Cleanup
+- [x] Task 31: Implement Delete And Orphan Cleanup
 - [ ] Task 32: Add Empty, Loading, Error, And Disabled States
 - [ ] Task 33: Add App Theme And Design Tokens
 - [ ] Task 34: Add Manual QA Seed Data Command Or Debug Fixture
