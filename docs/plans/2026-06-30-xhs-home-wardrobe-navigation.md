@@ -4,17 +4,17 @@
 
 ## 中文
 
-**目标：** 将底部导航改为 `首页 / 套装 / + / 日历 / 逛街`，并把首页和衣橱页改成小红书式内容流。
+**目标：** 将底部导航改为 `首页 / 衣橱 / + / 日历 / 逛街`，把 `套装` 移入中间 `+` 快捷面板，并把首页和衣橱页改成小红书式内容流。
 
-**架构：** 保持现有 ArkUI 页面结构，继续使用 `Tabs` 管理主页面。`WardrobePage` 保留为第三个 `TabContent`，但 tabBar 改成中间凸起的 `+`。首页内容流和衣橱内容流通过现有页面与卡片组件局部重构完成。
+**架构：** 保持现有 ArkUI 页面结构，继续使用 `Tabs` 管理主页面。底部第三个 `TabContent` 作为中间凸起 `+` 的触发位，不承载常规页面；点击后打开快捷面板。`OutfitsPage` 不再出现在底部导航中，创建套装由快捷面板打开 `OutfitEditPage`。首页内容流和衣橱内容流通过现有页面与卡片组件局部重构完成。
 
 **技术栈：** HarmonyOS ArkTS、ArkUI、现有 Node 静态验证脚本、现有 `AppTheme` token。
 
 ## English
 
-**Goal:** Change the bottom navigation to `首页 / 套装 / + / 日历 / 逛街` and refresh the home and wardrobe pages into Xiaohongshu-style content feeds.
+**Goal:** Change the bottom navigation to `首页 / 衣橱 / + / 日历 / 逛街`, move `套装` into the center `+` quick action sheet, and refresh the home and wardrobe pages into Xiaohongshu-style content feeds.
 
-**Architecture:** Keep the current ArkUI page structure and continue using `Tabs` for main navigation. `WardrobePage` remains the third `TabContent`, but its tabBar becomes the raised center `+`. The home feed and wardrobe feed are implemented through scoped refactors of existing pages and card components.
+**Architecture:** Keep the current ArkUI page structure and continue using `Tabs` for main navigation. The third `TabContent` becomes the raised center `+` trigger and does not own a regular page. Tapping it opens the quick action sheet. `OutfitsPage` is no longer shown in the bottom navigation, and outfit creation is opened through `OutfitEditPage` from the quick action sheet. The home feed and wardrobe feed are implemented through scoped refactors of existing pages and card components.
 
 **Tech Stack:** HarmonyOS ArkTS, ArkUI, existing Node static validation scripts, and existing `AppTheme` tokens.
 
@@ -29,9 +29,9 @@
 - 修改：`entry/src/main/ets/pages/Index.ets`
 
 **步骤：**
-1. 修改 `scripts/validate-navigation.mjs`，要求 `Index.ets` 包含 `首页 / 套装 / + / 日历 / 逛街`，不再要求普通 `衣橱` tab。
+1. 修改 `scripts/validate-navigation.mjs`，要求 `Index.ets` 包含 `首页 / 衣橱 / + / 日历 / 逛街`，不再包含 `tabBar('套装')`。
 2. 运行 `node scripts/validate-navigation.mjs`，确认 RED。
-3. 修改 `Index.ets`：将第一 tab 文案改为 `首页`，第三 tab 改为 `WardrobePage` 并使用自定义中间 `+` tabBar，移除普通 `衣橱` tab。
+3. 修改 `Index.ets`：将第一 tab 文案改为 `首页`，第二 tab 保持 `衣橱`，第三 tab 使用自定义中间 `+` tabBar 并打开快捷面板，移除底部 `套装` tab。
 4. 运行 `node scripts/validate-navigation.mjs`，确认 GREEN。
 5. 提交：`git add scripts/validate-navigation.mjs entry/src/main/ets/pages/Index.ets && git commit -m "style: add xhs center wardrobe navigation"`
 
@@ -42,11 +42,39 @@
 - Modify: `entry/src/main/ets/pages/Index.ets`
 
 **Steps:**
-1. Update `scripts/validate-navigation.mjs` so `Index.ets` must contain `首页 / 套装 / + / 日历 / 逛街` and no longer requires a regular `衣橱` tab.
+1. Update `scripts/validate-navigation.mjs` so `Index.ets` must contain `首页 / 衣橱 / + / 日历 / 逛街` and no longer contains `tabBar('套装')`.
 2. Run `node scripts/validate-navigation.mjs` and confirm RED.
-3. Update `Index.ets`: rename the first tab to `首页`, make the third tab `WardrobePage` with a custom center `+` tabBar, and remove the regular `衣橱` tab.
+3. Update `Index.ets`: rename the first tab to `首页`, keep `衣橱` as the second tab, make the third tab a custom center `+` trigger that opens the quick action sheet, and remove the bottom `套装` tab.
 4. Run `node scripts/validate-navigation.mjs` and confirm GREEN.
 5. Commit: `git add scripts/validate-navigation.mjs entry/src/main/ets/pages/Index.ets && git commit -m "style: add xhs center wardrobe navigation"`
+
+## Task 1.5: Quick Action Editors
+
+## 中文
+
+**文件：**
+- 修改：`scripts/validate-navigation.mjs`
+- 修改：`entry/src/main/ets/pages/Index.ets`
+
+**步骤：**
+1. 在导航验证脚本中检查快捷面板包含 `添加衣服`、`创建套装`、`记录今日`，并检查 `Index.ets` 引入 `ClothingEditPage`、`OutfitEditPage`、`WearLogEditPage`。
+2. 运行 `node scripts/validate-navigation.mjs`，确认 RED。
+3. 修改 `Index.ets`：为三个快捷动作分别打开添加衣服、创建套装和记录今日编辑页。
+4. 运行 `node scripts/validate-navigation.mjs`，确认 GREEN。
+5. 此任务与 Task 1 可合并为同一次提交。
+
+## English
+
+**Files:**
+- Modify: `scripts/validate-navigation.mjs`
+- Modify: `entry/src/main/ets/pages/Index.ets`
+
+**Steps:**
+1. Extend the navigation validation script to require `添加衣服`, `创建套装`, and `记录今日` in the quick action sheet, and require `Index.ets` to import `ClothingEditPage`, `OutfitEditPage`, and `WearLogEditPage`.
+2. Run `node scripts/validate-navigation.mjs` and confirm RED.
+3. Update `Index.ets` so the three quick actions open the add clothing, create outfit, and record today editors.
+4. Run `node scripts/validate-navigation.mjs` and confirm GREEN.
+5. This task may be committed together with Task 1.
 
 ## Task 2: Home Discovery Feed
 

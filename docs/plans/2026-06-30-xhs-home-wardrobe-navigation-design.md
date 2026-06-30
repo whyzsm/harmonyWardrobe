@@ -10,11 +10,11 @@ The goal is to move the current management-style home screen and bottom navigati
 
 ## 中文
 
-底部导航使用 `首页 / 套装 / + / 日历 / 逛街`。`今日` 改名为 `首页`，`衣橱` 不再作为普通文字 tab 出现，而是放在中间凸起的 `+` 入口。点击中间 `+` 默认进入衣橱页；衣橱页顶部仍保留 `添加衣服` 主操作。
+底部导航使用 `首页 / 衣橱 / + / 日历 / 逛街`。`今日` 改名为 `首页`，`衣橱` 保留为普通 tab，`套装` 不再作为底部 tab 出现。中间凸起的 `+` 是快捷操作入口，点击后打开快捷面板，包含 `添加衣服`、`创建套装`、`记录今日`。
 
 ## English
 
-The bottom navigation uses `首页 / 套装 / + / 日历 / 逛街`. `今日` is renamed to `首页`, and `衣橱` is no longer a regular text tab. It becomes the raised center `+` entry. Tapping the center `+` opens the wardrobe page by default, while the wardrobe page still keeps the primary `添加衣服` action at the top.
+The bottom navigation uses `首页 / 衣橱 / + / 日历 / 逛街`. `今日` is renamed to `首页`, `衣橱` remains a regular tab, and `套装` is no longer shown as a bottom tab. The raised center `+` is a quick action entry. Tapping it opens a quick action sheet with `添加衣服`, `创建套装`, and `记录今日`.
 
 ## 中文
 
@@ -26,11 +26,11 @@ The home page uses a lightweight top bar and a two-column content feed. The left
 
 ## 中文
 
-衣橱页承接中间 `+` 的含义，保持“我的衣橱内容流”。顶部显示 `衣橱` 和弱化的 `添加衣服` 按钮；搜索栏保留但使用浅灰圆角搜索框；分类 chips 横向呈现 `全部 / 上衣 / 裤装 / 裙装 / 外套 / 鞋包 / 配饰`。衣物列表继续双列展示，但卡片去掉厚边框，改成白底、轻阴影、图片主导。
+衣橱页保持“我的衣橱内容流”。顶部显示 `衣橱` 和弱化的 `添加衣服` 按钮；搜索栏保留但使用浅灰圆角搜索框；分类 chips 横向呈现 `全部 / 上衣 / 裤装 / 裙装 / 外套 / 鞋包 / 配饰`。衣物列表继续双列展示，但卡片去掉厚边框，改成白底、轻阴影、图片主导。空态提示用户点中间 `+` 添加第一件衣服。
 
 ## English
 
-The wardrobe page carries the meaning of the center `+` as “my wardrobe feed.” The top shows `衣橱` and a softened `添加衣服` button. The search bar stays but uses a light gray rounded style. Category chips remain horizontal with `全部 / 上衣 / 裤装 / 裙装 / 外套 / 鞋包 / 配饰`. Clothing items stay in a two-column layout, but cards remove heavy borders and become image-led white cards with subtle shadow.
+The wardrobe page remains “my wardrobe feed.” The top shows `衣橱` and a softened `添加衣服` button. The search bar stays but uses a light gray rounded style. Category chips remain horizontal with `全部 / 上衣 / 裤装 / 裙装 / 外套 / 鞋包 / 配饰`. Clothing items stay in a two-column layout, but cards remove heavy borders and become image-led white cards with subtle shadow. The empty state tells users to tap the center `+` to add the first clothing item.
 
 ## 中文
 
