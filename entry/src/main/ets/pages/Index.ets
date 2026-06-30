@@ -3,6 +3,7 @@ import { WardrobePage } from './WardrobePage';
 import { OutfitsPage } from './OutfitsPage';
 import { CalendarPage } from './CalendarPage';
 import { ShoppingPage } from './ShoppingPage';
+import { AppTheme } from '../theme/Tokens';
 
 @Entry
 @Component
@@ -37,6 +38,6 @@ struct Index {
     .width('100%')
     .height('100%')
     .barMode(BarMode.Fixed)
-    .backgroundColor('#F8FAFC')
+    .backgroundColor(AppTheme.color.surfaceMuted)
   }
 }

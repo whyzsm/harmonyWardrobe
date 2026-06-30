@@ -1,3 +1,5 @@
+import { AppTheme } from '../theme/Tokens';
+
 @Component
 export struct SearchBar {
   @Prop value: string = '';
@@ -8,13 +10,13 @@ export struct SearchBar {
     TextInput({ text: this.value, placeholder: this.placeholder })
       .width('100%')
       .height(44)
-      .padding({ left: 14, right: 14 })
+      .padding({ left: AppTheme.spacing.md, right: AppTheme.spacing.md })
       .fontSize(15)
-      .fontColor('#111827')
-      .placeholderColor('#94A3B8')
-      .backgroundColor('#FFFFFF')
-      .borderRadius(8)
-      .border({ width: 1, color: '#E2E8F0' })
+      .fontColor(AppTheme.color.text)
+      .placeholderColor(AppTheme.color.disabled)
+      .backgroundColor(AppTheme.color.surface)
+      .borderRadius(AppTheme.radius.md)
+      .border({ width: 1, color: AppTheme.color.border })
       .onChange((value: string) => {
         this.onChange(value);
       })

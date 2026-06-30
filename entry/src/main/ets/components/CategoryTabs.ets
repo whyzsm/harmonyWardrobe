@@ -1,3 +1,5 @@
+import { AppTheme } from '../theme/Tokens';
+
 @Component
 export struct CategoryTabs {
   @Prop categories: string[] = [];
@@ -6,21 +8,21 @@ export struct CategoryTabs {
 
   build() {
     Scroll() {
-      Row({ space: 8 }) {
+      Row({ space: AppTheme.spacing.sm }) {
         ForEach(this.categories, (category: string) => {
           Text(category)
             .fontSize(14)
-            .fontColor(category === this.selected ? '#FFFFFF' : '#334155')
-            .padding({ left: 14, right: 14, top: 8, bottom: 8 })
-            .backgroundColor(category === this.selected ? '#0F172A' : '#FFFFFF')
-            .borderRadius(8)
-            .border({ width: 1, color: category === this.selected ? '#0F172A' : '#E2E8F0' })
+            .fontColor(category === this.selected ? AppTheme.color.surface : AppTheme.color.text)
+            .padding({ left: AppTheme.spacing.md, right: AppTheme.spacing.md, top: AppTheme.spacing.sm, bottom: AppTheme.spacing.sm })
+            .backgroundColor(category === this.selected ? AppTheme.color.primary : AppTheme.color.surface)
+            .borderRadius(AppTheme.radius.md)
+            .border({ width: 1, color: category === this.selected ? AppTheme.color.primary : AppTheme.color.border })
             .onClick(() => {
               this.onSelect(category);
             })
         }, (category: string) => category)
       }
-      .padding({ right: 20 })
+      .padding({ right: AppTheme.spacing.xl })
     }
     .scrollable(ScrollDirection.Horizontal)
     .scrollBar(BarState.Off)
