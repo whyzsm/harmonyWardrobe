@@ -1,7 +1,6 @@
 import { SearchBar } from '../components/SearchBar';
 import { CategoryTabs } from '../components/CategoryTabs';
 import { ClothingCard } from '../components/ClothingCard';
-import { EmptyState } from '../components/EmptyState';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { SearchRepository } from '../data/repositories/SearchRepository';
 import { ClothingCategory } from '../domain/clothing/ClothingCategory';
@@ -23,13 +22,16 @@ const WARDROBE_CATEGORY_FILTERS: WardrobeCategoryFilter[] = [
   { label: '裤装', category: ClothingCategory.Pants },
   { label: '裙装', category: ClothingCategory.Skirt },
   { label: '外套', category: ClothingCategory.Outerwear },
-  { label: '鞋', category: ClothingCategory.Shoes },
-  { label: '包', category: ClothingCategory.Bag },
+  { label: '鞋包' },
   { label: '配饰', category: ClothingCategory.Accessory },
   { label: '其他', category: ClothingCategory.Other }
 ];
 
 function categoryLabel(category: ClothingCategory): string {
+  if (category === ClothingCategory.Shoes || category === ClothingCategory.Bag) {
+    return '鞋包';
+  }
+
   for (const filter of WARDROBE_CATEGORY_FILTERS) {
     if (filter.category === category) {
       return filter.label;
@@ -92,7 +94,9 @@ export struct WardrobePage {
     const normalizedQuery = this.searchQuery.trim().toLowerCase();
 
     return this.clothingItems.filter((item: ClothingItem) => {
-      const matchesCategory = selectedCategory === undefined || item.category === selectedCategory;
+      const matchesCategory = this.selectedCategoryLabel === '鞋包'
+        ? item.category === ClothingCategory.Shoes || item.category === ClothingCategory.Bag
+        : selectedCategory === undefined || item.category === selectedCategory;
       const matchesQuery = normalizedQuery.length === 0 ||
         item.name.toLowerCase().includes(normalizedQuery) ||
         (item.note !== undefined && item.note.toLowerCase().includes(normalizedQuery));
@@ -204,7 +208,7 @@ export struct WardrobePage {
             .fontWeight(FontWeight.Bold)
             .fontColor(AppTheme.color.text)
 
-          Text('管理上衣、裤装、裙装、外套、鞋包和配饰。')
+          Text('我的衣橱内容流')
             .fontSize(15)
             .fontColor(AppTheme.color.textMuted)
         }
@@ -212,10 +216,10 @@ export struct WardrobePage {
         .alignItems(HorizontalAlign.Start)
 
         Button('添加衣服')
-          .height(40)
-          .fontSize(14)
-          .fontColor(AppTheme.color.surface)
-          .backgroundColor(AppTheme.color.primary)
+          .height(36)
+          .fontSize(13)
+          .fontColor(AppTheme.color.primary)
+          .backgroundColor(AppTheme.color.primarySoft)
           .borderRadius(AppTheme.radius.md)
           .onClick(() => {
             this.openCreateEditor();
@@ -249,7 +253,7 @@ export struct WardrobePage {
 
       SearchBar({
         value: this.searchQuery,
-        placeholder: '搜索衣服、备注',
+        placeholder: '搜索衣服、套装、备注',
         onChange: (value: string) => {
           this.searchQuery = value;
           this.openUnifiedSearch(value);
@@ -265,10 +269,37 @@ export struct WardrobePage {
       })
 
       if (this.filterClothingItems().length === 0) {
-        EmptyState({
-          title: '还没有衣物',
-          description: '添加衣服后会在这里显示，也可以按分类和关键词筛选。'
-        })
+        Column({ space: 10 }) {
+          Column({ space: 8 }) {
+            Text('衣')
+              .fontSize(30)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(AppTheme.color.primary)
+
+            Text('先放入第一件衣服')
+              .fontSize(16)
+              .fontWeight(FontWeight.Medium)
+              .fontColor(AppTheme.color.text)
+          }
+          .width('100%')
+          .height(190)
+          .justifyContent(FlexAlign.Center)
+          .alignItems(HorizontalAlign.Center)
+          .backgroundColor(AppTheme.color.primarySoft)
+          .borderRadius(8)
+
+          Text('点中间 + 添加第一件衣服')
+            .fontSize(15)
+            .fontColor(AppTheme.color.text)
+
+          Text('衣服会像内容流卡片一样显示在这里。')
+            .fontSize(12)
+            .fontColor(AppTheme.color.textMuted)
+        }
+        .width('48%')
+        .padding(8)
+        .borderRadius(AppTheme.radius.lg)
+        .backgroundColor(AppTheme.color.surfaceRaised)
       } else {
         Grid() {
           ForEach(this.filterClothingItems(), (item: ClothingItem) => {
@@ -293,7 +324,7 @@ export struct WardrobePage {
     }
     .width('100%')
     .height('100%')
-    .padding(20)
+    .padding({ left: 14, right: 14, top: 18, bottom: 92 })
     .alignItems(HorizontalAlign.Start)
     .backgroundColor(AppTheme.color.surfaceMuted)
     }

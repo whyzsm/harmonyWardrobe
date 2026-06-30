@@ -6,7 +6,7 @@ for (const needle of [
   'SearchBar',
   'CategoryTabs',
   'ClothingCard',
-  'EmptyState',
+  '点中间 + 添加第一件衣服',
   'ClothingRepository',
   '添加衣服',
   'filterClothingItems',

@@ -3,7 +3,11 @@ import fs from 'node:fs';
 const pages = ['TodayPage', 'WardrobePage', 'OutfitsPage', 'CalendarPage', 'ShoppingPage'];
 for (const page of pages) {
   const text = fs.readFileSync(`entry/src/main/ets/pages/${page}.ets`, 'utf8');
-  const emptyStateNeedle = page === 'TodayPage' ? '今天穿什么？' : 'EmptyState';
+  const emptyStateNeedle = page === 'TodayPage'
+    ? '今天穿什么？'
+    : page === 'WardrobePage'
+      ? '点中间 + 添加第一件衣服'
+      : 'EmptyState';
   for (const needle of ['loading', 'error', emptyStateNeedle, 'retry']) {
     if (!text.includes(needle)) {
       throw new Error(`${page} missing ${needle} state`);

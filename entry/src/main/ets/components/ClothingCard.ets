@@ -13,7 +13,7 @@ export struct ClothingCard {
           .width('100%')
           .aspectRatio(1)
           .objectFit(ImageFit.Cover)
-          .borderRadius(AppTheme.radius.lg)
+          .borderRadius(8)
       } else {
         Column() {
           Text('衣')
@@ -25,7 +25,7 @@ export struct ClothingCard {
         .aspectRatio(1)
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .borderRadius(AppTheme.radius.lg)
+        .borderRadius(8)
         .backgroundColor(AppTheme.color.primarySoft)
       }
 
@@ -46,9 +46,9 @@ export struct ClothingCard {
         .textOverflow({ overflow: TextOverflow.Ellipsis })
     }
     .width('100%')
-    .padding(12)
+    .padding(8)
     .borderRadius(AppTheme.radius.lg)
     .backgroundColor(AppTheme.color.surfaceRaised)
-    .border({ width: 1, color: AppTheme.color.border })
+    .shadow({ radius: 8, color: '#14000000', offsetX: 0, offsetY: 3 })
   }
 }
