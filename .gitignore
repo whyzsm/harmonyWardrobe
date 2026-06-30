@@ -3,6 +3,9 @@ bin-debug/
 bin-release/
 [Oo]bj/
 [Bb]in/
+.hvigor/
+build/
+entry/build/
 
 # Other files and folders
 .settings/

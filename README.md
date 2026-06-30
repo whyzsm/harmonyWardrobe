@@ -41,9 +41,17 @@ for script in scripts/*.mjs; do node "$script"; done
 git diff --check
 ```
 
-中文：本仓库当前没有提交 `hvigorw` wrapper。执行 HarmonyOS 构建前，需要在本机安装并配置可用的 HarmonyOS/DevEco 构建工具，或补充项目认可的构建入口。
+中文：运行 HarmonyOS 构建时，使用本机 DevEco command-line-tools 的 `hvigorw`：
 
-English: This repository currently does not commit an `hvigorw` wrapper. Before running a HarmonyOS build, install and configure the local HarmonyOS/DevEco build toolchain or add the project-approved build entry.
+English: To run the HarmonyOS build, use `hvigorw` from the local DevEco command-line-tools installation:
+
+```bash
+<command-line-tools>/bin/hvigorw assembleApp --no-daemon --no-incremental --no-parallel --stacktrace
+```
+
+中文：本仓库提交了 Hvigor 项目配置，但不提交 `.hvigor/`、`build/` 或 `entry/build/` 生成物。
+
+English: This repository commits the Hvigor project configuration, but does not commit generated `.hvigor/`, `build/`, or `entry/build/` outputs.
 
 ## 手工 QA / Manual QA
 
@@ -51,12 +59,12 @@ English: This repository currently does not commit an `hvigorw` wrapper. Before 
 
 English: The offline manual QA script is in `docs/qa/manual-test-script.md`, covering Today, Wardrobe, Outfits, Calendar, Shopping, photo, search, and offline persistence.
 
-中文：首版交付验证记录位于 `docs/delivery/first-release-verification.md`，其中区分已执行验证、未执行构建或真机 QA 的原因，以及替代验证证据。
+中文：首版交付验证记录位于 `docs/delivery/first-release-verification.md`，其中区分已执行验证、构建结果、未执行真机 QA 的原因，以及替代验证证据。
 
-English: First-release verification notes are in `docs/delivery/first-release-verification.md`, separating executed validations, reasons for skipped build or device QA, and substitute evidence.
+English: First-release verification notes are in `docs/delivery/first-release-verification.md`, separating executed validations, build result, reasons for skipped device QA, and substitute evidence.
 
 ## 约束 / Constraints
 
-中文：不要添加网络权限，不要把照片二进制写入 SQLite，不要提交 `.hvigor/outputs/build-logs/build.log`。
+中文：不要添加网络权限，不要把照片二进制写入 SQLite，不要提交 `.hvigor/`、`build/` 或 `entry/build/` 生成输出。
 
-English: Do not add network permission, do not store photo binaries in SQLite, and do not commit `.hvigor/outputs/build-logs/build.log`.
+English: Do not add network permission, do not store photo binaries in SQLite, and do not commit generated `.hvigor/`, `build/`, or `entry/build/` outputs.

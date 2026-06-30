@@ -48,13 +48,25 @@ English: Result: passed, with no trailing whitespace or patch-format issues.
 
 ## 构建结果 / Build Result
 
-中文：未执行 HarmonyOS HAP 构建。原因：仓库根目录没有 `hvigorw` wrapper，本机 `PATH` 中也没有可用的 `hvigor` 命令。
+中文：已执行 HarmonyOS app 构建：
 
-English: HarmonyOS HAP build was not executed. Reason: the repository root does not contain an `hvigorw` wrapper, and no usable `hvigor` command is available on the local `PATH`.
+English: The HarmonyOS app build was executed:
 
-中文：替代验证：执行了全部 Node 静态/契约验证脚本，并确认项目结构、权限、数据层、媒体层、搜索索引和页面静态约束通过。
+```bash
+/Users/seminzhu/Downloads/command-line-tools/bin/hvigorw assembleApp --no-daemon --no-incremental --no-parallel --stacktrace
+```
 
-English: Substitute verification: all Node static and contract validation scripts were executed, covering project structure, permissions, data layer, media layer, search index, and page-level static constraints.
+中文：结果：通过，输出 `BUILD SUCCESSFUL`。构建产物生成在 ignored 的 `build/` 与 `entry/build/` 目录中。
+
+English: Result: passed, with `BUILD SUCCESSFUL` in the output. Build artifacts were generated under ignored `build/` and `entry/build/` directories.
+
+中文：本次为支持可复现构建，补充了 Hvigor 项目配置、entry 模块构建配置、entry 模块 oh-package、启动窗口图标与背景资源。未添加网络权限或本机签名配置。
+
+English: To support a reproducible build, this update adds the Hvigor project configuration, entry module build configuration, entry module oh-package, and start-window icon/background resources. It does not add network permission or machine-specific signing configuration.
+
+中文：构建警告：未配置 signingConfig，因此产物为未签名构建；该状态适合本地编译验证，不等同于可安装发布包。
+
+English: Build warning: no signingConfig is configured, so the generated artifact is unsigned; this is suitable for local compile verification but is not a release-installable package.
 
 ## 手工 QA 结果 / Manual QA Result
 
@@ -96,9 +108,9 @@ English: Search index check: the search index is derived data, repository writes
 
 ## 已知限制 / Known Limitations
 
-中文：首版没有完成真实设备上的 HAP 构建、安装验证和交互式手工 QA，需要在配置好 HarmonyOS/DevEco 工具链和设备后补跑。
+中文：首版已完成本地 HarmonyOS app 编译验证，但没有完成真实设备上的签名安装验证和交互式手工 QA，需要在配置好签名材料和设备后补跑。
 
-English: The first release has not completed real-device HAP build, installation verification, or interactive manual QA; these must be rerun after the HarmonyOS/DevEco toolchain and device are available.
+English: The first release has completed local HarmonyOS app compile verification, but has not completed signed real-device installation verification or interactive manual QA; these must be rerun after signing materials and a device are available.
 
 中文：搜索不包含拼音搜索或高级中文分词；首版使用短文本 n-gram 召回。
 
