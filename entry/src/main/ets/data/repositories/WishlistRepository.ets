@@ -3,6 +3,7 @@ import {
   MigrationResultSet,
   MigrationSqlValue
 } from '../migrations/Migration';
+import { DeleteCleanupService } from './DeleteCleanupService';
 import { SearchRepository } from './SearchRepository';
 import { SearchIndexMode } from '../searchIndex/SearchCapability';
 import { WishlistItem } from '../../domain/wishlist/WishlistModels';
@@ -177,10 +178,12 @@ function normalizePhotoUris(photoUris?: string[]): string[] {
 export class WishlistRepository {
   private readonly database: MigrationDatabase;
   private readonly searchRepository: SearchRepository;
+  private readonly deleteCleanupService: DeleteCleanupService;
 
   constructor(database: MigrationDatabase, searchIndexMode: SearchIndexMode) {
     this.database = database;
     this.searchRepository = new SearchRepository(database, searchIndexMode);
+    this.deleteCleanupService = this.createDeleteCleanupService();
   }
 
   async createWishlistItem(input: CreateWishlistItemInput): Promise<WishlistItem> {
@@ -241,7 +244,7 @@ export class WishlistRepository {
 
   async deleteWishlistItem(id: string): Promise<void> {
     await this.database.transaction(async () => {
-      await this.database.executeSql(DELETE_WISHLIST_PHOTOS_SQL, [id]);
+      await this.deleteCleanupService.deleteObjectPhotos('wishlist_photos', 'wishlist_id', id);
       await this.database.executeSql(DELETE_WISHLIST_SQL, [id]);
       await this.searchRepository.deleteDocumentInTransaction(SearchEntityType.Wishlist, id);
     });
@@ -281,6 +284,10 @@ export class WishlistRepository {
 
     const items = await this.hydrateWishlistItems(rows);
     return items[0];
+  }
+
+  private createDeleteCleanupService(): DeleteCleanupService {
+    return new DeleteCleanupService(this.database, this.searchRepository);
   }
 
   private wishlistBindArgs(item: WishlistItem): MigrationSqlValue[] {

@@ -3,6 +3,7 @@ import {
   MigrationResultSet,
   MigrationSqlValue
 } from '../migrations/Migration';
+import { DeleteCleanupService } from './DeleteCleanupService';
 import { SearchRepository } from './SearchRepository';
 import { SearchIndexMode } from '../searchIndex/SearchCapability';
 import { OutfitTemplate } from '../../domain/outfit/OutfitModels';
@@ -249,10 +250,12 @@ function normalizeLimit(limit: number = 5): number {
 export class OutfitRepository {
   private readonly database: MigrationDatabase;
   private readonly searchRepository: SearchRepository;
+  private readonly deleteCleanupService: DeleteCleanupService;
 
   constructor(database: MigrationDatabase, searchIndexMode: SearchIndexMode) {
     this.database = database;
     this.searchRepository = new SearchRepository(database, searchIndexMode);
+    this.deleteCleanupService = this.createDeleteCleanupService();
   }
 
   async createOutfit(input: CreateOutfitInput): Promise<OutfitTemplate> {
@@ -311,7 +314,7 @@ export class OutfitRepository {
 
   async deleteOutfit(id: string): Promise<void> {
     await this.database.transaction(async () => {
-      await this.database.executeSql(DELETE_OUTFIT_PHOTOS_SQL, [id]);
+      await this.deleteCleanupService.deleteObjectPhotos('outfit_photos', 'outfit_id', id);
       await this.database.executeSql(DELETE_OUTFIT_ITEMS_SQL, [id]);
       await this.database.executeSql(DELETE_OUTFIT_SQL, [id]);
       await this.searchRepository.deleteDocumentInTransaction(SearchEntityType.Outfit, id);
@@ -364,6 +367,10 @@ export class OutfitRepository {
 
     const items = await this.hydrateOutfits(rows);
     return items[0];
+  }
+
+  private createDeleteCleanupService(): DeleteCleanupService {
+    return new DeleteCleanupService(this.database, this.searchRepository);
   }
 
   private outfitBindArgs(item: OutfitTemplate): MigrationSqlValue[] {

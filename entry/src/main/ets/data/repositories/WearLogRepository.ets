@@ -3,6 +3,7 @@ import {
   MigrationResultSet,
   MigrationSqlValue
 } from '../migrations/Migration';
+import { DeleteCleanupService } from './DeleteCleanupService';
 import { SearchRepository } from './SearchRepository';
 import { SearchIndexMode } from '../searchIndex/SearchCapability';
 import { WearLog } from '../../domain/wearLog/WearLogModels';
@@ -227,10 +228,12 @@ function parseMonthRange(month: string): string[] | undefined {
 export class WearLogRepository {
   private readonly database: MigrationDatabase;
   private readonly searchRepository: SearchRepository;
+  private readonly deleteCleanupService: DeleteCleanupService;
 
   constructor(database: MigrationDatabase, searchIndexMode: SearchIndexMode) {
     this.database = database;
     this.searchRepository = new SearchRepository(database, searchIndexMode);
+    this.deleteCleanupService = this.createDeleteCleanupService();
   }
 
   async createWearLog(input: CreateWearLogInput): Promise<WearLog> {
@@ -299,7 +302,7 @@ export class WearLogRepository {
 
   async deleteWearLog(id: string): Promise<void> {
     await this.database.transaction(async () => {
-      await this.database.executeSql(DELETE_WEAR_LOG_PHOTOS_SQL, [id]);
+      await this.deleteCleanupService.deleteObjectPhotos('wear_log_photos', 'wear_log_id', id);
       await this.database.executeSql(DELETE_WEAR_LOG_SQL, [id]);
       await this.searchRepository.deleteDocumentInTransaction(SearchEntityType.WearLog, id);
     });
@@ -347,6 +350,10 @@ export class WearLogRepository {
 
     const wearLogs = await this.hydrateWearLogs(rows);
     return wearLogs[0];
+  }
+
+  private createDeleteCleanupService(): DeleteCleanupService {
+    return new DeleteCleanupService(this.database, this.searchRepository);
   }
 
   private wearLogBindArgs(wearLog: WearLog, outfitTemplateId: string): MigrationSqlValue[] {
