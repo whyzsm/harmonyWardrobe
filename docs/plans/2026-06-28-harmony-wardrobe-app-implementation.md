@@ -44,7 +44,7 @@
 - [x] Task 21: Implement Wardrobe Page
 - [x] Task 22: Implement Clothing Create/Edit Flow
 - [x] Task 23: Implement Outfits Page
-- [ ] Task 24: Implement Outfit Create/Edit Flow
+- [x] Task 24: Implement Outfit Create/Edit Flow
 - [ ] Task 25: Implement Today Page
 - [ ] Task 26: Implement Wear Log Create/Edit Flow
 - [ ] Task 27: Implement Calendar Page
