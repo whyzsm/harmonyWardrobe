@@ -1,5 +1,3 @@
-import { EmptyState } from '../components/EmptyState';
-import { OutfitCard } from '../components/OutfitCard';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { WearLogRepository } from '../data/repositories/WearLogRepository';
 import { OutfitTemplate } from '../domain/outfit/OutfitModels';
@@ -89,19 +87,50 @@ export struct TodayPage {
       })
     } else {
       Scroll() {
-      Column({ space: 16 }) {
-        Column({ space: 4 }) {
-          Text('今天')
-            .fontSize(30)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(AppTheme.color.text)
-
+      Column({ space: 14 }) {
+        Row() {
           Text(this.todayIsoDate)
-            .fontSize(15)
+            .fontSize(14)
             .fontColor(AppTheme.color.textMuted)
+            .layoutWeight(1)
+
+          Row({ space: 18 }) {
+            Column({ space: 4 }) {
+              Text('推荐')
+                .fontSize(18)
+                .fontWeight(FontWeight.Bold)
+                .fontColor(AppTheme.color.text)
+
+              Column()
+                .width(28)
+                .height(3)
+                .backgroundColor(AppTheme.color.primary)
+                .borderRadius(2)
+            }
+            .alignItems(HorizontalAlign.Center)
+
+            Text('今日')
+              .fontSize(18)
+              .fontColor(AppTheme.color.textMuted)
+
+            Text('灵感')
+              .fontSize(18)
+              .fontColor(AppTheme.color.textMuted)
+          }
+
+          Text('⌕')
+            .fontSize(24)
+            .fontColor(AppTheme.color.text)
+            .layoutWeight(1)
+            .textAlign(TextAlign.End)
         }
         .width('100%')
-        .alignItems(HorizontalAlign.Start)
+        .alignItems(VerticalAlign.Center)
+
+        Text('首页')
+          .fontSize(28)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(AppTheme.color.text)
 
         if (this.loading) {
           Text('loading / 正在加载今日穿搭...')
@@ -126,124 +155,245 @@ export struct TodayPage {
           .width('100%')
         }
 
-        if (this.todaysWearLog === undefined) {
-          EmptyState({
-            title: '今天还没有穿搭记录',
-            description: '选择套装记录今天，也可以稍后补照片、地点和备注。'
-          })
-        } else {
-          Column({ space: 8 }) {
-            Text('今日穿搭')
-              .fontSize(18)
-              .fontWeight(FontWeight.Medium)
-              .fontColor(AppTheme.color.text)
+        Grid() {
+          GridItem() {
+            Column({ space: 8 }) {
+              if (this.todaysWearLog !== undefined && this.firstWearLogPhotoUri(this.todaysWearLog).length > 0) {
+                Image(this.firstWearLogPhotoUri(this.todaysWearLog))
+                  .width('100%')
+                  .height(168)
+                  .objectFit(ImageFit.Cover)
+                  .borderRadius(8)
+              } else {
+                Column({ space: 8 }) {
+                  Text('衣')
+                    .fontSize(28)
+                    .fontWeight(FontWeight.Bold)
+                    .fontColor(AppTheme.color.primary)
 
-            if (this.firstWearLogPhotoUri(this.todaysWearLog).length > 0) {
-              Image(this.firstWearLogPhotoUri(this.todaysWearLog))
+                  Text('今天穿什么？')
+                    .fontSize(15)
+                    .fontWeight(FontWeight.Medium)
+                    .fontColor(AppTheme.color.text)
+                }
                 .width('100%')
-                .height(180)
-                .objectFit(ImageFit.Cover)
-                .borderRadius(AppTheme.radius.lg)
+                .height(168)
+                .justifyContent(FlexAlign.Center)
+                .alignItems(HorizontalAlign.Center)
+                .backgroundColor(AppTheme.color.primarySoft)
+                .borderRadius(8)
+              }
+
+              Text(this.todaysWearLog === undefined ? '记录一次今日搭配' : this.todaysWearLog.outfitTitleSnapshot)
+                .fontSize(16)
+                .fontWeight(FontWeight.Medium)
+                .fontColor(AppTheme.color.text)
+                .maxLines(2)
+                .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+              Row() {
+                Text(this.todaysWearLog === undefined ? '今日灵感' : (this.todaysWearLog.placeText ?? '今日穿搭'))
+                  .fontSize(12)
+                  .fontColor(AppTheme.color.textMuted)
+                  .layoutWeight(1)
+
+                Text('♡ 记录')
+                  .fontSize(12)
+                  .fontColor(AppTheme.color.accent)
+              }
             }
-
-            Text(this.todaysWearLog.outfitTitleSnapshot)
-              .fontSize(16)
-              .fontWeight(FontWeight.Medium)
-              .fontColor(AppTheme.color.text)
-
-            Text(this.todaysWearLog.placeText ?? '未记录地点')
-              .fontSize(14)
-              .fontColor(AppTheme.color.textMuted)
+            .width('100%')
+            .padding(8)
+            .borderRadius(AppTheme.radius.lg)
+            .backgroundColor(AppTheme.color.surfaceRaised)
+            .onClick(() => {
+              this.recordToday();
+            })
           }
-          .width('100%')
-          .padding(14)
-          .borderRadius(AppTheme.radius.lg)
-          .backgroundColor(AppTheme.color.surfaceRaised)
-          .border({ width: 1, color: AppTheme.color.border })
-          .alignItems(HorizontalAlign.Start)
-        }
 
-        Text('最近套装')
-          .fontSize(18)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(AppTheme.color.text)
+          if (this.recentOutfits.length === 0) {
+            GridItem() {
+              Column({ space: 8 }) {
+                Column({ space: 8 }) {
+                  Text('搭')
+                    .fontSize(28)
+                    .fontWeight(FontWeight.Bold)
+                    .fontColor(AppTheme.color.primary)
 
-        if (this.recentOutfits.length === 0) {
-          EmptyState({
-            title: '暂无最近套装',
-            description: '创建套装后，可以从这里快速记录今天。'
-          })
-        } else {
-          Grid() {
+                  Text('从最近套装里挑一套')
+                    .fontSize(15)
+                    .fontWeight(FontWeight.Medium)
+                    .fontColor(AppTheme.color.text)
+                    .textAlign(TextAlign.Center)
+                }
+                .width('100%')
+                .height(190)
+                .justifyContent(FlexAlign.Center)
+                .alignItems(HorizontalAlign.Center)
+                .backgroundColor(AppTheme.color.primarySoft)
+                .borderRadius(8)
+
+                Text('创建套装后，这里会像灵感流一样展示。')
+                  .fontSize(15)
+                  .fontColor(AppTheme.color.text)
+                  .maxLines(2)
+                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+                Text('♡ 0')
+                  .fontSize(12)
+                  .fontColor(AppTheme.color.textMuted)
+              }
+              .width('100%')
+              .padding(8)
+              .borderRadius(AppTheme.radius.lg)
+              .backgroundColor(AppTheme.color.surfaceRaised)
+            }
+          } else {
             ForEach(this.recentOutfits, (outfit: OutfitTemplate) => {
               GridItem() {
                 Column({ space: 8 }) {
-                  OutfitCard({
-                    title: outfit.title,
-                    itemCount: outfit.clothingItemIds.length,
-                    photoUri: this.firstOutfitPhotoUri(outfit)
-                  })
-
-                  Button('选择套装记录今天')
-                    .height(36)
+                  if (this.firstOutfitPhotoUri(outfit).length > 0) {
+                    Image(this.firstOutfitPhotoUri(outfit))
+                      .width('100%')
+                      .height(190)
+                      .objectFit(ImageFit.Cover)
+                      .borderRadius(8)
+                  } else {
+                    Column() {
+                      Text('套装')
+                        .fontSize(20)
+                        .fontWeight(FontWeight.Bold)
+                        .fontColor(AppTheme.color.primary)
+                    }
                     .width('100%')
-                    .fontSize(13)
-                    .fontColor(AppTheme.color.surface)
-                    .backgroundColor(AppTheme.color.primary)
-                    .borderRadius(AppTheme.radius.md)
-                    .onClick(() => {
-                      this.recordToday(outfit);
-                    })
+                    .height(190)
+                    .justifyContent(FlexAlign.Center)
+                    .alignItems(HorizontalAlign.Center)
+                    .backgroundColor(AppTheme.color.primarySoft)
+                    .borderRadius(8)
+                  }
+
+                  Text(outfit.title)
+                    .fontSize(16)
+                    .fontWeight(FontWeight.Medium)
+                    .fontColor(AppTheme.color.text)
+                    .maxLines(2)
+                    .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+                  Row() {
+                    Text('从最近套装里挑一套')
+                      .fontSize(12)
+                      .fontColor(AppTheme.color.textMuted)
+                      .layoutWeight(1)
+
+                    Text(`${outfit.clothingItemIds.length} 件`)
+                      .fontSize(12)
+                      .fontColor(AppTheme.color.primary)
+                  }
                 }
+                .width('100%')
+                .padding(8)
+                .borderRadius(AppTheme.radius.lg)
+                .backgroundColor(AppTheme.color.surfaceRaised)
+                .onClick(() => {
+                  this.recordToday(outfit);
+                })
               }
             }, (outfit: OutfitTemplate) => outfit.id)
           }
-          .columnsTemplate('1fr 1fr')
-          .columnsGap(12)
-          .rowsGap(12)
-          .width('100%')
-        }
 
-        Text('最近记录')
-          .fontSize(18)
-          .fontWeight(FontWeight.Medium)
-          .fontColor(AppTheme.color.text)
+          if (this.recentWearLogs.length === 0) {
+            GridItem() {
+              Column({ space: 8 }) {
+                Column({ space: 8 }) {
+                  Text('记')
+                    .fontSize(28)
+                    .fontWeight(FontWeight.Bold)
+                    .fontColor(AppTheme.color.primary)
 
-        if (this.recentWearLogs.length === 0) {
-          EmptyState({
-            title: '暂无穿着记录',
-            description: '记录后会按时间显示最近穿过的套装。'
-          })
-        } else {
-          ForEach(this.recentWearLogs, (wearLog: WearLog) => {
-            Row() {
-              Column({ space: 4 }) {
-                Text(wearLog.outfitTitleSnapshot)
+                  Text('最近穿过')
+                    .fontSize(15)
+                    .fontWeight(FontWeight.Medium)
+                    .fontColor(AppTheme.color.text)
+                }
+                .width('100%')
+                .height(150)
+                .justifyContent(FlexAlign.Center)
+                .alignItems(HorizontalAlign.Center)
+                .backgroundColor(AppTheme.color.primarySoft)
+                .borderRadius(8)
+
+                Text('穿搭记录会按时间出现在这里。')
                   .fontSize(15)
-                  .fontWeight(FontWeight.Medium)
                   .fontColor(AppTheme.color.text)
 
-                Text(`${wearLog.wornDate} ${wearLog.placeText ?? ''}`)
-                  .fontSize(13)
+                Text('♡ 0')
+                  .fontSize(12)
                   .fontColor(AppTheme.color.textMuted)
               }
-              .layoutWeight(1)
-              .alignItems(HorizontalAlign.Start)
-
-              Text(`${wearLog.clothingItemIdsSnapshot.length} 件`)
-                .fontSize(13)
-                .fontColor(AppTheme.color.primary)
+              .width('100%')
+              .padding(8)
+              .borderRadius(AppTheme.radius.lg)
+              .backgroundColor(AppTheme.color.surfaceRaised)
             }
-            .width('100%')
-            .padding(12)
-            .borderRadius(AppTheme.radius.lg)
-            .backgroundColor(AppTheme.color.surfaceRaised)
-            .border({ width: 1, color: AppTheme.color.border })
-          }, (wearLog: WearLog) => wearLog.id)
+          } else {
+            ForEach(this.recentWearLogs, (wearLog: WearLog) => {
+              GridItem() {
+                Column({ space: 8 }) {
+                  if (this.firstWearLogPhotoUri(wearLog).length > 0) {
+                    Image(this.firstWearLogPhotoUri(wearLog))
+                      .width('100%')
+                      .height(150)
+                      .objectFit(ImageFit.Cover)
+                      .borderRadius(8)
+                  } else {
+                    Column() {
+                      Text('最近穿过')
+                        .fontSize(18)
+                        .fontWeight(FontWeight.Bold)
+                        .fontColor(AppTheme.color.primary)
+                    }
+                    .width('100%')
+                    .height(150)
+                    .justifyContent(FlexAlign.Center)
+                    .alignItems(HorizontalAlign.Center)
+                    .backgroundColor(AppTheme.color.primarySoft)
+                    .borderRadius(8)
+                  }
+
+                  Text(wearLog.outfitTitleSnapshot)
+                    .fontSize(16)
+                    .fontWeight(FontWeight.Medium)
+                    .fontColor(AppTheme.color.text)
+                    .maxLines(2)
+                    .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+                  Row() {
+                    Text(wearLog.wornDate)
+                      .fontSize(12)
+                      .fontColor(AppTheme.color.textMuted)
+                      .layoutWeight(1)
+
+                    Text(`${wearLog.clothingItemIdsSnapshot.length} 件`)
+                      .fontSize(12)
+                      .fontColor(AppTheme.color.primary)
+                  }
+                }
+                .width('100%')
+                .padding(8)
+                .borderRadius(AppTheme.radius.lg)
+                .backgroundColor(AppTheme.color.surfaceRaised)
+              }
+            }, (wearLog: WearLog) => wearLog.id)
+          }
         }
+        .columnsTemplate('1fr 1fr')
+        .columnsGap(10)
+        .rowsGap(12)
+        .width('100%')
       }
       .width('100%')
-      .padding(20)
+      .padding({ left: 14, right: 14, top: 18, bottom: 92 })
       .alignItems(HorizontalAlign.Start)
     }
     .width('100%')
