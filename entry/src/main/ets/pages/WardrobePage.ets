@@ -8,6 +8,7 @@ import { ClothingCategory } from '../domain/clothing/ClothingCategory';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
+import { AppTheme } from '../theme/Tokens';
 import { ClothingEditPage } from './ClothingEditPage';
 import { SearchResultsPage } from './SearchResultsPage';
 
@@ -201,11 +202,11 @@ export struct WardrobePage {
           Text('衣橱')
             .fontSize(30)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#111827')
+            .fontColor(AppTheme.color.text)
 
           Text('管理上衣、裤装、裙装、外套、鞋包和配饰。')
             .fontSize(15)
-            .fontColor('#475569')
+            .fontColor(AppTheme.color.textMuted)
         }
         .layoutWeight(1)
         .alignItems(HorizontalAlign.Start)
@@ -213,9 +214,9 @@ export struct WardrobePage {
         Button('添加衣服')
           .height(40)
           .fontSize(14)
-          .fontColor('#FFFFFF')
-          .backgroundColor('#0F172A')
-          .borderRadius(8)
+          .fontColor(AppTheme.color.surface)
+          .backgroundColor(AppTheme.color.primary)
+          .borderRadius(AppTheme.radius.md)
           .onClick(() => {
             this.openCreateEditor();
           })
@@ -226,14 +227,14 @@ export struct WardrobePage {
       if (this.loading) {
         Text('loading / 正在加载衣橱...')
           .fontSize(14)
-          .fontColor('#64748B')
+          .fontColor(AppTheme.color.textMuted)
       }
 
       if (this.errorMessage.length > 0) {
         Row({ space: 8 }) {
           Text(`error / ${this.errorMessage}`)
             .fontSize(14)
-            .fontColor('#B91C1C')
+            .fontColor(AppTheme.color.danger)
             .layoutWeight(1)
 
           Button('retry')
@@ -294,7 +295,7 @@ export struct WardrobePage {
     .height('100%')
     .padding(20)
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor('#F8FAFC')
+    .backgroundColor(AppTheme.color.surfaceMuted)
     }
   }
 }

@@ -10,6 +10,7 @@ import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { WearLog } from '../domain/wearLog/WearLogModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
+import { AppTheme } from '../theme/Tokens';
 import { OutfitEditPage } from './OutfitEditPage';
 import { SearchResultsPage } from './SearchResultsPage';
 import { WearLogEditPage } from './WearLogEditPage';
@@ -183,11 +184,11 @@ export struct OutfitsPage {
           Text('套装')
             .fontSize(30)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#111827')
+            .fontColor(AppTheme.color.text)
 
           Text('组合常穿搭配，方便每天快速记录。')
             .fontSize(15)
-            .fontColor('#475569')
+            .fontColor(AppTheme.color.textMuted)
         }
         .layoutWeight(1)
         .alignItems(HorizontalAlign.Start)
@@ -195,9 +196,9 @@ export struct OutfitsPage {
         Button('创建套装')
           .height(40)
           .fontSize(14)
-          .fontColor('#FFFFFF')
-          .backgroundColor('#0F172A')
-          .borderRadius(8)
+          .fontColor(AppTheme.color.surface)
+          .backgroundColor(AppTheme.color.primary)
+          .borderRadius(AppTheme.radius.md)
           .onClick(() => {
             this.onCreateOutfit();
           })
@@ -208,14 +209,14 @@ export struct OutfitsPage {
       if (this.loading) {
         Text('loading / 正在加载套装...')
           .fontSize(14)
-          .fontColor('#64748B')
+          .fontColor(AppTheme.color.textMuted)
       }
 
       if (this.errorMessage.length > 0) {
         Row({ space: 8 }) {
           Text(`error / ${this.errorMessage}`)
             .fontSize(14)
-            .fontColor('#B91C1C')
+            .fontColor(AppTheme.color.danger)
             .layoutWeight(1)
 
           Button('retry')
@@ -240,10 +241,10 @@ export struct OutfitsPage {
       Button('记录一次穿着')
         .height(40)
         .fontSize(14)
-        .fontColor('#0F172A')
-        .backgroundColor('#FFFFFF')
-        .borderRadius(8)
-        .border({ width: 1, color: '#CBD5E1' })
+        .fontColor(AppTheme.color.primary)
+        .backgroundColor(AppTheme.color.surface)
+        .borderRadius(AppTheme.radius.md)
+        .border({ width: 1, color: AppTheme.color.primary })
         .onClick(() => {
           this.onRecordWear();
         })
@@ -272,10 +273,10 @@ export struct OutfitsPage {
                   .height(36)
                   .width('100%')
                   .fontSize(13)
-                  .fontColor('#0F172A')
-                  .backgroundColor('#FFFFFF')
-                  .borderRadius(8)
-                  .border({ width: 1, color: '#CBD5E1' })
+                  .fontColor(AppTheme.color.primary)
+                  .backgroundColor(AppTheme.color.surface)
+                  .borderRadius(AppTheme.radius.md)
+                  .border({ width: 1, color: AppTheme.color.primary })
                   .onClick(() => {
                     this.onRecordWear(outfit);
                   })
@@ -294,7 +295,7 @@ export struct OutfitsPage {
     .height('100%')
     .padding(20)
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor('#F8FAFC')
+    .backgroundColor(AppTheme.color.surfaceMuted)
     }
   }
 }

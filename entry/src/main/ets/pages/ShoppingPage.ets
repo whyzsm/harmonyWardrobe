@@ -6,6 +6,7 @@ import { WishlistRepository } from '../data/repositories/WishlistRepository';
 import { WishlistItem } from '../domain/wishlist/WishlistModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
+import { AppTheme } from '../theme/Tokens';
 import { SearchResultsPage } from './SearchResultsPage';
 import { WishlistEditPage } from './WishlistEditPage';
 
@@ -156,11 +157,11 @@ export struct ShoppingPage {
           Text('心仪单品')
             .fontSize(30)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#111827')
+            .fontColor(AppTheme.color.text)
 
           Text('记录想买的衣物、门店、价格和试穿照片。')
             .fontSize(15)
-            .fontColor('#475569')
+            .fontColor(AppTheme.color.textMuted)
         }
         .layoutWeight(1)
         .alignItems(HorizontalAlign.Start)
@@ -168,9 +169,9 @@ export struct ShoppingPage {
         Button('添加心愿')
           .height(40)
           .fontSize(14)
-          .fontColor('#FFFFFF')
-          .backgroundColor('#0F172A')
-          .borderRadius(8)
+          .fontColor(AppTheme.color.surface)
+          .backgroundColor(AppTheme.color.primary)
+          .borderRadius(AppTheme.radius.md)
           .onClick(() => {
             this.onCreateWishlistItem();
           })
@@ -181,14 +182,14 @@ export struct ShoppingPage {
       if (this.loading) {
         Text('loading / 正在加载心愿...')
           .fontSize(14)
-          .fontColor('#64748B')
+          .fontColor(AppTheme.color.textMuted)
       }
 
       if (this.errorMessage.length > 0) {
         Row({ space: 8 }) {
           Text(`error / ${this.errorMessage}`)
             .fontSize(14)
-            .fontColor('#B91C1C')
+            .fontColor(AppTheme.color.danger)
             .layoutWeight(1)
 
           Button('retry')
@@ -233,7 +234,7 @@ export struct ShoppingPage {
     .height('100%')
     .padding(20)
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor('#F8FAFC')
+    .backgroundColor(AppTheme.color.surfaceMuted)
     }
   }
 }

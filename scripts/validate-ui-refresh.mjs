@@ -67,3 +67,21 @@ requireIncludes(
   'AppTheme.color.primary',
   'MonthCalendar selected blue'
 );
+
+const mainPageFiles = [
+  'entry/src/main/ets/pages/Index.ets',
+  'entry/src/main/ets/pages/TodayPage.ets',
+  'entry/src/main/ets/pages/WardrobePage.ets',
+  'entry/src/main/ets/pages/OutfitsPage.ets',
+  'entry/src/main/ets/pages/CalendarPage.ets',
+  'entry/src/main/ets/pages/ShoppingPage.ets'
+];
+
+for (const file of mainPageFiles) {
+  const source = fs.readFileSync(file, 'utf8');
+  requireIncludes(source, "import { AppTheme } from '../theme/Tokens';", `${file} theme import`);
+  requireIncludes(source, 'AppTheme.color.', `${file} theme colors`);
+  forbidIncludes(source, "'#0F172A'", `${file} old black primary action`);
+  forbidIncludes(source, "'#F8FAFC'", `${file} old background`);
+  forbidIncludes(source, "'#B91C1C'", `${file} old danger`);
+}

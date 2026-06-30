@@ -50,7 +50,7 @@ struct Index {
           Button('重试')
             .height(40)
             .fontSize(14)
-            .fontColor('#FFFFFF')
+            .fontColor(AppTheme.color.surface)
             .backgroundColor(AppTheme.color.primary)
             .borderRadius(AppTheme.radius.md)
             .onClick(() => {

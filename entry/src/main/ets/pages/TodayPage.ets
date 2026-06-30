@@ -6,6 +6,7 @@ import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { WearLog } from '../domain/wearLog/WearLogModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
+import { AppTheme } from '../theme/Tokens';
 import { toIsoDate } from '../utils/date';
 import { WearLogEditPage } from './WearLogEditPage';
 
@@ -93,11 +94,11 @@ export struct TodayPage {
           Text('今天')
             .fontSize(30)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#111827')
+            .fontColor(AppTheme.color.text)
 
           Text(this.todayIsoDate)
             .fontSize(15)
-            .fontColor('#475569')
+            .fontColor(AppTheme.color.textMuted)
         }
         .width('100%')
         .alignItems(HorizontalAlign.Start)
@@ -105,14 +106,14 @@ export struct TodayPage {
         if (this.loading) {
           Text('loading / 正在加载今日穿搭...')
             .fontSize(14)
-            .fontColor('#64748B')
+            .fontColor(AppTheme.color.textMuted)
         }
 
         if (this.errorMessage.length > 0) {
           Row({ space: 8 }) {
             Text(`error / ${this.errorMessage}`)
               .fontSize(14)
-              .fontColor('#B91C1C')
+              .fontColor(AppTheme.color.danger)
               .layoutWeight(1)
 
             Button('retry')
@@ -135,37 +136,37 @@ export struct TodayPage {
             Text('今日穿搭')
               .fontSize(18)
               .fontWeight(FontWeight.Medium)
-              .fontColor('#1F2937')
+              .fontColor(AppTheme.color.text)
 
             if (this.firstWearLogPhotoUri(this.todaysWearLog).length > 0) {
               Image(this.firstWearLogPhotoUri(this.todaysWearLog))
                 .width('100%')
                 .height(180)
                 .objectFit(ImageFit.Cover)
-                .borderRadius(8)
+                .borderRadius(AppTheme.radius.lg)
             }
 
             Text(this.todaysWearLog.outfitTitleSnapshot)
               .fontSize(16)
               .fontWeight(FontWeight.Medium)
-              .fontColor('#111827')
+              .fontColor(AppTheme.color.text)
 
             Text(this.todaysWearLog.placeText ?? '未记录地点')
               .fontSize(14)
-              .fontColor('#64748B')
+              .fontColor(AppTheme.color.textMuted)
           }
           .width('100%')
           .padding(14)
-          .borderRadius(8)
-          .backgroundColor('#FFFFFF')
-          .border({ width: 1, color: '#E2E8F0' })
+          .borderRadius(AppTheme.radius.lg)
+          .backgroundColor(AppTheme.color.surfaceRaised)
+          .border({ width: 1, color: AppTheme.color.border })
           .alignItems(HorizontalAlign.Start)
         }
 
         Text('最近套装')
           .fontSize(18)
           .fontWeight(FontWeight.Medium)
-          .fontColor('#1F2937')
+          .fontColor(AppTheme.color.text)
 
         if (this.recentOutfits.length === 0) {
           EmptyState({
@@ -187,9 +188,9 @@ export struct TodayPage {
                     .height(36)
                     .width('100%')
                     .fontSize(13)
-                    .fontColor('#FFFFFF')
-                    .backgroundColor('#0F172A')
-                    .borderRadius(8)
+                    .fontColor(AppTheme.color.surface)
+                    .backgroundColor(AppTheme.color.primary)
+                    .borderRadius(AppTheme.radius.md)
                     .onClick(() => {
                       this.recordToday(outfit);
                     })
@@ -206,7 +207,7 @@ export struct TodayPage {
         Text('最近记录')
           .fontSize(18)
           .fontWeight(FontWeight.Medium)
-          .fontColor('#1F2937')
+          .fontColor(AppTheme.color.text)
 
         if (this.recentWearLogs.length === 0) {
           EmptyState({
@@ -220,24 +221,24 @@ export struct TodayPage {
                 Text(wearLog.outfitTitleSnapshot)
                   .fontSize(15)
                   .fontWeight(FontWeight.Medium)
-                  .fontColor('#111827')
+                  .fontColor(AppTheme.color.text)
 
                 Text(`${wearLog.wornDate} ${wearLog.placeText ?? ''}`)
                   .fontSize(13)
-                  .fontColor('#64748B')
+                  .fontColor(AppTheme.color.textMuted)
               }
               .layoutWeight(1)
               .alignItems(HorizontalAlign.Start)
 
               Text(`${wearLog.clothingItemIdsSnapshot.length} 件`)
                 .fontSize(13)
-                .fontColor('#64748B')
+                .fontColor(AppTheme.color.primary)
             }
             .width('100%')
             .padding(12)
-            .borderRadius(8)
-            .backgroundColor('#FFFFFF')
-            .border({ width: 1, color: '#E2E8F0' })
+            .borderRadius(AppTheme.radius.lg)
+            .backgroundColor(AppTheme.color.surfaceRaised)
+            .border({ width: 1, color: AppTheme.color.border })
           }, (wearLog: WearLog) => wearLog.id)
         }
       }
@@ -247,7 +248,7 @@ export struct TodayPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#F8FAFC')
+    .backgroundColor(AppTheme.color.surfaceMuted)
     }
   }
 }
