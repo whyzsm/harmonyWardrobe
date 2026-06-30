@@ -49,7 +49,7 @@
 - [x] Task 26: Implement Wear Log Create/Edit Flow
 - [x] Task 27: Implement Calendar Page
 - [x] Task 28: Implement Shopping Page
-- [ ] Task 29: Implement Wishlist Create/Edit Flow
+- [x] Task 29: Implement Wishlist Create/Edit Flow
 - [ ] Task 30: Implement Unified Search Experience
 - [ ] Task 31: Implement Delete And Orphan Cleanup
 - [ ] Task 32: Add Empty, Loading, Error, And Disabled States
