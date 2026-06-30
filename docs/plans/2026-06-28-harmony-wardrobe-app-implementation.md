@@ -46,7 +46,7 @@
 - [x] Task 23: Implement Outfits Page
 - [x] Task 24: Implement Outfit Create/Edit Flow
 - [x] Task 25: Implement Today Page
-- [ ] Task 26: Implement Wear Log Create/Edit Flow
+- [x] Task 26: Implement Wear Log Create/Edit Flow
 - [ ] Task 27: Implement Calendar Page
 - [ ] Task 28: Implement Shopping Page
 - [ ] Task 29: Implement Wishlist Create/Edit Flow
