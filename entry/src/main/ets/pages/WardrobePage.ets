@@ -5,6 +5,7 @@ import { EmptyState } from '../components/EmptyState';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { ClothingCategory } from '../domain/clothing/ClothingCategory';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
+import { ClothingEditPage } from './ClothingEditPage';
 
 interface WardrobeCategoryFilter {
   label: string;
@@ -38,6 +39,8 @@ export struct WardrobePage {
   @State private searchQuery: string = '';
   @State private selectedCategoryLabel: string = '全部';
   @State private clothingItems: ClothingItem[] = [];
+  @State private showEditor: boolean = false;
+  @State private editingClothingId: string = '';
   private clothingRepository?: ClothingRepository = undefined;
 
   private selectedCategory(): ClothingCategory | undefined {
@@ -72,8 +75,74 @@ export struct WardrobePage {
     return item.photoUris.length > 0 ? item.photoUris[0] : '';
   }
 
+  private editingItem(): ClothingItem | undefined {
+    if (this.editingClothingId.length === 0) {
+      return undefined;
+    }
+
+    for (const item of this.clothingItems) {
+      if (item.id === this.editingClothingId) {
+        return item;
+      }
+    }
+
+    return undefined;
+  }
+
+  private openCreateEditor(): void {
+    this.editingClothingId = '';
+    this.showEditor = true;
+  }
+
+  private openEditEditor(item: ClothingItem): void {
+    this.editingClothingId = item.id;
+    this.showEditor = true;
+  }
+
+  private closeEditor(): void {
+    this.showEditor = false;
+    this.editingClothingId = '';
+  }
+
+  private onEdit(item: ClothingItem): void {
+    this.openEditEditor(item);
+  }
+
+  private upsertClothingItem(savedItem: ClothingItem): void {
+    const nextItems: ClothingItem[] = [];
+    let replaced = false;
+
+    for (const item of this.clothingItems) {
+      if (item.id === savedItem.id) {
+        nextItems.push(savedItem);
+        replaced = true;
+      } else {
+        nextItems.push(item);
+      }
+    }
+
+    if (!replaced) {
+      nextItems.unshift(savedItem);
+    }
+
+    this.clothingItems = nextItems;
+  }
+
   build() {
-    Column({ space: 16 }) {
+    if (this.showEditor) {
+      ClothingEditPage({
+        initialItem: this.editingItem(),
+        clothingRepository: this.clothingRepository,
+        onSave: (item: ClothingItem) => {
+          this.upsertClothingItem(item);
+          this.closeEditor();
+        },
+        onCancel: () => {
+          this.closeEditor();
+        }
+      })
+    } else {
+      Column({ space: 16 }) {
       Row() {
         Column({ space: 4 }) {
           Text('衣橱')
@@ -94,6 +163,9 @@ export struct WardrobePage {
           .fontColor('#FFFFFF')
           .backgroundColor('#0F172A')
           .borderRadius(8)
+          .onClick(() => {
+            this.openCreateEditor();
+          })
       }
       .width('100%')
       .alignItems(VerticalAlign.Center)
@@ -128,6 +200,9 @@ export struct WardrobePage {
                 category: categoryLabel(item.category),
                 photoUri: this.firstPhotoUri(item)
               })
+                .onClick(() => {
+                  this.onEdit(item);
+                })
             }
           }, (item: ClothingItem) => item.id)
         }
@@ -143,5 +218,6 @@ export struct WardrobePage {
     .padding(20)
     .alignItems(HorizontalAlign.Start)
     .backgroundColor('#F8FAFC')
+    }
   }
 }
