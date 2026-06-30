@@ -30,3 +30,19 @@ requireIncludes(tokenSource, "danger: '#EF4444'", 'danger token');
 requireIncludes(tokenSource, "accent: '#FF7A90'", 'fashion accent token');
 forbidIncludes(tokenSource, "'#0F766E'", 'old teal primary');
 forbidIncludes(tokenSource, "'#115E59'", 'old teal primaryStrong');
+
+const componentFiles = [
+  'entry/src/main/ets/components/ClothingCard.ets',
+  'entry/src/main/ets/components/OutfitCard.ets',
+  'entry/src/main/ets/components/WishlistCard.ets'
+];
+
+for (const file of componentFiles) {
+  const source = fs.readFileSync(file, 'utf8');
+  requireIncludes(source, "import { AppTheme } from '../theme/Tokens';", `${file} theme import`);
+  requireIncludes(source, 'AppTheme.color.', `${file} theme colors`);
+  requireIncludes(source, 'AppTheme.radius.', `${file} theme radius`);
+  forbidIncludes(source, "'#0F766E'", `${file} old teal`);
+  forbidIncludes(source, "'#0F172A'", `${file} old near-black action`);
+  forbidIncludes(source, "'#E2E8F0'", `${file} old slate border`);
+}

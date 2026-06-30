@@ -1,3 +1,5 @@
+import { AppTheme } from '../theme/Tokens';
+
 @Component
 export struct WishlistCard {
   @Prop title: string = '';
@@ -12,47 +14,47 @@ export struct WishlistCard {
           .width(72)
           .height(72)
           .objectFit(ImageFit.Cover)
-          .borderRadius(8)
+          .borderRadius(AppTheme.radius.lg)
       } else {
         Column() {
           Text('愿')
             .fontSize(20)
             .fontWeight(FontWeight.Bold)
-            .fontColor('#64748B')
+            .fontColor(AppTheme.color.accent)
         }
         .width(72)
         .height(72)
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .borderRadius(8)
-        .backgroundColor('#E2E8F0')
+        .borderRadius(AppTheme.radius.lg)
+        .backgroundColor(AppTheme.color.primarySoft)
       }
 
       Column({ space: 6 }) {
         Text(this.title)
           .fontSize(16)
           .fontWeight(FontWeight.Medium)
-          .fontColor('#111827')
+          .fontColor(AppTheme.color.text)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
         Text(this.storeName.length > 0 ? this.storeName : '未记录门店')
           .fontSize(13)
-          .fontColor('#64748B')
+          .fontColor(AppTheme.color.textMuted)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
         Text(this.priceText.length > 0 ? this.priceText : '未记录价格')
           .fontSize(13)
-          .fontColor('#0F766E')
+          .fontColor(this.priceText.length > 0 ? AppTheme.color.success : AppTheme.color.textDisabled)
       }
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
     }
     .width('100%')
     .padding(12)
-    .borderRadius(8)
-    .backgroundColor('#FFFFFF')
-    .border({ width: 1, color: '#E2E8F0' })
+    .borderRadius(AppTheme.radius.lg)
+    .backgroundColor(AppTheme.color.surfaceRaised)
+    .border({ width: 1, color: AppTheme.color.border })
   }
 }
