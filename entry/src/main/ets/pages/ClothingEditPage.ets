@@ -37,6 +37,30 @@ function labelForCategory(category: ClothingCategory): string {
   return '其他';
 }
 
+function padTwoDigits(value: number): string {
+  return value < 10 ? `0${value}` : `${value}`;
+}
+
+function formatDateForStorage(date: Date): string {
+  return `${date.getFullYear()}-${padTwoDigits(date.getMonth() + 1)}-${padTwoDigits(date.getDate())}`;
+}
+
+function dateFromStorage(value: string): Date {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (match === null) {
+    return new Date();
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return new Date();
+  }
+
+  return new Date(year, month - 1, day);
+}
+
 function optionalText(value: string): string | undefined {
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
@@ -109,6 +133,17 @@ export struct ClothingEditPage {
     }
 
     return info;
+  }
+
+  private openPurchaseDatePicker(): void {
+    DatePickerDialog.show({
+      start: new Date(2000, 0, 1),
+      end: new Date(),
+      selected: dateFromStorage(this.purchaseDate),
+      onDateAccept: (date: Date) => {
+        this.purchaseDate = formatDateForStorage(date);
+      }
+    });
   }
 
   private async copySourcesToLocalUris(sources: PhotoSource[]): Promise<string[]> {
@@ -313,15 +348,42 @@ export struct ClothingEditPage {
               this.price = value;
             })
 
-          TextInput({ text: this.purchaseDate, placeholder: 'purchaseDate / 购买日期 YYYY-MM-DD' })
-            .height(42)
-            .fontSize(14)
-            .backgroundColor(AppTheme.color.surface)
-            .borderRadius(8)
-            .border({ width: 1, color: AppTheme.color.border })
-            .onChange((value: string) => {
-              this.purchaseDate = value;
-            })
+          Row() {
+            Column({ space: 2 }) {
+              Text('购买日期')
+                .fontSize(12)
+                .fontColor(AppTheme.color.textMuted)
+
+              Text(this.purchaseDate.length > 0 ? this.purchaseDate : '选择购买日期')
+                .fontSize(14)
+                .fontColor(this.purchaseDate.length > 0 ? AppTheme.color.text : AppTheme.color.textDisabled)
+            }
+            .layoutWeight(1)
+            .alignItems(HorizontalAlign.Start)
+
+            if (this.purchaseDate.length > 0) {
+              Button('清除日期')
+                .height(32)
+                .fontSize(12)
+                .fontColor(AppTheme.color.textMuted)
+                .backgroundColor(AppTheme.color.surface)
+                .borderRadius(8)
+                .border({ width: 1, color: AppTheme.color.border })
+                .onClick(() => {
+                  this.purchaseDate = '';
+                })
+            }
+          }
+          .width('100%')
+          .height(52)
+          .padding({ left: 12, right: 12 })
+          .backgroundColor(AppTheme.color.surface)
+          .borderRadius(8)
+          .border({ width: 1, color: AppTheme.color.border })
+          .alignItems(VerticalAlign.Center)
+          .onClick(() => {
+            this.openPurchaseDatePicker();
+          })
 
           TextInput({ text: this.purchaseNote, placeholder: 'purchase note / 购买备注' })
             .height(42)
