@@ -1,30 +1,100 @@
+import { EmptyState } from '../components/EmptyState';
+import { SearchBar } from '../components/SearchBar';
+import { WishlistCard } from '../components/WishlistCard';
+import { WishlistRepository } from '../data/repositories/WishlistRepository';
+import { WishlistItem } from '../domain/wishlist/WishlistModels';
+
+function firstPhotoUri(item: WishlistItem): string {
+  return item.photoUris.length > 0 ? item.photoUris[0] : '';
+}
+
+function priceText(item: WishlistItem): string {
+  return item.price === undefined ? '' : `¥${item.price.toFixed(2)}`;
+}
+
 @Component
 export struct ShoppingPage {
+  @State private searchQuery: string = '';
+  @State private wishlistItems: WishlistItem[] = [];
+  @State private selectedWishlistItemId: string = '';
+  private wishlistRepository?: WishlistRepository = undefined;
+
+  private filterWishlistItems(): WishlistItem[] {
+    const normalizedQuery = this.searchQuery.trim().toLowerCase();
+    if (normalizedQuery.length === 0) {
+      return this.wishlistItems;
+    }
+
+    return this.wishlistItems.filter((item: WishlistItem) => {
+      return item.title.toLowerCase().includes(normalizedQuery) ||
+        (item.storeName !== undefined && item.storeName.toLowerCase().includes(normalizedQuery)) ||
+        (item.note !== undefined && item.note.toLowerCase().includes(normalizedQuery));
+    });
+  }
+
+  private onCreateWishlistItem(): void {
+    this.selectedWishlistItemId = '';
+  }
+
+  private onOpenWishlistItem(item: WishlistItem): void {
+    this.selectedWishlistItemId = item.id;
+  }
+
   build() {
-    Column({ space: 18 }) {
-      Text('逛街')
-        .fontSize(30)
-        .fontWeight(FontWeight.Bold)
-        .fontColor('#111827')
+    Column({ space: 16 }) {
+      Row() {
+        Column({ space: 4 }) {
+          Text('心仪单品')
+            .fontSize(30)
+            .fontWeight(FontWeight.Bold)
+            .fontColor('#111827')
 
-      Text('记录心仪单品、门店、价格和试穿照片。')
-        .fontSize(16)
-        .fontColor('#475569')
+          Text('记录想买的衣物、门店、价格和试穿照片。')
+            .fontSize(15)
+            .fontColor('#475569')
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
 
-      Column({ space: 8 }) {
-        Text('心仪清单')
-          .fontSize(18)
-          .fontWeight(FontWeight.Medium)
-          .fontColor('#1F2937')
-
-        Text('逛街记录会在这里显示。')
+        Button('添加心愿')
+          .height(40)
           .fontSize(14)
-          .fontColor('#64748B')
+          .fontColor('#FFFFFF')
+          .backgroundColor('#0F172A')
+          .borderRadius(8)
+          .onClick(() => {
+            this.onCreateWishlistItem();
+          })
       }
       .width('100%')
-      .padding(16)
-      .borderRadius(8)
-      .backgroundColor('#FFFFFF')
+      .alignItems(VerticalAlign.Center)
+
+      SearchBar({
+        value: this.searchQuery,
+        placeholder: '搜索心仪单品、门店、备注',
+        onChange: (value: string) => {
+          this.searchQuery = value;
+        }
+      })
+
+      if (this.filterWishlistItems().length === 0) {
+        EmptyState({
+          title: '还没有心仪单品',
+          description: '添加心愿后会在这里显示，也可以按门店和关键词搜索。'
+        })
+      } else {
+        ForEach(this.filterWishlistItems(), (item: WishlistItem) => {
+          WishlistCard({
+            title: item.title,
+            storeName: item.storeName ?? '',
+            priceText: priceText(item),
+            photoUri: firstPhotoUri(item)
+          })
+            .onClick(() => {
+              this.onOpenWishlistItem(item);
+            })
+        }, (item: WishlistItem) => item.id)
+      }
     }
     .width('100%')
     .height('100%')
