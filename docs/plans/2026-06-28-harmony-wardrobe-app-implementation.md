@@ -41,7 +41,7 @@
 - [x] Task 18: Implement Repository Integration Tests
 - [x] Task 19: Implement App Navigation Shell
 - [x] Task 20: Implement Shared UI Components
-- [ ] Task 21: Implement Wardrobe Page
+- [x] Task 21: Implement Wardrobe Page
 - [ ] Task 22: Implement Clothing Create/Edit Flow
 - [ ] Task 23: Implement Outfits Page
 - [ ] Task 24: Implement Outfit Create/Edit Flow
