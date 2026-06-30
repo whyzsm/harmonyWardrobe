@@ -241,11 +241,11 @@ struct Index {
             Button('+')
               .width(56)
               .height(48)
-              .fontSize(30)
+              .fontSize(28)
               .fontWeight(FontWeight.Bold)
               .fontColor(AppTheme.color.surface)
               .backgroundColor(AppTheme.color.primary)
-              .borderRadius(18)
+              .borderRadius(16)
               .onClick(() => {
                 this.showQuickActions = true;
               })
