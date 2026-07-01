@@ -87,13 +87,16 @@ export struct TodayPage {
       })
     } else {
       Scroll() {
-      Column({ space: 14 }) {
+      Column({ space: 6 }) {
         Row() {
-          Blank()
+          Text('☰')
             .width(44)
             .height(44)
+            .fontSize(30)
+            .fontColor(AppTheme.color.text)
+            .textAlign(TextAlign.Center)
 
-          Row({ space: 18 }) {
+          Row({ space: 26 }) {
             Column({ space: 4 }) {
               Text('推荐')
                 .fontSize(18)
@@ -101,7 +104,7 @@ export struct TodayPage {
                 .fontColor(AppTheme.color.text)
 
               Column()
-                .width(28)
+                .width(34)
                 .height(3)
                 .backgroundColor(AppTheme.color.primary)
                 .borderRadius(2)
@@ -122,17 +125,17 @@ export struct TodayPage {
           Text('⌕')
             .width(44)
             .height(44)
-            .fontSize(32)
+            .fontSize(34)
             .fontColor(AppTheme.color.text)
             .textAlign(TextAlign.Center)
         }
         .width('100%')
+        .height(56)
         .alignItems(VerticalAlign.Center)
 
-        Text('首页')
-          .fontSize(28)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(AppTheme.color.text)
+        Divider()
+          .color(AppTheme.color.border)
+          .strokeWidth(0.5)
 
         if (this.loading) {
           Text('loading / 正在加载今日穿搭...')
@@ -157,13 +160,13 @@ export struct TodayPage {
           .width('100%')
         }
 
-        Grid() {
-          GridItem() {
+        Row({ space: 6 }) {
+          Column({ space: 10 }) {
             Column({ space: 8 }) {
               if (this.todaysWearLog !== undefined && this.firstWearLogPhotoUri(this.todaysWearLog).length > 0) {
                 Image(this.firstWearLogPhotoUri(this.todaysWearLog))
                   .width('100%')
-                  .height(168)
+                  .height(166)
                   .objectFit(ImageFit.Cover)
                   .borderRadius(8)
               } else {
@@ -179,7 +182,7 @@ export struct TodayPage {
                     .fontColor(AppTheme.color.text)
                 }
                 .width('100%')
-                .height(168)
+                .height(166)
                 .justifyContent(FlexAlign.Center)
                 .alignItems(HorizontalAlign.Center)
                 .backgroundColor(AppTheme.color.primarySoft)
@@ -192,6 +195,7 @@ export struct TodayPage {
                 .fontColor(AppTheme.color.text)
                 .maxLines(2)
                 .textOverflow({ overflow: TextOverflow.Ellipsis })
+                .padding({ left: 2, right: 2 })
 
               Row() {
                 Text(this.todaysWearLog === undefined ? '今日灵感' : (this.todaysWearLog.placeText ?? '今日穿搭'))
@@ -203,109 +207,15 @@ export struct TodayPage {
                   .fontSize(12)
                   .fontColor(AppTheme.color.accent)
               }
+              .padding({ left: 2, right: 2, bottom: 2 })
             }
             .width('100%')
-            .padding(8)
-            .borderRadius(AppTheme.radius.lg)
-            .backgroundColor(AppTheme.color.surfaceRaised)
+            .backgroundColor(AppTheme.color.surface)
             .onClick(() => {
               this.recordToday();
             })
-          }
 
-          if (this.recentOutfits.length === 0) {
-            GridItem() {
-              Column({ space: 8 }) {
-                Column({ space: 8 }) {
-                  Text('搭')
-                    .fontSize(28)
-                    .fontWeight(FontWeight.Bold)
-                    .fontColor(AppTheme.color.primary)
-
-                  Text('从最近套装里挑一套')
-                    .fontSize(15)
-                    .fontWeight(FontWeight.Medium)
-                    .fontColor(AppTheme.color.text)
-                    .textAlign(TextAlign.Center)
-                }
-                .width('100%')
-                .height(190)
-                .justifyContent(FlexAlign.Center)
-                .alignItems(HorizontalAlign.Center)
-                .backgroundColor(AppTheme.color.primarySoft)
-                .borderRadius(8)
-
-                Text('创建套装后，这里会像灵感流一样展示。')
-                  .fontSize(15)
-                  .fontColor(AppTheme.color.text)
-                  .maxLines(2)
-                  .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-                Text('♡ 0')
-                  .fontSize(12)
-                  .fontColor(AppTheme.color.textMuted)
-              }
-              .width('100%')
-              .padding(8)
-              .borderRadius(AppTheme.radius.lg)
-              .backgroundColor(AppTheme.color.surfaceRaised)
-            }
-          } else {
-            ForEach(this.recentOutfits, (outfit: OutfitTemplate) => {
-              GridItem() {
-                Column({ space: 8 }) {
-                  if (this.firstOutfitPhotoUri(outfit).length > 0) {
-                    Image(this.firstOutfitPhotoUri(outfit))
-                      .width('100%')
-                      .height(190)
-                      .objectFit(ImageFit.Cover)
-                      .borderRadius(8)
-                  } else {
-                    Column() {
-                      Text('套装')
-                        .fontSize(20)
-                        .fontWeight(FontWeight.Bold)
-                        .fontColor(AppTheme.color.primary)
-                    }
-                    .width('100%')
-                    .height(190)
-                    .justifyContent(FlexAlign.Center)
-                    .alignItems(HorizontalAlign.Center)
-                    .backgroundColor(AppTheme.color.primarySoft)
-                    .borderRadius(8)
-                  }
-
-                  Text(outfit.title)
-                    .fontSize(16)
-                    .fontWeight(FontWeight.Medium)
-                    .fontColor(AppTheme.color.text)
-                    .maxLines(2)
-                    .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-                  Row() {
-                    Text('从最近套装里挑一套')
-                      .fontSize(12)
-                      .fontColor(AppTheme.color.textMuted)
-                      .layoutWeight(1)
-
-                    Text(`${outfit.clothingItemIds.length} 件`)
-                      .fontSize(12)
-                      .fontColor(AppTheme.color.primary)
-                  }
-                }
-                .width('100%')
-                .padding(8)
-                .borderRadius(AppTheme.radius.lg)
-                .backgroundColor(AppTheme.color.surfaceRaised)
-                .onClick(() => {
-                  this.recordToday(outfit);
-                })
-              }
-            }, (outfit: OutfitTemplate) => outfit.id)
-          }
-
-          if (this.recentWearLogs.length === 0) {
-            GridItem() {
+            if (this.recentWearLogs.length === 0) {
               Column({ space: 8 }) {
                 Column({ space: 8 }) {
                   Text('记')
@@ -328,19 +238,17 @@ export struct TodayPage {
                 Text('穿搭记录会按时间出现在这里。')
                   .fontSize(15)
                   .fontColor(AppTheme.color.text)
+                  .padding({ left: 2, right: 2 })
 
                 Text('♡ 0')
                   .fontSize(12)
                   .fontColor(AppTheme.color.textMuted)
-              }
-              .width('100%')
-              .padding(8)
-              .borderRadius(AppTheme.radius.lg)
-              .backgroundColor(AppTheme.color.surfaceRaised)
-            }
-          } else {
-            ForEach(this.recentWearLogs, (wearLog: WearLog) => {
-              GridItem() {
+                  .padding({ left: 2, right: 2, bottom: 2 })
+                }
+                .width('100%')
+                .backgroundColor(AppTheme.color.surface)
+            } else {
+              ForEach(this.recentWearLogs, (wearLog: WearLog) => {
                 Column({ space: 8 }) {
                   if (this.firstWearLogPhotoUri(wearLog).length > 0) {
                     Image(this.firstWearLogPhotoUri(wearLog))
@@ -369,6 +277,7 @@ export struct TodayPage {
                     .fontColor(AppTheme.color.text)
                     .maxLines(2)
                     .textOverflow({ overflow: TextOverflow.Ellipsis })
+                    .padding({ left: 2, right: 2 })
 
                   Row() {
                     Text(wearLog.wornDate)
@@ -380,27 +289,114 @@ export struct TodayPage {
                       .fontSize(12)
                       .fontColor(AppTheme.color.primary)
                   }
+                  .padding({ left: 2, right: 2, bottom: 2 })
                 }
                 .width('100%')
-                .padding(8)
-                .borderRadius(AppTheme.radius.lg)
-                .backgroundColor(AppTheme.color.surfaceRaised)
-              }
-            }, (wearLog: WearLog) => wearLog.id)
+                .backgroundColor(AppTheme.color.surface)
+              }, (wearLog: WearLog) => wearLog.id)
+            }
           }
+          .layoutWeight(1)
+
+          Column({ space: 10 }) {
+            if (this.recentOutfits.length === 0) {
+              Column({ space: 8 }) {
+                Column({ space: 8 }) {
+                  Text('搭')
+                    .fontSize(28)
+                    .fontWeight(FontWeight.Bold)
+                    .fontColor(AppTheme.color.primary)
+
+                  Text('从最近套装里挑一套')
+                    .fontSize(15)
+                    .fontWeight(FontWeight.Medium)
+                    .fontColor(AppTheme.color.text)
+                    .textAlign(TextAlign.Center)
+                }
+                .width('100%')
+                .height(192)
+                .justifyContent(FlexAlign.Center)
+                .alignItems(HorizontalAlign.Center)
+                .backgroundColor(AppTheme.color.primarySoft)
+                .borderRadius(8)
+
+                Text('创建套装后，这里会像灵感流一样展示。')
+                  .fontSize(15)
+                  .fontColor(AppTheme.color.text)
+                  .maxLines(2)
+                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+                  .padding({ left: 2, right: 2 })
+
+                Text('♡ 0')
+                  .fontSize(12)
+                  .fontColor(AppTheme.color.textMuted)
+                  .padding({ left: 2, right: 2, bottom: 2 })
+              }
+              .width('100%')
+              .backgroundColor(AppTheme.color.surface)
+            } else {
+              ForEach(this.recentOutfits, (outfit: OutfitTemplate) => {
+                Column({ space: 8 }) {
+                  if (this.firstOutfitPhotoUri(outfit).length > 0) {
+                    Image(this.firstOutfitPhotoUri(outfit))
+                      .width('100%')
+                      .height(192)
+                      .objectFit(ImageFit.Cover)
+                      .borderRadius(8)
+                  } else {
+                    Column() {
+                      Text('套装')
+                        .fontSize(20)
+                        .fontWeight(FontWeight.Bold)
+                        .fontColor(AppTheme.color.primary)
+                    }
+                    .width('100%')
+                    .height(192)
+                    .justifyContent(FlexAlign.Center)
+                    .alignItems(HorizontalAlign.Center)
+                    .backgroundColor(AppTheme.color.primarySoft)
+                    .borderRadius(8)
+                  }
+
+                  Text(outfit.title)
+                    .fontSize(16)
+                    .fontWeight(FontWeight.Medium)
+                    .fontColor(AppTheme.color.text)
+                    .maxLines(2)
+                    .textOverflow({ overflow: TextOverflow.Ellipsis })
+                    .padding({ left: 2, right: 2 })
+
+                  Row() {
+                    Text('从最近套装里挑一套')
+                      .fontSize(12)
+                      .fontColor(AppTheme.color.textMuted)
+                      .layoutWeight(1)
+
+                    Text(`${outfit.clothingItemIds.length} 件`)
+                      .fontSize(12)
+                      .fontColor(AppTheme.color.primary)
+                  }
+                  .padding({ left: 2, right: 2, bottom: 2 })
+                }
+                .width('100%')
+                .backgroundColor(AppTheme.color.surface)
+                .onClick(() => {
+                  this.recordToday(outfit);
+                })
+              }, (outfit: OutfitTemplate) => outfit.id)
+            }
+          }
+          .layoutWeight(1)
         }
-        .columnsTemplate('1fr 1fr')
-        .columnsGap(10)
-        .rowsGap(12)
         .width('100%')
       }
       .width('100%')
-      .padding({ left: 14, right: 14, top: 18, bottom: 92 })
+      .padding({ left: 8, right: 8, top: 4, bottom: 92 })
       .alignItems(HorizontalAlign.Start)
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(AppTheme.color.surfaceMuted)
+    .backgroundColor(AppTheme.color.surface)
     }
   }
 }
