@@ -32,16 +32,19 @@ for (const needle of [
   '从最近套装里挑一套',
   '记录一次今日搭配',
   '最近穿过',
-  'Row({ space: 8 })',
-  'Column({ space: 14 })',
+  'Scroll()',
+  'Grid()',
+  'GridItem()',
+  ".columnsTemplate('1fr 1fr')",
+  '.columnsGap(8)',
+  '.rowsGap(12)',
+  '.scrollBar(BarState.Off)',
   'AppTheme.color.primary',
   'AppTheme.color.primarySoft',
   'AppTheme.color.surface',
   'AppTheme.color.surfaceMuted',
-  'borderRadius(14)',
   'borderRadius(10)',
   ".border({ width: 1, color: '#1A000000' })",
-  ".shadow({ radius: 10, color: '#0D000000', offsetX: 0, offsetY: 2 })",
   '♡',
   'ImageFit.Cover'
 ]) {
@@ -53,10 +56,8 @@ forbidIncludes('暂无最近套装');
 forbidIncludes('暂无穿着记录');
 forbidIncludes('选择套装记录今天');
 forbidIncludes("Text('首页')");
-forbidIncludes('Grid()');
-forbidIncludes(".columnsTemplate('1fr 1fr')");
-forbidIncludes('.columnsGap(');
-forbidIncludes('.rowsGap(');
+forbidIncludes('Column({ space: 14 })');
+forbidIncludes('.scrollable(ScrollDirection.Vertical)');
 
 if (/Text\s*\(\s*this\.todayIsoDate\s*\)/.test(text)) {
   throw new Error(`${file} must not render the date in the top-left home header`);
@@ -66,8 +67,8 @@ if (!/Text\s*\(\s*'⌕'\s*\)[\s\S]*?\.fontSize\(34\)/.test(text)) {
   throw new Error(`${file} search icon should be larger, matching the Xiaohongshu header treatment`);
 }
 
-if (!/Row\s*\(\s*\)\s*\{[\s\S]*?Text\s*\(\s*'☰'\s*\)[\s\S]*?Row\s*\(\s*\{\s*space:\s*26\s*\}\s*\)[\s\S]*?Text\s*\(\s*'⌕'\s*\)/.test(text)) {
-  throw new Error(`${file} should keep menu, discovery tabs, and search in one Xiaohongshu-style header row`);
+if (!/Row\s*\(\s*\)\s*\{[\s\S]*?Text\s*\(\s*'☰'\s*\)[\s\S]*?Text\s*\(\s*'推荐'\s*\)[\s\S]*?Text\s*\(\s*'⌕'\s*\)[\s\S]*?\}\s*\.width\('100%'\)[\s\S]*?\.height\(56\)/.test(text)) {
+  throw new Error(`${file} should keep menu, recommendation tabs, and search in one Xiaohongshu-style header row`);
 }
 
 console.log('PASS');

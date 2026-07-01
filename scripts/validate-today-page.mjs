@@ -17,14 +17,15 @@ for (const needle of [
   '穿搭灵感',
   '衣橱灵感',
   '今日记录',
-  'Row({ space: 8 })',
-  'Column({ space: 14 })',
+  'Scroll()',
+  'Grid()',
+  'GridItem()',
+  ".columnsTemplate('1fr 1fr')",
+  '.columnsGap(8)',
+  '.rowsGap(12)',
   'Divider()',
   '.backgroundColor(AppTheme.color.surface)',
-  '.borderRadius(14)',
-  '.borderRadius(10)',
   ".border({ width: 1, color: '#1A000000' })",
-  ".shadow({ radius: 10, color: '#0D000000', offsetX: 0, offsetY: 2 })",
   'todayIsoDate',
   'todaysWearLog',
   'recentOutfits',
@@ -39,10 +40,8 @@ for (const needle of [
 
 for (const forbidden of [
   "Text('首页')",
-  'Grid()',
-  ".columnsTemplate('1fr 1fr')",
-  '.columnsGap(',
-  '.rowsGap('
+  'Column({ space: 14 })',
+  '.scrollable(ScrollDirection.Vertical)'
 ]) {
   if (text.includes(forbidden)) {
     throw new Error(`TodayPage still contains ${forbidden}`);
