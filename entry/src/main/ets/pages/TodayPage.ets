@@ -89,10 +89,9 @@ export struct TodayPage {
       Scroll() {
       Column({ space: 14 }) {
         Row() {
-          Text(this.todayIsoDate)
-            .fontSize(14)
-            .fontColor(AppTheme.color.textMuted)
-            .layoutWeight(1)
+          Blank()
+            .width(44)
+            .height(44)
 
           Row({ space: 18 }) {
             Column({ space: 4 }) {
@@ -117,12 +116,15 @@ export struct TodayPage {
               .fontSize(18)
               .fontColor(AppTheme.color.textMuted)
           }
+          .layoutWeight(1)
+          .justifyContent(FlexAlign.Center)
 
           Text('⌕')
-            .fontSize(24)
+            .width(44)
+            .height(44)
+            .fontSize(32)
             .fontColor(AppTheme.color.text)
-            .layoutWeight(1)
-            .textAlign(TextAlign.End)
+            .textAlign(TextAlign.Center)
         }
         .width('100%')
         .alignItems(VerticalAlign.Center)
