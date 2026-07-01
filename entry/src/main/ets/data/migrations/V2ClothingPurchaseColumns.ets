@@ -30,8 +30,21 @@ export async function ensureClothingPurchaseColumns(database: MigrationDatabase)
   const columns = await readColumnNames(database);
 
   for (const columnPatch of PURCHASE_COLUMN_PATCHES) {
-    if (!hasColumn(columns, columnPatch.name)) {
+    if (hasColumn(columns, columnPatch.name) || await columnExists(database, columnPatch.name)) {
+      continue;
+    }
+
+    try {
       await database.executeSql(columnPatch.addColumnSql);
+      columns.add(columnPatch.name);
+    } catch (error) {
+      if (await columnExists(database, columnPatch.name)) {
+        columns.add(columnPatch.name);
+        continue;
+      }
+
+      const cause = error as Error;
+      throw new Error(cause.message);
     }
   }
 }
@@ -67,6 +80,20 @@ async function readColumnNames(database: MigrationDatabase): Promise<Set<string>
 
 function hasColumn(columns: Set<string>, columnName: string): boolean {
   return columns.has(columnName);
+}
+
+async function columnExists(database: MigrationDatabase, columnName: string): Promise<boolean> {
+  return columnExistsInReadableSchema(database, columnName);
+}
+
+async function columnExistsInReadableSchema(database: MigrationDatabase, columnName: string): Promise<boolean> {
+  try {
+    const resultSet = await database.querySql(`SELECT ${columnName} FROM clothing_items LIMIT 0`);
+    resultSet.close();
+    return true;
+  } catch (_error) {
+    return false;
+  }
 }
 
 export const v2ClothingPurchaseColumns: Migration = new V2ClothingPurchaseColumns();

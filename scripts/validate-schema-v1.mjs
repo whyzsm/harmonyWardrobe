@@ -91,6 +91,9 @@ for (const needle of [
   'version: number = 2',
   'clothing_purchase_columns',
   'PRAGMA table_info(clothing_items)',
+  'SELECT ${columnName} FROM clothing_items LIMIT 0',
+  'columnExistsInReadableSchema',
+  'if (await columnExists(database, columnPatch.name))',
   'purchase_store_name',
   'purchase_price',
   'purchase_date',
@@ -102,6 +105,11 @@ for (const needle of [
     console.error(`V2 clothing purchase migration missing ${needle}`);
     process.exit(1);
   }
+}
+
+if (/catch\s*\(\s*error\s*\)[\s\S]*?throw\s+error/.test(v2Text)) {
+  console.error('V2 clothing purchase migration must not rethrow arbitrary catch values in ArkTS.');
+  process.exit(1);
 }
 
 const runtimeText = fs.readFileSync(runtimeFile, 'utf8');
