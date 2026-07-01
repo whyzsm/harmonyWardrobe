@@ -87,7 +87,7 @@ export struct TodayPage {
       })
     } else {
       Scroll() {
-      Column({ space: 6 }) {
+      Column({ space: 8 }) {
         Row() {
           Text('☰')
             .width(44)
@@ -137,6 +137,33 @@ export struct TodayPage {
           .color(AppTheme.color.border)
           .strokeWidth(0.5)
 
+        Row({ space: 8 }) {
+          Text('今')
+            .width(22)
+            .height(22)
+            .fontSize(12)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(AppTheme.color.primary)
+            .textAlign(TextAlign.Center)
+            .backgroundColor(AppTheme.color.primarySoft)
+            .borderRadius(11)
+
+          Text(this.todaysWearLog === undefined ? '今天穿什么？从最近套装里挑一套' : '今日记录已保存，可以继续补充照片')
+            .fontSize(13)
+            .fontColor(AppTheme.color.textMuted)
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .layoutWeight(1)
+        }
+        .width('100%')
+        .height(38)
+        .padding({ left: 10, right: 10 })
+        .backgroundColor(AppTheme.color.surfaceMuted)
+        .borderRadius(14)
+        .onClick(() => {
+          this.recordToday();
+        })
+
         if (this.loading) {
           Text('loading / 正在加载今日穿搭...')
             .fontSize(14)
@@ -160,15 +187,16 @@ export struct TodayPage {
           .width('100%')
         }
 
-        Row({ space: 6 }) {
-          Column({ space: 10 }) {
+        Row({ space: 8 }) {
+          Column({ space: 14 }) {
             Column({ space: 8 }) {
               if (this.todaysWearLog !== undefined && this.firstWearLogPhotoUri(this.todaysWearLog).length > 0) {
                 Image(this.firstWearLogPhotoUri(this.todaysWearLog))
                   .width('100%')
-                  .height(166)
+                  .height(184)
                   .objectFit(ImageFit.Cover)
-                  .borderRadius(8)
+                  .borderRadius(10)
+                  .border({ width: 1, color: '#1A000000' })
               } else {
                 Column({ space: 8 }) {
                   Text('衣')
@@ -182,23 +210,34 @@ export struct TodayPage {
                     .fontColor(AppTheme.color.text)
                 }
                 .width('100%')
-                .height(166)
+                .height(184)
                 .justifyContent(FlexAlign.Center)
                 .alignItems(HorizontalAlign.Center)
                 .backgroundColor(AppTheme.color.primarySoft)
-                .borderRadius(8)
+                .borderRadius(10)
+                .border({ width: 1, color: '#1A000000' })
               }
 
               Text(this.todaysWearLog === undefined ? '记录一次今日搭配' : this.todaysWearLog.outfitTitleSnapshot)
-                .fontSize(16)
+                .fontSize(15)
                 .fontWeight(FontWeight.Medium)
                 .fontColor(AppTheme.color.text)
                 .maxLines(2)
                 .textOverflow({ overflow: TextOverflow.Ellipsis })
-                .padding({ left: 2, right: 2 })
+                .padding({ left: 4, right: 4 })
 
-              Row() {
-                Text(this.todaysWearLog === undefined ? '今日灵感' : (this.todaysWearLog.placeText ?? '今日穿搭'))
+              Row({ space: 6 }) {
+                Text('衣')
+                  .width(20)
+                  .height(20)
+                  .fontSize(11)
+                  .fontWeight(FontWeight.Bold)
+                  .fontColor(AppTheme.color.primary)
+                  .textAlign(TextAlign.Center)
+                  .backgroundColor(AppTheme.color.primarySoft)
+                  .borderRadius(10)
+
+                Text(this.todaysWearLog === undefined ? '穿搭灵感' : (this.todaysWearLog.placeText ?? '今日记录'))
                   .fontSize(12)
                   .fontColor(AppTheme.color.textMuted)
                   .layoutWeight(1)
@@ -207,10 +246,14 @@ export struct TodayPage {
                   .fontSize(12)
                   .fontColor(AppTheme.color.accent)
               }
-              .padding({ left: 2, right: 2, bottom: 2 })
+              .height(22)
+              .padding({ left: 4, right: 4, bottom: 2 })
             }
             .width('100%')
+            .padding({ left: 4, right: 4, top: 4, bottom: 6 })
+            .borderRadius(14)
             .backgroundColor(AppTheme.color.surface)
+            .shadow({ radius: 10, color: '#0D000000', offsetX: 0, offsetY: 2 })
             .onClick(() => {
               this.recordToday();
             })
@@ -229,33 +272,58 @@ export struct TodayPage {
                     .fontColor(AppTheme.color.text)
                 }
                 .width('100%')
-                .height(150)
+                .height(154)
                 .justifyContent(FlexAlign.Center)
                 .alignItems(HorizontalAlign.Center)
                 .backgroundColor(AppTheme.color.primarySoft)
-                .borderRadius(8)
+                .borderRadius(10)
+                .border({ width: 1, color: '#1A000000' })
 
                 Text('穿搭记录会按时间出现在这里。')
                   .fontSize(15)
                   .fontColor(AppTheme.color.text)
-                  .padding({ left: 2, right: 2 })
+                  .maxLines(2)
+                  .textOverflow({ overflow: TextOverflow.Ellipsis })
+                  .padding({ left: 4, right: 4 })
 
-                Text('♡ 0')
-                  .fontSize(12)
-                  .fontColor(AppTheme.color.textMuted)
-                  .padding({ left: 2, right: 2, bottom: 2 })
+                Row({ space: 6 }) {
+                  Text('今')
+                    .width(20)
+                    .height(20)
+                    .fontSize(11)
+                    .fontWeight(FontWeight.Bold)
+                    .fontColor(AppTheme.color.primary)
+                    .textAlign(TextAlign.Center)
+                    .backgroundColor(AppTheme.color.primarySoft)
+                    .borderRadius(10)
+
+                  Text('今日记录')
+                    .fontSize(12)
+                    .fontColor(AppTheme.color.textMuted)
+                    .layoutWeight(1)
+
+                  Text('♡ 0')
+                    .fontSize(12)
+                    .fontColor(AppTheme.color.textMuted)
+                }
+                .height(22)
+                .padding({ left: 4, right: 4, bottom: 2 })
                 }
                 .width('100%')
+                .padding({ left: 4, right: 4, top: 4, bottom: 6 })
+                .borderRadius(14)
                 .backgroundColor(AppTheme.color.surface)
+                .shadow({ radius: 10, color: '#0D000000', offsetX: 0, offsetY: 2 })
             } else {
               ForEach(this.recentWearLogs, (wearLog: WearLog) => {
                 Column({ space: 8 }) {
                   if (this.firstWearLogPhotoUri(wearLog).length > 0) {
                     Image(this.firstWearLogPhotoUri(wearLog))
                       .width('100%')
-                      .height(150)
+                      .height(154)
                       .objectFit(ImageFit.Cover)
-                      .borderRadius(8)
+                      .borderRadius(10)
+                      .border({ width: 1, color: '#1A000000' })
                   } else {
                     Column() {
                       Text('最近穿过')
@@ -264,22 +332,33 @@ export struct TodayPage {
                         .fontColor(AppTheme.color.primary)
                     }
                     .width('100%')
-                    .height(150)
+                    .height(154)
                     .justifyContent(FlexAlign.Center)
                     .alignItems(HorizontalAlign.Center)
                     .backgroundColor(AppTheme.color.primarySoft)
-                    .borderRadius(8)
+                    .borderRadius(10)
+                    .border({ width: 1, color: '#1A000000' })
                   }
 
                   Text(wearLog.outfitTitleSnapshot)
-                    .fontSize(16)
+                    .fontSize(15)
                     .fontWeight(FontWeight.Medium)
                     .fontColor(AppTheme.color.text)
                     .maxLines(2)
                     .textOverflow({ overflow: TextOverflow.Ellipsis })
-                    .padding({ left: 2, right: 2 })
+                    .padding({ left: 4, right: 4 })
 
-                  Row() {
+                  Row({ space: 6 }) {
+                    Text('今')
+                      .width(20)
+                      .height(20)
+                      .fontSize(11)
+                      .fontWeight(FontWeight.Bold)
+                      .fontColor(AppTheme.color.primary)
+                      .textAlign(TextAlign.Center)
+                      .backgroundColor(AppTheme.color.primarySoft)
+                      .borderRadius(10)
+
                     Text(wearLog.wornDate)
                       .fontSize(12)
                       .fontColor(AppTheme.color.textMuted)
@@ -289,16 +368,20 @@ export struct TodayPage {
                       .fontSize(12)
                       .fontColor(AppTheme.color.primary)
                   }
-                  .padding({ left: 2, right: 2, bottom: 2 })
+                  .height(22)
+                  .padding({ left: 4, right: 4, bottom: 2 })
                 }
                 .width('100%')
+                .padding({ left: 4, right: 4, top: 4, bottom: 6 })
+                .borderRadius(14)
                 .backgroundColor(AppTheme.color.surface)
+                .shadow({ radius: 10, color: '#0D000000', offsetX: 0, offsetY: 2 })
               }, (wearLog: WearLog) => wearLog.id)
             }
           }
           .layoutWeight(1)
 
-          Column({ space: 10 }) {
+          Column({ space: 14 }) {
             if (this.recentOutfits.length === 0) {
               Column({ space: 8 }) {
                 Column({ space: 8 }) {
@@ -314,35 +397,58 @@ export struct TodayPage {
                     .textAlign(TextAlign.Center)
                 }
                 .width('100%')
-                .height(192)
+                .height(212)
                 .justifyContent(FlexAlign.Center)
                 .alignItems(HorizontalAlign.Center)
                 .backgroundColor(AppTheme.color.primarySoft)
-                .borderRadius(8)
+                .borderRadius(10)
+                .border({ width: 1, color: '#1A000000' })
 
                 Text('创建套装后，这里会像灵感流一样展示。')
                   .fontSize(15)
                   .fontColor(AppTheme.color.text)
                   .maxLines(2)
                   .textOverflow({ overflow: TextOverflow.Ellipsis })
-                  .padding({ left: 2, right: 2 })
+                  .padding({ left: 4, right: 4 })
 
-                Text('♡ 0')
-                  .fontSize(12)
-                  .fontColor(AppTheme.color.textMuted)
-                  .padding({ left: 2, right: 2, bottom: 2 })
+                Row({ space: 6 }) {
+                  Text('搭')
+                    .width(20)
+                    .height(20)
+                    .fontSize(11)
+                    .fontWeight(FontWeight.Bold)
+                    .fontColor(AppTheme.color.primary)
+                    .textAlign(TextAlign.Center)
+                    .backgroundColor(AppTheme.color.primarySoft)
+                    .borderRadius(10)
+
+                  Text('衣橱灵感')
+                    .fontSize(12)
+                    .fontColor(AppTheme.color.textMuted)
+                    .layoutWeight(1)
+
+                  Text('♡ 0')
+                    .fontSize(12)
+                    .fontColor(AppTheme.color.textMuted)
+                }
+                .height(22)
+                .padding({ left: 4, right: 4, bottom: 2 })
               }
               .width('100%')
+              .padding({ left: 4, right: 4, top: 4, bottom: 6 })
+              .borderRadius(14)
               .backgroundColor(AppTheme.color.surface)
+              .shadow({ radius: 10, color: '#0D000000', offsetX: 0, offsetY: 2 })
             } else {
               ForEach(this.recentOutfits, (outfit: OutfitTemplate) => {
                 Column({ space: 8 }) {
                   if (this.firstOutfitPhotoUri(outfit).length > 0) {
                     Image(this.firstOutfitPhotoUri(outfit))
                       .width('100%')
-                      .height(192)
+                      .height(212)
                       .objectFit(ImageFit.Cover)
-                      .borderRadius(8)
+                      .borderRadius(10)
+                      .border({ width: 1, color: '#1A000000' })
                   } else {
                     Column() {
                       Text('套装')
@@ -351,23 +457,34 @@ export struct TodayPage {
                         .fontColor(AppTheme.color.primary)
                     }
                     .width('100%')
-                    .height(192)
+                    .height(212)
                     .justifyContent(FlexAlign.Center)
                     .alignItems(HorizontalAlign.Center)
                     .backgroundColor(AppTheme.color.primarySoft)
-                    .borderRadius(8)
+                    .borderRadius(10)
+                    .border({ width: 1, color: '#1A000000' })
                   }
 
                   Text(outfit.title)
-                    .fontSize(16)
+                    .fontSize(15)
                     .fontWeight(FontWeight.Medium)
                     .fontColor(AppTheme.color.text)
                     .maxLines(2)
                     .textOverflow({ overflow: TextOverflow.Ellipsis })
-                    .padding({ left: 2, right: 2 })
+                    .padding({ left: 4, right: 4 })
 
-                  Row() {
-                    Text('从最近套装里挑一套')
+                  Row({ space: 6 }) {
+                    Text('搭')
+                      .width(20)
+                      .height(20)
+                      .fontSize(11)
+                      .fontWeight(FontWeight.Bold)
+                      .fontColor(AppTheme.color.primary)
+                      .textAlign(TextAlign.Center)
+                      .backgroundColor(AppTheme.color.primarySoft)
+                      .borderRadius(10)
+
+                    Text('衣橱灵感')
                       .fontSize(12)
                       .fontColor(AppTheme.color.textMuted)
                       .layoutWeight(1)
@@ -376,10 +493,14 @@ export struct TodayPage {
                       .fontSize(12)
                       .fontColor(AppTheme.color.primary)
                   }
-                  .padding({ left: 2, right: 2, bottom: 2 })
+                  .height(22)
+                  .padding({ left: 4, right: 4, bottom: 2 })
                 }
                 .width('100%')
+                .padding({ left: 4, right: 4, top: 4, bottom: 6 })
+                .borderRadius(14)
                 .backgroundColor(AppTheme.color.surface)
+                .shadow({ radius: 10, color: '#0D000000', offsetX: 0, offsetY: 2 })
                 .onClick(() => {
                   this.recordToday(outfit);
                 })
@@ -391,7 +512,7 @@ export struct TodayPage {
         .width('100%')
       }
       .width('100%')
-      .padding({ left: 8, right: 8, top: 4, bottom: 92 })
+      .padding({ left: 8, right: 8, top: 2, bottom: 92 })
       .alignItems(HorizontalAlign.Start)
     }
     .width('100%')
