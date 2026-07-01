@@ -17,12 +17,11 @@ for (const needle of [
   '穿搭灵感',
   '衣橱灵感',
   '今日记录',
-  'Scroll()',
-  'Grid()',
-  'GridItem()',
+  'WaterFlow()',
+  'FlowItem()',
   ".columnsTemplate('1fr 1fr')",
   '.columnsGap(8)',
-  '.rowsGap(12)',
+  '.rowsGap(8)',
   'Divider()',
   '.backgroundColor(AppTheme.color.surface)',
   ".border({ width: 1, color: '#1A000000' })",
@@ -40,7 +39,9 @@ for (const needle of [
 
 for (const forbidden of [
   "Text('首页')",
+  "Text('⌕')",
   'Column({ space: 14 })',
+  'GridItem()',
   '.scrollable(ScrollDirection.Vertical)'
 ]) {
   if (text.includes(forbidden)) {
@@ -50,6 +51,10 @@ for (const forbidden of [
 
 if (/Text\s*\(\s*this\.todayIsoDate\s*\)/.test(text)) {
   throw new Error('TodayPage must keep the date out of the home header');
+}
+
+if (!/Stack\s*\(\s*\{\s*alignContent:\s*Alignment\.Center\s*\}\s*\)[\s\S]*?Circle\s*\([\s\S]*?Line\s*\(/.test(text)) {
+  throw new Error('TodayPage should use a centered shape-based search icon, not a text glyph');
 }
 
 console.log('PASS');

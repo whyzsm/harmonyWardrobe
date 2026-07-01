@@ -121,12 +121,22 @@ export struct TodayPage {
           .layoutWeight(1)
           .justifyContent(FlexAlign.Center)
 
-          Text('⌕')
+          Stack({ alignContent: Alignment.Center }) {
+            Circle({ width: 18, height: 18 })
+              .fill('#00000000')
+              .stroke(AppTheme.color.text)
+              .strokeWidth(2.4)
+              .margin({ right: 6, bottom: 6 })
+
+            Line({ width: 12, height: 12 })
+              .startPoint([1, 1])
+              .endPoint([11, 11])
+              .stroke(AppTheme.color.text)
+              .strokeWidth(2.4)
+              .margin({ left: 14, top: 14 })
+          }
             .width(44)
             .height(44)
-            .fontSize(34)
-            .fontColor(AppTheme.color.text)
-            .textAlign(TextAlign.Center)
         }
         .width('100%')
         .height(56)
@@ -186,9 +196,8 @@ export struct TodayPage {
           .width('100%')
         }
 
-        Scroll() {
-          Grid() {
-            GridItem() {
+        WaterFlow() {
+          FlowItem() {
               Column({ space: 7 }) {
                 if (this.todaysWearLog !== undefined && this.firstWearLogPhotoUri(this.todaysWearLog).length > 0) {
                   Image(this.firstWearLogPhotoUri(this.todaysWearLog))
@@ -256,7 +265,7 @@ export struct TodayPage {
             }
 
             if (this.recentOutfits.length === 0) {
-              GridItem() {
+              FlowItem() {
                 Column({ space: 7 }) {
                   Column({ space: 8 }) {
                     Text('搭')
@@ -310,7 +319,7 @@ export struct TodayPage {
               }
             } else {
               ForEach(this.recentOutfits, (outfit: OutfitTemplate) => {
-                GridItem() {
+                FlowItem() {
                   Column({ space: 7 }) {
                     if (this.firstOutfitPhotoUri(outfit).length > 0) {
                       Image(this.firstOutfitPhotoUri(outfit))
@@ -373,7 +382,7 @@ export struct TodayPage {
             }
 
             if (this.recentWearLogs.length === 0) {
-              GridItem() {
+              FlowItem() {
                 Column({ space: 7 }) {
                   Column({ space: 8 }) {
                     Text('记')
@@ -426,7 +435,7 @@ export struct TodayPage {
               }
             } else {
               ForEach(this.recentWearLogs, (wearLog: WearLog) => {
-                GridItem() {
+                FlowItem() {
                   Column({ space: 7 }) {
                     if (this.firstWearLogPhotoUri(wearLog).length > 0) {
                       Image(this.firstWearLogPhotoUri(wearLog))
@@ -486,13 +495,11 @@ export struct TodayPage {
                 }
               }, (wearLog: WearLog) => wearLog.id)
             }
-          }
-          .columnsTemplate('1fr 1fr')
-          .columnsGap(8)
-          .rowsGap(12)
-          .padding({ bottom: 92 })
-          .width('100%')
         }
+        .columnsTemplate('1fr 1fr')
+        .columnsGap(8)
+        .rowsGap(8)
+        .padding({ bottom: 92 })
         .layoutWeight(1)
         .scrollBar(BarState.Off)
         .width('100%')
