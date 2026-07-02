@@ -27,11 +27,15 @@ for (const needle of [
   '.textAlign(TextAlign.Center)',
   '穿搭灵感',
   '衣橱灵感',
-  '今日记录',
+  '今日灵感',
   '今天穿什么？',
-  '从最近套装里挑一套',
-  '记录一次今日搭配',
-  '最近穿过',
+  '看看推荐穿搭灵感',
+  '推荐穿搭',
+  '通勤清爽蓝白穿搭',
+  '雨天轻便出行穿搭',
+  'HomeRecommendation',
+  'onOpenRecommendation',
+  'openRecommendation',
   'WaterFlow()',
   'FlowItem()',
   ".width('100%')",
@@ -65,6 +69,10 @@ forbidIncludes("Text('⌕')");
 forbidIncludes('Column({ space: 14 })');
 forbidIncludes('GridItem()');
 forbidIncludes('.scrollable(ScrollDirection.Vertical)');
+forbidIncludes('WearLogEditPage');
+forbidIncludes('showWearLogEditor');
+forbidIncludes('recordToday(');
+forbidIncludes('选择套装记录今天');
 
 if (/Text\s*\(\s*this\.todayIsoDate\s*\)/.test(text)) {
   throw new Error(`${file} must not render the date in the top-left home header`);
@@ -96,6 +104,14 @@ if (!/WaterFlow\s*\(\s*\)[\s\S]*?\.columnsTemplate\('1fr 1fr'\)[\s\S]*?\.columns
 
 if (/Text\s*\(\s*item\.placeholder\s*\)[\s\S]*?Text\s*\(\s*item\.title\s*\)[\s\S]*?\.aspectRatio\(item\.aspectRatio\)/.test(text)) {
   throw new Error(`${file} placeholder image area should not render long titles that can widen the column`);
+}
+
+if (/\.onClick\s*\(\s*\(\)\s*=>\s*\{[\s\S]*?recordToday/.test(text)) {
+  throw new Error(`${file} feed cards should open recommendation detail, not the wear-log editor`);
+}
+
+if (!/\.onClick\s*\(\s*\(\)\s*=>\s*\{[\s\S]*?this\.openRecommendation\(item\)/.test(text)) {
+  throw new Error(`${file} feed cards should open recommendation detail`);
 }
 
 console.log('PASS');

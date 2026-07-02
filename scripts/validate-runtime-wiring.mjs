@@ -132,11 +132,12 @@ const pageChecks = [
       'wearLogRepository?: WearLogRepository',
       'photoPickerAdapter?: PhotoPickerAdapter',
       'photoStorage?: PhotoStorage',
+      'onOpenRecommendation?:',
       'aboutToAppear()',
       'loadToday',
       'listOutfits',
       'listWearLogsByDate',
-      'WearLogEditPage({'
+      'HomeRecommendation'
     ]
   },
   {

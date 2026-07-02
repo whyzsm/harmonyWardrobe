@@ -6,7 +6,20 @@ import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
 import { AppTheme } from '../theme/Tokens';
 import { toIsoDate } from '../utils/date';
-import { WearLogEditPage } from './WearLogEditPage';
+
+export interface HomeRecommendation {
+  id: string;
+  title: string;
+  subtitle: string;
+  imageUri: string;
+  placeholder: string;
+  authorName: string;
+  authorAvatarText: string;
+  body: string;
+  likeText: string;
+  collectText: string;
+  commentText: string;
+}
 
 @Component
 export struct TodayPage {
@@ -14,13 +27,12 @@ export struct TodayPage {
   wearLogRepository?: WearLogRepository = undefined;
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
+  onOpenRecommendation?: (recommendation: HomeRecommendation) => void = undefined;
 
   @State private todayIsoDate: string = toIsoDate(new Date());
   @State private todaysWearLog?: WearLog = undefined;
   @State private recentOutfits: OutfitTemplate[] = [];
   @State private recentWearLogs: WearLog[] = [];
-  @State private selectedOutfitId: string = '';
-  @State private showWearLogEditor: boolean = false;
   @State private loading: boolean = false;
   @State private isRefreshing: boolean = false;
   @State private errorMessage: string = '';
@@ -57,14 +69,24 @@ export struct TodayPage {
     return wearLog.photoUris.length > 0 ? wearLog.photoUris[0] : '';
   }
 
-  private recordToday(outfit?: OutfitTemplate): void {
-    this.selectedOutfitId = outfit?.id ?? '';
-    this.showWearLogEditor = true;
-  }
+  private openRecommendation(item: CardItem): void {
+    if (this.onOpenRecommendation === undefined) {
+      return;
+    }
 
-  private closeWearLogEditor(): void {
-    this.showWearLogEditor = false;
-    this.selectedOutfitId = '';
+    this.onOpenRecommendation({
+      id: item.id,
+      title: item.title,
+      subtitle: item.subtitle,
+      imageUri: item.photoUri,
+      placeholder: item.placeholder,
+      authorName: item.authorName,
+      authorAvatarText: item.authorAvatarText,
+      body: item.body,
+      likeText: item.likeText,
+      collectText: item.collectText,
+      commentText: item.commentText
+    });
   }
 
   private retry(): void {
@@ -84,33 +106,16 @@ export struct TodayPage {
   }
 
   build() {
-    if (this.showWearLogEditor) {
-      WearLogEditPage({
-        initialOutfitTemplateId: this.selectedOutfitId,
-        outfits: this.recentOutfits,
-        wearLogRepository: this.wearLogRepository,
-        photoPickerAdapter: this.photoPickerAdapter,
-        photoStorage: this.photoStorage,
-        onSave: (_wearLog: WearLog) => {
-          this.closeWearLogEditor();
-          this.loadToday();
-        },
-        onCancel: () => {
-          this.closeWearLogEditor();
-        }
-      })
-    } else {
+    Column() {
+      this.TopNavBar()
       Column() {
-        this.TopNavBar()
-        Column() {
-          this.TabWardrobe()
-        }
-        .layoutWeight(1)
+        this.TabWardrobe()
       }
-      .width('100%')
-      .height('100%')
-      .backgroundColor(AppTheme.color.surface)
+      .layoutWeight(1)
     }
+    .width('100%')
+    .height('100%')
+    .backgroundColor(AppTheme.color.surface)
   }
 
   @Builder
@@ -267,7 +272,7 @@ export struct TodayPage {
         .backgroundColor(AppTheme.color.primarySoft)
         .borderRadius(11)
 
-      Text(this.todaysWearLog === undefined ? '今天穿什么？从最近套装里挑一套' : '今日记录已保存，可以继续补充照片')
+      Text(this.todaysWearLog === undefined ? '今天穿什么？看看推荐穿搭灵感' : '今日记录已保存，继续看看推荐灵感')
         .fontSize(13)
         .fontColor(AppTheme.color.textMuted)
         .maxLines(1)
@@ -280,7 +285,6 @@ export struct TodayPage {
     .backgroundColor(AppTheme.color.surfaceMuted)
     .borderRadius(14)
     .margin({ top: 6 })
-    .onClick(() => { this.recordToday(); })
   }
 
   @Builder
@@ -315,11 +319,19 @@ export struct TodayPage {
           ? this.firstWearLogPhotoUri(this.todaysWearLog) : '',
         placeholder: this.todaysWearLog === undefined ? '衣' : '',
         aspectRatio: 0.8,
-        title: this.todaysWearLog === undefined ? '记录一次今日搭配' : this.todaysWearLog.outfitTitleSnapshot,
-        subtitle: this.todaysWearLog === undefined ? '穿搭灵感' : (this.todaysWearLog.placeText ?? '今日记录'),
-        metaText: '♡',
+        title: this.todaysWearLog === undefined ? '通勤清爽蓝白穿搭' : this.todaysWearLog.outfitTitleSnapshot,
+        subtitle: this.todaysWearLog === undefined ? '推荐穿搭' : (this.todaysWearLog.placeText ?? '今日灵感'),
+        metaText: '♡ 128',
         metaColor: AppTheme.color.accent,
-        iconText: '衣'
+        iconText: '搭',
+        authorName: '衣橱灵感社',
+        authorAvatarText: '衣',
+        body: this.todaysWearLog === undefined
+          ? '今天推荐一套清爽蓝白搭配：浅色上衣配直筒下装，适合通勤、约会和周末出门。重点是保持干净的色块和轻量配饰，整体会显得利落。'
+          : `${this.todaysWearLog.outfitTitleSnapshot} 很适合今天继续参考。可以在原套装基础上换一件外套或鞋包，让日常穿搭更有变化。`,
+        likeText: '128',
+        collectText: '收藏',
+        commentText: '评论'
       });
     }
 
@@ -331,11 +343,17 @@ export struct TodayPage {
           photoUri: '',
           placeholder: '搭',
           aspectRatio: 1.2,
-          title: '创建套装后，这里会像灵感流一样展示。',
-          subtitle: '衣橱灵感',
-          metaText: '♡ 0',
+          title: '法式松弛感周末穿搭',
+          subtitle: '推荐穿搭',
+          metaText: '♡ 86',
           metaColor: AppTheme.color.textMuted,
-          iconText: '搭'
+          iconText: '搭',
+          authorName: '小蓝穿搭',
+          authorAvatarText: '蓝',
+          body: '没有套装时也可以先看推荐灵感。针织、半裙和低饱和鞋包组合在一起，会更接近日常可复用的法式松弛感。',
+          likeText: '86',
+          collectText: '收藏',
+          commentText: '评论'
         });
       } else {
         const len = this.recentOutfits.length;
@@ -349,11 +367,18 @@ export struct TodayPage {
             placeholder: photo === '' ? '套装' : '',
             aspectRatio: photo === '' ? 1.2 : 1.0 + ((i % 3) * 0.2),
             title: o.title,
-            subtitle: '衣橱灵感',
-            metaText: `${o.clothingItemIds.length} 件`,
+            subtitle: '推荐穿搭',
+            metaText: `♡ ${24 + o.clothingItemIds.length}`,
             metaColor: AppTheme.color.primary,
             iconText: '搭',
-            sourceId: o.id
+            authorName: '我的衣橱',
+            authorAvatarText: '我',
+            body: o.note !== undefined && o.note.length > 0
+              ? o.note
+              : `${o.title} 是一套来自衣橱的推荐搭配，共包含 ${o.clothingItemIds.length} 件单品。可以参考它的色彩和层次，直接作为今天的穿搭灵感。`,
+            likeText: `${24 + o.clothingItemIds.length}`,
+            collectText: '收藏',
+            commentText: '评论'
           });
         }
       }
@@ -367,11 +392,17 @@ export struct TodayPage {
           photoUri: '',
           placeholder: '记',
           aspectRatio: 1.5,
-          title: '穿搭记录会按时间出现在这里。',
-          subtitle: '今日记录',
-          metaText: '♡ 0',
+          title: '雨天轻便出行穿搭',
+          subtitle: '推荐穿搭',
+          metaText: '♡ 52',
           metaColor: AppTheme.color.textMuted,
-          iconText: '今'
+          iconText: '雨',
+          authorName: '天气穿搭簿',
+          authorAvatarText: '雨',
+          body: '雨天推荐选择短外套、深色下装和防滑鞋。颜色不用太沉，可以用一件蓝色或白色单品提亮，看起来更轻便。',
+          likeText: '52',
+          collectText: '收藏',
+          commentText: '评论'
         });
       } else {
         const len = this.recentWearLogs.length;
@@ -385,10 +416,18 @@ export struct TodayPage {
             placeholder: photo === '' ? '最近穿过' : '',
             aspectRatio: photo === '' ? 1.5 : 1.25,
             title: w.outfitTitleSnapshot,
-            subtitle: w.wornDate,
-            metaText: `${w.clothingItemIdsSnapshot.length} 件`,
+            subtitle: '穿搭复盘',
+            metaText: `♡ ${18 + w.clothingItemIdsSnapshot.length}`,
             metaColor: AppTheme.color.primary,
-            iconText: '今'
+            iconText: '今',
+            authorName: '今日穿搭',
+            authorAvatarText: '今',
+            body: w.note !== undefined && w.note.length > 0
+              ? w.note
+              : `${w.wornDate} 的这套 ${w.outfitTitleSnapshot} 可以作为后续穿搭参考。记录里的地点和照片会帮助你判断哪些组合更适合真实场景。`,
+            likeText: `${18 + w.clothingItemIdsSnapshot.length}`,
+            collectText: '收藏',
+            commentText: '评论'
           });
         }
       }
@@ -449,12 +488,7 @@ export struct TodayPage {
     .borderRadius(10)
     .shadow({ radius: 8, color: '#0D000000', offsetX: 0, offsetY: 2 })
     .onClick(() => {
-      if (item.type === 'today') {
-        this.recordToday();
-      } else if (item.type === 'outfit' && item.sourceId) {
-        const outfit = this.recentOutfits.find((o) => o.id === item.sourceId);
-        if (outfit) { this.recordToday(outfit); }
-      }
+      this.openRecommendation(item);
     })
   }
 }
@@ -470,5 +504,10 @@ interface CardItem {
   metaText: string
   metaColor: string
   iconText: string
-  sourceId?: string
+  authorName: string
+  authorAvatarText: string
+  body: string
+  likeText: string
+  collectText: string
+  commentText: string
 }

@@ -11,12 +11,16 @@ for (const needle of [
   '推荐',
   '今日',
   '灵感',
-  '从最近套装里挑一套',
-  '最近穿过',
-  '记录一次今日搭配',
+  '看看推荐穿搭灵感',
+  '推荐穿搭',
+  '通勤清爽蓝白穿搭',
+  '雨天轻便出行穿搭',
   '穿搭灵感',
   '衣橱灵感',
-  '今日记录',
+  '今日灵感',
+  'HomeRecommendation',
+  'onOpenRecommendation',
+  'openRecommendation',
   'WaterFlow()',
   'FlowItem()',
   ".width('100%')",
@@ -32,7 +36,6 @@ for (const needle of [
   'todaysWearLog',
   'recentOutfits',
   'recentWearLogs',
-  'recordToday',
   'ForEach'
 ]) {
   if (!text.includes(needle)) {
@@ -45,7 +48,11 @@ for (const forbidden of [
   "Text('⌕')",
   'Column({ space: 14 })',
   'GridItem()',
-  '.scrollable(ScrollDirection.Vertical)'
+  '.scrollable(ScrollDirection.Vertical)',
+  'WearLogEditPage',
+  'showWearLogEditor',
+  'recordToday(',
+  '选择套装记录今天'
 ]) {
   if (text.includes(forbidden)) {
     throw new Error(`TodayPage still contains ${forbidden}`);
@@ -78,6 +85,14 @@ if (!/WaterFlow\s*\(\s*\)[\s\S]*?\.columnsTemplate\('1fr 1fr'\)[\s\S]*?\.columns
 
 if (/Text\s*\(\s*item\.placeholder\s*\)[\s\S]*?Text\s*\(\s*item\.title\s*\)[\s\S]*?\.aspectRatio\(item\.aspectRatio\)/.test(text)) {
   throw new Error('TodayPage placeholder image area should not render long titles that can widen the column');
+}
+
+if (/\.onClick\s*\(\s*\(\)\s*=>\s*\{[\s\S]*?recordToday/.test(text)) {
+  throw new Error('TodayPage feed cards should open recommendation detail, not the wear-log editor');
+}
+
+if (!/\.onClick\s*\(\s*\(\)\s*=>\s*\{[\s\S]*?this\.openRecommendation\(item\)/.test(text)) {
+  throw new Error('TodayPage feed cards should open recommendation detail');
 }
 
 console.log('PASS');

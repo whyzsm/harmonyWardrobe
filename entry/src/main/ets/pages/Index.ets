@@ -1,6 +1,6 @@
 import common from '@ohos.app.ability.common';
 import { WardrobeRuntime } from '../app/WardrobeRuntime';
-import { TodayPage } from './TodayPage';
+import { HomeRecommendation, TodayPage } from './TodayPage';
 import { WardrobePage } from './WardrobePage';
 import { CalendarPage } from './CalendarPage';
 import { ShoppingPage } from './ShoppingPage';
@@ -22,6 +22,20 @@ struct Index {
   @State private showClothingEditor: boolean = false;
   @State private showOutfitEditor: boolean = false;
   @State private showWearLogEditor: boolean = false;
+  @State private showRecommendationDetail: boolean = false;
+  @State private activeRecommendation: HomeRecommendation = {
+    id: '',
+    title: '',
+    subtitle: '',
+    imageUri: '',
+    placeholder: '',
+    authorName: '',
+    authorAvatarText: '',
+    body: '',
+    likeText: '',
+    collectText: '',
+    commentText: ''
+  };
   @State private quickActionErrorMessage: string = '';
   @State private quickActionClothingItems: ClothingItem[] = [];
   @State private quickActionOutfits: OutfitTemplate[] = [];
@@ -57,6 +71,16 @@ struct Index {
     this.showClothingEditor = false;
     this.showOutfitEditor = false;
     this.showWearLogEditor = false;
+  }
+
+  private openRecommendationDetail(recommendation: HomeRecommendation): void {
+    this.activeRecommendation = recommendation;
+    this.showRecommendationDetail = true;
+    this.showQuickActions = false;
+  }
+
+  private closeRecommendationDetail(): void {
+    this.showRecommendationDetail = false;
   }
 
   private openAddClothing(): void {
@@ -179,7 +203,10 @@ struct Index {
             outfitRepository: this.runtime.outfitRepository,
             wearLogRepository: this.runtime.wearLogRepository,
             photoPickerAdapter: this.runtime.photoPickerAdapter,
-            photoStorage: this.runtime.photoStorage
+            photoStorage: this.runtime.photoStorage,
+            onOpenRecommendation: (recommendation: HomeRecommendation) => {
+              this.openRecommendationDetail(recommendation);
+            }
           })
             .layoutWeight(1)
           } else if (this.selectedTabIndex === 1) {
@@ -293,6 +320,10 @@ struct Index {
           .height('100%')
           .backgroundColor('#66000000')
         }
+
+        if (this.showRecommendationDetail) {
+          this.RecommendationDetailPage()
+        }
       }
       .width('100%')
       .height('100%')
@@ -348,5 +379,173 @@ struct Index {
     .onClick(() => {
       this.showQuickActions = true;
     })
+  }
+
+  @Builder
+  RecommendationDetailPage() {
+    Column() {
+      Row() {
+        Stack({ alignContent: Alignment.Center }) {
+          Text('‹')
+            .fontSize(38)
+            .fontColor(AppTheme.color.text)
+        }
+        .width(44)
+        .height(56)
+        .onClick(() => {
+          this.closeRecommendationDetail();
+        })
+
+        Row({ space: 10 }) {
+          Text(this.activeRecommendation.authorAvatarText)
+            .width(42)
+            .height(42)
+            .fontSize(16)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(AppTheme.color.primary)
+            .textAlign(TextAlign.Center)
+            .backgroundColor(AppTheme.color.primarySoft)
+            .borderRadius(21)
+
+          Text(this.activeRecommendation.authorName)
+            .fontSize(20)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(AppTheme.color.text)
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .layoutWeight(1)
+        }
+        .layoutWeight(1)
+        .alignItems(VerticalAlign.Center)
+
+        Button('关注')
+          .height(38)
+          .width(78)
+          .fontSize(16)
+          .fontColor(AppTheme.color.accent)
+          .backgroundColor(AppTheme.color.surface)
+          .border({ width: 1, color: AppTheme.color.accent })
+          .borderRadius(20)
+
+        Text('↗')
+          .width(44)
+          .height(56)
+          .fontSize(32)
+          .fontColor(AppTheme.color.text)
+          .textAlign(TextAlign.Center)
+      }
+      .width('100%')
+      .height(74)
+      .padding({ left: 10, right: 10 })
+      .alignItems(VerticalAlign.Center)
+      .backgroundColor(AppTheme.color.surface)
+
+      Scroll() {
+        Column() {
+          if (this.activeRecommendation.imageUri.length > 0) {
+            Image(this.activeRecommendation.imageUri)
+              .width('100%')
+              .aspectRatio(0.78)
+              .objectFit(ImageFit.Cover)
+              .backgroundColor(AppTheme.color.surfaceMuted)
+          } else {
+            Column({ space: 12 }) {
+              Text(this.activeRecommendation.placeholder)
+                .fontSize(48)
+                .fontWeight(FontWeight.Bold)
+                .fontColor(AppTheme.color.primary)
+
+              Text(this.activeRecommendation.subtitle)
+                .fontSize(16)
+                .fontColor(AppTheme.color.textMuted)
+            }
+            .width('100%')
+            .aspectRatio(0.78)
+            .justifyContent(FlexAlign.Center)
+            .alignItems(HorizontalAlign.Center)
+            .backgroundColor(AppTheme.color.primarySoft)
+          }
+
+          Row({ space: 6 }) {
+            Circle({ width: 8, height: 8 })
+              .fill(AppTheme.color.accent)
+            Circle({ width: 8, height: 8 })
+              .fill(AppTheme.color.border)
+            Circle({ width: 8, height: 8 })
+              .fill(AppTheme.color.border)
+            Circle({ width: 8, height: 8 })
+              .fill(AppTheme.color.border)
+          }
+          .height(30)
+          .width('100%')
+          .justifyContent(FlexAlign.Center)
+          .alignItems(VerticalAlign.Center)
+
+          Column({ space: 12 }) {
+            Text(this.activeRecommendation.title)
+              .fontSize(24)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(AppTheme.color.text)
+              .lineHeight(32)
+              .width('100%')
+
+            Text(this.activeRecommendation.body)
+              .fontSize(19)
+              .fontColor(AppTheme.color.text)
+              .lineHeight(32)
+              .width('100%')
+
+            Text('#今日穿搭 #衣橱灵感 #推荐搭配')
+              .fontSize(15)
+              .fontColor(AppTheme.color.primary)
+              .width('100%')
+          }
+          .width('100%')
+          .padding({ left: 18, right: 18, top: 6, bottom: 24 })
+          .alignItems(HorizontalAlign.Start)
+        }
+        .width('100%')
+      }
+      .layoutWeight(1)
+      .width('100%')
+      .scrollBar(BarState.Off)
+
+      Row({ space: 18 }) {
+        Row({ space: 8 }) {
+          Text('✎')
+            .fontSize(22)
+            .fontColor(AppTheme.color.textMuted)
+          Text('说点什么...')
+            .fontSize(18)
+            .fontColor(AppTheme.color.textMuted)
+        }
+        .height(52)
+        .layoutWeight(1)
+        .padding({ left: 16, right: 16 })
+        .backgroundColor(AppTheme.color.surfaceMuted)
+        .borderRadius(26)
+
+        Text(`♡ ${this.activeRecommendation.likeText}`)
+          .fontSize(20)
+          .fontColor(AppTheme.color.text)
+
+        Text(`☆ ${this.activeRecommendation.collectText}`)
+          .fontSize(20)
+          .fontColor(AppTheme.color.text)
+
+        Text(`☁ ${this.activeRecommendation.commentText}`)
+          .fontSize(20)
+          .fontColor(AppTheme.color.text)
+      }
+      .width('100%')
+      .height(82)
+      .padding({ left: 16, right: 16, top: 10, bottom: 12 })
+      .alignItems(VerticalAlign.Center)
+      .backgroundColor(AppTheme.color.surface)
+      .border({ width: { top: 1 }, color: AppTheme.color.border })
+    }
+    .width('100%')
+    .height('100%')
+    .backgroundColor(AppTheme.color.surface)
   }
 }
