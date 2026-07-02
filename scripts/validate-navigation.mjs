@@ -9,10 +9,14 @@ for (const tab of ['TodayPage', 'WardrobePage', 'CalendarPage', 'ShoppingPage'])
   }
 }
 
-for (const label of ['首页', '衣橱', '+', '日历', '逛街']) {
+for (const label of ['首页', '衣橱', '日历', '逛街']) {
   if (!index.includes(label)) {
     throw new Error(`Index missing nav label ${label}`);
   }
+}
+
+if (!index.includes("Image($r('app.media.activePlus'))")) {
+  throw new Error('Index missing center plus action image');
 }
 
 for (const forbidden of [".tabBar('今日')", ".tabBar('套装')"]) {
@@ -33,9 +37,21 @@ for (const editor of ['ClothingEditPage', 'OutfitEditPage', 'WearLogEditPage']) 
   }
 }
 
-for (const styleNeedle of ['AppTheme.color.primary', 'AppTheme.color.surface', '.width(56)', '.height(48)']) {
+for (const styleNeedle of ['AppTheme.color.primary', 'AppTheme.color.surface', '.width(44)', '.height(40)', '.height(64)']) {
   if (!index.includes(styleNeedle)) {
     throw new Error(`Index missing center plus style ${styleNeedle}`);
+  }
+}
+
+for (const forbidden of [
+  '.margin({ bottom: 30 })',
+  '.height(78)',
+  'Column()\n          .layoutWeight(1)',
+  'bottom: 92',
+  'bottom: 66'
+]) {
+  if (index.includes(forbidden)) {
+    throw new Error(`Index still contains floating bottom nav pattern ${forbidden}`);
   }
 }
 

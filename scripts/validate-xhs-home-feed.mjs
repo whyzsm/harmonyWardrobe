@@ -40,13 +40,13 @@ for (const needle of [
   '.scrollBar(BarState.Off)',
   'Stack({ alignContent: Alignment.Center })',
   'Circle({ width: 18, height: 18 })',
-  'Line({ width: 12, height: 12 })',
+  'Line()',
   'AppTheme.color.primary',
   'AppTheme.color.primarySoft',
   'AppTheme.color.surface',
   'AppTheme.color.surfaceMuted',
   'borderRadius(10)',
-  ".border({ width: 1, color: '#1A000000' })",
+  "shadow({ radius: 8, color: '#0D000000', offsetX: 0, offsetY: 2 })",
   '♡',
   'ImageFit.Cover'
 ]) {
@@ -67,11 +67,15 @@ if (/Text\s*\(\s*this\.todayIsoDate\s*\)/.test(text)) {
   throw new Error(`${file} must not render the date in the top-left home header`);
 }
 
+if (text.includes('bottom: 92') || text.includes('bottom: 66')) {
+  throw new Error(`${file} should not reserve floating bottom nav whitespace`);
+}
+
 if (!/Stack\s*\(\s*\{\s*alignContent:\s*Alignment\.Center\s*\}\s*\)[\s\S]*?Circle\s*\([\s\S]*?Line\s*\(/.test(text)) {
   throw new Error(`${file} search icon should be centered with shapes instead of a baseline-shifted text glyph`);
 }
 
-if (!/Row\s*\(\s*\)\s*\{[\s\S]*?Text\s*\(\s*'☰'\s*\)[\s\S]*?Text\s*\(\s*'推荐'\s*\)[\s\S]*?Stack\s*\(\s*\{\s*alignContent:\s*Alignment\.Center\s*\}\s*\)[\s\S]*?\}\s*\.width\('100%'\)[\s\S]*?\.height\(56\)/.test(text)) {
+if (!/Row\s*\(\s*\)\s*\{[\s\S]*?Text\s*\(\s*'☰'\s*\)[\s\S]*?HomeTopTab\s*\(\s*0\s*,\s*'推荐'\s*\)[\s\S]*?HomeTopTab\s*\(\s*1\s*,\s*'今日'\s*\)[\s\S]*?HomeTopTab\s*\(\s*2\s*,\s*'灵感'\s*\)[\s\S]*?Stack\s*\(\s*\{\s*alignContent:\s*Alignment\.Center\s*\}\s*\)[\s\S]*?\}\s*\.width\('100%'\)[\s\S]*?\.height\(56\)/.test(text)) {
   throw new Error(`${file} should keep menu, recommendation tabs, and search in one Xiaohongshu-style header row`);
 }
 

@@ -217,12 +217,11 @@ struct Index {
               .backgroundColor(AppTheme.color.surface)
           }
 
+          this.BottomNavigationBar()
         }
         .width('100%')
         .height('100%')
         .backgroundColor(AppTheme.color.surfaceMuted)
-
-        this.BottomNavigationBar()
 
         if (this.showQuickActions) {
           Column() {
@@ -302,26 +301,19 @@ struct Index {
 
   @Builder
   BottomNavigationBar() {
-    Stack({ alignContent: Alignment.Bottom }) {
-      Row() {
-        this.BottomTabItem(0, '首页')
-        this.BottomTabItem(1, '衣橱')
-        Column()
-          .layoutWeight(1)
-        this.BottomTabItem(2, '日历')
-        this.BottomTabItem(3, '逛街')
-      }
-      .width('100%')
-      .height(58)
-      .padding({ left: 12, right: 12, top: 6, bottom: 6 })
-      .backgroundColor(AppTheme.color.surface)
-      .border({ width: 1, color: AppTheme.color.border })
-
+    Row() {
+      this.BottomTabItem(0, '首页')
+      this.BottomTabItem(1, '衣橱')
       this.RudderActionTab()
+      this.BottomTabItem(2, '日历')
+      this.BottomTabItem(3, '逛街')
     }
     .width('100%')
-    .height(78)
-    .backgroundColor('#00000000')
+    .height(64)
+    .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+    .backgroundColor(AppTheme.color.surface)
+    .border({ width: { top: 1 }, color: AppTheme.color.border })
+    .alignItems(VerticalAlign.Center)
   }
 
   @Builder
@@ -343,11 +335,16 @@ struct Index {
 
   @Builder
   RudderActionTab() {
-    Image($r('app.media.activePlus'))
-      .objectFit(ImageFit.Contain)
-    .width(46)
+    Column() {
+      Image($r('app.media.activePlus'))
+        .width(44)
+        .height(40)
+        .objectFit(ImageFit.Contain)
+    }
+    .layoutWeight(1)
     .height(46)
-    .margin({ bottom: 30 })
+    .alignItems(HorizontalAlign.Center)
+    .justifyContent(FlexAlign.Center)
     .onClick(() => {
       this.showQuickActions = true;
     })

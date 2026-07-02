@@ -29,7 +29,7 @@ for (const needle of [
   'backgroundColor(AppTheme.color.primarySoft)',
   'fontColor(AppTheme.color.primary)',
   '.columnsTemplate(\'1fr 1fr\')',
-  '.padding({ left: 14, right: 14, top: 18, bottom: 92 })'
+  '.padding({ left: 14, right: 14, top: 18, bottom: 14 })'
 ]) {
   requireIncludes(wardrobe, wardrobePath, needle);
 }

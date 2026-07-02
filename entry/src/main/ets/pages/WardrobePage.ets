@@ -324,7 +324,7 @@ export struct WardrobePage {
     }
     .width('100%')
     .height('100%')
-    .padding({ left: 14, right: 14, top: 18, bottom: 92 })
+    .padding({ left: 14, right: 14, top: 18, bottom: 14 })
     .alignItems(HorizontalAlign.Start)
     .backgroundColor(AppTheme.color.surfaceMuted)
     }

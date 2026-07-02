@@ -215,7 +215,7 @@ export struct TodayPage {
     }
     .width('100%')
     .height('100%')
-    .padding({ left: 10, right: 10, top: 2, bottom: 92 })
+    .padding({ left: 10, right: 10, top: 2, bottom: 12 })
     .backgroundColor(AppTheme.color.surface)
   }
 
@@ -293,7 +293,7 @@ export struct TodayPage {
     }
     .columnsTemplate('1fr 1fr')
     .columnsGap(8)
-    .rowsGap(10)
+    .rowsGap(8)
     .padding({ top: 8, bottom: 10 })
     .width('100%')
     .scrollBar(BarState.Off)

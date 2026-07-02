@@ -24,7 +24,7 @@ for (const needle of [
   '.rowsGap(8)',
   'Divider()',
   '.backgroundColor(AppTheme.color.surface)',
-  ".border({ width: 1, color: '#1A000000' })",
+  "shadow({ radius: 8, color: '#0D000000', offsetX: 0, offsetY: 2 })",
   'todayIsoDate',
   'todaysWearLog',
   'recentOutfits',
@@ -55,6 +55,10 @@ if (/Text\s*\(\s*this\.todayIsoDate\s*\)/.test(text)) {
 
 if (!/Stack\s*\(\s*\{\s*alignContent:\s*Alignment\.Center\s*\}\s*\)[\s\S]*?Circle\s*\([\s\S]*?Line\s*\(/.test(text)) {
   throw new Error('TodayPage should use a centered shape-based search icon, not a text glyph');
+}
+
+if (text.includes('bottom: 92') || text.includes('bottom: 66')) {
+  throw new Error('TodayPage should not reserve floating bottom nav whitespace');
 }
 
 console.log('PASS');
