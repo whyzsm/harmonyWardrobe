@@ -34,6 +34,9 @@ for (const needle of [
   '最近穿过',
   'WaterFlow()',
   'FlowItem()',
+  ".width('100%')",
+  ".height('100%')",
+  '.layoutWeight(1)',
   ".columnsTemplate('1fr 1fr')",
   '.columnsGap(8)',
   '.rowsGap(8)',
@@ -77,6 +80,22 @@ if (!/Stack\s*\(\s*\{\s*alignContent:\s*Alignment\.Center\s*\}\s*\)[\s\S]*?Circl
 
 if (!/Row\s*\(\s*\)\s*\{[\s\S]*?Text\s*\(\s*'☰'\s*\)[\s\S]*?HomeTopTab\s*\(\s*0\s*,\s*'推荐'\s*\)[\s\S]*?HomeTopTab\s*\(\s*1\s*,\s*'今日'\s*\)[\s\S]*?HomeTopTab\s*\(\s*2\s*,\s*'灵感'\s*\)[\s\S]*?Stack\s*\(\s*\{\s*alignContent:\s*Alignment\.Center\s*\}\s*\)[\s\S]*?\}\s*\.width\('100%'\)[\s\S]*?\.height\(56\)/.test(text)) {
   throw new Error(`${file} should keep menu, recommendation tabs, and search in one Xiaohongshu-style header row`);
+}
+
+if (!/Refresh\s*\(\s*\{\s*refreshing:\s*this\.isRefreshing\s*\}\s*\)[\s\S]*?\.layoutWeight\(1\)[\s\S]*?\.width\('100%'\)/.test(text)) {
+  throw new Error(`${file} Refresh container should fill the feed width and remaining height`);
+}
+
+if (!/FlowItem\s*\(\s*\)\s*\{[\s\S]*?this\.CardView\(item\)[\s\S]*?\}\s*\.width\('100%'\)/.test(text)) {
+  throw new Error(`${file} FlowItem should explicitly fill its WaterFlow column width`);
+}
+
+if (!/WaterFlow\s*\(\s*\)[\s\S]*?\.columnsTemplate\('1fr 1fr'\)[\s\S]*?\.columnsGap\(8\)[\s\S]*?\.rowsGap\(8\)[\s\S]*?\.width\('100%'\)[\s\S]*?\.height\('100%'\)[\s\S]*?\.layoutWeight\(1\)/.test(text)) {
+  throw new Error(`${file} WaterFlow should follow the HarmonyOS sample sizing pattern`);
+}
+
+if (/Text\s*\(\s*item\.placeholder\s*\)[\s\S]*?Text\s*\(\s*item\.title\s*\)[\s\S]*?\.aspectRatio\(item\.aspectRatio\)/.test(text)) {
+  throw new Error(`${file} placeholder image area should not render long titles that can widen the column`);
 }
 
 console.log('PASS');

@@ -207,6 +207,7 @@ export struct TodayPage {
         this.WaterFlowContent()
       }
       .layoutWeight(1)
+      .width('100%')
       .onStateChange((state: RefreshStatus) => {
         if (state === RefreshStatus.Refresh) {
           this.onRefresh();
@@ -289,6 +290,7 @@ export struct TodayPage {
         FlowItem() {
           this.CardView(item)
         }
+        .width('100%')
       }, (item: CardItem) => item.id)
     }
     .columnsTemplate('1fr 1fr')
@@ -296,6 +298,8 @@ export struct TodayPage {
     .rowsGap(8)
     .padding({ top: 8, bottom: 10 })
     .width('100%')
+    .height('100%')
+    .layoutWeight(1)
     .scrollBar(BarState.Off)
   }
 
@@ -404,12 +408,11 @@ export struct TodayPage {
           .backgroundColor(AppTheme.color.surfaceMuted)
           .borderRadius({ topLeft: 10, topRight: 10 })
       } else {
-        Column({ space: 6 }) {
+        Column() {
           Text(item.placeholder)
             .fontSize(28).fontWeight(FontWeight.Bold).fontColor(AppTheme.color.primary)
-          Text(item.title)
-            .fontSize(14).fontWeight(FontWeight.Medium).fontColor(AppTheme.color.text)
-            .textAlign(TextAlign.Center).maxLines(2)
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
         }
         .width('100%')
         .aspectRatio(item.aspectRatio)
@@ -420,11 +423,9 @@ export struct TodayPage {
       }
 
       Column({ space: 6 }) {
-        if (item.photoUri.length > 0) {
-          Text(item.title)
-            .fontSize(14).fontWeight(FontWeight.Medium).fontColor(AppTheme.color.text)
-            .maxLines(2).textOverflow({ overflow: TextOverflow.Ellipsis }).width('100%')
-        }
+        Text(item.title)
+          .fontSize(14).fontWeight(FontWeight.Medium).fontColor(AppTheme.color.text)
+          .maxLines(2).textOverflow({ overflow: TextOverflow.Ellipsis }).width('100%')
 
         Row({ space: 6 }) {
           Text(item.iconText)
@@ -441,7 +442,7 @@ export struct TodayPage {
         }
         .width('100%').height(22)
       }
-      .padding({ left: 8, right: 8, bottom: 8 })
+      .padding({ left: 8, right: 8, top: 8, bottom: 8 })
     }
     .width('100%')
     .backgroundColor(AppTheme.color.surface)
