@@ -217,69 +217,12 @@ struct Index {
               .backgroundColor(AppTheme.color.surface)
           }
 
-          Row() {
-            Text('首页')
-              .fontSize(16)
-              .fontWeight(this.selectedTabIndex === 0 ? FontWeight.Bold : FontWeight.Regular)
-              .fontColor(this.selectedTabIndex === 0 ? AppTheme.color.primary : AppTheme.color.textMuted)
-              .layoutWeight(1)
-              .textAlign(TextAlign.Center)
-              .onClick(() => {
-                this.selectTab(0);
-              })
-
-            Text('衣橱')
-              .fontSize(16)
-              .fontWeight(this.selectedTabIndex === 1 ? FontWeight.Bold : FontWeight.Regular)
-              .fontColor(this.selectedTabIndex === 1 ? AppTheme.color.primary : AppTheme.color.textMuted)
-              .layoutWeight(1)
-              .textAlign(TextAlign.Center)
-              .onClick(() => {
-                this.selectTab(1);
-              })
-
-            Button('+')
-              .width(56)
-              .height(48)
-              .fontSize(28)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(AppTheme.color.surface)
-              .backgroundColor(AppTheme.color.primary)
-              .borderRadius(16)
-              .onClick(() => {
-                this.showQuickActions = true;
-              })
-
-            Text('日历')
-              .fontSize(16)
-              .fontWeight(this.selectedTabIndex === 2 ? FontWeight.Bold : FontWeight.Regular)
-              .fontColor(this.selectedTabIndex === 2 ? AppTheme.color.primary : AppTheme.color.textMuted)
-              .layoutWeight(1)
-              .textAlign(TextAlign.Center)
-              .onClick(() => {
-                this.selectTab(2);
-              })
-
-            Text('逛街')
-              .fontSize(16)
-              .fontWeight(this.selectedTabIndex === 3 ? FontWeight.Bold : FontWeight.Regular)
-              .fontColor(this.selectedTabIndex === 3 ? AppTheme.color.primary : AppTheme.color.textMuted)
-              .layoutWeight(1)
-              .textAlign(TextAlign.Center)
-              .onClick(() => {
-                this.selectTab(3);
-              })
-          }
-          .width('100%')
-          .height(74)
-          .padding({ left: 18, right: 18, bottom: 6 })
-          .backgroundColor(AppTheme.color.surface)
-          .border({ width: 1, color: AppTheme.color.border })
-          .alignItems(VerticalAlign.Center)
         }
         .width('100%')
         .height('100%')
         .backgroundColor(AppTheme.color.surfaceMuted)
+
+        this.BottomNavigationBar()
 
         if (this.showQuickActions) {
           Column() {
@@ -355,5 +298,58 @@ struct Index {
       .width('100%')
       .height('100%')
     }
+  }
+
+  @Builder
+  BottomNavigationBar() {
+    Stack({ alignContent: Alignment.Bottom }) {
+      Row() {
+        this.BottomTabItem(0, '首页')
+        this.BottomTabItem(1, '衣橱')
+        Column()
+          .layoutWeight(1)
+        this.BottomTabItem(2, '日历')
+        this.BottomTabItem(3, '逛街')
+      }
+      .width('100%')
+      .height(58)
+      .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+      .backgroundColor(AppTheme.color.surface)
+      .border({ width: 1, color: AppTheme.color.border })
+
+      this.RudderActionTab()
+    }
+    .width('100%')
+    .height(78)
+    .backgroundColor('#00000000')
+  }
+
+  @Builder
+  BottomTabItem(index: number, title: string) {
+    Column() {
+      Text(title)
+        .fontSize(13)
+        .fontWeight(this.selectedTabIndex === index ? FontWeight.Bold : FontWeight.Regular)
+        .fontColor(this.selectedTabIndex === index ? AppTheme.color.primaryStrong : AppTheme.color.textMuted)
+    }
+    .layoutWeight(1)
+    .height(46)
+    .alignItems(HorizontalAlign.Center)
+    .justifyContent(FlexAlign.Center)
+    .onClick(() => {
+      this.selectTab(index);
+    })
+  }
+
+  @Builder
+  RudderActionTab() {
+    Image($r('app.media.activePlus'))
+      .objectFit(ImageFit.Contain)
+    .width(46)
+    .height(46)
+    .margin({ bottom: 30 })
+    .onClick(() => {
+      this.showQuickActions = true;
+    })
   }
 }
