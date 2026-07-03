@@ -1,6 +1,3 @@
-import { SearchBar } from '../components/SearchBar';
-import { CategoryTabs } from '../components/CategoryTabs';
-import { ClothingCard } from '../components/ClothingCard';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { SearchRepository } from '../data/repositories/SearchRepository';
 import { ClothingCategory } from '../domain/clothing/ClothingCategory';
@@ -17,15 +14,14 @@ interface WardrobeCategoryFilter {
 }
 
 const WARDROBE_CATEGORY_FILTERS: WardrobeCategoryFilter[] = [
-  { label: '全部' },
-  { label: '上衣', category: ClothingCategory.Top },
-  { label: '裤装', category: ClothingCategory.Pants },
-  { label: '裙装', category: ClothingCategory.Skirt },
-  { label: '外套', category: ClothingCategory.Outerwear },
-  { label: '鞋包' },
-  { label: '配饰', category: ClothingCategory.Accessory },
-  { label: '其他', category: ClothingCategory.Other }
+  { label: '综合' },
+  { label: '商户', category: ClothingCategory.Top },
+  { label: '笔记', category: ClothingCategory.Pants },
+  { label: '团购', category: ClothingCategory.Skirt },
+  { label: '用户' }
 ];
+
+const WARDROBE_TOP_RESULT_COUNT = 3;
 
 function categoryLabel(category: ClothingCategory): string {
   if (category === ClothingCategory.Shoes || category === ClothingCategory.Bag) {
@@ -49,7 +45,7 @@ export struct WardrobePage {
   photoStorage?: PhotoStorage = undefined;
 
   @State private searchQuery: string = '';
-  @State private selectedCategoryLabel: string = '全部';
+  @State private selectedCategoryLabel: string = '综合';
   @State private clothingItems: ClothingItem[] = [];
   @State private showEditor: boolean = false;
   @State private editingClothingId: string = '';
@@ -109,8 +105,16 @@ export struct WardrobePage {
     return WARDROBE_CATEGORY_FILTERS.map((filter: WardrobeCategoryFilter) => filter.label);
   }
 
+  private visibleClothingItems(): ClothingItem[] {
+    return this.filterClothingItems();
+  }
+
   private firstPhotoUri(item: ClothingItem): string {
     return item.photoUris.length > 0 ? item.photoUris[0] : '';
+  }
+
+  private wardrobeCardAspectRatio(index: number): number {
+    return index < 3 ? 2.18 : 1.38;
   }
 
   private editingItem(): ClothingItem | undefined {
@@ -175,6 +179,10 @@ export struct WardrobePage {
     this.loadClothingItems();
   }
 
+  private openSearch(): void {
+    this.openUnifiedSearch(this.searchQuery);
+  }
+
   build() {
     if (this.showEditor) {
       ClothingEditPage({
@@ -200,33 +208,8 @@ export struct WardrobePage {
         }
       })
     } else {
-      Column({ space: 16 }) {
-      Row() {
-        Column({ space: 4 }) {
-          Text('衣橱')
-            .fontSize(30)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(AppTheme.color.text)
-
-          Text('我的衣橱内容流')
-            .fontSize(15)
-            .fontColor(AppTheme.color.textMuted)
-        }
-        .layoutWeight(1)
-        .alignItems(HorizontalAlign.Start)
-
-        Button('添加衣服')
-          .height(36)
-          .fontSize(13)
-          .fontColor(AppTheme.color.primary)
-          .backgroundColor(AppTheme.color.primarySoft)
-          .borderRadius(AppTheme.radius.md)
-          .onClick(() => {
-            this.openCreateEditor();
-          })
-      }
-      .width('100%')
-      .alignItems(VerticalAlign.Center)
+      Column({ space: 14 }) {
+      this.WardrobeSearchHeader()
 
       if (this.loading) {
         Text('loading / 正在加载衣橱...')
@@ -251,24 +234,9 @@ export struct WardrobePage {
         .width('100%')
       }
 
-      SearchBar({
-        value: this.searchQuery,
-        placeholder: '搜索衣服、套装、备注',
-        onChange: (value: string) => {
-          this.searchQuery = value;
-          this.openUnifiedSearch(value);
-        }
-      })
+      this.WardrobeSearchTabs()
 
-      CategoryTabs({
-        categories: this.categoryLabels(),
-        selected: this.selectedCategoryLabel,
-        onSelect: (category: string) => {
-          this.selectedCategoryLabel = category;
-        }
-      })
-
-      if (this.filterClothingItems().length === 0) {
+      if (this.visibleClothingItems().length === 0) {
         Column({ space: 10 }) {
           Column({ space: 8 }) {
             Text('衣')
@@ -288,45 +256,188 @@ export struct WardrobePage {
           .backgroundColor(AppTheme.color.primarySoft)
           .borderRadius(8)
 
-          Text('点中间 + 添加第一件衣服')
+          Text('点击 search 旁的加号逻辑添加第一件衣服')
             .fontSize(15)
             .fontColor(AppTheme.color.text)
 
-          Text('衣服会像内容流卡片一样显示在这里。')
+          Text('衣服会按图片检索流排在这里。')
             .fontSize(12)
             .fontColor(AppTheme.color.textMuted)
         }
-        .width('48%')
+        .width('100%')
         .padding(8)
         .borderRadius(AppTheme.radius.lg)
         .backgroundColor(AppTheme.color.surfaceRaised)
       } else {
-        Grid() {
-          ForEach(this.filterClothingItems(), (item: ClothingItem) => {
-            GridItem() {
-              ClothingCard({
-                name: item.name,
-                category: categoryLabel(item.category),
-                photoUri: this.firstPhotoUri(item)
-              })
-                .onClick(() => {
-                  this.onEdit(item);
-                })
+        Scroll() {
+          Column({ space: 8 }) {
+            ForEach(this.visibleClothingItems().slice(0, WARDROBE_TOP_RESULT_COUNT), (item: ClothingItem, index: number) => {
+              this.WardrobeSearchResultCard(item, index)
+            }, (item: ClothingItem) => item.id)
+
+            if (this.visibleClothingItems().length > WARDROBE_TOP_RESULT_COUNT) {
+              WaterFlow() {
+                ForEach(this.visibleClothingItems().slice(WARDROBE_TOP_RESULT_COUNT), (item: ClothingItem, index: number) => {
+                  FlowItem() {
+                    this.WardrobeSearchResultCard(item, index + WARDROBE_TOP_RESULT_COUNT)
+                  }
+                  .width('100%')
+                }, (item: ClothingItem) => item.id)
+              }
+              .cachedCount(8)
+              .columnsTemplate('1fr 1fr')
+              .columnsGap(8)
+              .rowsGap(8)
+              .width('100%')
+              .height(360)
+              .scrollBar(BarState.Off)
             }
-          }, (item: ClothingItem) => item.id)
+          }
+          .width('100%')
+          .padding({ bottom: 16 })
         }
-        .columnsTemplate('1fr 1fr')
-        .columnsGap(12)
-        .rowsGap(12)
         .width('100%')
         .layoutWeight(1)
+        .scrollBar(BarState.Off)
       }
     }
     .width('100%')
     .height('100%')
-    .padding({ left: 14, right: 14, top: 18, bottom: 14 })
+    .padding({ left: 12, right: 12, top: 28, bottom: 14 })
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor(AppTheme.color.surfaceMuted)
+    .backgroundColor(AppTheme.color.surface)
     }
+  }
+
+  @Builder
+  WardrobeSearchHeader() {
+    Row({ space: 0 }) {
+      Row({ space: 10 }) {
+        Stack({ alignContent: Alignment.Center }) {
+          Circle({ width: 17, height: 17 })
+            .fill('#00000000')
+            .stroke(AppTheme.color.textMuted)
+            .strokeWidth(2)
+          Line()
+            .startPoint([1, 1])
+            .endPoint([9, 9])
+            .stroke(AppTheme.color.textMuted)
+            .strokeWidth(2)
+            .margin({ left: 8, top: 8 })
+        }
+        .width(26)
+        .height(42)
+
+        TextInput({ text: this.searchQuery, placeholder: '搜索衣服、套装、备注' })
+          .height(42)
+          .layoutWeight(1)
+          .fontSize(16)
+          .fontColor(AppTheme.color.text)
+          .placeholderColor(AppTheme.color.textMuted)
+          .backgroundColor('#00000000')
+          .onChange((value: string) => {
+            this.searchQuery = value;
+          })
+
+        Divider()
+          .vertical(true)
+          .height(22)
+          .color(AppTheme.color.border)
+          .strokeWidth(1)
+
+        Text('search')
+          .width(76)
+          .height(42)
+          .fontSize(17)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(AppTheme.color.primary)
+          .textAlign(TextAlign.Center)
+          .onClick(() => {
+            this.openSearch();
+          })
+      }
+      .layoutWeight(1)
+      .height(52)
+      .padding({ left: 16, right: 6 })
+      .alignItems(VerticalAlign.Center)
+      .backgroundColor(AppTheme.color.surfaceMuted)
+      .borderRadius(26)
+    }
+    .width('100%')
+    .height(54)
+    .alignItems(VerticalAlign.Center)
+  }
+
+  @Builder
+  WardrobeSearchTabs() {
+    Scroll() {
+      Row({ space: 10 }) {
+        ForEach(this.categoryLabels(), (category: string) => {
+          Text(category)
+            .height(42)
+            .padding({ left: 22, right: 22 })
+            .fontSize(16)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(this.selectedCategoryLabel === category ? AppTheme.color.surface : AppTheme.color.text)
+            .textAlign(TextAlign.Center)
+            .backgroundColor(this.selectedCategoryLabel === category ? AppTheme.color.primary : AppTheme.color.surfaceMuted)
+            .borderRadius(21)
+            .onClick(() => {
+              this.selectedCategoryLabel = category;
+            })
+        }, (category: string) => category)
+      }
+      .padding({ right: 12 })
+      .alignItems(VerticalAlign.Center)
+    }
+    .scrollable(ScrollDirection.Horizontal)
+    .scrollBar(BarState.Off)
+    .width('100%')
+    .height(46)
+  }
+
+  @Builder
+  WardrobeSearchResultCard(item: ClothingItem, index: number) {
+    Stack({ alignContent: Alignment.BottomStart }) {
+      if (this.firstPhotoUri(item).length > 0) {
+        Image(this.firstPhotoUri(item))
+          .width('100%')
+          .aspectRatio(this.wardrobeCardAspectRatio(index))
+          .objectFit(ImageFit.Cover)
+          .borderRadius(8)
+      } else {
+        Column() {
+          Text(categoryLabel(item.category))
+            .fontSize(index < 3 ? 34 : 20)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(AppTheme.color.primary)
+        }
+        .width('100%')
+        .aspectRatio(this.wardrobeCardAspectRatio(index))
+        .justifyContent(FlexAlign.Center)
+        .alignItems(HorizontalAlign.Center)
+        .backgroundColor(AppTheme.color.primarySoft)
+        .borderRadius(8)
+      }
+
+      Column()
+        .width('100%')
+        .height(index < 3 ? 52 : 42)
+        .linearGradient({
+          angle: 180,
+          colors: [['#00000000', 0], ['#66000000', 1]]
+        })
+        .borderRadius({ bottomLeft: 8, bottomRight: 8 })
+
+      Text(`NO. ${index + 1}`)
+        .fontSize(index < 3 ? 16 : 13)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(AppTheme.color.surface)
+        .margin({ left: 12, bottom: 10 })
+    }
+    .width('100%')
+    .onClick(() => {
+      this.onEdit(item);
+    })
   }
 }

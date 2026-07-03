@@ -31,21 +31,56 @@ for (const action of ['添加衣服', '创建套装', '记录今日']) {
   }
 }
 
+for (const carouselNeedle of [
+  'Swiper(this.recommendationSwiperController)',
+  '.indicator(false)',
+  '.autoPlay(this.activeRecommendationImages().length > 1)',
+  'recommendationImageIndex',
+  'this.activeRecommendation.imageUris',
+  'ForEach(this.activeRecommendationImages()'
+]) {
+  if (!index.includes(carouselNeedle)) {
+    throw new Error(`Index missing recommendation carousel detail ${carouselNeedle}`);
+  }
+}
+
 for (const editor of ['ClothingEditPage', 'OutfitEditPage', 'WearLogEditPage']) {
   if (!index.includes(editor)) {
     throw new Error(`Index missing quick action editor ${editor}`);
   }
 }
 
-for (const styleNeedle of ['AppTheme.color.primary', 'AppTheme.color.surface', '.width(44)', '.height(40)', '.height(64)']) {
+for (const styleNeedle of ['AppTheme.color.primary', 'AppTheme.color.surface', '.width(44)', '.height(40)', '.height(78)', ".height('100%')", '.fontSize(15)', ".backgroundColor('#00000000')", ".responseRegion({ x: 0, y: -6, width: '100%', height: 78 })"]) {
   if (!index.includes(styleNeedle)) {
     throw new Error(`Index missing center plus style ${styleNeedle}`);
   }
 }
 
+if (/BottomTabItem[\s\S]*?Text\(title\)[\s\S]*?\.fontSize\(1[0-3]\)/.test(index)) {
+  throw new Error('Bottom tab text is too small');
+}
+
+if (!/BottomTabItem[\s\S]*?\.layoutWeight\(1\)[\s\S]*?\.height\('100%'\)[\s\S]*?\.onClick/.test(index)) {
+  throw new Error('Bottom tab item must use the full bottom bar content height as its tap target');
+}
+
+if (!/BottomTabItem[\s\S]*?\.backgroundColor\('#00000000'\)[\s\S]*?\.responseRegion\(\{ x: 0, y: -6, width: '100%', height: 78 \}\)[\s\S]*?\.onClick/.test(index)) {
+  throw new Error('Bottom tab item must expose the whole bottom bar as a transparent response region');
+}
+
+if (!/RudderActionTab[\s\S]*?\.layoutWeight\(1\)[\s\S]*?\.height\('100%'\)[\s\S]*?\.onClick/.test(index)) {
+  throw new Error('Center action tab must use the full bottom bar content height as its tap target');
+}
+
+if (!/RudderActionTab[\s\S]*?\.backgroundColor\('#00000000'\)[\s\S]*?\.responseRegion\(\{ x: 0, y: -6, width: '100%', height: 78 \}\)[\s\S]*?\.onClick/.test(index)) {
+  throw new Error('Center action tab must expose the whole bottom bar as a transparent response region');
+}
+
 for (const forbidden of [
   '.margin({ bottom: 30 })',
-  '.height(78)',
+  '.height(64)',
+  '.height(88)',
+  '.height(92)',
   'Column()\n          .layoutWeight(1)',
   'bottom: 92',
   'bottom: 66'

@@ -6,7 +6,7 @@ for (const page of pages) {
   const emptyStateNeedle = page === 'TodayPage'
     ? '今天穿什么？'
     : page === 'WardrobePage'
-      ? '点中间 + 添加第一件衣服'
+      ? '衣服会按图片检索流排在这里'
       : 'EmptyState';
   for (const needle of ['loading', 'error', emptyStateNeedle, 'retry']) {
     if (!text.includes(needle)) {

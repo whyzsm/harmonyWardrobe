@@ -40,7 +40,7 @@ for (const needle of [
   'ClothingEditPage',
   'showEditor',
   'editingClothingId',
-  '添加衣服',
+  'openCreateEditor',
   'onEdit',
   'onCancel'
 ]) {

@@ -28,6 +28,7 @@ struct Index {
     title: '',
     subtitle: '',
     imageUri: '',
+    imageUris: [],
     placeholder: '',
     authorName: '',
     authorAvatarText: '',
@@ -36,9 +37,11 @@ struct Index {
     collectText: '',
     commentText: ''
   };
+  @State private recommendationImageIndex: number = 0;
   @State private quickActionErrorMessage: string = '';
   @State private quickActionClothingItems: ClothingItem[] = [];
   @State private quickActionOutfits: OutfitTemplate[] = [];
+  private recommendationSwiperController: SwiperController = new SwiperController();
   private runtime?: WardrobeRuntime = undefined;
 
   aboutToAppear(): void {
@@ -75,12 +78,25 @@ struct Index {
 
   private openRecommendationDetail(recommendation: HomeRecommendation): void {
     this.activeRecommendation = recommendation;
+    this.recommendationImageIndex = 0;
     this.showRecommendationDetail = true;
     this.showQuickActions = false;
   }
 
   private closeRecommendationDetail(): void {
     this.showRecommendationDetail = false;
+  }
+
+  private activeRecommendationImages(): string[] {
+    if (this.activeRecommendation.imageUris.length > 0) {
+      return this.activeRecommendation.imageUris;
+    }
+
+    if (this.activeRecommendation.imageUri.length > 0) {
+      return [this.activeRecommendation.imageUri];
+    }
+
+    return [];
   }
 
   private openAddClothing(): void {
@@ -340,8 +356,8 @@ struct Index {
       this.BottomTabItem(3, '逛街')
     }
     .width('100%')
-    .height(64)
-    .padding({ left: 12, right: 12, top: 6, bottom: 6 })
+    .height(78)
+    .padding({ left: 8, right: 8, top: 6, bottom: 12 })
     .backgroundColor(AppTheme.color.surface)
     .border({ width: { top: 1 }, color: AppTheme.color.border })
     .alignItems(VerticalAlign.Center)
@@ -351,12 +367,14 @@ struct Index {
   BottomTabItem(index: number, title: string) {
     Column() {
       Text(title)
-        .fontSize(13)
+        .fontSize(15)
         .fontWeight(this.selectedTabIndex === index ? FontWeight.Bold : FontWeight.Regular)
         .fontColor(this.selectedTabIndex === index ? AppTheme.color.primaryStrong : AppTheme.color.textMuted)
     }
     .layoutWeight(1)
-    .height(46)
+    .height('100%')
+    .backgroundColor('#00000000')
+    .responseRegion({ x: 0, y: -6, width: '100%', height: 78 })
     .alignItems(HorizontalAlign.Center)
     .justifyContent(FlexAlign.Center)
     .onClick(() => {
@@ -373,7 +391,9 @@ struct Index {
         .objectFit(ImageFit.Contain)
     }
     .layoutWeight(1)
-    .height(46)
+    .height('100%')
+    .backgroundColor('#00000000')
+    .responseRegion({ x: 0, y: -6, width: '100%', height: 78 })
     .alignItems(HorizontalAlign.Center)
     .justifyContent(FlexAlign.Center)
     .onClick(() => {
@@ -442,12 +462,27 @@ struct Index {
 
       Scroll() {
         Column() {
-          if (this.activeRecommendation.imageUri.length > 0) {
-            Image(this.activeRecommendation.imageUri)
+          if (this.activeRecommendationImages().length > 0) {
+            Swiper(this.recommendationSwiperController) {
+              ForEach(this.activeRecommendationImages(), (imageUri: string) => {
+                Image(imageUri)
+                  .width('100%')
+                  .height('100%')
+                  .objectFit(ImageFit.Cover)
+                  .backgroundColor(AppTheme.color.surfaceMuted)
+              }, (imageUri: string) => imageUri)
+            }
               .width('100%')
               .aspectRatio(0.78)
-              .objectFit(ImageFit.Cover)
               .backgroundColor(AppTheme.color.surfaceMuted)
+              .indicator(false)
+              .loop(this.activeRecommendationImages().length > 1)
+              .autoPlay(this.activeRecommendationImages().length > 1)
+              .interval(3000)
+              .duration(400)
+              .onChange((index: number) => {
+                this.recommendationImageIndex = index;
+              })
           } else {
             Column({ space: 12 }) {
               Text(this.activeRecommendation.placeholder)
@@ -463,23 +498,24 @@ struct Index {
             .aspectRatio(0.78)
             .justifyContent(FlexAlign.Center)
             .alignItems(HorizontalAlign.Center)
-            .backgroundColor(AppTheme.color.primarySoft)
+              .backgroundColor(AppTheme.color.primarySoft)
           }
 
-          Row({ space: 6 }) {
-            Circle({ width: 8, height: 8 })
-              .fill(AppTheme.color.accent)
-            Circle({ width: 8, height: 8 })
-              .fill(AppTheme.color.border)
-            Circle({ width: 8, height: 8 })
-              .fill(AppTheme.color.border)
-            Circle({ width: 8, height: 8 })
-              .fill(AppTheme.color.border)
+          if (this.activeRecommendationImages().length > 1) {
+            Row({ space: 6 }) {
+              ForEach(this.activeRecommendationImages(), (_imageUri: string, index: number) => {
+                Circle({ width: 8, height: 8 })
+                  .fill(this.recommendationImageIndex === index ? AppTheme.color.accent : AppTheme.color.border)
+              }, (_imageUri: string, index: number) => `${index}`)
+            }
+            .height(30)
+            .width('100%')
+            .justifyContent(FlexAlign.Center)
+            .alignItems(VerticalAlign.Center)
+          } else {
+            Blank()
+              .height(18)
           }
-          .height(30)
-          .width('100%')
-          .justifyContent(FlexAlign.Center)
-          .alignItems(VerticalAlign.Center)
 
           Column({ space: 12 }) {
             Text(this.activeRecommendation.title)

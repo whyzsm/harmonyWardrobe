@@ -19,6 +19,7 @@ for (const needle of [
   '衣橱灵感',
   '今日灵感',
   'HomeRecommendation',
+  'imageUris',
   'onOpenRecommendation',
   'openRecommendation',
   'WaterFlow()',

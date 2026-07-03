@@ -12,6 +12,7 @@ export interface HomeRecommendation {
   title: string;
   subtitle: string;
   imageUri: string;
+  imageUris: string[];
   placeholder: string;
   authorName: string;
   authorAvatarText: string;
@@ -79,6 +80,7 @@ export struct TodayPage {
       title: item.title,
       subtitle: item.subtitle,
       imageUri: item.photoUri,
+      imageUris: item.photoUris,
       placeholder: item.placeholder,
       authorName: item.authorName,
       authorAvatarText: item.authorAvatarText,
@@ -317,6 +319,7 @@ export struct TodayPage {
         type: 'today',
         photoUri: this.todaysWearLog !== undefined && this.firstWearLogPhotoUri(this.todaysWearLog) !== ''
           ? this.firstWearLogPhotoUri(this.todaysWearLog) : '',
+        photoUris: this.todaysWearLog !== undefined ? this.todaysWearLog.photoUris : [],
         placeholder: this.todaysWearLog === undefined ? '衣' : '',
         aspectRatio: 0.8,
         title: this.todaysWearLog === undefined ? '通勤清爽蓝白穿搭' : this.todaysWearLog.outfitTitleSnapshot,
@@ -341,6 +344,7 @@ export struct TodayPage {
           id: '' + id++,
           type: 'outfit-empty',
           photoUri: '',
+          photoUris: [],
           placeholder: '搭',
           aspectRatio: 1.2,
           title: '法式松弛感周末穿搭',
@@ -364,6 +368,7 @@ export struct TodayPage {
             id: 'o' + i,
             type: 'outfit',
             photoUri: photo,
+            photoUris: o.photoUris,
             placeholder: photo === '' ? '套装' : '',
             aspectRatio: photo === '' ? 1.2 : 1.0 + ((i % 3) * 0.2),
             title: o.title,
@@ -390,6 +395,7 @@ export struct TodayPage {
           id: '' + id++,
           type: 'wearlog-empty',
           photoUri: '',
+          photoUris: [],
           placeholder: '记',
           aspectRatio: 1.5,
           title: '雨天轻便出行穿搭',
@@ -413,6 +419,7 @@ export struct TodayPage {
             id: 'w' + i,
             type: 'wearlog',
             photoUri: photo,
+            photoUris: w.photoUris,
             placeholder: photo === '' ? '最近穿过' : '',
             aspectRatio: photo === '' ? 1.5 : 1.25,
             title: w.outfitTitleSnapshot,
@@ -497,6 +504,7 @@ interface CardItem {
   id: string
   type: 'today' | 'outfit' | 'outfit-empty' | 'wearlog' | 'wearlog-empty'
   photoUri: string
+  photoUris: string[]
   placeholder: string
   aspectRatio: number
   title: string
