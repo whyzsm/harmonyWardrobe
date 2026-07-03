@@ -14,9 +14,11 @@ for (const needle of [
   'PhotoPickerAdapter',
   'PhotoStorage',
   'ClothingRepository',
-  'PhotoGrid',
   'name',
   'category',
+  'previewPhotoUri',
+  'PhotoSelector',
+  "Text('封面')",
   'purchase',
   'storeName',
   'price',
@@ -26,7 +28,8 @@ for (const needle of [
   'canSave',
   'saveClothing',
   'pickGalleryPhotos',
-  'capturePhoto',
+  'PhotoViewPicker',
+  'maxSelectNumber = 1',
   'copyToAppStorage',
   'createClothing',
   'updateClothing'
@@ -34,6 +37,23 @@ for (const needle of [
   if (!editPage.includes(needle)) {
     throw new Error(`ClothingEditPage missing ${needle}`);
   }
+}
+
+for (const forbidden of [
+  "Button('拍照')",
+  'capturePhoto()'
+]) {
+  if (editPage.includes(forbidden)) {
+    throw new Error(`ClothingEditPage must not include ${forbidden}`);
+  }
+}
+
+if (!/this\.previewPhotoUri\s*=\s*selectedUri;[\s\S]*?this\.photoUris\s*=\s*\[\s*selectedUri\s*\];[\s\S]*?try\s*{[\s\S]*?copySourcesToLocalUris/.test(editPage)) {
+  throw new Error('ClothingEditPage must keep the selected gallery URI before attempting local copy');
+}
+
+if (!/catch\s*\(\s*copyError\s*\)[\s\S]*?PhotoViewPicker\.copy failed/.test(editPage)) {
+  throw new Error('ClothingEditPage must not clear selected photos when local copy fails');
 }
 
 for (const needle of [

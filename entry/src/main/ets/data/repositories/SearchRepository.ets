@@ -27,6 +27,7 @@ const SELECT_DOCUMENT_SQL = `
 
 const INSERT_DOCUMENT_SQL = `
   INSERT INTO search_index_documents (
+    id,
     entity_type,
     entity_id,
     title,
@@ -35,7 +36,7 @@ const INSERT_DOCUMENT_SQL = `
     store_name,
     ngrams
   )
-  VALUES (?, ?, ?, ?, ?, ?, ?)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
 `;
 
 const UPDATE_DOCUMENT_SQL = `
@@ -127,6 +128,19 @@ function documentBindArgs(document: SearchDocument): MigrationSqlValue[] {
   ];
 }
 
+function documentRowFromSearchDocument(id: number, document: SearchDocument): SearchIndexDocumentRow {
+  return {
+    id,
+    entityType: document.entityType,
+    entityId: document.entityId,
+    title: document.title,
+    body: document.body,
+    category: document.category ?? '',
+    storeName: document.storeName ?? '',
+    ngrams: document.ngrams
+  };
+}
+
 function splitStoredNgrams(ngrams: string): string[] {
   const values: string[] = [];
   const seen = new Set<string>();
@@ -154,6 +168,7 @@ function buildFtsQuery(tokens: string[]): string {
 export class SearchRepository {
   private readonly database: MigrationDatabase;
   private readonly mode: SearchIndexMode;
+  private lastAllocatedDocumentId: number = 0;
 
   constructor(database: MigrationDatabase, mode: SearchIndexMode) {
     this.database = database;
@@ -168,10 +183,24 @@ export class SearchRepository {
 
   async upsertDocumentInTransaction(document: SearchDocument): Promise<void> {
     const existing = await this.readDocumentRow(document.entityType, document.entityId);
+    let savedDocument: SearchIndexDocumentRow;
 
     if (existing === undefined) {
-      await this.insertDocument(document);
+      const documentId = await this.nextDocumentId();
+      savedDocument = documentRowFromSearchDocument(documentId, document);
+      await this.insertDocument(documentId, document);
     } else {
+      savedDocument = {
+        id: existing.id,
+        entityType: document.entityType,
+        entityId: document.entityId,
+        title: document.title,
+        body: document.body,
+        category: document.category ?? '',
+        storeName: document.storeName ?? '',
+        ngrams: document.ngrams
+      };
+
       if (this.mode === 'fts5') {
         await this.deleteFtsDocument(existing);
       }
@@ -179,7 +208,6 @@ export class SearchRepository {
       await this.updateDocument(document);
     }
 
-    const savedDocument = await this.requireDocumentRow(document.entityType, document.entityId);
     if (this.mode === 'fts5') {
       await this.insertFtsDocument(savedDocument);
       return;
@@ -238,8 +266,9 @@ export class SearchRepository {
       await this.database.executeSql(DELETE_ALL_DOCUMENTS_SQL);
 
       for (const document of documents) {
-        await this.insertDocument(document);
-        const savedDocument = await this.requireDocumentRow(document.entityType, document.entityId);
+        const documentId = await this.nextDocumentId();
+        const savedDocument = documentRowFromSearchDocument(documentId, document);
+        await this.insertDocument(documentId, document);
 
         if (this.mode === 'fts5') {
           await this.insertFtsDocument(savedDocument);
@@ -250,8 +279,8 @@ export class SearchRepository {
     });
   }
 
-  private async insertDocument(document: SearchDocument): Promise<void> {
-    await this.database.executeSql(INSERT_DOCUMENT_SQL, documentBindArgs(document));
+  private async insertDocument(id: number, document: SearchDocument): Promise<void> {
+    await this.database.executeSql(INSERT_DOCUMENT_SQL, [id, ...documentBindArgs(document)]);
   }
 
   private async updateDocument(document: SearchDocument): Promise<void> {
@@ -290,6 +319,24 @@ export class SearchRepository {
     }
 
     return document;
+  }
+
+  private async nextDocumentId(): Promise<number> {
+    const resultSet = await this.database.querySql('SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM search_index_documents');
+
+    try {
+      if (!resultSet.goToFirstRow()) {
+        this.lastAllocatedDocumentId += 1;
+        return this.lastAllocatedDocumentId;
+      }
+
+      const candidateId = resultSet.getNumber('next_id');
+      const nextId = Math.max(candidateId, this.lastAllocatedDocumentId + 1);
+      this.lastAllocatedDocumentId = nextId;
+      return nextId;
+    } finally {
+      resultSet.close();
+    }
   }
 
   private readDocumentRowFromResultSet(resultSet: MigrationResultSet): SearchIndexDocumentRow {

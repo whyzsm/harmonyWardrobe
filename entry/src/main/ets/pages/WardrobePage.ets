@@ -14,27 +14,23 @@ interface WardrobeCategoryFilter {
 }
 
 const WARDROBE_CATEGORY_FILTERS: WardrobeCategoryFilter[] = [
-  { label: '综合' },
-  { label: '商户', category: ClothingCategory.Top },
-  { label: '笔记', category: ClothingCategory.Pants },
-  { label: '团购', category: ClothingCategory.Skirt },
-  { label: '用户' }
+  { label: '上衣', category: ClothingCategory.Top },
+  { label: '裤子', category: ClothingCategory.Pants },
+  { label: '短裤', category: ClothingCategory.Shorts },
+  { label: '长裙', category: ClothingCategory.LongSkirt },
+  { label: '半裙', category: ClothingCategory.HalfSkirt }
 ];
 
 const WARDROBE_TOP_RESULT_COUNT = 3;
 
 function categoryLabel(category: ClothingCategory): string {
-  if (category === ClothingCategory.Shoes || category === ClothingCategory.Bag) {
-    return '鞋包';
-  }
-
   for (const filter of WARDROBE_CATEGORY_FILTERS) {
     if (filter.category === category) {
       return filter.label;
     }
   }
 
-  return '其他';
+  return '上衣';
 }
 
 @Component
@@ -45,7 +41,7 @@ export struct WardrobePage {
   photoStorage?: PhotoStorage = undefined;
 
   @State private searchQuery: string = '';
-  @State private selectedCategoryLabel: string = '综合';
+  @State private selectedCategoryLabel: string = '上衣';
   @State private clothingItems: ClothingItem[] = [];
   @State private showEditor: boolean = false;
   @State private editingClothingId: string = '';
@@ -90,9 +86,7 @@ export struct WardrobePage {
     const normalizedQuery = this.searchQuery.trim().toLowerCase();
 
     return this.clothingItems.filter((item: ClothingItem) => {
-      const matchesCategory = this.selectedCategoryLabel === '鞋包'
-        ? item.category === ClothingCategory.Shoes || item.category === ClothingCategory.Bag
-        : selectedCategory === undefined || item.category === selectedCategory;
+      const matchesCategory = selectedCategory === undefined || item.category === selectedCategory;
       const matchesQuery = normalizedQuery.length === 0 ||
         item.name.toLowerCase().includes(normalizedQuery) ||
         (item.note !== undefined && item.note.toLowerCase().includes(normalizedQuery));

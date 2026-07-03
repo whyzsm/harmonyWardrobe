@@ -8,6 +8,7 @@ import {
 const PHOTOS_DIR_NAME = 'photos';
 const DEFAULT_PHOTO_EXTENSION = 'jpg';
 const ALLOWED_PHOTO_EXTENSIONS: string[] = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'];
+const LOCAL_FILE_URI_PREFIX = 'file://';
 
 export interface PhotoStorageOptions {
   clock?: () => string;
@@ -43,6 +44,22 @@ function joinPath(parent: string, child: string): string {
   }
 
   return `${cleanParent}/${cleanChild}`;
+}
+
+function localPathFromUri(localUri: string): string {
+  if (localUri.startsWith(LOCAL_FILE_URI_PREFIX)) {
+    return localUri.substring(LOCAL_FILE_URI_PREFIX.length);
+  }
+
+  return localUri;
+}
+
+function displayUriFromLocalPath(localPath: string): string {
+  if (localPath.startsWith(LOCAL_FILE_URI_PREFIX)) {
+    return localPath;
+  }
+
+  return `${LOCAL_FILE_URI_PREFIX}${localPath}`;
 }
 
 function sourceNameFromUri(uri: string): string {
@@ -174,13 +191,13 @@ export class PhotoStorage {
     const safeExtension = sanitizeExtension(splitExtension(safeOriginalName), source.mimeType);
     const safeBaseName = sanitizeBaseName(safeOriginalName, safeExtension);
     const fileName = `${sanitizeTimestamp(createdAt)}-${sanitizeNamePart(this.idFactory())}-${safeBaseName}.${safeExtension}`;
-    const localUri = joinPath(photosDir, fileName);
+    const localPath = joinPath(photosDir, fileName);
 
     await this.fileSystem.ensureDirectory(photosDir);
-    await this.fileSystem.copyFile(source.uri, localUri);
+    await this.fileSystem.copyFile(source.uri, localPath);
 
     return {
-      localUri,
+      localUri: displayUriFromLocalPath(localPath),
       fileName,
       createdAt
     };
@@ -197,7 +214,7 @@ export class PhotoStorage {
     }
 
     try {
-      await this.fileSystem.deleteFile(localUri);
+      await this.fileSystem.deleteFile(localPathFromUri(localUri));
 
       return {
         localUri,
@@ -226,7 +243,8 @@ export class PhotoStorage {
   }
 
   private isManagedPhotoUri(localUri: string): boolean {
+    const localPath = localPathFromUri(localUri);
     const photosDir = this.photosDir();
-    return !hasParentPathSegment(localUri) && localUri.startsWith(`${photosDir}/`);
+    return !hasParentPathSegment(localPath) && localPath.startsWith(`${photosDir}/`);
   }
 }

@@ -70,6 +70,7 @@ for (const needle of [
   'WardrobeRuntime.create',
   '@State private runtimeReady',
   'TodayPage({',
+  'clothingRepository: this.runtime.clothingRepository',
   'outfitRepository: this.runtime.outfitRepository',
   'wearLogRepository: this.runtime.wearLogRepository',
   'WardrobePage({',
@@ -128,6 +129,7 @@ const pageChecks = [
   {
     file: 'entry/src/main/ets/pages/TodayPage.ets',
     needles: [
+      'clothingRepository?: ClothingRepository',
       'outfitRepository?: OutfitRepository',
       'wearLogRepository?: WearLogRepository',
       'photoPickerAdapter?: PhotoPickerAdapter',

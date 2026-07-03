@@ -115,7 +115,8 @@ assertMatches(source, /SELECT_CLOTHING_BY_ID_SQL[\s\S]*purchase_price_value[\s\S
 assert.equal(/INSERT_CLOTHING_SQL[\s\S]*purchase_price_value[\s\S]*VALUES/.test(source), false, 'INSERT columns must not include derived purchase_price_value');
 assertMatches(source, /purchase_date/i, 'repository must persist purchase date');
 assertMatches(source, /purchase_note/i, 'repository must persist purchase note');
-assertMatches(source, /whereClauses\.push\s*\(\s*['"`]category\s*=\s*\?['"`]\s*\)/, 'listClothing must support category filtering');
+assertMatches(source, /categoryFilterValues/, 'listClothing must map category filters through categoryFilterValues');
+assertMatches(source, /whereClauses\.push\s*\(\s*`category\s+IN\s+\(\$\{categoryValues\.map/, 'listClothing must support category IN filtering');
 assertMatches(source, /WHERE\s+\$\{whereClauses\.join\(['"`] AND ['"`]\)\}/, 'listClothing must combine dynamic WHERE clauses');
 assertMatches(source, /LIKE\s+\?/i, 'listClothing must support name/note text filtering');
 assertMatches(source, /ESCAPE\s+['"`]\\{2}['"`]/, 'listClothing text search must escape LIKE wildcards');

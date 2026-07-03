@@ -1,5 +1,8 @@
+import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { WearLogRepository } from '../data/repositories/WearLogRepository';
+import { ClothingCategory } from '../domain/clothing/ClothingCategory';
+import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { WearLog } from '../domain/wearLog/WearLogModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
@@ -22,8 +25,29 @@ export interface HomeRecommendation {
   commentText: string;
 }
 
+function clothingCategoryLabel(category: ClothingCategory): string {
+  if (category === ClothingCategory.Top) {
+    return '上衣';
+  }
+  if (category === ClothingCategory.Pants) {
+    return '裤子';
+  }
+  if (category === ClothingCategory.Shorts) {
+    return '短裤';
+  }
+  if (category === ClothingCategory.LongSkirt) {
+    return '长裙';
+  }
+  if (category === ClothingCategory.HalfSkirt) {
+    return '半裙';
+  }
+
+  return '上衣';
+}
+
 @Component
 export struct TodayPage {
+  clothingRepository?: ClothingRepository = undefined;
   outfitRepository?: OutfitRepository = undefined;
   wearLogRepository?: WearLogRepository = undefined;
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
@@ -32,6 +56,7 @@ export struct TodayPage {
 
   @State private todayIsoDate: string = toIsoDate(new Date());
   @State private todaysWearLog?: WearLog = undefined;
+  @State private recentClothingItems: ClothingItem[] = [];
   @State private recentOutfits: OutfitTemplate[] = [];
   @State private recentWearLogs: WearLog[] = [];
   @State private loading: boolean = false;
@@ -52,6 +77,9 @@ export struct TodayPage {
     this.errorMessage = '';
 
     try {
+      this.recentClothingItems = this.clothingRepository === undefined
+        ? []
+        : await this.clothingRepository.listClothing();
       this.recentOutfits = await this.outfitRepository.listOutfits();
       this.recentWearLogs = await this.wearLogRepository.listWearLogsByDate(this.todayIsoDate);
       this.todaysWearLog = this.recentWearLogs.length > 0 ? this.recentWearLogs[0] : undefined;
@@ -64,6 +92,10 @@ export struct TodayPage {
 
   private firstOutfitPhotoUri(outfit: OutfitTemplate): string {
     return outfit.photoUris.length > 0 ? outfit.photoUris[0] : '';
+  }
+
+  private firstClothingPhotoUri(item: ClothingItem): string {
+    return item.photoUris.length > 0 ? item.photoUris[0] : '';
   }
 
   private firstWearLogPhotoUri(wearLog: WearLog): string {
@@ -330,12 +362,40 @@ export struct TodayPage {
         authorName: '衣橱灵感社',
         authorAvatarText: '衣',
         body: this.todaysWearLog === undefined
-          ? '今天推荐一套清爽蓝白搭配：浅色上衣配直筒下装，适合通勤、约会和周末出门。重点是保持干净的色块和轻量配饰，整体会显得利落。'
-          : `${this.todaysWearLog.outfitTitleSnapshot} 很适合今天继续参考。可以在原套装基础上换一件外套或鞋包，让日常穿搭更有变化。`,
+          ? '今天推荐一套清爽蓝白搭配：浅色上衣配直筒裤子，适合通勤、约会和周末出门。重点是保持干净的色块，整体会显得利落。'
+          : `${this.todaysWearLog.outfitTitleSnapshot} 很适合今天继续参考。可以在原套装基础上换一件上衣或裤子，让日常穿搭更有变化。`,
         likeText: '128',
         collectText: '收藏',
         commentText: '评论'
       });
+
+      const clothingLen = this.recentClothingItems.length;
+      for (let i = 0; i < clothingLen; i++) {
+        const clothing = this.recentClothingItems[i];
+        const photo = this.firstClothingPhotoUri(clothing);
+        const category = clothingCategoryLabel(clothing.category);
+        items.push({
+          id: `c${clothing.id}`,
+          type: 'clothing',
+          photoUri: photo,
+          photoUris: clothing.photoUris,
+          placeholder: photo === '' ? category : '',
+          aspectRatio: photo === '' ? 1.15 : 1.0 + ((i % 3) * 0.16),
+          title: clothing.name,
+          subtitle: `衣橱单品 / ${category}`,
+          metaText: `♡ ${12 + i}`,
+          metaColor: AppTheme.color.primary,
+          iconText: '衣',
+          authorName: '我的衣橱',
+          authorAvatarText: '衣',
+          body: clothing.note !== undefined && clothing.note.length > 0
+            ? clothing.note
+            : `${clothing.name} 已保存到衣橱，可以作为首页穿搭灵感继续搭配。`,
+          likeText: `${12 + i}`,
+          collectText: '收藏',
+          commentText: '评论'
+        });
+      }
     }
 
     if (this.selectedHomeTabIndex !== 1) {
@@ -354,7 +414,7 @@ export struct TodayPage {
           iconText: '搭',
           authorName: '小蓝穿搭',
           authorAvatarText: '蓝',
-          body: '没有套装时也可以先看推荐灵感。针织、半裙和低饱和鞋包组合在一起，会更接近日常可复用的法式松弛感。',
+          body: '没有套装时也可以先看推荐灵感。上衣、半裙和低饱和彩色组合在一起，会更接近日常可复用的松弛感。',
           likeText: '86',
           collectText: '收藏',
           commentText: '评论'
@@ -405,7 +465,7 @@ export struct TodayPage {
           iconText: '雨',
           authorName: '天气穿搭簿',
           authorAvatarText: '雨',
-          body: '雨天推荐选择短外套、深色下装和防滑鞋。颜色不用太沉，可以用一件蓝色或白色单品提亮，看起来更轻便。',
+          body: '雨天推荐选择利落上衣、深色短裤或裤子。颜色不用太沉，可以用一件蓝色或白色单品提亮，看起来更轻便。',
           likeText: '52',
           collectText: '收藏',
           commentText: '评论'
@@ -502,7 +562,7 @@ export struct TodayPage {
 
 interface CardItem {
   id: string
-  type: 'today' | 'outfit' | 'outfit-empty' | 'wearlog' | 'wearlog-empty'
+  type: 'today' | 'clothing' | 'outfit' | 'outfit-empty' | 'wearlog' | 'wearlog-empty'
   photoUri: string
   photoUris: string[]
   placeholder: string

@@ -216,6 +216,7 @@ struct Index {
         Column() {
           if (this.selectedTabIndex === 0) {
           TodayPage({
+            clothingRepository: this.runtime.clothingRepository,
             outfitRepository: this.runtime.outfitRepository,
             wearLogRepository: this.runtime.wearLogRepository,
             photoPickerAdapter: this.runtime.photoPickerAdapter,

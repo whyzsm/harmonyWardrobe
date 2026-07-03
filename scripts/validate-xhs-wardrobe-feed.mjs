@@ -22,11 +22,11 @@ function forbidIncludes(source, label, needle) {
 
 for (const needle of [
   '搜索衣服、套装、备注',
-  '综合',
-  '商户',
-  '笔记',
-  '团购',
-  '用户',
+  '上衣',
+  '裤子',
+  '短裤',
+  '长裙',
+  '半裙',
   '先放入第一件衣服',
   'backgroundColor(AppTheme.color.primarySoft)',
   'fontColor(AppTheme.color.primary)',

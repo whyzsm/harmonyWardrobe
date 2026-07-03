@@ -142,7 +142,7 @@ this.buildWishlistSearchDocument = buildWishlistSearchDocument;
 const clothingDocument = context.buildClothingSearchDocument({
   id: 'cloth-1',
   name: '  Wool Coat  ',
-  category: 'Outerwear',
+  category: 'LongSkirt',
   note: undefined,
   purchaseInfo: {
     storeName: 'Soho Store',
@@ -152,7 +152,7 @@ const clothingDocument = context.buildClothingSearchDocument({
 assert.equal(clothingDocument.entityType, SearchEntityType.Clothing);
 assert.equal(clothingDocument.entityId, 'cloth-1');
 assert.equal(clothingDocument.title, 'wool coat');
-assert.equal(clothingDocument.category, 'outerwear');
+assert.equal(clothingDocument.category, 'longskirt');
 assert.equal(clothingDocument.storeName, 'soho store');
 assert.match(clothingDocument.body, /冬季 折扣/);
 assert.doesNotMatch(`${clothingDocument.body} ${clothingDocument.ngrams}`, /undefined/);

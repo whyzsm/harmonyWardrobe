@@ -115,6 +115,11 @@ for (const [name, body] of [
 assertIncludes(upsertBody, 'this.upsertDocumentInTransaction', 'upsertDocument must delegate to the transaction-scoped upsert method');
 assertIncludes(deleteBody, 'this.deleteDocumentInTransaction', 'deleteDocument must delegate to the transaction-scoped delete method');
 assertMatches(upsertInTransactionBody, /this\.readDocumentRow/, 'upsertDocumentInTransaction must read existing documents');
+assertMatches(upsertInTransactionBody, /this\.nextDocumentId\s*\(\s*\)/, 'new search documents must allocate ids before insert');
+assertMatches(upsertInTransactionBody, /documentRowFromSearchDocument/, 'new search documents must build the saved row without re-querying inside the write transaction');
+if (/const\s+savedDocument\s*=\s*await\s+this\.requireDocumentRow/.test(upsertInTransactionBody)) {
+  throw new Error('upsertDocumentInTransaction must not re-query just-inserted documents inside the write transaction');
+}
 assertMatches(deleteInTransactionBody, /DELETE_DOCUMENT_SQL/, 'deleteDocumentInTransaction must delete the document row');
 
 assertMatches(repository, /this\.mode\s*===\s*'fts5'|this\.mode\s*!==\s*'fallback'/, 'SearchRepository must branch on SearchIndexMode');

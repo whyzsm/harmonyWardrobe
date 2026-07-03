@@ -3,6 +3,8 @@ import fs from 'node:fs';
 const text = fs.readFileSync('entry/src/main/ets/pages/TodayPage.ets', 'utf8');
 
 for (const needle of [
+  'ClothingRepository',
+  'ClothingItem',
   'WearLogRepository',
   'OutfitRepository',
   'WearLog',
@@ -35,8 +37,12 @@ for (const needle of [
   "shadow({ radius: 8, color: '#0D000000', offsetX: 0, offsetY: 2 })",
   'todayIsoDate',
   'todaysWearLog',
+  'recentClothingItems',
   'recentOutfits',
   'recentWearLogs',
+  'clothingRepository.listClothing()',
+  "type: 'clothing'",
+  '衣橱单品',
   'ForEach'
 ]) {
   if (!text.includes(needle)) {

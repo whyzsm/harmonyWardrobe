@@ -233,6 +233,35 @@ function normalizePhotoUris(photoUris?: string[]): string[] {
   return normalized;
 }
 
+function normalizeClothingCategory(category: string): ClothingCategory {
+  if (
+    category === ClothingCategory.Top ||
+    category === ClothingCategory.Pants ||
+    category === ClothingCategory.Shorts ||
+    category === ClothingCategory.LongSkirt ||
+    category === ClothingCategory.HalfSkirt
+  ) {
+    return category as ClothingCategory;
+  }
+
+  return ClothingCategory.Top;
+}
+
+function categoryFilterValues(category: ClothingCategory): string[] {
+  if (category === ClothingCategory.Top) {
+    return [
+      ClothingCategory.Top,
+      'Outerwear',
+      'Shoes',
+      'Bag',
+      'Accessory',
+      'Other'
+    ];
+  }
+
+  return [category];
+}
+
 export class ClothingRepository {
   private readonly database: MigrationDatabase;
   private readonly searchRepository: SearchRepository;
@@ -319,8 +348,9 @@ export class ClothingRepository {
     const bindArgs: MigrationSqlValue[] = [];
 
     if (options.category !== undefined) {
-      whereClauses.push('category = ?');
-      bindArgs.push(options.category);
+      const categoryValues = categoryFilterValues(options.category);
+      whereClauses.push(`category IN (${categoryValues.map(() => '?').join(', ')})`);
+      bindArgs.push(...categoryValues);
     }
 
     const normalizedQuery = normalizeSearchText(options.query ?? '');
@@ -540,7 +570,7 @@ export class ClothingRepository {
     return {
       id: resultSet.getString('id'),
       name: resultSet.getString('name'),
-      category: resultSet.getString('category') as ClothingCategory,
+      category: normalizeClothingCategory(resultSet.getString('category')),
       note: optionalString(resultSet.getString('note')),
       purchaseStoreName: optionalString(resultSet.getString('purchase_store_name')),
       purchasePrice: optionalPurchasePrice(resultSet.getNumber('purchase_price_value')),

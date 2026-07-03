@@ -1,4 +1,5 @@
-import { PhotoGrid } from '../components/PhotoGrid';
+import type { BusinessError } from '@kit.BasicServicesKit';
+import { photoAccessHelper } from '@kit.MediaLibraryKit';
 import {
   ClothingRepository,
   CreateClothingInput,
@@ -18,13 +19,10 @@ interface ClothingCategoryOption {
 
 const CATEGORY_OPTIONS: ClothingCategoryOption[] = [
   { label: '上衣', value: ClothingCategory.Top },
-  { label: '裤装', value: ClothingCategory.Pants },
-  { label: '裙装', value: ClothingCategory.Skirt },
-  { label: '外套', value: ClothingCategory.Outerwear },
-  { label: '鞋', value: ClothingCategory.Shoes },
-  { label: '包', value: ClothingCategory.Bag },
-  { label: '配饰', value: ClothingCategory.Accessory },
-  { label: '其他', value: ClothingCategory.Other }
+  { label: '裤子', value: ClothingCategory.Pants },
+  { label: '短裤', value: ClothingCategory.Shorts },
+  { label: '长裙', value: ClothingCategory.LongSkirt },
+  { label: '半裙', value: ClothingCategory.HalfSkirt }
 ];
 
 function labelForCategory(category: ClothingCategory): string {
@@ -34,7 +32,7 @@ function labelForCategory(category: ClothingCategory): string {
     }
   }
 
-  return '其他';
+  return '上衣';
 }
 
 function padTwoDigits(value: number): string {
@@ -78,6 +76,7 @@ export struct ClothingEditPage {
   @State private name: string = '';
   @State private category: ClothingCategory = ClothingCategory.Top;
   @State private photoUris: string[] = [];
+  @State private previewPhotoUri: string = '';
   @State private note: string = '';
   @State private storeName: string = '';
   @State private price: string = '';
@@ -94,6 +93,7 @@ export struct ClothingEditPage {
     this.name = this.initialItem.name;
     this.category = this.initialItem.category;
     this.photoUris = this.initialItem.photoUris;
+    this.previewPhotoUri = this.initialItem.photoUris[0] ?? '';
     this.note = this.initialItem.note ?? '';
     this.storeName = this.initialItem.purchaseInfo?.storeName ?? '';
     this.price = this.initialItem.purchaseInfo?.price?.toString() ?? '';
@@ -161,21 +161,41 @@ export struct ClothingEditPage {
   }
 
   private async pickGalleryPhotos(): Promise<void> {
-    if (this.photoPickerAdapter === undefined) {
-      return;
+    try {
+      const photoSelectOptions = new photoAccessHelper.PhotoSelectOptions();
+      photoSelectOptions.MIMEType = photoAccessHelper.PhotoViewMIMETypes.IMAGE_TYPE;
+      photoSelectOptions.maxSelectNumber = 1;
+
+      const photoPicker = new photoAccessHelper.PhotoViewPicker();
+      const photoSelectResult = await photoPicker.select(photoSelectOptions);
+      const selectedUri = photoSelectResult.photoUris?.[0] ?? '';
+
+      if (selectedUri.length === 0) {
+        return;
+      }
+
+      this.previewPhotoUri = selectedUri;
+      this.photoUris = [selectedUri];
+
+      try {
+        const localUris = await this.copySourcesToLocalUris([{
+          uri: selectedUri,
+          mimeType: 'image/*'
+        }]);
+        if (localUris.length > 0) {
+          this.photoUris = localUris;
+          this.previewPhotoUri = localUris[0];
+        }
+      } catch (copyError) {
+        const err: BusinessError = copyError as BusinessError;
+        console.info(`PhotoViewPicker.copy failed with err: ${err.code}, ${err.message}`);
+      }
+
+      console.info(`PhotoViewPicker.select succeed, PhotoSelectResult uri: ${selectedUri}`);
+    } catch (error) {
+      const err: BusinessError = error as BusinessError;
+      console.info(`PhotoViewPicker.select failed with err: ${err.code}, ${err.message}`);
     }
-
-    const sources = await this.photoPickerAdapter.pickFromGallery({ maxSelectNumber: 6 });
-    this.photoUris = this.photoUris.concat(await this.copySourcesToLocalUris(sources));
-  }
-
-  private async capturePhoto(): Promise<void> {
-    if (this.photoPickerAdapter === undefined) {
-      return;
-    }
-
-    const source = await this.photoPickerAdapter.captureFromCamera();
-    this.photoUris = this.photoUris.concat(await this.copySourcesToLocalUris([source]));
   }
 
   private createInput(): CreateClothingInput {
@@ -219,6 +239,52 @@ export struct ClothingEditPage {
     }
   }
 
+  @Builder
+  PhotoSelector() {
+    Row({ space: 10 }) {
+      Column() {
+        Text('+')
+          .fontSize(32)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(AppTheme.color.textDisabled)
+      }
+      .width(84)
+      .height(84)
+      .justifyContent(FlexAlign.Center)
+      .alignItems(HorizontalAlign.Center)
+      .backgroundColor(AppTheme.color.surface)
+      .borderRadius(12)
+      .border({ width: 1, color: AppTheme.color.border })
+      .onClick(() => {
+        this.pickGalleryPhotos();
+      })
+
+      if (this.previewPhotoUri.length > 0) {
+        Stack({ alignContent: Alignment.TopStart }) {
+          Image(this.previewPhotoUri)
+            .width('100%')
+            .height('100%')
+            .objectFit(ImageFit.Cover)
+            .borderRadius(12)
+
+          Text('封面')
+            .fontSize(12)
+            .fontColor(AppTheme.color.text)
+            .padding({ left: 8, right: 8, top: 4, bottom: 4 })
+            .backgroundColor(AppTheme.color.surface)
+            .borderRadius(10)
+            .margin({ left: 8, top: 8 })
+        }
+        .width(84)
+        .height(84)
+        .borderRadius(12)
+        .clip(true)
+      }
+    }
+    .width('100%')
+    .alignItems(VerticalAlign.Center)
+  }
+
   build() {
     Scroll() {
       Column({ space: 16 }) {
@@ -250,31 +316,7 @@ export struct ClothingEditPage {
         .width('100%')
         .alignItems(VerticalAlign.Center)
 
-        PhotoGrid({ photoUris: this.photoUris })
-
-        Row({ space: 10 }) {
-          Button('从相册选择')
-            .height(40)
-            .fontSize(14)
-            .backgroundColor(AppTheme.color.primary)
-            .fontColor(AppTheme.color.surface)
-            .borderRadius(8)
-            .onClick(() => {
-              this.pickGalleryPhotos();
-            })
-
-          Button('拍照')
-            .height(40)
-            .fontSize(14)
-            .backgroundColor(AppTheme.color.surface)
-            .fontColor(AppTheme.color.primary)
-            .borderRadius(8)
-            .border({ width: 1, color: AppTheme.color.border })
-            .onClick(() => {
-              this.capturePhoto();
-            })
-        }
-        .width('100%')
+        this.PhotoSelector()
 
         TextInput({ text: this.name, placeholder: 'name / 衣物名称' })
           .height(44)

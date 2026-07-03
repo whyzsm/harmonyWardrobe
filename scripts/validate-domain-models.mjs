@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 
 const checks = [
-  ['entry/src/main/ets/domain/clothing/ClothingCategory.ets', ['Top', 'Pants', 'Skirt', 'Outerwear', 'Shoes', 'Bag', 'Accessory', 'Other']],
+  ['entry/src/main/ets/domain/clothing/ClothingCategory.ets', ['Top', 'Pants', 'Shorts', 'LongSkirt', 'HalfSkirt']],
   ['entry/src/main/ets/domain/clothing/ClothingModels.ets', ['ClothingItem', 'PurchaseInfo']],
   ['entry/src/main/ets/domain/outfit/OutfitModels.ets', ['OutfitTemplate']],
   ['entry/src/main/ets/domain/wearLog/WearLogModels.ets', ['WearLog']],

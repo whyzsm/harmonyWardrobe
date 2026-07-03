@@ -150,6 +150,9 @@ for (const needle of [
   'StoredPhoto',
   'PhotoDeleteResult',
   'PhotoFileSystem',
+  'file://',
+  'localPathFromUri',
+  'displayUriFromLocalPath',
   'copyToAppStorage',
   'deleteLocalPhoto',
   'photos',
@@ -218,6 +221,7 @@ const storageService = new context.PhotoStorage('/sandbox/root/', fileSystem, {
   clock: () => '2026-06-29T01:02:03.000Z',
   idFactory: () => 'id-001'
 });
+const expectedStoredPath = '/sandbox/root/photos/2026-06-29T01-02-03-000Z-id-001-name.png';
 
 const storedPhoto = await storageService.copyToAppStorage({
   uri: 'file:///tmp/source/photo.png',
@@ -226,14 +230,15 @@ const storedPhoto = await storageService.copyToAppStorage({
 });
 assert.equal(storedPhoto.createdAt, '2026-06-29T01:02:03.000Z');
 assert.equal(storedPhoto.fileName, '2026-06-29T01-02-03-000Z-id-001-name.png');
-assert.equal(storedPhoto.localUri, '/sandbox/root/photos/2026-06-29T01-02-03-000Z-id-001-name.png');
+assert.equal(storedPhoto.localUri, `file://${expectedStoredPath}`);
 assert.deepEqual(operations[0], ['ensureDirectory', '/sandbox/root/photos']);
-assert.deepEqual(operations[1], ['copyFile', 'file:///tmp/source/photo.png', storedPhoto.localUri]);
+assert.deepEqual(operations[1], ['copyFile', 'file:///tmp/source/photo.png', expectedStoredPath]);
 
 const deleteSuccess = await storageService.deleteLocalPhoto(storedPhoto.localUri);
 assert.equal(deleteSuccess.localUri, storedPhoto.localUri);
 assert.equal(deleteSuccess.deleted, true);
 assert.equal(deleteSuccess.retryable, false);
+assert.deepEqual(operations[2], ['deleteFile', expectedStoredPath]);
 
 const deleteOperationCount = operations.length;
 const traversalDelete = await storageService.deleteLocalPhoto('/sandbox/root/photos/../db.sqlite');
@@ -352,7 +357,7 @@ const rootStoredPhoto = await rootStorage.copyToAppStorage({
   fileName: 'photo.jpg',
   mimeType: 'image/jpeg'
 });
-assert.equal(rootStoredPhoto.localUri, '/photos/2026-06-29T01-02-03-000Z-id-004-photo.jpg');
+assert.equal(rootStoredPhoto.localUri, 'file:///photos/2026-06-29T01-02-03-000Z-id-004-photo.jpg');
 assert.deepEqual(rootOperations[0], ['ensureDirectory', '/photos']);
 
 const pngFromMimeStorage = new context.PhotoStorage('/sandbox/root', {
