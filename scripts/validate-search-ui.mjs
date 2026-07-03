@@ -12,12 +12,15 @@ for (const needle of [
   'entity_id',
   'ClothingRepository',
   'OutfitRepository',
-  'WishlistRepository',
   'SearchResult',
   'SearchEntityType',
+  '美搭',
+  '逛店记录',
+  '店铺',
   'query',
   'searchResults',
   'performSearch',
+  'entityTypeLabel(result.entityType).length > 0',
   'ForEach'
 ]) {
   if (!resultPage.includes(needle)) {
@@ -25,10 +28,18 @@ for (const needle of [
   }
 }
 
+for (const forbidden of [
+  'WishlistRepository',
+  '旧心愿',
+  "return '穿着记录';"
+]) {
+  if (resultPage.includes(forbidden)) {
+    throw new Error(`SearchResultsPage must not expose old search concept: ${forbidden}`);
+  }
+}
+
 for (const pagePath of [
-  'entry/src/main/ets/pages/WardrobePage.ets',
-  'entry/src/main/ets/pages/OutfitsPage.ets',
-  'entry/src/main/ets/pages/ShoppingPage.ets'
+  'entry/src/main/ets/pages/WardrobePage.ets'
 ]) {
   const page = fs.readFileSync(pagePath, 'utf8');
   for (const needle of ['SearchResultsPage', 'openUnifiedSearch', 'unifiedSearchQuery']) {

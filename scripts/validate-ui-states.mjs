@@ -1,21 +1,30 @@
 import fs from 'node:fs';
 
-const pages = ['TodayPage', 'WardrobePage', 'OutfitsPage', 'CalendarPage', 'ShoppingPage'];
-for (const page of pages) {
-  const text = fs.readFileSync(`entry/src/main/ets/pages/${page}.ets`, 'utf8');
-  const emptyStateNeedle = page === 'TodayPage'
-    ? '今天穿什么？'
-    : page === 'WardrobePage'
-      ? '衣服会按图片检索流排在这里'
-      : 'EmptyState';
-  for (const needle of ['loading', 'error', emptyStateNeedle, 'retry']) {
+const pageStateExpectations = [
+  {
+    page: 'WardrobePage',
+    needles: ['loading', 'error', '衣服会按图片检索流排在这里', 'retry']
+  },
+  {
+    page: 'StoreVisitPage',
+    needles: ['loading', 'error', '还没有逛店记录', 'retry']
+  },
+  {
+    page: 'ProfilePage',
+    needles: ['loading', 'errorMessage', '保存中...', 'saveProfile']
+  }
+];
+
+for (const expectation of pageStateExpectations) {
+  const text = fs.readFileSync(`entry/src/main/ets/pages/${expectation.page}.ets`, 'utf8');
+  for (const needle of expectation.needles) {
     if (!text.includes(needle)) {
-      throw new Error(`${page} missing ${needle} state`);
+      throw new Error(`${expectation.page} missing ${needle} state`);
     }
   }
 }
 
-for (const page of ['ClothingEditPage', 'OutfitEditPage', 'WearLogEditPage', 'WishlistEditPage']) {
+for (const page of ['ClothingEditPage', 'OutfitEditPage', 'StoreVisitEditPage']) {
   const text = fs.readFileSync(`entry/src/main/ets/pages/${page}.ets`, 'utf8');
   for (const needle of ['isSaving', 'errorMessage', 'enabled(this.canSave())']) {
     if (!text.includes(needle)) {

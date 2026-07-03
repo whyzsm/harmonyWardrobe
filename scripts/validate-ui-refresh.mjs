@@ -33,8 +33,7 @@ forbidIncludes(tokenSource, "'#115E59'", 'old teal primaryStrong');
 
 const componentFiles = [
   'entry/src/main/ets/components/ClothingCard.ets',
-  'entry/src/main/ets/components/OutfitCard.ets',
-  'entry/src/main/ets/components/WishlistCard.ets'
+  'entry/src/main/ets/components/OutfitCard.ets'
 ];
 
 for (const file of componentFiles) {
@@ -50,7 +49,6 @@ for (const file of componentFiles) {
 const controlFiles = [
   'entry/src/main/ets/components/SearchBar.ets',
   'entry/src/main/ets/components/CategoryTabs.ets',
-  'entry/src/main/ets/components/MonthCalendar.ets',
   'entry/src/main/ets/components/EmptyState.ets'
 ];
 
@@ -62,25 +60,32 @@ for (const file of controlFiles) {
   forbidIncludes(source, "'#E2E8F0'", `${file} old border`);
 }
 
-requireIncludes(
-  fs.readFileSync('entry/src/main/ets/components/MonthCalendar.ets', 'utf8'),
-  'AppTheme.color.primary',
-  'MonthCalendar selected blue'
-);
+const yibuqueComponentFiles = [
+  'entry/src/main/ets/components/AppTopBar.ets',
+  'entry/src/main/ets/components/BottomNavigationBar.ets',
+  'entry/src/main/ets/components/QuickCaptureSheet.ets',
+  'entry/src/main/ets/components/StoreVisitCard.ets'
+];
+
+for (const file of yibuqueComponentFiles) {
+  const source = fs.readFileSync(file, 'utf8');
+  requireIncludes(source, 'YibuqueColor', `${file} yibuque colors`);
+  requireIncludes(source, 'YibuqueRadius', `${file} yibuque radius`);
+  forbidIncludes(source, "'#0F766E'", `${file} old teal`);
+  forbidIncludes(source, "'#F8FAFC'", `${file} old background`);
+  forbidIncludes(source, "'#B91C1C'", `${file} old danger`);
+}
 
 const mainPageFiles = [
   'entry/src/main/ets/pages/Index.ets',
-  'entry/src/main/ets/pages/TodayPage.ets',
   'entry/src/main/ets/pages/WardrobePage.ets',
-  'entry/src/main/ets/pages/OutfitsPage.ets',
-  'entry/src/main/ets/pages/CalendarPage.ets',
-  'entry/src/main/ets/pages/ShoppingPage.ets'
+  'entry/src/main/ets/pages/StoreVisitPage.ets',
+  'entry/src/main/ets/pages/ProfilePage.ets'
 ];
 
 for (const file of mainPageFiles) {
   const source = fs.readFileSync(file, 'utf8');
-  requireIncludes(source, "import { AppTheme } from '../theme/Tokens';", `${file} theme import`);
-  requireIncludes(source, 'AppTheme.color.', `${file} theme colors`);
+  requireIncludes(source, 'YibuqueColor', `${file} yibuque colors`);
   forbidIncludes(source, "'#0F172A'", `${file} old black primary action`);
   forbidIncludes(source, "'#F8FAFC'", `${file} old background`);
   forbidIncludes(source, "'#B91C1C'", `${file} old danger`);
@@ -89,8 +94,6 @@ for (const file of mainPageFiles) {
 const flowFiles = [
   'entry/src/main/ets/pages/ClothingEditPage.ets',
   'entry/src/main/ets/pages/OutfitEditPage.ets',
-  'entry/src/main/ets/pages/WearLogEditPage.ets',
-  'entry/src/main/ets/pages/WishlistEditPage.ets',
   'entry/src/main/ets/pages/SearchResultsPage.ets',
   'entry/src/main/ets/components/ClothingPicker.ets',
   'entry/src/main/ets/components/OutfitPicker.ets',
@@ -100,6 +103,19 @@ const flowFiles = [
 for (const file of flowFiles) {
   const source = fs.readFileSync(file, 'utf8');
   requireIncludes(source, 'AppTheme', `${file} theme usage`);
+  forbidIncludes(source, "'#0F172A'", `${file} old black primary action`);
+  forbidIncludes(source, "'#F8FAFC'", `${file} old background`);
+  forbidIncludes(source, "'#B91C1C'", `${file} old danger`);
+}
+
+const yibuqueFlowFiles = [
+  'entry/src/main/ets/pages/StoreVisitEditPage.ets'
+];
+
+for (const file of yibuqueFlowFiles) {
+  const source = fs.readFileSync(file, 'utf8');
+  requireIncludes(source, 'YibuqueColor', `${file} yibuque colors`);
+  requireIncludes(source, 'YibuqueRadius', `${file} yibuque radius`);
   forbidIncludes(source, "'#0F172A'", `${file} old black primary action`);
   forbidIncludes(source, "'#F8FAFC'", `${file} old background`);
   forbidIncludes(source, "'#B91C1C'", `${file} old danger`);

@@ -77,6 +77,10 @@ export struct StoreVisitPage {
     this.editingVisitId = '';
   }
 
+  private retry(): void {
+    this.loadStoreVisits();
+  }
+
   private upsertVisit(savedVisit: StoreVisit): void {
     const nextVisits: StoreVisit[] = [];
     let replaced = false;
@@ -150,15 +154,35 @@ export struct StoreVisitPage {
         }
 
         if (this.errorMessage.length > 0) {
-          Text(this.errorMessage)
-            .fontSize(14)
-            .fontColor('#EF4444')
+          Row({ space: YibuqueSpacing.sm }) {
+            Text(this.errorMessage)
+              .fontSize(14)
+              .fontColor('#EF4444')
+              .layoutWeight(1)
+
+            Button('retry')
+              .height(34)
+              .fontSize(13)
+              .fontColor(YibuqueColor.textInverse)
+              .backgroundColor(YibuqueColor.actionBlack)
+              .borderRadius(YibuqueRadius.full)
+              .onClick(() => {
+                this.retry();
+              })
+          }
+          .width('100%')
+          .alignItems(VerticalAlign.Center)
         }
 
         if (this.filterStoreVisits().length === 0) {
           Column({ space: YibuqueSpacing.sm }) {
             Text('店')
               .fontSize(34)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(YibuqueColor.textPrimary)
+
+            Text('还没有逛店记录')
+              .fontSize(20)
               .fontWeight(FontWeight.Bold)
               .fontColor(YibuqueColor.textPrimary)
 

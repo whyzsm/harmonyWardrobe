@@ -1,99 +1,63 @@
-# Harmony Wardrobe 手工 QA 脚本 / Harmony Wardrobe Manual QA Script
+# 衣不缺手工 QA 脚本
 
-## 目标 / Goal
+## 前置条件
 
-中文：验证首版核心流程可以在 offline 条件下完成，包括 Today、Wardrobe、Outfits、Calendar、Shopping、photo、search 和本地持久化。
+- 使用本地调试包安装应用。
+- 关闭网络或进入飞行模式，确认应用仍可启动和保存数据。
+- 离线状态下完成新增、编辑和重启回显检查。
+- 准备至少 3 张本地相册图片，用于衣服、美搭和逛店记录。
 
-English: Verify that the first release core flows work in offline mode, including Today, Wardrobe, Outfits, Calendar, Shopping, photo, search, and local persistence.
+## App 壳层
 
-## 前置条件 / Preconditions
+- 启动后顶部左侧显示 `logo + 衣不缺`。
+- 顶部右侧头像/`我的` 入口可进入个人信息页。
+- 底部主导航只有 `衣橱 / + / 逛店`。
+- 点击 `+` 打开快捷面板，面板包含 `拍衣服`、`拍搭配`、`拍店铺`。
+- 快捷面板可点击遮罩或取消关闭。
 
-中文：安装调试包后，关闭网络或进入飞行模式；如需要稳定数据，可先通过 debug fixture 注入 `seedWardrobeDebugData` 数据。
+## 衣橱
 
-English: After installing the debug build, disable network access or turn on airplane mode; when stable data is needed, inject `seedWardrobeDebugData` through the debug fixture first.
+- 进入 `衣橱` 后可看到 `衣裤 / 美搭` 二级 tab。
+- `衣裤` 下分类为 `上衣 / 裤子 / 短裤 / 长裙 / 半裙`。
+- 通过 `+ / 拍衣服` 新增衣物，选择图片、填写名称和分类，保存后回到衣橱并能看到图片。
+- 编辑刚新增的衣物，修改名称或备注后保存，列表回显更新。
+- 空态文案应引导用户通过底部 `+ / 拍衣服` 添加。
 
-中文：确认应用没有请求网络权限，所有照片使用本地相册、相机或 `debug://photos/...` 种子 URI。
+## 美搭
 
-English: Confirm the app does not request network permission, and all photos come from local gallery, camera, or `debug://photos/...` seed URIs.
+- 切换到 `美搭` tab。
+- 通过 `+ / 拍搭配` 新增美搭，选择照片并填写标题，未关联衣物时也能保存。
+- 保存后回到 `衣橱 / 美搭`，卡片显示照片或柔和占位。
+- 页面文案使用 `美搭` 或 `搭配`，不应出现主要用户文案 `套装`。
 
-## Today / Today
+## 逛店
 
-中文：打开 Today 页，确认当天穿着记录可见；新增一条今日记录，填写地点和备注，保存后返回 Today 页确认记录仍显示。
+- 进入 `逛店` tab，默认展示逛店记录列表或空态。
+- 通过 `+ / 拍店铺` 新增逛店记录。
+- 填写店铺名、地址/商圈、日期、备注并选择图片，保存后回到 `逛店`。
+- 逛店卡片展示店铺名、日期、地址/商圈、图片或 `店` 占位，备注最多两行。
+- 搜索店铺名、地址/商圈或备注，结果应正确过滤。
 
-English: Open the Today tab and confirm today's wear log is visible; add a new wear log for today, enter place and note, save it, then return to Today and confirm the record remains visible.
+## 我的
 
-## Wardrobe / Wardrobe
+- 点击顶部右侧头像/`我的`。
+- 页面显示头像占位、`身高`、`体重`、`腰围` 和 `设置`。
+- 输入合法数值并保存，退出再进入后可以回显。
+- 保存按钮有 `保存中...` 状态，重复点击不会产生明显异常。
 
-中文：打开 Wardrobe 页，确认种子衣物可见；新增衣物，选择分类、填写名称、备注和购买信息，并附加一张 photo。
+## 搜索和旧概念
 
-English: Open the Wardrobe tab and confirm seed clothing items are visible; add a clothing item, select category, enter name, note, and purchase details, and attach one photo.
+- 搜索结果展示类型应为 `衣物`、`美搭`、`逛店记录`、`店铺` 等用户可理解文案。
+- 主流程不可见 `首页` 推荐流、`日历` 主入口、`逛街` 主入口或 `心愿单` 主入口。
+- 可达页面不可见点赞、收藏、评论、关注等社交动作。
 
-中文：编辑刚新增的衣物，修改名称或备注后保存；删除一件非关键测试衣物，确认列表刷新且不会影响其他数据。
+## 视觉验收
 
-English: Edit the newly added item, change its name or note, and save it; delete a non-critical test item and confirm the list refreshes without affecting other data.
+- 主操作按钮是黑色胶囊按钮。
+- 卡片大圆角，图片为圆角，不出现直角大图。
+- 背景轻、留白充足，不呈现后台管理风或社交推荐流。
+- 主要触达区域高度不小于 44。
 
-## Outfits / Outfits
+## 记录
 
-中文：打开 Outfits 页，确认种子穿搭可见；创建一个穿搭，选择至少两件 Wardrobe 衣物，附加 photo，并保存。
-
-English: Open the Outfits tab and confirm the seed outfit is visible; create an outfit, select at least two Wardrobe items, attach a photo, and save it.
-
-中文：从穿搭详情进入穿着记录流程，选择日期并保存，确认该穿搭的最近穿着记录更新。
-
-English: From outfit details, start the wear-log flow, choose a date, save it, and confirm the outfit recent wear history updates.
-
-## Calendar / Calendar
-
-中文：打开 Calendar 页，切换到包含测试日期的月份，确认有穿着记录的日期有可识别状态。
-
-English: Open the Calendar tab, switch to the month that contains the test date, and confirm dates with wear logs have a recognizable state.
-
-中文：点选有记录的日期，确认当天穿搭、地点和备注可以查看；点选无记录日期，确认空态合理。
-
-English: Select a date with records and confirm outfit, place, and note are viewable; select a date without records and confirm the empty state is reasonable.
-
-## Shopping / Shopping
-
-中文：打开 Shopping 页，确认种子心愿单可见；新增心愿单条目，填写标题、店铺、价格、备注和 photo。
-
-English: Open the Shopping tab and confirm the seed wishlist item is visible; add a wishlist item with title, store, price, note, and photo.
-
-中文：编辑并删除一个测试心愿单条目，确认 Shopping 列表和搜索结果同步更新。
-
-English: Edit and delete one test wishlist item, then confirm the Shopping list and search results update consistently.
-
-## Photo / Photo
-
-中文：在 Wardrobe、Outfits、Today 和 Shopping 各执行一次 photo 选择或相机拍照；保存后确认缩略图仍能显示。
-
-English: Pick or capture a photo once from Wardrobe, Outfits, Today, and Shopping; after saving, confirm thumbnails remain visible.
-
-中文：重启应用后再次打开这些记录，确认 photo URI 没有丢失，且没有出现网络依赖。
-
-English: Restart the app and reopen those records, confirming photo URIs are not lost and no network dependency appears.
-
-## Search / Search
-
-中文：搜索种子数据关键词，例如 `White`、`Office`、`Teal`；确认结果覆盖 Wardrobe、Outfits、Calendar 关联的穿着记录和 Shopping。
-
-English: Search seed keywords such as `White`, `Office`, and `Teal`; confirm results cover Wardrobe, Outfits, Calendar-related wear logs, and Shopping.
-
-中文：修改一条记录后再次搜索，确认搜索索引更新；删除记录后确认搜索结果不再出现该记录。
-
-English: Modify one record and search again to confirm the search index updates; delete the record and confirm it no longer appears in results.
-
-## Offline Persistence / Offline Persistence
-
-中文：保持 offline 状态，新增、编辑、删除各类记录后完全退出应用并重新打开，确认本地 SQLite 数据仍存在。
-
-English: While remaining offline, add, edit, and delete each type of record, then fully close and reopen the app to confirm local SQLite data persists.
-
-中文：重启设备或模拟器后再次打开应用，确认 Today、Wardrobe、Outfits、Calendar、Shopping 和 search 的状态与重启前一致。
-
-English: Restart the device or emulator, reopen the app, and confirm Today, Wardrobe, Outfits, Calendar, Shopping, and search state match the state before restart.
-
-## 记录 / Notes
-
-中文：记录设备型号、系统版本、应用 commit、是否使用 seed fixture、未覆盖项和失败截图路径。
-
-English: Record device model, system version, app commit, whether the seed fixture was used, uncovered items, and failure screenshot paths.
+- 记录设备型号、系统版本、应用 commit、是否使用种子数据、未覆盖项和失败截图路径。

@@ -1,4 +1,4 @@
-import { YibuqueColor, YibuqueFontSize, YibuqueSpacing } from '../theme/Tokens';
+import { YibuqueColor, YibuqueFontSize, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
 
 @Component
 export struct AppTopBar {
@@ -16,7 +16,7 @@ export struct AppTopBar {
         .width(32)
         .height(32)
         .backgroundColor(YibuqueColor.actionBlack)
-        .borderRadius(16)
+        .borderRadius(YibuqueRadius.full)
 
         Text('衣不缺')
           .fontSize(20)
@@ -35,7 +35,7 @@ export struct AppTopBar {
           .fontColor(YibuqueColor.textPrimary)
           .textAlign(TextAlign.Center)
           .backgroundColor(YibuqueColor.cardSoftGray)
-          .borderRadius(14)
+          .borderRadius(YibuqueRadius.full)
 
         Text('我的')
           .height(44)
@@ -45,7 +45,7 @@ export struct AppTopBar {
       }
       .height(48)
       .padding({ left: YibuqueSpacing.sm, right: YibuqueSpacing.sm })
-      .borderRadius(24)
+      .borderRadius(YibuqueRadius.full)
       .onClick(() => {
         this.onOpenProfile();
       })

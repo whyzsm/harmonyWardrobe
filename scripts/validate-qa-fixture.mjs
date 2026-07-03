@@ -21,14 +21,18 @@ for (const needle of [
 
 const qa = fs.readFileSync(qaPath, 'utf8');
 for (const needle of [
-  'Today',
-  'Wardrobe',
-  'Outfits',
-  'Calendar',
-  'Shopping',
-  'offline',
-  '中文',
-  'English'
+  '衣不缺',
+  '衣橱 / + / 逛店',
+  '拍衣服',
+  '拍搭配',
+  '拍店铺',
+  '衣裤 / 美搭',
+  '逛店',
+  '我的',
+  '身高',
+  '体重',
+  '腰围',
+  '离线'
 ]) {
   if (!qa.includes(needle)) {
     throw new Error(`QA script missing ${needle}`);

@@ -113,7 +113,35 @@ if (/catch\s*\(\s*error\s*\)[\s\S]*?throw\s+error/.test(v2Text)) {
 }
 
 const runtimeText = fs.readFileSync(runtimeFile, 'utf8');
-if (!runtimeText.includes('v2ClothingPurchaseColumns') || !runtimeText.includes('[v1InitialSchema, v2ClothingPurchaseColumns]')) {
-  console.error('WardrobeRuntime must run the V2 clothing purchase migration after V1.');
+if (!runtimeText.includes('v2ClothingPurchaseColumns') || !runtimeText.includes('v3StoreVisitSchema') || !runtimeText.includes('[v1InitialSchema, v2ClothingPurchaseColumns, v3StoreVisitSchema]')) {
+  console.error('WardrobeRuntime must run V1, V2, then V3 migrations in order.');
+  process.exit(1);
+}
+
+const v3File = 'entry/src/main/ets/data/migrations/V3StoreVisitSchema.ets';
+if (!fs.existsSync(v3File)) {
+  console.error(`${v3File} must exist for store visit and profile schema.`);
+  process.exit(1);
+}
+
+const v3Text = fs.readFileSync(v3File, 'utf8');
+for (const needle of [
+  'version: number = 3',
+  'stores',
+  'store_photos',
+  'store_visits',
+  'store_visit_photos',
+  'user_profile',
+  'idx_store_visits_visit_date',
+  'idx_store_visits_store_id'
+]) {
+  if (!v3Text.includes(needle)) {
+    console.error(`V3 store visit migration missing ${needle}`);
+    process.exit(1);
+  }
+}
+
+if (/DROP\s+TABLE/i.test(v3Text)) {
+  console.error('V3 migration must not drop old tables.');
   process.exit(1);
 }

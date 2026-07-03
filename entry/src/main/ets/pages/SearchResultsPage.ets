@@ -2,7 +2,6 @@ import { EmptyState } from '../components/EmptyState';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { SearchRepository } from '../data/repositories/SearchRepository';
-import { WishlistRepository } from '../data/repositories/WishlistRepository';
 import { SearchEntityType, SearchResult } from '../domain/search/SearchModels';
 import { AppTheme } from '../theme/Tokens';
 
@@ -12,14 +11,18 @@ function entityTypeLabel(entityType: SearchEntityType): string {
   }
 
   if (entityType === SearchEntityType.Outfit) {
-    return '套装';
+    return '美搭';
   }
 
-  if (entityType === SearchEntityType.WearLog) {
-    return '穿着记录';
+  if (entityType === SearchEntityType.StoreVisit) {
+    return '逛店记录';
   }
 
-  return '心愿';
+  if (entityType === SearchEntityType.Store) {
+    return '店铺';
+  }
+
+  return '';
 }
 
 @Component
@@ -28,7 +31,6 @@ export struct SearchResultsPage {
   searchRepository?: SearchRepository = undefined;
   clothingRepository?: ClothingRepository = undefined;
   outfitRepository?: OutfitRepository = undefined;
-  wishlistRepository?: WishlistRepository = undefined;
   onClose: () => void = () => {};
 
   @State private searchResults: SearchResult[] = [];
@@ -49,7 +51,8 @@ export struct SearchResultsPage {
     this.errorMessage = '';
 
     try {
-      this.searchResults = await this.searchRepository.search(this.query, 30);
+      const results = await this.searchRepository.search(this.query, 30);
+      this.searchResults = results.filter((result: SearchResult) => entityTypeLabel(result.entityType).length > 0);
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '搜索失败';
     } finally {
@@ -102,7 +105,7 @@ export struct SearchResultsPage {
       } else if (this.searchResults.length === 0) {
         EmptyState({
           title: '没有搜索结果',
-          description: '换个关键词试试衣物、套装、穿着记录或心愿。'
+          description: '换个关键词试试衣物、美搭、逛店记录或店铺。'
         })
       } else {
         ForEach(this.searchResults, (result: SearchResult) => {

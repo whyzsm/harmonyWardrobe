@@ -24,6 +24,7 @@ export struct ProfilePage {
   @State private heightCm: string = '';
   @State private weightKg: string = '';
   @State private waistCm: string = '';
+  @State private isLoading: boolean = false;
   @State private isSaving: boolean = false;
   @State private errorMessage: string = '';
 
@@ -36,11 +37,15 @@ export struct ProfilePage {
       return;
     }
 
+    this.isLoading = true;
+
     try {
       const profile = await this.profileRepository.getProfile();
       this.applyProfile(profile);
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '加载个人信息失败';
+    } finally {
+      this.isLoading = false;
     }
   }
 
@@ -135,6 +140,12 @@ export struct ProfilePage {
       .padding({ left: YibuqueSpacing.lg, right: YibuqueSpacing.lg })
       .backgroundColor(YibuqueColor.cardWhite)
       .borderRadius(28)
+
+      if (this.isLoading) {
+        Text('loading / 正在加载个人信息...')
+          .fontSize(13)
+          .fontColor(YibuqueColor.textSecondary)
+      }
 
       if (this.errorMessage.length > 0) {
         Text(this.errorMessage)
