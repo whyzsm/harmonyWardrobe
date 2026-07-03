@@ -4,9 +4,12 @@ import { DatabaseProvider } from '../data/database/DatabaseProvider';
 import { MigrationRunner } from '../data/migrations/MigrationRunner';
 import { v1InitialSchema } from '../data/migrations/V1InitialSchema';
 import { v2ClothingPurchaseColumns } from '../data/migrations/V2ClothingPurchaseColumns';
+import { v3StoreVisitSchema } from '../data/migrations/V3StoreVisitSchema';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
+import { ProfileRepository } from '../data/repositories/ProfileRepository';
 import { SearchRepository } from '../data/repositories/SearchRepository';
+import { StoreRepository } from '../data/repositories/StoreRepository';
 import { WearLogRepository } from '../data/repositories/WearLogRepository';
 import { WishlistRepository } from '../data/repositories/WishlistRepository';
 import { detectSearchCapability, SearchIndexMode } from '../data/searchIndex/SearchCapability';
@@ -35,6 +38,8 @@ export class WardrobeRuntime {
   readonly outfitRepository: OutfitRepository;
   readonly wearLogRepository: WearLogRepository;
   readonly wishlistRepository: WishlistRepository;
+  readonly storeRepository: StoreRepository;
+  readonly profileRepository: ProfileRepository;
   readonly searchRepository: SearchRepository;
   readonly photoPickerAdapter: PhotoPickerAdapter;
   readonly photoStorage: PhotoStorage;
@@ -46,6 +51,8 @@ export class WardrobeRuntime {
     outfitRepository: OutfitRepository,
     wearLogRepository: WearLogRepository,
     wishlistRepository: WishlistRepository,
+    storeRepository: StoreRepository,
+    profileRepository: ProfileRepository,
     searchRepository: SearchRepository,
     photoPickerAdapter: PhotoPickerAdapter,
     photoStorage: PhotoStorage
@@ -56,6 +63,8 @@ export class WardrobeRuntime {
     this.outfitRepository = outfitRepository;
     this.wearLogRepository = wearLogRepository;
     this.wishlistRepository = wishlistRepository;
+    this.storeRepository = storeRepository;
+    this.profileRepository = profileRepository;
     this.searchRepository = searchRepository;
     this.photoPickerAdapter = photoPickerAdapter;
     this.photoStorage = photoStorage;
@@ -63,7 +72,7 @@ export class WardrobeRuntime {
 
   static async create(context: common.Context): Promise<WardrobeRuntime> {
     const database = new DatabaseProvider(context);
-    const migrationRunner = new MigrationRunner(database, [v1InitialSchema, v2ClothingPurchaseColumns]);
+    const migrationRunner = new MigrationRunner(database, [v1InitialSchema, v2ClothingPurchaseColumns, v3StoreVisitSchema]);
     await migrationRunner.runMigrations();
     await WardrobeRuntime.ensureBaseSchema(database);
 
@@ -78,6 +87,8 @@ export class WardrobeRuntime {
       new OutfitRepository(database, searchIndexMode),
       new WearLogRepository(database, searchIndexMode),
       new WishlistRepository(database, searchIndexMode),
+      new StoreRepository(database, searchIndexMode),
+      new ProfileRepository(database),
       new SearchRepository(database, searchIndexMode),
       PhotoPickerAdapter.withHarmonyProviders(context),
       photoStorage
@@ -87,5 +98,6 @@ export class WardrobeRuntime {
   private static async ensureBaseSchema(database: DatabaseProvider): Promise<void> {
     await v1InitialSchema.up(database);
     await v2ClothingPurchaseColumns.up(database);
+    await v3StoreVisitSchema.up(database);
   }
 }

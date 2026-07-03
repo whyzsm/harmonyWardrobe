@@ -52,6 +52,8 @@ function createRunnableBuilderSource() {
     .replace(/: number/g, '')
     .replace(/: ClothingItem/g, '')
     .replace(/: OutfitTemplate/g, '')
+    .replace(/: StoreVisit/g, '')
+    .replace(/: Store/g, '')
     .replace(/: WearLog/g, '')
     .replace(/: WishlistItem/g, '')
     .replace(/: SearchDocument/g, '');
@@ -77,12 +79,14 @@ for (const builder of [
   'buildClothingSearchDocument',
   'buildOutfitSearchDocument',
   'buildWearLogSearchDocument',
-  'buildWishlistSearchDocument'
+  'buildWishlistSearchDocument',
+  'buildStoreSearchDocument',
+  'buildStoreVisitSearchDocument'
 ]) {
   assertMatches(new RegExp(`export\\s+function\\s+${builder}\\b`), `Missing exported ${builder}`);
 }
 
-for (const entityType of ['Clothing', 'Outfit', 'WearLog', 'Wishlist']) {
+for (const entityType of ['Clothing', 'Outfit', 'WearLog', 'Wishlist', 'Store', 'StoreVisit']) {
   assertIncludes(`SearchEntityType.${entityType}`, `Missing SearchEntityType.${entityType}`);
 }
 
@@ -137,6 +141,8 @@ this.buildClothingSearchDocument = buildClothingSearchDocument;
 this.buildOutfitSearchDocument = buildOutfitSearchDocument;
 this.buildWearLogSearchDocument = buildWearLogSearchDocument;
 this.buildWishlistSearchDocument = buildWishlistSearchDocument;
+this.buildStoreSearchDocument = buildStoreSearchDocument;
+this.buildStoreVisitSearchDocument = buildStoreVisitSearchDocument;
 `, context);
 
 const clothingDocument = context.buildClothingSearchDocument({
@@ -196,5 +202,32 @@ assert.match(wishlistDocument.body, /299\.5/);
 assert.match(wishlistDocument.ngrams, /\b299\b/);
 assert.match(wishlistDocument.ngrams, /\b5\b/);
 assert.doesNotMatch(`${wishlistDocument.body} ${wishlistDocument.ngrams}`, /undefined/);
+
+const storeDocument = context.buildStoreSearchDocument({
+  id: 'store-1',
+  name: 'Vintage Shop',
+  districtOrAddress: '南山',
+  photoUris: [],
+  note: '适合通勤',
+  createdAt: '2026-07-04T00:00:00.000Z',
+  updatedAt: '2026-07-04T00:00:00.000Z'
+});
+assert.equal(storeDocument.entityType, SearchEntityType.Store);
+assert.match(storeDocument.body, /南山/);
+assert.match(storeDocument.body, /适合通勤/);
+
+const storeVisitDocument = context.buildStoreVisitSearchDocument({
+  id: 'visit-1',
+  storeNameSnapshot: 'Vintage Shop',
+  districtOrAddress: '南山',
+  visitDate: '2026-07-04',
+  photoUris: [],
+  note: '试了半裙',
+  createdAt: '2026-07-04T00:00:00.000Z',
+  updatedAt: '2026-07-04T00:00:00.000Z'
+});
+assert.equal(storeVisitDocument.entityType, SearchEntityType.StoreVisit);
+assert.match(storeVisitDocument.body, /2026-07-04/);
+assert.match(storeVisitDocument.body, /试了半裙/);
 
 console.log('PASS');

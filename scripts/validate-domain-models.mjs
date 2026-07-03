@@ -6,7 +6,9 @@ const checks = [
   ['entry/src/main/ets/domain/outfit/OutfitModels.ets', ['OutfitTemplate']],
   ['entry/src/main/ets/domain/wearLog/WearLogModels.ets', ['WearLog']],
   ['entry/src/main/ets/domain/wishlist/WishlistModels.ets', ['WishlistItem']],
-  ['entry/src/main/ets/domain/search/SearchModels.ets', ['SearchEntityType', 'SearchResult']]
+  ['entry/src/main/ets/domain/search/SearchModels.ets', ['SearchEntityType', 'SearchResult', 'Store', 'StoreVisit']],
+  ['entry/src/main/ets/domain/store/StoreModels.ets', ['Store', 'StoreVisit']],
+  ['entry/src/main/ets/domain/profile/ProfileModels.ets', ['UserProfile']]
 ];
 
 const interfaceFields = [
@@ -15,7 +17,10 @@ const interfaceFields = [
   ['entry/src/main/ets/domain/outfit/OutfitModels.ets', 'OutfitTemplate', ['id', 'title', 'photoUris', 'clothingItemIds', 'note', 'createdAt', 'updatedAt']],
   ['entry/src/main/ets/domain/wearLog/WearLogModels.ets', 'WearLog', ['id', 'outfitTemplateId', 'outfitTitleSnapshot', 'clothingItemIdsSnapshot', 'wornDate', 'photoUris', 'placeText', 'note', 'createdAt', 'updatedAt']],
   ['entry/src/main/ets/domain/wishlist/WishlistModels.ets', 'WishlistItem', ['id', 'title', 'photoUris', 'storeName', 'price', 'note', 'createdAt', 'updatedAt']],
-  ['entry/src/main/ets/domain/search/SearchModels.ets', 'SearchResult', ['entityType', 'entityId', 'title']]
+  ['entry/src/main/ets/domain/search/SearchModels.ets', 'SearchResult', ['entityType', 'entityId', 'title']],
+  ['entry/src/main/ets/domain/store/StoreModels.ets', 'Store', ['id', 'name', 'districtOrAddress', 'photoUris', 'note', 'createdAt', 'updatedAt']],
+  ['entry/src/main/ets/domain/store/StoreModels.ets', 'StoreVisit', ['id', 'storeId', 'storeNameSnapshot', 'visitDate', 'photoUris', 'note', 'createdAt', 'updatedAt']],
+  ['entry/src/main/ets/domain/profile/ProfileModels.ets', 'UserProfile', ['heightCm', 'weightKg', 'waistCm', 'updatedAt']]
 ];
 
 for (const [file, needles] of checks) {

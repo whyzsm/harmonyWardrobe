@@ -23,14 +23,14 @@ function mustNotInclude(text, file, needle) {
 const indexPath = 'entry/src/main/ets/pages/Index.ets';
 const wardrobePath = 'entry/src/main/ets/pages/WardrobePage.ets';
 const quickSheetPath = 'entry/src/main/ets/components/QuickCaptureSheet.ets';
+const navPath = 'entry/src/main/ets/components/BottomNavigationBar.ets';
 const index = read(indexPath);
 const wardrobe = read(wardrobePath);
 const quickSheet = read(quickSheetPath);
+const nav = read(navPath);
 
 for (const needle of [
   '衣不缺',
-  '衣橱',
-  '逛店',
   'AppTopBar',
   'BottomNavigationBar',
   'QuickCaptureSheet'
@@ -40,6 +40,10 @@ for (const needle of [
 
 for (const needle of ['衣裤', '美搭']) {
   mustInclude(wardrobe, wardrobePath, needle);
+}
+
+for (const needle of ['衣橱', '逛店']) {
+  mustInclude(nav, navPath, needle);
 }
 
 for (const needle of ['拍衣服', '拍搭配', '拍店铺']) {

@@ -35,18 +35,22 @@ for (const needle of [
   'DatabaseProvider',
   'MigrationRunner',
   'v1InitialSchema',
+  'v3StoreVisitSchema',
   'detectSearchCapability',
   'new ClothingRepository',
   'new OutfitRepository',
   'new WearLogRepository',
   'new WishlistRepository',
+  'new StoreRepository',
+  'new ProfileRepository',
   'new SearchRepository',
   'PhotoPickerAdapter.withHarmonyProviders',
   'new PhotoStorage',
   'context.filesDir',
   'runMigrations()',
   'ensureBaseSchema',
-  'v1InitialSchema.up(database)'
+  'v1InitialSchema.up(database)',
+  'v3StoreVisitSchema.up(database)'
 ]) {
   mustInclude(runtime, runtimePath, needle);
 }
@@ -69,23 +73,26 @@ for (const needle of [
   'getContext(this) as common.Context',
   'WardrobeRuntime.create',
   '@State private runtimeReady',
-  'TodayPage({',
   'clothingRepository: this.runtime.clothingRepository',
   'outfitRepository: this.runtime.outfitRepository',
-  'wearLogRepository: this.runtime.wearLogRepository',
   'WardrobePage({',
   'clothingRepository: this.runtime.clothingRepository',
+  'outfitRepository: this.runtime.outfitRepository',
   'searchRepository: this.runtime.searchRepository',
   'photoPickerAdapter: this.runtime.photoPickerAdapter',
   'photoStorage: this.runtime.photoStorage',
   'ClothingEditPage({',
   'OutfitEditPage({',
-  'WearLogEditPage({',
-  'this.runtime.outfitRepository.listOutfits()',
   'this.runtime.clothingRepository.listClothing()',
-  'CalendarPage({',
-  'ShoppingPage({',
-  'runtime / 正在初始化'
+  'AppTopBar({',
+  'BottomNavigationBar({',
+  'QuickCaptureSheet({',
+  'StoreVisitPage({',
+  'storeRepository: this.runtime.storeRepository',
+  'StoreVisitEditPage({',
+  'ProfilePage({',
+  'profileRepository: this.runtime.profileRepository',
+  '正在初始化'
 ]) {
   mustInclude(index, indexPath, needle);
 }
@@ -95,6 +102,7 @@ const pageChecks = [
     file: 'entry/src/main/ets/pages/WardrobePage.ets',
     needles: [
       'clothingRepository?: ClothingRepository',
+      'outfitRepository?: OutfitRepository',
       'searchRepository?: SearchRepository',
       'photoPickerAdapter?: PhotoPickerAdapter',
       'photoStorage?: PhotoStorage',
@@ -105,70 +113,29 @@ const pageChecks = [
       'photoPickerAdapter: this.photoPickerAdapter',
       'photoStorage: this.photoStorage',
       'SearchResultsPage({',
-      'searchRepository: this.searchRepository'
+      'searchRepository: this.searchRepository',
+      'OutfitEditPage({'
     ]
   },
   {
-    file: 'entry/src/main/ets/pages/OutfitsPage.ets',
+    file: 'entry/src/main/ets/pages/StoreVisitPage.ets',
     needles: [
-      'outfitRepository?: OutfitRepository',
-      'clothingRepository?: ClothingRepository',
-      'wearLogRepository?: WearLogRepository',
-      'searchRepository?: SearchRepository',
+      'storeRepository?: StoreRepository',
       'photoPickerAdapter?: PhotoPickerAdapter',
       'photoStorage?: PhotoStorage',
       'aboutToAppear()',
-      'loadOutfits',
-      'listOutfits',
-      'OutfitEditPage({',
-      'WearLogEditPage({',
-      'SearchResultsPage({',
-      'searchRepository: this.searchRepository'
+      'loadStoreVisits',
+      'listStoreVisits',
+      'StoreVisitEditPage({'
     ]
   },
   {
-    file: 'entry/src/main/ets/pages/TodayPage.ets',
+    file: 'entry/src/main/ets/pages/ProfilePage.ets',
     needles: [
-      'clothingRepository?: ClothingRepository',
-      'outfitRepository?: OutfitRepository',
-      'wearLogRepository?: WearLogRepository',
-      'photoPickerAdapter?: PhotoPickerAdapter',
-      'photoStorage?: PhotoStorage',
-      'onOpenRecommendation?:',
+      'profileRepository?: ProfileRepository',
       'aboutToAppear()',
-      'loadToday',
-      'listOutfits',
-      'listWearLogsByDate',
-      'HomeRecommendation'
-    ]
-  },
-  {
-    file: 'entry/src/main/ets/pages/CalendarPage.ets',
-    needles: [
-      'outfitRepository?: OutfitRepository',
-      'wearLogRepository?: WearLogRepository',
-      'photoPickerAdapter?: PhotoPickerAdapter',
-      'photoStorage?: PhotoStorage',
-      'aboutToAppear()',
-      'loadCalendar',
-      'listWearLogDatesForMonth',
-      'listWearLogsByDate',
-      'WearLogEditPage({'
-    ]
-  },
-  {
-    file: 'entry/src/main/ets/pages/ShoppingPage.ets',
-    needles: [
-      'wishlistRepository?: WishlistRepository',
-      'searchRepository?: SearchRepository',
-      'photoPickerAdapter?: PhotoPickerAdapter',
-      'photoStorage?: PhotoStorage',
-      'aboutToAppear()',
-      'loadWishlistItems',
-      'listWishlistItems',
-      'WishlistEditPage({',
-      'SearchResultsPage({',
-      'searchRepository: this.searchRepository'
+      'loadProfile',
+      'saveProfile'
     ]
   }
 ];

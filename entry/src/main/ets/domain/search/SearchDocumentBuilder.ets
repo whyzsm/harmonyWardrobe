@@ -1,5 +1,6 @@
 import { ClothingItem } from '../clothing/ClothingModels';
 import { OutfitTemplate } from '../outfit/OutfitModels';
+import { Store, StoreVisit } from '../store/StoreModels';
 import { WearLog } from '../wearLog/WearLogModels';
 import { WishlistItem } from '../wishlist/WishlistModels';
 import { buildSearchNgrams } from '../../utils/ngram';
@@ -123,6 +124,43 @@ export function buildWishlistSearchDocument(item: WishlistItem): SearchDocument 
   return {
     entityType: SearchEntityType.Wishlist,
     entityId: item.id,
+    title,
+    body,
+    storeName,
+    ngrams: buildSearchNgramText([title, body, storeName])
+  };
+}
+
+export function buildStoreSearchDocument(store: Store): SearchDocument {
+  const title = normalizeSearchText(store.name);
+  const storeName = normalizeOptionalText(store.name);
+  const body = joinSearchText([
+    store.districtOrAddress,
+    store.note
+  ]);
+
+  return {
+    entityType: SearchEntityType.Store,
+    entityId: store.id,
+    title,
+    body,
+    storeName,
+    ngrams: buildSearchNgramText([title, body, storeName])
+  };
+}
+
+export function buildStoreVisitSearchDocument(visit: StoreVisit): SearchDocument {
+  const title = normalizeSearchText(visit.storeNameSnapshot);
+  const storeName = normalizeOptionalText(visit.storeNameSnapshot);
+  const body = joinSearchText([
+    visit.visitDate,
+    visit.districtOrAddress,
+    visit.note
+  ]);
+
+  return {
+    entityType: SearchEntityType.StoreVisit,
+    entityId: visit.id,
     title,
     body,
     storeName,

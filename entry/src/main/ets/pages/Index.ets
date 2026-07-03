@@ -5,9 +5,13 @@ import { QuickCaptureSheet } from '../components/QuickCaptureSheet';
 import { WardrobeRuntime } from '../app/WardrobeRuntime';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { OutfitTemplate } from '../domain/outfit/OutfitModels';
-import { AppTheme, YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
+import { StoreVisit } from '../domain/store/StoreModels';
+import { AppTheme, YibuqueColor, YibuqueRadius } from '../theme/Tokens';
 import { ClothingEditPage } from './ClothingEditPage';
 import { OutfitEditPage } from './OutfitEditPage';
+import { ProfilePage } from './ProfilePage';
+import { StoreVisitEditPage } from './StoreVisitEditPage';
+import { StoreVisitPage } from './StoreVisitPage';
 import { WardrobePage } from './WardrobePage';
 
 @Entry
@@ -19,7 +23,8 @@ struct Index {
   @State private showQuickActions: boolean = false;
   @State private showClothingEditor: boolean = false;
   @State private showOutfitEditor: boolean = false;
-  @State private showProfilePlaceholder: boolean = false;
+  @State private showStoreVisitEditor: boolean = false;
+  @State private showProfilePage: boolean = false;
   @State private quickActionErrorMessage: string = '';
   @State private quickActionClothingItems: ClothingItem[] = [];
   private runtime?: WardrobeRuntime = undefined;
@@ -47,6 +52,7 @@ struct Index {
   private closeQuickEditors(): void {
     this.showClothingEditor = false;
     this.showOutfitEditor = false;
+    this.showStoreVisitEditor = false;
   }
 
   private openAddClothing(): void {
@@ -71,10 +77,11 @@ struct Index {
     }
   }
 
-  private openStoreVisitPlaceholder(): void {
+  private openCreateStoreVisit(): void {
     this.showQuickActions = false;
-    this.quickActionErrorMessage = '拍店铺会在逛店记录完成后启用';
+    this.quickActionErrorMessage = '';
     this.selectedMainTab = 'store';
+    this.showStoreVisitEditor = true;
   }
 
   build() {
@@ -137,47 +144,32 @@ struct Index {
           this.closeQuickEditors();
         }
       })
-    } else if (this.showProfilePlaceholder) {
-      Column() {
-        AppTopBar({
-          onOpenProfile: () => {
-            this.showProfilePlaceholder = false;
-          }
-        })
-
-        Column({ space: YibuqueSpacing.md }) {
-          Text('我的')
-            .fontSize(28)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textPrimary)
-
-          Text('个人信息页面会在后续任务接入身高、体重、腰围保存。')
-            .fontSize(16)
-            .fontColor(YibuqueColor.textSecondary)
-
-          Button('返回')
-            .height(48)
-            .fontSize(16)
-            .fontColor(YibuqueColor.textInverse)
-            .backgroundColor(YibuqueColor.actionBlack)
-            .borderRadius(YibuqueRadius.full)
-            .onClick(() => {
-              this.showProfilePlaceholder = false;
-            })
+    } else if (this.showStoreVisitEditor) {
+      StoreVisitEditPage({
+        storeRepository: this.runtime.storeRepository,
+        photoPickerAdapter: this.runtime.photoPickerAdapter,
+        photoStorage: this.runtime.photoStorage,
+        onSave: (_visit: StoreVisit) => {
+          this.closeQuickEditors();
+          this.selectedMainTab = 'store';
+        },
+        onCancel: () => {
+          this.closeQuickEditors();
         }
-        .width('100%')
-        .padding(YibuqueSpacing.pageX)
-        .alignItems(HorizontalAlign.Start)
-      }
-      .width('100%')
-      .height('100%')
-      .backgroundColor(YibuqueColor.bgBlueGray)
+      })
+    } else if (this.showProfilePage) {
+      ProfilePage({
+        profileRepository: this.runtime.profileRepository,
+        onClose: () => {
+          this.showProfilePage = false;
+        }
+      })
     } else {
       Stack({ alignContent: Alignment.Bottom }) {
         Column() {
           AppTopBar({
             onOpenProfile: () => {
-              this.showProfilePlaceholder = true;
+              this.showProfilePage = true;
               this.showQuickActions = false;
             }
           })
@@ -192,7 +184,11 @@ struct Index {
             })
               .layoutWeight(1)
           } else {
-            this.StoreVisitPlaceholder()
+            StoreVisitPage({
+              storeRepository: this.runtime.storeRepository,
+              photoPickerAdapter: this.runtime.photoPickerAdapter,
+              photoStorage: this.runtime.photoStorage
+            })
               .layoutWeight(1)
           }
 
@@ -235,7 +231,7 @@ struct Index {
               this.openCreateOutfit();
             },
             onCaptureStore: () => {
-              this.openStoreVisitPlaceholder();
+              this.openCreateStoreVisit();
             },
             onCancel: () => {
               this.showQuickActions = false;
@@ -248,35 +244,4 @@ struct Index {
     }
   }
 
-  @Builder
-  StoreVisitPlaceholder() {
-    Column({ space: YibuqueSpacing.md }) {
-      Text('逛店')
-        .fontSize(24)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(YibuqueColor.textPrimary)
-        .width('100%')
-
-      Column({ space: YibuqueSpacing.sm }) {
-        Text('店')
-          .fontSize(34)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(YibuqueColor.textPrimary)
-
-        Text('点击底部 + 的拍店铺记录逛店')
-          .fontSize(16)
-          .fontColor(YibuqueColor.textSecondary)
-      }
-      .width('100%')
-      .height(220)
-      .justifyContent(FlexAlign.Center)
-      .alignItems(HorizontalAlign.Center)
-      .backgroundColor(YibuqueColor.cardMint)
-      .borderRadius(YibuqueRadius.xxl)
-    }
-    .width('100%')
-    .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.lg })
-    .alignItems(HorizontalAlign.Start)
-    .backgroundColor(YibuqueColor.bgDefault)
-  }
 }

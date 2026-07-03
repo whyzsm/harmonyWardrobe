@@ -2,7 +2,9 @@ export enum SearchEntityType {
   Clothing = 'clothing',
   Outfit = 'outfit',
   WearLog = 'wearLog',
-  Wishlist = 'wishlist'
+  Wishlist = 'wishlist',
+  Store = 'store',
+  StoreVisit = 'storeVisit'
 }
 
 export interface SearchResult {
