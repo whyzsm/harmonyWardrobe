@@ -16,7 +16,7 @@ export struct OutfitCard {
           .borderRadius(8)
       } else {
         Column() {
-          Text('套装')
+          Text('美搭')
             .fontSize(18)
             .fontWeight(FontWeight.Bold)
             .fontColor(AppTheme.color.primary)

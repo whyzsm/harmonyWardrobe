@@ -46,7 +46,7 @@ export struct OutfitEditPage {
   }
 
   private canSave(): boolean {
-    return !this.isSaving && this.title.trim().length > 0 && this.clothingItemIds.length > 0;
+    return !this.isSaving && this.title.trim().length > 0 && (this.clothingItemIds.length > 0 || this.photoUris.length > 0);
   }
 
   private toggleClothingItem(id: string): void {
@@ -123,7 +123,7 @@ export struct OutfitEditPage {
         : await this.outfitRepository.updateOutfit(this.updateInput(this.initialOutfit.id));
       this.onSave(savedOutfit);
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '保存套装失败';
+      this.errorMessage = error instanceof Error ? error.message : '保存美搭失败';
     } finally {
       this.isSaving = false;
     }
@@ -134,7 +134,7 @@ export struct OutfitEditPage {
       Column({ space: 16 }) {
         Row() {
           Column({ space: 4 }) {
-            Text(this.initialOutfit === undefined ? '创建套装' : '编辑套装')
+            Text(this.initialOutfit === undefined ? '创建美搭' : '编辑美搭')
               .fontSize(28)
               .fontWeight(FontWeight.Bold)
               .fontColor(AppTheme.color.text)
@@ -186,7 +186,7 @@ export struct OutfitEditPage {
         }
         .width('100%')
 
-        TextInput({ text: this.title, placeholder: 'title / 套装名称' })
+        TextInput({ text: this.title, placeholder: 'title / 美搭名称' })
           .height(44)
           .fontSize(15)
           .backgroundColor(AppTheme.color.surface)
@@ -220,7 +220,7 @@ export struct OutfitEditPage {
             .fontColor(AppTheme.color.danger)
         }
 
-        Button(this.isSaving ? '保存中...' : '保存套装')
+        Button(this.isSaving ? '保存中...' : '保存美搭')
           .height(44)
           .width('100%')
           .fontSize(15)

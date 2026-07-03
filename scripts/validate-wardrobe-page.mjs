@@ -10,6 +10,12 @@ for (const needle of [
   'WardrobeSearchHeader',
   'WardrobeSearchTabs',
   'WardrobeSearchResultCard',
+  'selectedWardrobeTab',
+  "'衣裤'",
+  "'美搭'",
+  'visibleOutfits',
+  'OutfitRepository',
+  'OutfitEditPage',
   'WaterFlow()',
   'FlowItem()',
   'WARDROBE_TOP_RESULT_COUNT',
@@ -22,6 +28,8 @@ for (const needle of [
   "'长裙'",
   "'半裙'",
   '`NO. ${index + 1}`',
+  '点击底部 + 的拍衣服',
+  '点击底部 + 的拍搭配',
   '.cachedCount(8)',
   ".height('100%')",
   '.scrollable(ScrollDirection.Horizontal)',
@@ -32,15 +40,19 @@ for (const needle of [
   }
 }
 
-if (text.includes('GridItem()')) {
-  throw new Error('WardrobePage should use WaterFlow FlowItem instead of GridItem');
+if (!/this\.selectedWardrobeTab === '衣裤'[\s\S]*?WaterFlow\(\)/.test(text)) {
+  throw new Error('WardrobePage clothing tab should keep the WaterFlow search layout');
+}
+
+if (!/this\.selectedWardrobeTab === '美搭'[\s\S]*?Grid\(\)/.test(text)) {
+  throw new Error('WardrobePage outfit tab should render a beauty-match grid');
 }
 
 if (!/WardrobeSearchTabs\(\)[\s\S]*?Scroll\(\)[\s\S]*?Row\(\{ space: 10 \}\)[\s\S]*?ForEach\(this\.categoryLabels\(\)/.test(text)) {
   throw new Error('Wardrobe search tabs must be wrapped in a horizontal Scroll');
 }
 
-for (const forbidden of ['SearchBar', 'CategoryTabs', 'ClothingCard', '添加衣服', "Text('衣橱')"]) {
+for (const forbidden of ['SearchBar', 'CategoryTabs', 'ClothingCard', '添加衣服', '套装', "Text('衣橱')"]) {
   if (text.includes(forbidden)) {
     throw new Error(`WardrobePage should follow the search result layout and omit ${forbidden}`);
   }

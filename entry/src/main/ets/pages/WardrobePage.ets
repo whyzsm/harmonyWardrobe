@@ -1,11 +1,14 @@
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
+import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { SearchRepository } from '../data/repositories/SearchRepository';
 import { ClothingCategory } from '../domain/clothing/ClothingCategory';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
+import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { AppTheme } from '../theme/Tokens';
+import { AppTheme, YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
 import { ClothingEditPage } from './ClothingEditPage';
+import { OutfitEditPage } from './OutfitEditPage';
 import { SearchResultsPage } from './SearchResultsPage';
 
 interface WardrobeCategoryFilter {
@@ -36,15 +39,20 @@ function categoryLabel(category: ClothingCategory): string {
 @Component
 export struct WardrobePage {
   clothingRepository?: ClothingRepository = undefined;
+  outfitRepository?: OutfitRepository = undefined;
   searchRepository?: SearchRepository = undefined;
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
 
+  @State private selectedWardrobeTab: string = '衣裤';
   @State private searchQuery: string = '';
   @State private selectedCategoryLabel: string = '上衣';
   @State private clothingItems: ClothingItem[] = [];
+  @State private outfits: OutfitTemplate[] = [];
   @State private showEditor: boolean = false;
+  @State private showOutfitEditor: boolean = false;
   @State private editingClothingId: string = '';
+  @State private editingOutfitId: string = '';
   @State private showUnifiedSearch: boolean = false;
   @State private unifiedSearchQuery: string = '';
   @State private loading: boolean = false;
@@ -52,6 +60,7 @@ export struct WardrobePage {
 
   aboutToAppear(): void {
     this.loadClothingItems();
+    this.loadOutfits();
   }
 
   private async loadClothingItems(): Promise<void> {
@@ -68,6 +77,20 @@ export struct WardrobePage {
       this.errorMessage = error instanceof Error ? error.message : '加载衣橱失败';
     } finally {
       this.loading = false;
+    }
+  }
+
+  private async loadOutfits(): Promise<void> {
+    if (this.outfitRepository === undefined) {
+      return;
+    }
+
+    this.errorMessage = '';
+
+    try {
+      this.outfits = await this.outfitRepository.listOutfits();
+    } catch (error) {
+      this.errorMessage = error instanceof Error ? error.message : '加载美搭失败';
     }
   }
 
@@ -103,8 +126,24 @@ export struct WardrobePage {
     return this.filterClothingItems();
   }
 
+  private visibleOutfits(): OutfitTemplate[] {
+    const normalizedQuery = this.searchQuery.trim().toLowerCase();
+    if (normalizedQuery.length === 0) {
+      return this.outfits;
+    }
+
+    return this.outfits.filter((outfit: OutfitTemplate) => {
+      return outfit.title.toLowerCase().includes(normalizedQuery) ||
+        (outfit.note !== undefined && outfit.note.toLowerCase().includes(normalizedQuery));
+    });
+  }
+
   private firstPhotoUri(item: ClothingItem): string {
     return item.photoUris.length > 0 ? item.photoUris[0] : '';
+  }
+
+  private firstOutfitPhotoUri(outfit: OutfitTemplate): string {
+    return outfit.photoUris.length > 0 ? outfit.photoUris[0] : '';
   }
 
   private wardrobeCardAspectRatio(index: number): number {
@@ -125,6 +164,20 @@ export struct WardrobePage {
     return undefined;
   }
 
+  private editingOutfit(): OutfitTemplate | undefined {
+    if (this.editingOutfitId.length === 0) {
+      return undefined;
+    }
+
+    for (const outfit of this.outfits) {
+      if (outfit.id === this.editingOutfitId) {
+        return outfit;
+      }
+    }
+
+    return undefined;
+  }
+
   private openCreateEditor(): void {
     this.editingClothingId = '';
     this.showEditor = true;
@@ -138,6 +191,16 @@ export struct WardrobePage {
   private closeEditor(): void {
     this.showEditor = false;
     this.editingClothingId = '';
+  }
+
+  private openOutfitEditor(outfit?: OutfitTemplate): void {
+    this.editingOutfitId = outfit?.id ?? '';
+    this.showOutfitEditor = true;
+  }
+
+  private closeOutfitEditor(): void {
+    this.showOutfitEditor = false;
+    this.editingOutfitId = '';
   }
 
   private onEdit(item: ClothingItem): void {
@@ -162,6 +225,26 @@ export struct WardrobePage {
     }
 
     this.clothingItems = nextItems;
+  }
+
+  private upsertOutfit(savedOutfit: OutfitTemplate): void {
+    const nextOutfits: OutfitTemplate[] = [];
+    let replaced = false;
+
+    for (const outfit of this.outfits) {
+      if (outfit.id === savedOutfit.id) {
+        nextOutfits.push(savedOutfit);
+        replaced = true;
+      } else {
+        nextOutfits.push(outfit);
+      }
+    }
+
+    if (!replaced) {
+      nextOutfits.unshift(savedOutfit);
+    }
+
+    this.outfits = nextOutfits;
   }
 
   private openUnifiedSearch(query: string): void {
@@ -192,6 +275,22 @@ export struct WardrobePage {
           this.closeEditor();
         }
       })
+    } else if (this.showOutfitEditor) {
+      OutfitEditPage({
+        initialOutfit: this.editingOutfit(),
+        clothingItems: this.clothingItems,
+        outfitRepository: this.outfitRepository,
+        photoPickerAdapter: this.photoPickerAdapter,
+        photoStorage: this.photoStorage,
+        onSave: (outfit: OutfitTemplate) => {
+          this.upsertOutfit(outfit);
+          this.closeOutfitEditor();
+          this.selectedWardrobeTab = '美搭';
+        },
+        onCancel: () => {
+          this.closeOutfitEditor();
+        }
+      })
     } else if (this.showUnifiedSearch) {
       SearchResultsPage({
         query: this.unifiedSearchQuery,
@@ -204,6 +303,7 @@ export struct WardrobePage {
     } else {
       Column({ space: 14 }) {
       this.WardrobeSearchHeader()
+      this.WardrobePrimaryTabs()
 
       if (this.loading) {
         Text('loading / 正在加载衣橱...')
@@ -228,9 +328,11 @@ export struct WardrobePage {
         .width('100%')
       }
 
-      this.WardrobeSearchTabs()
+      if (this.selectedWardrobeTab === '衣裤') {
+        this.WardrobeSearchTabs()
+      }
 
-      if (this.visibleClothingItems().length === 0) {
+      if (this.selectedWardrobeTab === '衣裤' && this.visibleClothingItems().length === 0) {
         Column({ space: 10 }) {
           Column({ space: 8 }) {
             Text('衣')
@@ -250,7 +352,7 @@ export struct WardrobePage {
           .backgroundColor(AppTheme.color.primarySoft)
           .borderRadius(8)
 
-          Text('点击 search 旁的加号逻辑添加第一件衣服')
+          Text('点击底部 + 的拍衣服添加第一件衣服')
             .fontSize(15)
             .fontColor(AppTheme.color.text)
 
@@ -262,7 +364,24 @@ export struct WardrobePage {
         .padding(8)
         .borderRadius(AppTheme.radius.lg)
         .backgroundColor(AppTheme.color.surfaceRaised)
-      } else {
+      } else if (this.selectedWardrobeTab === '美搭' && this.visibleOutfits().length === 0) {
+        Column({ space: 10 }) {
+          Text('搭')
+            .fontSize(36)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(YibuqueColor.textPrimary)
+
+          Text('点击底部 + 的拍搭配添加第一套美搭')
+            .fontSize(16)
+            .fontColor(YibuqueColor.textSecondary)
+        }
+        .width('100%')
+        .height(220)
+        .justifyContent(FlexAlign.Center)
+        .alignItems(HorizontalAlign.Center)
+        .backgroundColor(YibuqueColor.cardBlue)
+        .borderRadius(YibuqueRadius.xxl)
+      } else if (this.selectedWardrobeTab === '衣裤') {
         Scroll() {
           Column({ space: 8 }) {
             ForEach(this.visibleClothingItems().slice(0, WARDROBE_TOP_RESULT_COUNT), (item: ClothingItem, index: number) => {
@@ -287,6 +406,24 @@ export struct WardrobePage {
               .scrollBar(BarState.Off)
             }
           }
+          .width('100%')
+          .padding({ bottom: 16 })
+        }
+        .width('100%')
+        .layoutWeight(1)
+        .scrollBar(BarState.Off)
+      } else {
+        Scroll() {
+          Grid() {
+            ForEach(this.visibleOutfits(), (outfit: OutfitTemplate) => {
+              GridItem() {
+                this.OutfitResultCard(outfit)
+              }
+            }, (outfit: OutfitTemplate) => outfit.id)
+          }
+          .columnsTemplate('1fr 1fr')
+          .columnsGap(YibuqueSpacing.md)
+          .rowsGap(YibuqueSpacing.md)
           .width('100%')
           .padding({ bottom: 16 })
         }
@@ -322,7 +459,7 @@ export struct WardrobePage {
         .width(26)
         .height(42)
 
-        TextInput({ text: this.searchQuery, placeholder: '搜索衣服、套装、备注' })
+        TextInput({ text: this.searchQuery, placeholder: '搜索衣服、美搭、备注' })
           .height(42)
           .layoutWeight(1)
           .fontSize(16)
@@ -363,6 +500,30 @@ export struct WardrobePage {
   }
 
   @Builder
+  WardrobePrimaryTabs() {
+    Row({ space: YibuqueSpacing.sm }) {
+      ForEach(['衣裤', '美搭'], (tab: string) => {
+        Text(tab)
+          .height(42)
+          .padding({ left: 22, right: 22 })
+          .fontSize(16)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(this.selectedWardrobeTab === tab ? YibuqueColor.textPrimary : YibuqueColor.textTertiary)
+          .textAlign(TextAlign.Center)
+          .backgroundColor(YibuqueColor.cardWhite)
+          .borderRadius(YibuqueRadius.full)
+          .border({ width: this.selectedWardrobeTab === tab ? 2 : 1, color: this.selectedWardrobeTab === tab ? YibuqueColor.borderStrong : YibuqueColor.borderLight })
+          .onClick(() => {
+            this.selectedWardrobeTab = tab;
+          })
+      }, (tab: string) => tab)
+    }
+    .width('100%')
+    .height(46)
+    .alignItems(VerticalAlign.Center)
+  }
+
+  @Builder
   WardrobeSearchTabs() {
     Scroll() {
       Row({ space: 10 }) {
@@ -372,10 +533,11 @@ export struct WardrobePage {
             .padding({ left: 22, right: 22 })
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
-            .fontColor(this.selectedCategoryLabel === category ? AppTheme.color.surface : AppTheme.color.text)
+            .fontColor(this.selectedCategoryLabel === category ? YibuqueColor.textPrimary : YibuqueColor.textTertiary)
             .textAlign(TextAlign.Center)
-            .backgroundColor(this.selectedCategoryLabel === category ? AppTheme.color.primary : AppTheme.color.surfaceMuted)
-            .borderRadius(21)
+            .backgroundColor(YibuqueColor.cardWhite)
+            .borderRadius(YibuqueRadius.full)
+            .border({ width: this.selectedCategoryLabel === category ? 2 : 1, color: this.selectedCategoryLabel === category ? YibuqueColor.borderStrong : YibuqueColor.borderLight })
             .onClick(() => {
               this.selectedCategoryLabel = category;
             })
@@ -398,20 +560,20 @@ export struct WardrobePage {
           .width('100%')
           .aspectRatio(this.wardrobeCardAspectRatio(index))
           .objectFit(ImageFit.Cover)
-          .borderRadius(8)
+          .borderRadius(24)
       } else {
         Column() {
           Text(categoryLabel(item.category))
             .fontSize(index < 3 ? 34 : 20)
             .fontWeight(FontWeight.Bold)
-            .fontColor(AppTheme.color.primary)
+            .fontColor(YibuqueColor.textPrimary)
         }
         .width('100%')
         .aspectRatio(this.wardrobeCardAspectRatio(index))
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .backgroundColor(AppTheme.color.primarySoft)
-        .borderRadius(8)
+        .backgroundColor(index % 2 === 0 ? YibuqueColor.cardBlue : YibuqueColor.cardMint)
+        .borderRadius(24)
       }
 
       Column()
@@ -430,8 +592,58 @@ export struct WardrobePage {
         .margin({ left: 12, bottom: 10 })
     }
     .width('100%')
+    .borderRadius(24)
+    .clip(true)
+    .shadow(YibuqueShadow.card)
     .onClick(() => {
       this.onEdit(item);
+    })
+  }
+
+  @Builder
+  OutfitResultCard(outfit: OutfitTemplate) {
+    Column({ space: 10 }) {
+      if (this.firstOutfitPhotoUri(outfit).length > 0) {
+        Image(this.firstOutfitPhotoUri(outfit))
+          .width('100%')
+          .height(150)
+          .objectFit(ImageFit.Cover)
+          .borderRadius(24)
+      } else {
+        Column() {
+          Text('搭')
+            .fontSize(28)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(YibuqueColor.textPrimary)
+        }
+        .width('100%')
+        .height(150)
+        .justifyContent(FlexAlign.Center)
+        .alignItems(HorizontalAlign.Center)
+        .backgroundColor(YibuqueColor.cardMint)
+        .borderRadius(24)
+      }
+
+      Text(outfit.title)
+        .fontSize(17)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(YibuqueColor.textPrimary)
+        .maxLines(1)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
+        .width('100%')
+
+      Text(`${outfit.clothingItemIds.length} 件衣物`)
+        .fontSize(13)
+        .fontColor(YibuqueColor.textSecondary)
+        .width('100%')
+    }
+    .width('100%')
+    .padding(10)
+    .backgroundColor(YibuqueColor.cardWhite)
+    .borderRadius(YibuqueRadius.xxl)
+    .shadow(YibuqueShadow.card)
+    .onClick(() => {
+      this.openOutfitEditor(outfit);
     })
   }
 }
