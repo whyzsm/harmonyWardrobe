@@ -50,7 +50,7 @@ for (const needle of [
   mustInclude(tokens, tokenPath, needle);
 }
 
-for (const needle of ['衣不缺', '我的', '44', '48', 'YibuqueColor.textPrimary']) {
+for (const needle of ['衣不缺', '我的', '44', '48', 'profilePressed', '.scale({ x: this.profilePressed ? 0.96 : 1.0', 'YibuqueColor.textPrimary']) {
   mustInclude(topBar, topBarPath, needle);
 }
 

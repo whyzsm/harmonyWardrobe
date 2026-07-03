@@ -2,6 +2,7 @@ import { YibuqueColor, YibuqueFontSize, YibuqueRadius, YibuqueSpacing } from '..
 
 @Component
 export struct AppTopBar {
+  @State private profilePressed: boolean = false;
   onOpenProfile: () => void = () => {};
 
   build() {
@@ -13,10 +14,11 @@ export struct AppTopBar {
             .fontWeight(FontWeight.Bold)
             .fontColor(YibuqueColor.textInverse)
         }
-        .width(32)
-        .height(32)
+        .width(36)
+        .height(36)
         .backgroundColor(YibuqueColor.actionBlack)
         .borderRadius(YibuqueRadius.full)
+        .shadow({ radius: 10, color: '#14000000', offsetX: 0, offsetY: 4 })
 
         Text('衣不缺')
           .fontSize(20)
@@ -27,15 +29,17 @@ export struct AppTopBar {
       .alignItems(VerticalAlign.Center)
 
       Row({ space: YibuqueSpacing.xs }) {
-        Text('我')
-          .width(28)
-          .height(28)
-          .fontSize(13)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(YibuqueColor.textPrimary)
-          .textAlign(TextAlign.Center)
-          .backgroundColor(YibuqueColor.cardSoftGray)
-          .borderRadius(YibuqueRadius.full)
+        Stack({ alignContent: Alignment.Center }) {
+          Text('我')
+            .fontSize(13)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(YibuqueColor.textPrimary)
+            .textAlign(TextAlign.Center)
+        }
+        .width(30)
+        .height(30)
+        .backgroundColor(YibuqueColor.cardMint)
+        .borderRadius(YibuqueRadius.full)
 
         Text('我的')
           .height(44)
@@ -44,14 +48,26 @@ export struct AppTopBar {
           .fontColor(YibuqueColor.textPrimary)
       }
       .height(48)
-      .padding({ left: YibuqueSpacing.sm, right: YibuqueSpacing.sm })
+      .padding({ left: YibuqueSpacing.sm, right: YibuqueSpacing.md })
+      .backgroundColor(YibuqueColor.cardWhite)
       .borderRadius(YibuqueRadius.full)
+      .border({ width: 1, color: YibuqueColor.borderLight })
+      .scale({ x: this.profilePressed ? 0.96 : 1.0, y: this.profilePressed ? 0.96 : 1.0 })
+      .animation({
+        duration: 160,
+        curve: Curve.EaseInOut,
+        playMode: PlayMode.Normal
+      })
+      .onTouch((event: TouchEvent) => {
+        this.profilePressed = event.type === TouchType.Down;
+      })
       .onClick(() => {
+        this.profilePressed = false;
         this.onOpenProfile();
       })
     }
     .width('100%')
-    .height(56)
+    .height(60)
     .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX })
     .backgroundColor(YibuqueColor.bgDefault)
     .alignItems(VerticalAlign.Center)
