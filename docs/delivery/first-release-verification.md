@@ -8,6 +8,8 @@
 
 本轮 UX Researcher 细化基于合成研究，不等同真实访谈；结论是优先提升“我有什么、下一步做什么、保存是否成功”的可见性，因此补充了衣橱/逛店数量摘要、个人信息行内校验、保存成功反馈和更具体的空态说明。
 
+2026-07-04 截图反馈后追加一轮 UX 细化：添加衣服页从工程表单改为图片优先的中文表单，分类选中态和保存动作用黑色胶囊；美搭和逛店编辑页同步移除调试式英文占位；逛店空态区分首次无记录和搜索无结果。
+
 ## 本地验证
 
 已执行以下命令作为交付门禁：
@@ -26,6 +28,8 @@ git diff --check
 
 - 2026-07-04 已通过全部 `scripts/validate-*.mjs`。
 - 2026-07-04 已通过 `git diff --check`。
+- 2026-07-04 追加表单精修后再次通过全部 `scripts/validate-*.mjs`。
+- 2026-07-04 追加表单精修后再次通过 `git diff --check`。
 
 ## 构建验证
 
@@ -36,6 +40,8 @@ git diff --check
 ```
 
 实际结果：`BUILD SUCCESSFUL`。构建过程提示 `No signingConfig found for product default`，这是当前本地调试构建的预期状态；真实设备安装与签名发布验证需要在配置签名材料后补跑。
+
+2026-07-04 追加表单精修后再次执行 entry HAP 构建，结果仍为 `BUILD SUCCESSFUL`，同样仅提示 `No signingConfig found for product default`。
 
 ## 手工 QA
 

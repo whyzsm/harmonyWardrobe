@@ -19,7 +19,10 @@ for (const needle of [
   '拍店铺',
   'filterStoreVisits',
   'visitSummaryText',
+  'isSearching',
   '重试',
+  '没有找到相关逛店记录',
+  '点右上角「拍店铺」记录这次逛店',
   'storeNameSnapshot',
   'districtOrAddress',
   'note'

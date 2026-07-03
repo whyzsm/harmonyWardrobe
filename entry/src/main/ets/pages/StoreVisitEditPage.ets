@@ -9,7 +9,7 @@ import { PhotoSource } from '../media/PhotoModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
 import { toIsoDate } from '../utils/date';
-import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
 
 function optionalText(value: string): string | undefined {
   const trimmed = value.trim();
@@ -139,11 +139,18 @@ export struct StoreVisitEditPage {
     Scroll() {
       Column({ space: YibuqueSpacing.lg }) {
         Row() {
-          Text(this.initialVisit === undefined ? '记录逛店' : '编辑逛店')
-            .fontSize(26)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textPrimary)
-            .layoutWeight(1)
+          Column({ space: YibuqueSpacing.xs }) {
+            Text(this.initialVisit === undefined ? '记录逛店' : '编辑逛店')
+              .fontSize(28)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(YibuqueColor.textPrimary)
+
+            Text('记录店铺、位置和试穿感受。')
+              .fontSize(14)
+              .fontColor(YibuqueColor.textSecondary)
+          }
+          .layoutWeight(1)
+          .alignItems(HorizontalAlign.Start)
 
           Button('取消')
             .height(44)
@@ -164,52 +171,70 @@ export struct StoreVisitEditPage {
         Button('选择店铺照片')
           .height(48)
           .fontSize(16)
-          .fontColor(YibuqueColor.textPrimary)
-          .backgroundColor(YibuqueColor.cardMint)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(YibuqueColor.textInverse)
+          .backgroundColor(YibuqueColor.actionBlack)
           .borderRadius(YibuqueRadius.full)
           .onClick(() => {
             this.pickGalleryPhotos();
           })
 
-        TextInput({ text: this.storeName, placeholder: '店铺名' })
-          .height(48)
-          .fontSize(16)
-          .backgroundColor(YibuqueColor.cardWhite)
-          .borderRadius(YibuqueRadius.md)
-          .border({ width: 1, color: YibuqueColor.borderLight })
-          .onChange((value: string) => {
-            this.storeName = value;
-          })
+        Column({ space: YibuqueSpacing.md }) {
+          Text('店铺信息')
+            .fontSize(18)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(YibuqueColor.textPrimary)
 
-        TextInput({ text: this.districtOrAddress, placeholder: '地址/商圈' })
-          .height(48)
-          .fontSize(16)
-          .backgroundColor(YibuqueColor.cardWhite)
-          .borderRadius(YibuqueRadius.md)
-          .border({ width: 1, color: YibuqueColor.borderLight })
-          .onChange((value: string) => {
-            this.districtOrAddress = value;
-          })
+          TextInput({ text: this.storeName, placeholder: '店铺名' })
+            .height(52)
+            .fontSize(16)
+            .fontColor(YibuqueColor.textPrimary)
+            .placeholderColor(YibuqueColor.textTertiary)
+            .backgroundColor(YibuqueColor.cardSoftGray)
+            .borderRadius(YibuqueRadius.lg)
+            .onChange((value: string) => {
+              this.storeName = value;
+            })
 
-        TextInput({ text: this.visitDate, placeholder: '日期 YYYY-MM-DD' })
-          .height(48)
-          .fontSize(16)
-          .backgroundColor(YibuqueColor.cardWhite)
-          .borderRadius(YibuqueRadius.md)
-          .border({ width: 1, color: YibuqueColor.borderLight })
-          .onChange((value: string) => {
-            this.visitDate = value;
-          })
+          TextInput({ text: this.districtOrAddress, placeholder: '地址或商圈' })
+            .height(52)
+            .fontSize(16)
+            .fontColor(YibuqueColor.textPrimary)
+            .placeholderColor(YibuqueColor.textTertiary)
+            .backgroundColor(YibuqueColor.cardSoftGray)
+            .borderRadius(YibuqueRadius.lg)
+            .onChange((value: string) => {
+              this.districtOrAddress = value;
+            })
 
-        TextInput({ text: this.note, placeholder: 'note / 备注' })
-          .height(72)
-          .fontSize(16)
-          .backgroundColor(YibuqueColor.cardWhite)
-          .borderRadius(YibuqueRadius.md)
-          .border({ width: 1, color: YibuqueColor.borderLight })
-          .onChange((value: string) => {
-            this.note = value;
-          })
+          TextInput({ text: this.visitDate, placeholder: '日期 YYYY-MM-DD' })
+            .height(52)
+            .fontSize(16)
+            .fontColor(YibuqueColor.textPrimary)
+            .placeholderColor(YibuqueColor.textTertiary)
+            .backgroundColor(YibuqueColor.cardSoftGray)
+            .borderRadius(YibuqueRadius.lg)
+            .onChange((value: string) => {
+              this.visitDate = value;
+            })
+
+          TextInput({ text: this.note, placeholder: '试穿备注' })
+            .height(72)
+            .fontSize(16)
+            .fontColor(YibuqueColor.textPrimary)
+            .placeholderColor(YibuqueColor.textTertiary)
+            .backgroundColor(YibuqueColor.cardSoftGray)
+            .borderRadius(YibuqueRadius.lg)
+            .onChange((value: string) => {
+              this.note = value;
+            })
+        }
+        .width('100%')
+        .padding(YibuqueSpacing.lg)
+        .borderRadius(YibuqueRadius.xxl)
+        .backgroundColor(YibuqueColor.cardWhite)
+        .shadow(YibuqueShadow.card)
+        .alignItems(HorizontalAlign.Start)
 
         if (this.errorMessage.length > 0) {
           Text(this.errorMessage)
@@ -231,7 +256,7 @@ export struct StoreVisitEditPage {
           })
       }
       .width('100%')
-      .padding(YibuqueSpacing.pageX)
+      .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.xxl, bottom: YibuqueSpacing.xxl })
       .alignItems(HorizontalAlign.Start)
     }
     .width('100%')

@@ -32,7 +32,21 @@ for (const needle of [
   'maxSelectNumber = 1',
   'copyToAppStorage',
   'createClothing',
-  'updateClothing'
+  'updateClothing',
+  'YibuqueColor',
+  'YibuqueRadius',
+  'YibuqueShadow',
+  'YibuqueColor.actionBlack',
+  '添加衣服照片',
+  '基础信息',
+  '衣物名称',
+  '分类',
+  '备注',
+  '购买信息',
+  '购买门店',
+  '价格',
+  '购买备注',
+  '保存衣服'
 ]) {
   if (!editPage.includes(needle)) {
     throw new Error(`ClothingEditPage missing ${needle}`);
@@ -41,7 +55,15 @@ for (const needle of [
 
 for (const forbidden of [
   "Button('拍照')",
-  'capturePhoto()'
+  'capturePhoto()',
+  'name / 衣物名称',
+  'category / 分类',
+  'note / 备注',
+  'purchase / 购买信息',
+  'storeName / 门店',
+  'price / 价格',
+  'purchase note / 购买备注',
+  'AppTheme.color.primary'
 ]) {
   if (editPage.includes(forbidden)) {
     throw new Error(`ClothingEditPage must not include ${forbidden}`);

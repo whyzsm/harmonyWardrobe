@@ -17,15 +17,28 @@ for (const needle of [
   'updateStoreVisit',
   'createStore',
   '保存逛店',
-  'storeNameSnapshot'
+  'storeNameSnapshot',
+  'YibuqueColor',
+  'YibuqueRadius',
+  'YibuqueShadow',
+  'YibuqueColor.actionBlack',
+  '店铺信息',
+  '地址或商圈',
+  '试穿备注'
 ]) {
   if (!text.includes(needle)) {
     throw new Error(`${file} missing ${needle}`);
   }
 }
 
-if (text.includes('WishlistRepository')) {
-  throw new Error(`${file} must not import WishlistRepository`);
+for (const forbidden of [
+  'WishlistRepository',
+  'note / 备注',
+  'AppTheme.color.primary'
+]) {
+  if (text.includes(forbidden)) {
+    throw new Error(`${file} must not include ${forbidden}`);
+  }
 }
 
 console.log('PASS');

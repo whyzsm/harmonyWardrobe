@@ -92,10 +92,7 @@ for (const file of mainPageFiles) {
 }
 
 const flowFiles = [
-  'entry/src/main/ets/pages/ClothingEditPage.ets',
-  'entry/src/main/ets/pages/OutfitEditPage.ets',
   'entry/src/main/ets/pages/SearchResultsPage.ets',
-  'entry/src/main/ets/components/ClothingPicker.ets',
   'entry/src/main/ets/components/OutfitPicker.ets',
   'entry/src/main/ets/components/PhotoGrid.ets'
 ];
@@ -109,7 +106,10 @@ for (const file of flowFiles) {
 }
 
 const yibuqueFlowFiles = [
-  'entry/src/main/ets/pages/StoreVisitEditPage.ets'
+  'entry/src/main/ets/pages/ClothingEditPage.ets',
+  'entry/src/main/ets/pages/OutfitEditPage.ets',
+  'entry/src/main/ets/pages/StoreVisitEditPage.ets',
+  'entry/src/main/ets/components/ClothingPicker.ets'
 ];
 
 for (const file of yibuqueFlowFiles) {

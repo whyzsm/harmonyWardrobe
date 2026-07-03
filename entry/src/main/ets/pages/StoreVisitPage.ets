@@ -90,6 +90,10 @@ export struct StoreVisitPage {
     return `${this.visits.length} 条逛店记录`;
   }
 
+  private isSearching(): boolean {
+    return this.searchQuery.trim().length > 0;
+  }
+
   private upsertVisit(savedVisit: StoreVisit): void {
     const nextVisits: StoreVisit[] = [];
     let replaced = false;
@@ -189,31 +193,55 @@ export struct StoreVisitPage {
         }
 
         if (this.filterStoreVisits().length === 0) {
-          Column({ space: YibuqueSpacing.sm }) {
-            Text('店')
-              .fontSize(34)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(YibuqueColor.textPrimary)
+          Column({ space: YibuqueSpacing.lg }) {
+            Row() {
+              Column({ space: YibuqueSpacing.xs }) {
+                Text(this.isSearching() ? '没有找到相关逛店记录' : '还没有逛店记录')
+                  .fontSize(21)
+                  .fontWeight(FontWeight.Bold)
+                  .fontColor(YibuqueColor.textPrimary)
 
-            Text('还没有逛店记录')
-              .fontSize(20)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(YibuqueColor.textPrimary)
+                Text(this.isSearching() ? '试试店铺名、商圈或备注关键词。' : '点右上角「拍店铺」记录这次逛店。')
+                  .fontSize(15)
+                  .fontColor(YibuqueColor.textSecondary)
+              }
+              .layoutWeight(1)
+              .alignItems(HorizontalAlign.Start)
 
-            Text('点击底部 + 的拍店铺添加逛店记录')
-              .fontSize(16)
-              .fontColor(YibuqueColor.textSecondary)
+              Stack({ alignContent: Alignment.Center }) {
+                Text('店')
+                  .fontSize(28)
+                  .fontWeight(FontWeight.Bold)
+                  .fontColor(YibuqueColor.textPrimary)
+              }
+              .width(64)
+              .height(64)
+              .backgroundColor(YibuqueColor.cardMint)
+              .borderRadius(YibuqueRadius.xl)
+            }
+            .width('100%')
+            .alignItems(VerticalAlign.Center)
 
-            Text('逛店时先拍店铺，再补地址和试穿备注。')
-              .fontSize(13)
-              .fontColor(YibuqueColor.textTertiary)
+            if (!this.isSearching()) {
+              Button('拍店铺')
+                .height(48)
+                .width('100%')
+                .fontSize(16)
+                .fontWeight(FontWeight.Bold)
+                .fontColor(YibuqueColor.textInverse)
+                .backgroundColor(YibuqueColor.actionBlack)
+                .borderRadius(YibuqueRadius.full)
+                .onClick(() => {
+                  this.openCreateEditor();
+                })
+            }
           }
           .width('100%')
-          .height(220)
-          .justifyContent(FlexAlign.Center)
-          .alignItems(HorizontalAlign.Center)
-          .backgroundColor(YibuqueColor.cardMint)
+          .padding(YibuqueSpacing.xl)
+          .alignItems(HorizontalAlign.Start)
+          .backgroundColor(YibuqueColor.cardWhite)
           .borderRadius(YibuqueRadius.xxl)
+          .border({ width: 1, color: YibuqueColor.borderLight })
         } else {
           Scroll() {
             Column({ space: YibuqueSpacing.md }) {

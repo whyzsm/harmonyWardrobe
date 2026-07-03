@@ -30,7 +30,15 @@ for (const needle of [
   'capturePhoto',
   'copyToAppStorage',
   'createOutfit',
-  'updateOutfit'
+  'updateOutfit',
+  'YibuqueColor',
+  'YibuqueRadius',
+  'YibuqueShadow',
+  'YibuqueColor.actionBlack',
+  '美搭信息',
+  '美搭名称',
+  '备注',
+  '保存美搭'
 ]) {
   if (!editPage.includes(needle)) {
     throw new Error(`OutfitEditPage missing ${needle}`);
@@ -43,10 +51,24 @@ for (const needle of [
   'selectedIds',
   'onToggle',
   'ForEach',
-  'includes'
+  'includes',
+  'YibuqueColor.actionBlack'
 ]) {
   if (!picker.includes(needle)) {
     throw new Error(`ClothingPicker missing ${needle}`);
+  }
+}
+
+for (const forbidden of [
+  'title / 美搭名称',
+  'note / 备注',
+  'AppTheme.color.primary'
+]) {
+  if (editPage.includes(forbidden)) {
+    throw new Error(`OutfitEditPage must not include ${forbidden}`);
+  }
+  if (picker.includes(forbidden)) {
+    throw new Error(`ClothingPicker must not include ${forbidden}`);
   }
 }
 

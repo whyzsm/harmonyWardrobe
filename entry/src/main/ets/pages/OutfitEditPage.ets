@@ -10,7 +10,7 @@ import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { PhotoSource } from '../media/PhotoModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { AppTheme } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
 
 function optionalText(value: string): string | undefined {
   const trimmed = value.trim();
@@ -131,28 +131,28 @@ export struct OutfitEditPage {
 
   build() {
     Scroll() {
-      Column({ space: 16 }) {
+      Column({ space: YibuqueSpacing.lg }) {
         Row() {
-          Column({ space: 4 }) {
+          Column({ space: YibuqueSpacing.xs }) {
             Text(this.initialOutfit === undefined ? '创建美搭' : '编辑美搭')
               .fontSize(28)
               .fontWeight(FontWeight.Bold)
-              .fontColor(AppTheme.color.text)
+              .fontColor(YibuqueColor.textPrimary)
 
             Text('选择衣物、照片和备注，保存为常用搭配。')
               .fontSize(14)
-              .fontColor(AppTheme.color.textMuted)
+              .fontColor(YibuqueColor.textSecondary)
           }
           .layoutWeight(1)
           .alignItems(HorizontalAlign.Start)
 
           Button('取消')
-            .height(40)
-            .fontSize(14)
-            .fontColor(AppTheme.color.textMuted)
-            .backgroundColor(AppTheme.color.surface)
-            .borderRadius(8)
-            .border({ width: 1, color: AppTheme.color.border })
+            .height(44)
+            .fontSize(15)
+            .fontColor(YibuqueColor.textSecondary)
+            .backgroundColor(YibuqueColor.cardWhite)
+            .borderRadius(YibuqueRadius.full)
+            .border({ width: 1, color: YibuqueColor.borderLight })
             .onClick(() => {
               this.onCancel();
             })
@@ -162,82 +162,101 @@ export struct OutfitEditPage {
 
         PhotoGrid({ photoUris: this.photoUris })
 
-        Row({ space: 10 }) {
+        Row({ space: YibuqueSpacing.md }) {
           Button('从相册选择')
-            .height(40)
-            .fontSize(14)
-            .backgroundColor(AppTheme.color.primary)
-            .fontColor(AppTheme.color.surface)
-            .borderRadius(8)
+            .height(48)
+            .layoutWeight(1)
+            .fontSize(15)
+            .fontWeight(FontWeight.Bold)
+            .backgroundColor(YibuqueColor.actionBlack)
+            .fontColor(YibuqueColor.textInverse)
+            .borderRadius(YibuqueRadius.full)
             .onClick(() => {
               this.pickGalleryPhotos();
             })
 
           Button('拍照')
-            .height(40)
-            .fontSize(14)
-            .backgroundColor(AppTheme.color.surface)
-            .fontColor(AppTheme.color.primary)
-            .borderRadius(8)
-            .border({ width: 1, color: AppTheme.color.border })
+            .height(48)
+            .layoutWeight(1)
+            .fontSize(15)
+            .fontColor(YibuqueColor.textPrimary)
+            .backgroundColor(YibuqueColor.cardWhite)
+            .borderRadius(YibuqueRadius.full)
+            .border({ width: 1, color: YibuqueColor.borderLight })
             .onClick(() => {
               this.capturePhoto();
             })
         }
         .width('100%')
 
-        TextInput({ text: this.title, placeholder: 'title / 美搭名称' })
-          .height(44)
-          .fontSize(15)
-          .backgroundColor(AppTheme.color.surface)
-          .borderRadius(8)
-          .border({ width: 1, color: AppTheme.color.border })
-          .onChange((value: string) => {
-            this.title = value;
+        Column({ space: YibuqueSpacing.md }) {
+          Text('美搭信息')
+            .fontSize(18)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(YibuqueColor.textPrimary)
+
+          TextInput({ text: this.title, placeholder: '美搭名称' })
+            .height(52)
+            .fontSize(16)
+            .fontColor(YibuqueColor.textPrimary)
+            .placeholderColor(YibuqueColor.textTertiary)
+            .backgroundColor(YibuqueColor.cardSoftGray)
+            .borderRadius(YibuqueRadius.lg)
+            .onChange((value: string) => {
+              this.title = value;
+            })
+
+          ClothingPicker({
+            items: this.clothingItems,
+            selectedIds: this.clothingItemIds,
+            onToggle: (id: string) => {
+              this.toggleClothingItem(id);
+            }
           })
 
-        ClothingPicker({
-          items: this.clothingItems,
-          selectedIds: this.clothingItemIds,
-          onToggle: (id: string) => {
-            this.toggleClothingItem(id);
-          }
-        })
-
-        TextInput({ text: this.note, placeholder: 'note / 备注' })
-          .height(44)
-          .fontSize(15)
-          .backgroundColor(AppTheme.color.surface)
-          .borderRadius(8)
-          .border({ width: 1, color: AppTheme.color.border })
-          .onChange((value: string) => {
-            this.note = value;
-          })
+          TextInput({ text: this.note, placeholder: '备注' })
+            .height(56)
+            .fontSize(16)
+            .fontColor(YibuqueColor.textPrimary)
+            .placeholderColor(YibuqueColor.textTertiary)
+            .backgroundColor(YibuqueColor.cardSoftGray)
+            .borderRadius(YibuqueRadius.lg)
+            .onChange((value: string) => {
+              this.note = value;
+            })
+        }
+        .width('100%')
+        .padding(YibuqueSpacing.lg)
+        .borderRadius(YibuqueRadius.xxl)
+        .backgroundColor(YibuqueColor.cardWhite)
+        .shadow(YibuqueShadow.card)
+        .alignItems(HorizontalAlign.Start)
 
         if (this.errorMessage.length > 0) {
           Text(this.errorMessage)
             .fontSize(13)
-            .fontColor(AppTheme.color.danger)
+            .fontColor('#EF4444')
         }
 
         Button(this.isSaving ? '保存中...' : '保存美搭')
-          .height(44)
+          .height(56)
           .width('100%')
-          .fontSize(15)
-          .fontColor(AppTheme.color.surface)
-          .backgroundColor(this.canSave() ? AppTheme.color.primary : AppTheme.color.disabled)
-          .borderRadius(8)
+          .fontSize(17)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(YibuqueColor.textInverse)
+          .backgroundColor(this.canSave() ? YibuqueColor.actionBlack : YibuqueColor.textDisabled)
+          .borderRadius(YibuqueRadius.full)
           .enabled(this.canSave())
           .onClick(() => {
             this.saveOutfit();
           })
       }
       .width('100%')
-      .padding(20)
+      .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.xxl, bottom: YibuqueSpacing.xxl })
       .alignItems(HorizontalAlign.Start)
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(AppTheme.color.surfaceMuted)
+    .backgroundColor(YibuqueColor.bgBlueGray)
   }
 }
