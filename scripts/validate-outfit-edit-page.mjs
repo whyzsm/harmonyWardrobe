@@ -26,6 +26,10 @@ for (const needle of [
   'isSaving',
   'canSave',
   'saveOutfit',
+  'PhotoSelector',
+  'hasSelectedPhoto',
+  'normalizedTitle',
+  'formatTimeForTitle',
   'pickGalleryPhotos',
   'capturePhoto',
   'copyToAppStorage',
@@ -35,14 +39,29 @@ for (const needle of [
   'YibuqueRadius',
   'YibuqueShadow',
   'YibuqueColor.actionBlack',
-  '美搭信息',
-  '美搭名称',
+  '添加搭配照片',
+  '图片必填，其余信息都可选填',
+  '美搭信息（选填）',
+  '美搭名称，可不填',
   '备注',
-  '保存美搭'
+  '保存美搭',
+  '先添加照片'
 ]) {
   if (!editPage.includes(needle)) {
     throw new Error(`OutfitEditPage missing ${needle}`);
   }
+}
+
+if (!/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?return\s+!this\.isSaving\s*&&\s*this\.photoUris\.length\s*>\s*0/.test(editPage)) {
+  throw new Error('OutfitEditPage save gate must only require at least one photo');
+}
+
+if (editPage.includes('this.title.trim().length > 0 &&')) {
+  throw new Error('OutfitEditPage must not require a title to save');
+}
+
+if (!/title:\s*this\.normalizedTitle\(\)/.test(editPage)) {
+  throw new Error('OutfitEditPage must save a normalized/generated title');
 }
 
 for (const needle of [

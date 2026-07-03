@@ -43,6 +43,10 @@ function formatDateForStorage(date: Date): string {
   return `${date.getFullYear()}-${padTwoDigits(date.getMonth() + 1)}-${padTwoDigits(date.getDate())}`;
 }
 
+function formatTimeForName(date: Date): string {
+  return `${padTwoDigits(date.getMonth() + 1)}-${padTwoDigits(date.getDate())} ${padTwoDigits(date.getHours())}:${padTwoDigits(date.getMinutes())}`;
+}
+
 function dateFromStorage(value: string): Date {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
   if (match === null) {
@@ -102,7 +106,7 @@ export struct ClothingEditPage {
   }
 
   private canSave(): boolean {
-    return !this.isSaving && this.name.trim().length > 0;
+    return !this.isSaving && this.hasSelectedPhoto();
   }
 
   private hasSelectedPhoto(): boolean {
@@ -137,6 +141,15 @@ export struct ClothingEditPage {
     }
 
     return info;
+  }
+
+  private generatedName(): string {
+    return `${labelForCategory(this.category)} ${formatTimeForName(new Date())}`;
+  }
+
+  private normalizedName(): string {
+    const trimmedName = this.name.trim();
+    return trimmedName.length > 0 ? trimmedName : this.generatedName();
   }
 
   private openPurchaseDatePicker(): void {
@@ -180,6 +193,9 @@ export struct ClothingEditPage {
 
       this.previewPhotoUri = selectedUri;
       this.photoUris = [selectedUri];
+      if (this.name.trim().length === 0) {
+        this.name = this.generatedName();
+      }
 
       try {
         const localUris = await this.copySourcesToLocalUris([{
@@ -204,7 +220,7 @@ export struct ClothingEditPage {
 
   private createInput(): CreateClothingInput {
     return {
-      name: this.name,
+      name: this.normalizedName(),
       category: this.category,
       photoUris: this.photoUris,
       note: optionalText(this.note),
@@ -215,7 +231,7 @@ export struct ClothingEditPage {
   private updateInput(id: string): UpdateClothingInput {
     return {
       id,
-      name: this.name,
+      name: this.normalizedName(),
       category: this.category,
       photoUris: this.photoUris,
       note: optionalText(this.note),
@@ -320,7 +336,7 @@ export struct ClothingEditPage {
               .fontWeight(FontWeight.Bold)
               .fontColor(YibuqueColor.textPrimary)
 
-            Text('先放照片，再补分类和购买信息。')
+            Text('选图后会自动生成名称，其余信息都可选填。')
               .fontSize(14)
               .fontColor(YibuqueColor.textSecondary)
           }
@@ -344,12 +360,12 @@ export struct ClothingEditPage {
         this.PhotoSelector()
 
         Column({ space: YibuqueSpacing.md }) {
-          Text('基础信息')
+          Text('基础信息（选填）')
             .fontSize(18)
             .fontWeight(FontWeight.Bold)
             .fontColor(YibuqueColor.textPrimary)
 
-          TextInput({ text: this.name, placeholder: '衣物名称' })
+          TextInput({ text: this.name, placeholder: '自动生成衣物名称，可修改' })
             .height(52)
             .fontSize(16)
             .fontColor(YibuqueColor.textPrimary)
@@ -506,7 +522,7 @@ export struct ClothingEditPage {
             .fontColor('#EF4444')
         }
 
-        Button(this.isSaving ? '保存中...' : '保存衣服')
+        Button(this.isSaving ? '保存中...' : (this.hasSelectedPhoto() ? '保存衣服' : '先添加照片'))
           .height(56)
           .width('100%')
           .fontSize(17)

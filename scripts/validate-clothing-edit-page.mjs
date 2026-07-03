@@ -27,6 +27,9 @@ for (const needle of [
   'isSaving',
   'canSave',
   'saveClothing',
+  'generatedName',
+  'normalizedName',
+  'formatTimeForName',
   'pickGalleryPhotos',
   'PhotoViewPicker',
   'maxSelectNumber = 1',
@@ -38,8 +41,8 @@ for (const needle of [
   'YibuqueShadow',
   'YibuqueColor.actionBlack',
   '添加衣服照片',
-  '基础信息',
-  '衣物名称',
+  '基础信息（选填）',
+  '自动生成衣物名称，可修改',
   '分类',
   '备注',
   '购买信息',
@@ -68,6 +71,18 @@ for (const forbidden of [
   if (editPage.includes(forbidden)) {
     throw new Error(`ClothingEditPage must not include ${forbidden}`);
   }
+}
+
+if (!/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?return\s+!this\.isSaving\s*&&\s*this\.hasSelectedPhoto\(\)/.test(editPage)) {
+  throw new Error('ClothingEditPage save gate must only require a selected photo');
+}
+
+if (!/this\.name\s*=\s*this\.generatedName\(\)/.test(editPage)) {
+  throw new Error('ClothingEditPage must auto-fill a generated name after photo selection');
+}
+
+if (!/name:\s*this\.normalizedName\(\)/.test(editPage)) {
+  throw new Error('ClothingEditPage must save a normalized/generated name');
 }
 
 if (!/this\.previewPhotoUri\s*=\s*selectedUri;[\s\S]*?this\.photoUris\s*=\s*\[\s*selectedUri\s*\];[\s\S]*?try\s*{[\s\S]*?copySourcesToLocalUris/.test(editPage)) {

@@ -25,11 +25,12 @@ const cardPath = 'entry/src/main/ets/components/OutfitCard.ets';
 const page = read(pagePath);
 const card = read(cardPath);
 
-for (const needle of ['创建美搭', '编辑美搭', '保存美搭', '美搭名称']) {
+for (const needle of ['创建美搭', '编辑美搭', '保存美搭', '美搭名称', '美搭名称，可不填']) {
   mustInclude(page, pagePath, needle);
 }
 
-mustInclude(page, pagePath, 'this.clothingItemIds.length > 0 || this.photoUris.length > 0');
+mustInclude(page, pagePath, 'this.photoUris.length > 0');
+mustInclude(page, pagePath, 'normalizedTitle');
 mustInclude(card, cardPath, '美搭');
 
 for (const forbidden of ['创建套装', '编辑套装', '保存套装', '套装名称', "Text('套装')"]) {

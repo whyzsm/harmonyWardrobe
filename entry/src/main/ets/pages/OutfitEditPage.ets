@@ -17,6 +17,14 @@ function optionalText(value: string): string | undefined {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
+function padTwoDigits(value: number): string {
+  return value < 10 ? `0${value}` : `${value}`;
+}
+
+function formatTimeForTitle(date: Date): string {
+  return `${padTwoDigits(date.getMonth() + 1)}-${padTwoDigits(date.getDate())} ${padTwoDigits(date.getHours())}:${padTwoDigits(date.getMinutes())}`;
+}
+
 @Component
 export struct OutfitEditPage {
   @Prop initialOutfit?: OutfitTemplate = undefined;
@@ -46,7 +54,16 @@ export struct OutfitEditPage {
   }
 
   private canSave(): boolean {
-    return !this.isSaving && this.title.trim().length > 0 && (this.clothingItemIds.length > 0 || this.photoUris.length > 0);
+    return !this.isSaving && this.photoUris.length > 0;
+  }
+
+  private hasSelectedPhoto(): boolean {
+    return this.photoUris.length > 0;
+  }
+
+  private normalizedTitle(): string {
+    const trimmedTitle = this.title.trim();
+    return trimmedTitle.length > 0 ? trimmedTitle : `美搭 ${formatTimeForTitle(new Date())}`;
   }
 
   private toggleClothingItem(id: string): void {
@@ -92,7 +109,7 @@ export struct OutfitEditPage {
 
   private createInput(): CreateOutfitInput {
     return {
-      title: this.title,
+      title: this.normalizedTitle(),
       photoUris: this.photoUris,
       clothingItemIds: this.clothingItemIds,
       note: optionalText(this.note)
@@ -102,7 +119,7 @@ export struct OutfitEditPage {
   private updateInput(id: string): UpdateOutfitInput {
     return {
       id,
-      title: this.title,
+      title: this.normalizedTitle(),
       photoUris: this.photoUris,
       clothingItemIds: this.clothingItemIds,
       note: optionalText(this.note)
@@ -129,6 +146,69 @@ export struct OutfitEditPage {
     }
   }
 
+  @Builder
+  PhotoSelector() {
+    Column({ space: YibuqueSpacing.md }) {
+      if (this.hasSelectedPhoto()) {
+        PhotoGrid({ photoUris: this.photoUris })
+      } else {
+        Column({ space: YibuqueSpacing.sm }) {
+          Text('+')
+            .fontSize(34)
+            .fontWeight(FontWeight.Medium)
+            .fontColor(YibuqueColor.textPrimary)
+
+          Text('添加搭配照片')
+            .fontSize(17)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(YibuqueColor.textPrimary)
+
+          Text('图片必填，其余信息都可选填')
+            .fontSize(13)
+            .fontColor(YibuqueColor.textSecondary)
+        }
+        .width('100%')
+        .height(176)
+        .justifyContent(FlexAlign.Center)
+        .alignItems(HorizontalAlign.Center)
+        .backgroundColor(YibuqueColor.cardWhite)
+        .borderRadius(YibuqueRadius.xxl)
+        .border({ width: 1, color: YibuqueColor.borderLight })
+        .onClick(() => {
+          this.pickGalleryPhotos();
+        })
+      }
+
+      Row({ space: YibuqueSpacing.md }) {
+        Button(this.hasSelectedPhoto() ? '继续选图' : '从相册选择')
+          .height(48)
+          .layoutWeight(1)
+          .fontSize(15)
+          .fontWeight(FontWeight.Bold)
+          .backgroundColor(YibuqueColor.actionBlack)
+          .fontColor(YibuqueColor.textInverse)
+          .borderRadius(YibuqueRadius.full)
+          .onClick(() => {
+            this.pickGalleryPhotos();
+          })
+
+        Button('拍照')
+          .height(48)
+          .layoutWeight(1)
+          .fontSize(15)
+          .fontColor(YibuqueColor.textPrimary)
+          .backgroundColor(YibuqueColor.cardWhite)
+          .borderRadius(YibuqueRadius.full)
+          .border({ width: 1, color: YibuqueColor.borderLight })
+          .onClick(() => {
+            this.capturePhoto();
+          })
+      }
+      .width('100%')
+    }
+    .width('100%')
+  }
+
   build() {
     Scroll() {
       Column({ space: YibuqueSpacing.lg }) {
@@ -139,7 +219,7 @@ export struct OutfitEditPage {
               .fontWeight(FontWeight.Bold)
               .fontColor(YibuqueColor.textPrimary)
 
-            Text('选择衣物、照片和备注，保存为常用搭配。')
+            Text('添加搭配照片即可保存，其余信息都可选填。')
               .fontSize(14)
               .fontColor(YibuqueColor.textSecondary)
           }
@@ -160,42 +240,15 @@ export struct OutfitEditPage {
         .width('100%')
         .alignItems(VerticalAlign.Center)
 
-        PhotoGrid({ photoUris: this.photoUris })
-
-        Row({ space: YibuqueSpacing.md }) {
-          Button('从相册选择')
-            .height(48)
-            .layoutWeight(1)
-            .fontSize(15)
-            .fontWeight(FontWeight.Bold)
-            .backgroundColor(YibuqueColor.actionBlack)
-            .fontColor(YibuqueColor.textInverse)
-            .borderRadius(YibuqueRadius.full)
-            .onClick(() => {
-              this.pickGalleryPhotos();
-            })
-
-          Button('拍照')
-            .height(48)
-            .layoutWeight(1)
-            .fontSize(15)
-            .fontColor(YibuqueColor.textPrimary)
-            .backgroundColor(YibuqueColor.cardWhite)
-            .borderRadius(YibuqueRadius.full)
-            .border({ width: 1, color: YibuqueColor.borderLight })
-            .onClick(() => {
-              this.capturePhoto();
-            })
-        }
-        .width('100%')
+        this.PhotoSelector()
 
         Column({ space: YibuqueSpacing.md }) {
-          Text('美搭信息')
+          Text('美搭信息（选填）')
             .fontSize(18)
             .fontWeight(FontWeight.Bold)
             .fontColor(YibuqueColor.textPrimary)
 
-          TextInput({ text: this.title, placeholder: '美搭名称' })
+          TextInput({ text: this.title, placeholder: '美搭名称，可不填' })
             .height(52)
             .fontSize(16)
             .fontColor(YibuqueColor.textPrimary)
@@ -238,7 +291,7 @@ export struct OutfitEditPage {
             .fontColor('#EF4444')
         }
 
-        Button(this.isSaving ? '保存中...' : '保存美搭')
+        Button(this.isSaving ? '保存中...' : (this.hasSelectedPhoto() ? '保存美搭' : '先添加照片'))
           .height(56)
           .width('100%')
           .fontSize(17)
