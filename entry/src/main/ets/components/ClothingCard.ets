@@ -5,6 +5,16 @@ export struct ClothingCard {
   @Prop name: string = '';
   @Prop category: string = '';
   @Prop photoUri: string = '';
+  @State private cardScale: number = 0.95;
+  @State private cardOpacity: number = 0;
+  onClick: () => void = () => {};
+
+  aboutToAppear() {
+    setTimeout(() => {
+      this.cardOpacity = 1;
+      this.cardScale = 1;
+    }, 50);
+  }
 
   build() {
     Column({ space: 8 }) {
@@ -50,5 +60,19 @@ export struct ClothingCard {
     .borderRadius(AppTheme.radius.lg)
     .backgroundColor(AppTheme.color.surfaceRaised)
     .shadow({ radius: 8, color: '#14000000', offsetX: 0, offsetY: 3 })
+    .scale({ x: this.cardScale, y: this.cardScale })
+    .opacity(this.cardOpacity)
+    .animation({
+      duration: 300,
+      curve: Curve.Smooth,
+      playMode: PlayMode.Normal
+    })
+    .onClick(() => {
+      this.cardScale = 1;
+      this.onClick();
+    })
+    .onTouch((event: TouchEvent) => {
+      this.cardScale = event.type === TouchType.Down ? 0.97 : 1;
+    })
   }
 }

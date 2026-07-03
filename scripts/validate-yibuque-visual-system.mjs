@@ -58,7 +58,7 @@ for (const needle of ['衣橱', '逛店', '+', 'actionBlack', '44', 'bottomSafe'
   mustInclude(nav, navPath, needle);
 }
 
-for (const needle of ['拍衣服', '拍搭配', '拍店铺', 'sheet', 'actionBlack', '56']) {
+for (const needle of ['拍衣服', '拍搭配', '拍店铺', 'sheet', 'actionBlack', '64']) {
   mustInclude(quickSheet, quickSheetPath, needle);
 }
 

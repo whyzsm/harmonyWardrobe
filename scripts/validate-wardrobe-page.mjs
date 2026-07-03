@@ -21,13 +21,14 @@ for (const needle of [
   'WARDROBE_TOP_RESULT_COUNT',
   'slice(0, WARDROBE_TOP_RESULT_COUNT)',
   'slice(WARDROBE_TOP_RESULT_COUNT)',
-  "Text('search')",
+  "Text('搜索')",
   "'上衣'",
   "'裤子'",
   "'短裤'",
   "'长裙'",
   "'半裙'",
-  '`NO. ${index + 1}`',
+  'Text(item.name)',
+  'Text(categoryLabel(item.category))',
   '点击底部 + 的拍衣服',
   '点击底部 + 的拍搭配',
   '.cachedCount(8)',
@@ -52,7 +53,7 @@ if (!/WardrobeSearchTabs\(\)[\s\S]*?Scroll\(\)[\s\S]*?Row\(\{ space: 10 \}\)[\s\
   throw new Error('Wardrobe search tabs must be wrapped in a horizontal Scroll');
 }
 
-for (const forbidden of ['SearchBar', 'CategoryTabs', 'ClothingCard', '添加衣服', '套装', "Text('衣橱')"]) {
+for (const forbidden of ['SearchBar', 'CategoryTabs', 'ClothingCard', '添加衣服', '套装', "Text('衣橱')", "Text('search')", "'loading /", "'error /", "Button('retry')", '`NO. ${index + 1}`']) {
   if (text.includes(forbidden)) {
     throw new Error(`WardrobePage should follow the search result layout and omit ${forbidden}`);
   }

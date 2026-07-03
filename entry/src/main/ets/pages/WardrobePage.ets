@@ -306,19 +306,19 @@ export struct WardrobePage {
       this.WardrobePrimaryTabs()
 
       if (this.loading) {
-        Text('loading / 正在加载衣橱...')
+        Text('正在加载衣橱...')
           .fontSize(14)
           .fontColor(AppTheme.color.textMuted)
       }
 
       if (this.errorMessage.length > 0) {
         Row({ space: 8 }) {
-          Text(`error / ${this.errorMessage}`)
+          Text(this.errorMessage)
             .fontSize(14)
             .fontColor(AppTheme.color.danger)
             .layoutWeight(1)
 
-          Button('retry')
+          Button('重试')
             .height(34)
             .fontSize(13)
             .onClick(() => {
@@ -476,7 +476,7 @@ export struct WardrobePage {
           .color(AppTheme.color.border)
           .strokeWidth(1)
 
-        Text('search')
+        Text('搜索')
           .width(76)
           .height(42)
           .fontSize(17)
@@ -585,11 +585,22 @@ export struct WardrobePage {
         })
         .borderRadius({ bottomLeft: 8, bottomRight: 8 })
 
-      Text(`NO. ${index + 1}`)
-        .fontSize(index < 3 ? 16 : 13)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(AppTheme.color.surface)
-        .margin({ left: 12, bottom: 10 })
+      Column({ space: 2 }) {
+        Text(item.name)
+          .fontSize(index < 3 ? 16 : 13)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(AppTheme.color.surface)
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+        Text(categoryLabel(item.category))
+          .fontSize(11)
+          .fontColor(AppTheme.color.surface)
+          .opacity(0.86)
+      }
+      .width('80%')
+      .alignItems(HorizontalAlign.Start)
+      .margin({ left: 12, bottom: 10 })
     }
     .width('100%')
     .borderRadius(24)
