@@ -260,6 +260,18 @@ export struct WardrobePage {
     this.openUnifiedSearch(this.searchQuery);
   }
 
+  private wardrobeSummaryText(): string {
+    if (this.selectedWardrobeTab === '美搭') {
+      return this.searchQuery.trim().length > 0
+        ? `找到 ${this.visibleOutfits().length} 套美搭`
+        : `${this.outfits.length} 套美搭`;
+    }
+
+    return this.searchQuery.trim().length > 0
+      ? `找到 ${this.visibleClothingItems().length} 件衣物`
+      : `${this.clothingItems.length} 件衣物`;
+  }
+
   build() {
     if (this.showEditor) {
       ClothingEditPage({
@@ -305,6 +317,11 @@ export struct WardrobePage {
       this.WardrobeSearchHeader()
       this.WardrobePrimaryTabs()
 
+      Text(this.wardrobeSummaryText())
+        .fontSize(14)
+        .fontColor(YibuqueColor.textSecondary)
+        .width('100%')
+
       if (this.loading) {
         Text('正在加载衣橱...')
           .fontSize(14)
@@ -344,6 +361,10 @@ export struct WardrobePage {
               .fontSize(16)
               .fontWeight(FontWeight.Medium)
               .fontColor(AppTheme.color.text)
+
+            Text('拍照或从相册选图后，按分类收进衣橱。')
+              .fontSize(13)
+              .fontColor(AppTheme.color.textMuted)
           }
           .width('100%')
           .height(190)

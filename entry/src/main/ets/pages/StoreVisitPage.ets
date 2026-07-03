@@ -81,6 +81,15 @@ export struct StoreVisitPage {
     this.loadStoreVisits();
   }
 
+  private visitSummaryText(): string {
+    const visibleCount = this.filterStoreVisits().length;
+    if (this.searchQuery.trim().length > 0) {
+      return `找到 ${visibleCount} 条逛店记录`;
+    }
+
+    return `${this.visits.length} 条逛店记录`;
+  }
+
   private upsertVisit(savedVisit: StoreVisit): void {
     const nextVisits: StoreVisit[] = [];
     let replaced = false;
@@ -138,6 +147,11 @@ export struct StoreVisitPage {
         .width('100%')
         .alignItems(VerticalAlign.Center)
 
+        Text(this.visitSummaryText())
+          .fontSize(14)
+          .fontColor(YibuqueColor.textSecondary)
+          .width('100%')
+
         TextInput({ text: this.searchQuery, placeholder: '搜索店铺、地址、备注' })
           .height(48)
           .fontSize(16)
@@ -160,7 +174,7 @@ export struct StoreVisitPage {
               .fontColor('#EF4444')
               .layoutWeight(1)
 
-            Button('retry')
+            Button('重试')
               .height(34)
               .fontSize(13)
               .fontColor(YibuqueColor.textInverse)
@@ -189,6 +203,10 @@ export struct StoreVisitPage {
             Text('点击底部 + 的拍店铺添加逛店记录')
               .fontSize(16)
               .fontColor(YibuqueColor.textSecondary)
+
+            Text('逛店时先拍店铺，再补地址和试穿备注。')
+              .fontSize(13)
+              .fontColor(YibuqueColor.textTertiary)
           }
           .width('100%')
           .height(220)

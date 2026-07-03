@@ -21,6 +21,10 @@ for (const needle of [
   'saveProfile',
   'isSaving',
   '保存中',
+  '已保存个人信息',
+  'hasInvalidMeasurements',
+  'measurementError',
+  '请输入数字',
   'bgBlueGray',
   '112'
 ]) {

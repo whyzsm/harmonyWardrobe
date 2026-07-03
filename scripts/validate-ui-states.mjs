@@ -3,15 +3,15 @@ import fs from 'node:fs';
 const pageStateExpectations = [
   {
     page: 'WardrobePage',
-    needles: ['loading', 'error', '衣服会按图片检索流排在这里', 'retry']
+    needles: ['loading', 'error', '衣服会按图片检索流排在这里', '重试']
   },
   {
     page: 'StoreVisitPage',
-    needles: ['loading', 'error', '还没有逛店记录', 'retry']
+    needles: ['loading', 'error', '还没有逛店记录', '重试']
   },
   {
     page: 'ProfilePage',
-    needles: ['loading', 'errorMessage', '保存中...', 'saveProfile']
+    needles: ['isLoading', 'errorMessage', '保存中...', 'saveProfile', '已保存个人信息', '请输入数字']
   }
 ];
 

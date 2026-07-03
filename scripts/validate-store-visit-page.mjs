@@ -18,6 +18,8 @@ for (const needle of [
   'StoreVisitCard',
   '拍店铺',
   'filterStoreVisits',
+  'visitSummaryText',
+  '重试',
   'storeNameSnapshot',
   'districtOrAddress',
   'note'

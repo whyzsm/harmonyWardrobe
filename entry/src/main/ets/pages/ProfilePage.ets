@@ -16,6 +16,16 @@ function displayOptionalNumber(value?: number): string {
   return value === undefined ? '' : `${value}`;
 }
 
+function isInvalidOptionalNumber(value: string): boolean {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    return false;
+  }
+
+  const parsed = Number(trimmed);
+  return !Number.isFinite(parsed) || parsed < 0;
+}
+
 @Component
 export struct ProfilePage {
   profileRepository?: ProfileRepository = undefined;
@@ -27,6 +37,7 @@ export struct ProfilePage {
   @State private isLoading: boolean = false;
   @State private isSaving: boolean = false;
   @State private errorMessage: string = '';
+  @State private savedMessage: string = '';
 
   aboutToAppear(): void {
     this.loadProfile();
@@ -38,6 +49,8 @@ export struct ProfilePage {
     }
 
     this.isLoading = true;
+    this.errorMessage = '';
+    this.savedMessage = '';
 
     try {
       const profile = await this.profileRepository.getProfile();
@@ -60,8 +73,15 @@ export struct ProfilePage {
       return;
     }
 
+    if (this.hasInvalidMeasurements()) {
+      this.savedMessage = '';
+      this.errorMessage = '请检查身高、体重、腰围，只填写 0 以上数字。';
+      return;
+    }
+
     this.isSaving = true;
     this.errorMessage = '';
+    this.savedMessage = '';
 
     try {
       const savedProfile = await this.profileRepository.saveProfile({
@@ -70,11 +90,36 @@ export struct ProfilePage {
         waistCm: parseOptionalNumber(this.waistCm)
       });
       this.applyProfile(savedProfile);
+      this.savedMessage = '已保存个人信息';
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '保存个人信息失败';
     } finally {
       this.isSaving = false;
     }
+  }
+
+  private hasInvalidMeasurements(): boolean {
+    return isInvalidOptionalNumber(this.heightCm) ||
+      isInvalidOptionalNumber(this.weightKg) ||
+      isInvalidOptionalNumber(this.waistCm);
+  }
+
+  private measurementError(value: string): string {
+    const trimmed = value.trim();
+    if (trimmed.length === 0) {
+      return '';
+    }
+
+    const parsed = Number(trimmed);
+    if (!Number.isFinite(parsed)) {
+      return '请输入数字';
+    }
+
+    if (parsed < 0) {
+      return '不能小于 0';
+    }
+
+    return '';
   }
 
   build() {
@@ -142,7 +187,7 @@ export struct ProfilePage {
       .borderRadius(28)
 
       if (this.isLoading) {
-        Text('loading / 正在加载个人信息...')
+        Text('正在加载个人信息...')
           .fontSize(13)
           .fontColor(YibuqueColor.textSecondary)
       }
@@ -153,15 +198,21 @@ export struct ProfilePage {
           .fontColor('#EF4444')
       }
 
+      if (this.savedMessage.length > 0) {
+        Text(this.savedMessage)
+          .fontSize(13)
+          .fontColor(YibuqueColor.success)
+      }
+
       Button(this.isSaving ? '保存中...' : '保存')
         .height(56)
         .width('100%')
         .fontSize(17)
         .fontWeight(FontWeight.Bold)
         .fontColor(YibuqueColor.textInverse)
-        .backgroundColor(YibuqueColor.actionBlack)
+        .backgroundColor(this.hasInvalidMeasurements() ? YibuqueColor.textDisabled : YibuqueColor.actionBlack)
         .borderRadius(YibuqueRadius.full)
-        .enabled(!this.isSaving)
+        .enabled(!this.isSaving && !this.hasInvalidMeasurements())
         .onClick(() => {
           this.saveProfile();
         })
@@ -175,35 +226,54 @@ export struct ProfilePage {
 
   @Builder
   MeasurementField(label: string, value: string, unit: string) {
-    Row({ space: YibuqueSpacing.md }) {
-      Text(label)
-        .width(56)
-        .fontSize(16)
-        .fontWeight(FontWeight.Medium)
-        .fontColor(YibuqueColor.textPrimary)
+    Column({ space: YibuqueSpacing.xs }) {
+      Row({ space: YibuqueSpacing.md }) {
+        Text(label)
+          .width(56)
+          .fontSize(16)
+          .fontWeight(FontWeight.Medium)
+          .fontColor(YibuqueColor.textPrimary)
 
-      TextInput({ text: value, placeholder: unit })
-        .height(48)
-        .layoutWeight(1)
-        .fontSize(16)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.md)
-        .onChange((nextValue: string) => {
-          if (label === '身高') {
-            this.heightCm = nextValue;
-          } else if (label === '体重') {
-            this.weightKg = nextValue;
-          } else {
-            this.waistCm = nextValue;
-          }
-        })
+        TextInput({ text: value, placeholder: unit })
+          .height(48)
+          .layoutWeight(1)
+          .fontSize(16)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.md)
+          .border({ width: this.measurementError(value).length > 0 ? 1 : 0, color: '#EF4444' })
+          .onChange((nextValue: string) => {
+            this.errorMessage = '';
+            this.savedMessage = '';
+            if (label === '身高') {
+              this.heightCm = nextValue;
+            } else if (label === '体重') {
+              this.weightKg = nextValue;
+            } else {
+              this.waistCm = nextValue;
+            }
+          })
 
-      Text(unit)
-        .width(28)
-        .fontSize(14)
-        .fontColor(YibuqueColor.textSecondary)
+        Text(unit)
+          .width(28)
+          .fontSize(14)
+          .fontColor(YibuqueColor.textSecondary)
+      }
+      .width('100%')
+      .alignItems(VerticalAlign.Center)
+
+      if (this.measurementError(value).length > 0) {
+        Text(this.measurementError(value))
+          .fontSize(12)
+          .fontColor('#EF4444')
+          .margin({ left: 72 })
+      } else {
+        Text(`${label} 可留空`)
+          .fontSize(12)
+          .fontColor(YibuqueColor.textTertiary)
+          .margin({ left: 72 })
+      }
     }
     .width('100%')
-    .alignItems(VerticalAlign.Center)
+    .alignItems(HorizontalAlign.Start)
   }
 }
