@@ -23,7 +23,17 @@ class HarmonyPhotoFileSystem implements PhotoFileSystem {
   }
 
   async copyFile(sourceUri: string, destinationUri: string): Promise<void> {
-    await fileIo.copyFile(sourceUri, destinationUri);
+    try {
+      await fileIo.copyFile(sourceUri, destinationUri);
+      return;
+    } catch (_error) {
+      const sourceFile = await fileIo.open(sourceUri, fileIo.OpenMode.READ_ONLY);
+      try {
+        await fileIo.copyFile(sourceFile.fd, destinationUri);
+      } finally {
+        await fileIo.close(sourceFile);
+      }
+    }
   }
 
   async deleteFile(localUri: string): Promise<void> {

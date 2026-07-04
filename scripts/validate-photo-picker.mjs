@@ -155,7 +155,7 @@ assertNoUnsafeTypes(adapterPath, adapter);
 assertNoForbiddenNeedles(adapter);
 
 assertMatches(adapter, /import\s+{\s*PhotoSource\s*}\s+from\s+['"]\.\/PhotoModels['"]/, 'PhotoPickerAdapter must import PhotoSource from PhotoModels');
-assertMatches(adapter, /import\s+{[^}]*\bcamera\b[^}]*\bcameraPicker\b[^}]*}\s+from\s+['"]@kit\.CameraKit['"]/, 'PhotoPickerAdapter must import camera and cameraPicker from CameraKit');
+assertMatches(adapter, /import\s+{\s*cameraPicker\s*}\s+from\s+['"]@kit\.CameraKit['"]/, 'PhotoPickerAdapter must import cameraPicker from CameraKit');
 assertMatches(adapter, /export\s+interface\s+GalleryPickOptions\b/, 'PhotoPickerAdapter must export GalleryPickOptions');
 assertMatches(adapter, /export\s+interface\s+CameraCaptureOptions\b/, 'PhotoPickerAdapter must export CameraCaptureOptions');
 assertMatches(adapter, /export\s+interface\s+GalleryPickerProvider\b/, 'PhotoPickerAdapter must export GalleryPickerProvider');
@@ -188,7 +188,9 @@ for (const needle of [
 
 assertMatches(adapter, /Number\.isFinite|isFinite/, 'Gallery maxSelectNumber must reject non-finite values');
 assertMatches(adapter, /DEFAULT_MAX_SELECT_NUMBER\s*=\s*20/, 'Gallery default maxSelectNumber should be 20');
-assertMatches(adapter, /camera\.CameraPosition\.CAMERA_POSITION_BACK/, 'Default camera profile must prefer the back camera');
+if (/cameraPosition\s*=/.test(adapter)) {
+  throw new Error('Default camera profile must not assign cameraPosition; PickerProfile.cameraPosition is read-only on some HarmonyOS devices');
+}
 assertMatches(adapter, /Math\.floor/, 'Gallery maxSelectNumber must be floored before use');
 assertMatches(adapter, /\.filter\s*\([^)]*uri[\s\S]*\.length\s*>\s*0/, 'Gallery URIs must filter empty values');
 assertMatches(adapter, /IMAGE_MIME_TYPE\s*=\s*['"]image\/\*['"]/, 'PhotoPickerAdapter must define image/* mime type');
@@ -231,6 +233,10 @@ const context = {
     PickerProfile: class {
       constructor() {
         this.createdBy = 'PickerProfile';
+        Object.defineProperty(this, 'cameraPosition', {
+          value: 'read-only-back',
+          writable: false
+        });
       }
     },
     async pick(cameraContext, mediaTypes, profile) {
@@ -266,7 +272,8 @@ assert.equal(providerCameraUri, 'camera://native-photo');
 assert.equal(cameraPickCalls.length, 1);
 assert.strictEqual(cameraPickCalls[0].context, harmonyContext);
 assert.deepEqual(cameraPickCalls[0].mediaTypes, ['photo']);
-assert.equal(cameraPickCalls[0].profile.cameraPosition, 'back');
+assert.equal(cameraPickCalls[0].profile.createdBy, 'PickerProfile');
+assert.equal(cameraPickCalls[0].profile.cameraPosition, 'read-only-back');
 
 cameraPickerResultUri = '   ';
 await assert.rejects(() => harmonyCameraProvider.capturePhoto(), /camera.*URI/i);
@@ -301,7 +308,8 @@ assert.deepEqual(plain(factoryCameraSource), {
 assert.equal(cameraPickCalls.length, 3);
 assert.strictEqual(cameraPickCalls[2].context, harmonyContext);
 assert.deepEqual(cameraPickCalls[2].mediaTypes, ['photo']);
-assert.equal(cameraPickCalls[2].profile.cameraPosition, 'back');
+assert.equal(cameraPickCalls[2].profile.createdBy, 'PickerProfile');
+assert.equal(cameraPickCalls[2].profile.cameraPosition, 'read-only-back');
 
 cameraPickerResultUri = '   ';
 await assert.rejects(() => factoryAdapter.captureFromCamera(), /camera.*URI/i);

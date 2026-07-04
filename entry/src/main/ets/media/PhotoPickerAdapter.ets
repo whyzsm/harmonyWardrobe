@@ -1,11 +1,10 @@
-import { camera, cameraPicker } from '@kit.CameraKit';
+import { cameraPicker } from '@kit.CameraKit';
 import { photoAccessHelper } from '@kit.MediaLibraryKit';
 import common from '@ohos.app.ability.common';
 import { PhotoSource } from './PhotoModels';
 
 const DEFAULT_MAX_SELECT_NUMBER = 20;
 const MAX_GALLERY_SELECT_NUMBER = 20;
-const DEFAULT_CAMERA_POSITION: camera.CameraPosition = camera.CameraPosition.CAMERA_POSITION_BACK;
 const IMAGE_MIME_TYPE = 'image/*';
 
 export interface GalleryPickOptions {
@@ -61,9 +60,7 @@ export class HarmonyCameraCaptureProvider implements CameraCaptureProvider {
   }
 
   private createDefaultPickerProfile(): cameraPicker.PickerProfile {
-    const profile = new cameraPicker.PickerProfile();
-    profile.cameraPosition = DEFAULT_CAMERA_POSITION;
-    return profile;
+    return new cameraPicker.PickerProfile();
   }
 }
 

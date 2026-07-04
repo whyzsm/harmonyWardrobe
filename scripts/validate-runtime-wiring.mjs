@@ -30,6 +30,10 @@ for (const needle of [
   '@kit.CoreFileKit',
   'fileIo.mkdir',
   'fileIo.copyFile',
+  'fileIo.open',
+  'fileIo.OpenMode.READ_ONLY',
+  'sourceFile.fd',
+  'fileIo.close',
   'fileIo.unlink',
   'PhotoFileSystem',
   'DatabaseProvider',
@@ -53,6 +57,25 @@ for (const needle of [
   'v3StoreVisitSchema.up(database)'
 ]) {
   mustInclude(runtime, runtimePath, needle);
+}
+
+const copyFileStart = runtime.indexOf('async copyFile');
+const deleteFileStart = runtime.indexOf('async deleteFile');
+if (copyFileStart < 0 || deleteFileStart < 0 || copyFileStart >= deleteFileStart) {
+  throw new Error(`${runtimePath} missing HarmonyPhotoFileSystem.copyFile`);
+}
+
+const copyFileBody = runtime.substring(copyFileStart, deleteFileStart);
+for (const needle of [
+  'try',
+  'await fileIo.copyFile(sourceUri, destinationUri)',
+  'catch',
+  'await fileIo.open(sourceUri, fileIo.OpenMode.READ_ONLY)',
+  'await fileIo.copyFile(sourceFile.fd, destinationUri)',
+  'finally',
+  'await fileIo.close(sourceFile)'
+]) {
+  mustInclude(copyFileBody, runtimePath, needle);
 }
 
 for (const needle of [
