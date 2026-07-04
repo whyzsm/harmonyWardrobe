@@ -249,6 +249,7 @@ struct Index {
             WardrobePage({
               clothingRepository: this.runtime.clothingRepository,
               outfitRepository: this.runtime.outfitRepository,
+              wearLogRepository: this.runtime.wearLogRepository,
               searchRepository: this.runtime.searchRepository,
               photoPickerAdapter: this.runtime.photoPickerAdapter,
               photoStorage: this.runtime.photoStorage

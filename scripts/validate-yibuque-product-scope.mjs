@@ -38,7 +38,7 @@ for (const needle of [
   mustInclude(index, indexPath, needle);
 }
 
-for (const needle of ['衣裤', '美搭']) {
+for (const needle of ['衣橱', '美搭', '日历']) {
   mustInclude(wardrobe, wardrobePath, needle);
 }
 

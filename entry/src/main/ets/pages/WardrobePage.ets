@@ -1,15 +1,20 @@
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { SearchRepository } from '../data/repositories/SearchRepository';
+import { WearLogRepository } from '../data/repositories/WearLogRepository';
+import { MonthCalendar } from '../components/MonthCalendar';
 import { ClothingCategory } from '../domain/clothing/ClothingCategory';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { OutfitTemplate } from '../domain/outfit/OutfitModels';
+import { WearLog } from '../domain/wearLog/WearLogModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
 import { AppTheme, YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
+import { monthKey, toIsoDate } from '../utils/date';
 import { ClothingEditPage } from './ClothingEditPage';
 import { OutfitEditPage } from './OutfitEditPage';
 import { SearchResultsPage } from './SearchResultsPage';
+import { WearLogEditPage } from './WearLogEditPage';
 
 interface WardrobeCategoryFilter {
   label: string;
@@ -41,6 +46,7 @@ function categoryLabel(category: ClothingCategory): string {
 export struct WardrobePage {
   clothingRepository?: ClothingRepository = undefined;
   outfitRepository?: OutfitRepository = undefined;
+  wearLogRepository?: WearLogRepository = undefined;
   searchRepository?: SearchRepository = undefined;
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
@@ -54,6 +60,12 @@ export struct WardrobePage {
   @State private showOutfitEditor: boolean = false;
   @State private editingClothingId: string = '';
   @State private editingOutfitId: string = '';
+  @State private currentMonth: string = monthKey(new Date());
+  @State private selectedDate: string = toIsoDate(new Date());
+  @State private markedDates: string[] = [];
+  @State private selectedDateLogs: WearLog[] = [];
+  @State private editingWearLogId: string = '';
+  @State private showWearLogEditor: boolean = false;
   @State private showUnifiedSearch: boolean = false;
   @State private unifiedSearchQuery: string = '';
   @State private loading: boolean = false;
@@ -65,6 +77,7 @@ export struct WardrobePage {
   aboutToAppear(): void {
     this.loadClothingItems();
     this.loadOutfits();
+    this.loadCalendar();
     setTimeout(() => {
       this.homeHeroOpacity = 1.0;
       this.homeHeroTranslateY = 0;
@@ -102,6 +115,32 @@ export struct WardrobePage {
     }
   }
 
+  private async loadCalendar(): Promise<void> {
+    await this.loadMonthMarkers();
+    await this.loadSelectedDateLogs();
+  }
+
+  private async loadMonthMarkers(): Promise<void> {
+    if (this.wearLogRepository === undefined) {
+      return;
+    }
+
+    this.markedDates = await this.wearLogRepository.listWearLogDatesForMonth(this.currentMonth);
+  }
+
+  private async loadSelectedDateLogs(): Promise<void> {
+    if (this.wearLogRepository === undefined) {
+      return;
+    }
+
+    this.selectedDateLogs = await this.wearLogRepository.listWearLogsByDate(this.selectedDate);
+  }
+
+  private selectCalendarDate(date: string): void {
+    this.selectedDate = date;
+    this.loadSelectedDateLogs();
+  }
+
   private selectedCategory(): ClothingCategory | undefined {
     for (const filter of WARDROBE_CATEGORY_FILTERS) {
       if (filter.label === this.selectedCategoryLabel) {
@@ -128,6 +167,10 @@ export struct WardrobePage {
 
   private categoryLabels(): string[] {
     return WARDROBE_CATEGORY_FILTERS.map((filter: WardrobeCategoryFilter) => filter.label);
+  }
+
+  private isWardrobePrimaryTabSelected(tab: string): boolean {
+    return (tab === '衣橱' && this.selectedWardrobeTab === '衣裤') || this.selectedWardrobeTab === tab;
   }
 
   private visibleClothingItems(): ClothingItem[] {
@@ -211,6 +254,30 @@ export struct WardrobePage {
     this.editingOutfitId = '';
   }
 
+  private openWearLogEditor(wearLog?: WearLog): void {
+    this.editingWearLogId = wearLog?.id ?? '';
+    this.showWearLogEditor = true;
+  }
+
+  private closeWearLogEditor(): void {
+    this.showWearLogEditor = false;
+    this.editingWearLogId = '';
+  }
+
+  private editingWearLog(): WearLog | undefined {
+    if (this.editingWearLogId.length === 0) {
+      return undefined;
+    }
+
+    for (const wearLog of this.selectedDateLogs) {
+      if (wearLog.id === this.editingWearLogId) {
+        return wearLog;
+      }
+    }
+
+    return undefined;
+  }
+
   private onEdit(item: ClothingItem): void {
     this.openEditEditor(item);
   }
@@ -273,6 +340,10 @@ export struct WardrobePage {
       return this.searchQuery.trim().length > 0
         ? `找到 ${this.visibleOutfits().length} 套美搭`
         : `${this.outfits.length} 套美搭`;
+    }
+
+    if (this.selectedWardrobeTab === '日历') {
+      return `${this.selectedDate} ${this.selectedDateLogs.length} 条穿搭`;
     }
 
     return this.searchQuery.trim().length > 0
@@ -349,6 +420,21 @@ export struct WardrobePage {
           this.closeOutfitEditor();
         }
       })
+    } else if (this.showWearLogEditor) {
+      WearLogEditPage({
+        initialWearLog: this.editingWearLog(),
+        outfits: this.outfits,
+        wearLogRepository: this.wearLogRepository,
+        photoPickerAdapter: this.photoPickerAdapter,
+        photoStorage: this.photoStorage,
+        onSave: (_wearLog: WearLog) => {
+          this.closeWearLogEditor();
+          this.loadCalendar();
+        },
+        onCancel: () => {
+          this.closeWearLogEditor();
+        }
+      })
     } else if (this.showUnifiedSearch) {
       SearchResultsPage({
         query: this.unifiedSearchQuery,
@@ -360,7 +446,6 @@ export struct WardrobePage {
       })
     } else {
       Column({ space: 14 }) {
-      this.WardrobeHomeHero()
       this.WardrobeSearchHeader()
       this.WardrobePrimaryTabs()
 
@@ -396,7 +481,9 @@ export struct WardrobePage {
         this.WardrobeSearchTabs()
       }
 
-      if (this.selectedWardrobeTab === '衣裤' && this.visibleClothingItems().length === 0) {
+      if (this.selectedWardrobeTab === '日历') {
+        this.CalendarTab()
+      } else if (this.selectedWardrobeTab === '衣裤' && this.visibleClothingItems().length === 0) {
         Column({ space: 10 }) {
           Column({ space: 8 }) {
             Text('衣')
@@ -687,25 +774,162 @@ export struct WardrobePage {
   @Builder
   WardrobePrimaryTabs() {
     Row({ space: YibuqueSpacing.sm }) {
-      ForEach(['衣裤', '美搭'], (tab: string) => {
+      ForEach(['衣橱', '美搭', '日历'], (tab: string) => {
         Text(tab)
           .height(42)
           .padding({ left: 22, right: 22 })
           .fontSize(16)
           .fontWeight(FontWeight.Bold)
-          .fontColor(this.selectedWardrobeTab === tab ? YibuqueColor.textPrimary : YibuqueColor.textTertiary)
+          .fontColor(this.isWardrobePrimaryTabSelected(tab) ? YibuqueColor.textPrimary : YibuqueColor.textTertiary)
           .textAlign(TextAlign.Center)
           .backgroundColor(YibuqueColor.cardWhite)
           .borderRadius(YibuqueRadius.full)
-          .border({ width: this.selectedWardrobeTab === tab ? 2 : 1, color: this.selectedWardrobeTab === tab ? YibuqueColor.borderStrong : YibuqueColor.borderLight })
+          .border({ width: this.isWardrobePrimaryTabSelected(tab) ? 2 : 1, color: this.isWardrobePrimaryTabSelected(tab) ? YibuqueColor.borderStrong : YibuqueColor.borderLight })
           .onClick(() => {
-            this.selectedWardrobeTab = tab;
+            this.selectedWardrobeTab = tab === '衣橱' ? '衣裤' : tab;
+            if (tab === '日历') {
+              this.loadCalendar();
+            }
           })
       }, (tab: string) => tab)
     }
     .width('100%')
     .height(46)
     .alignItems(VerticalAlign.Center)
+  }
+
+  @Builder
+  CalendarTab() {
+    Scroll() {
+      Column({ space: YibuqueSpacing.lg }) {
+        Column({ space: YibuqueSpacing.md }) {
+          Row() {
+            Text(this.currentMonth)
+              .fontSize(20)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(YibuqueColor.textPrimary)
+              .layoutWeight(1)
+
+            Button('补记')
+              .height(38)
+              .fontSize(14)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(YibuqueColor.textInverse)
+              .backgroundColor(YibuqueColor.actionBlack)
+              .borderRadius(YibuqueRadius.full)
+              .onClick(() => {
+                this.openWearLogEditor();
+              })
+          }
+          .width('100%')
+          .alignItems(VerticalAlign.Center)
+
+          MonthCalendar({
+            month: this.currentMonth,
+            markedDates: this.markedDates,
+            selectedDate: this.selectedDate,
+            onSelectDate: (date: string) => {
+              this.selectCalendarDate(date);
+            }
+          })
+        }
+        .width('100%')
+        .padding(YibuqueSpacing.lg)
+        .backgroundColor(YibuqueColor.cardWhite)
+        .borderRadius(YibuqueRadius.xxl)
+        .shadow(YibuqueShadow.card)
+        .alignItems(HorizontalAlign.Start)
+
+        Text(`${this.selectedDate} 的穿搭`)
+          .fontSize(18)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(YibuqueColor.textPrimary)
+          .width('100%')
+
+        if (this.selectedDateLogs.length === 0) {
+          Column({ space: YibuqueSpacing.sm }) {
+            Text('今天穿了什么？')
+              .fontSize(20)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(YibuqueColor.textPrimary)
+
+            Text('从相机记录一套，也可以在这里补记。')
+              .fontSize(14)
+              .fontColor(YibuqueColor.textSecondary)
+          }
+          .width('100%')
+          .height(180)
+          .justifyContent(FlexAlign.Center)
+          .alignItems(HorizontalAlign.Center)
+          .backgroundColor(YibuqueColor.cardMint)
+          .borderRadius(YibuqueRadius.xxl)
+        } else {
+          ForEach(this.selectedDateLogs, (wearLog: WearLog) => {
+            this.WearLogCard(wearLog)
+          }, (wearLog: WearLog) => wearLog.id)
+        }
+      }
+      .width('100%')
+      .padding({ bottom: 16 })
+      .alignItems(HorizontalAlign.Start)
+    }
+    .width('100%')
+    .layoutWeight(1)
+    .scrollBar(BarState.Off)
+  }
+
+  @Builder
+  WearLogCard(wearLog: WearLog) {
+    Row({ space: YibuqueSpacing.md }) {
+      if (wearLog.photoUris.length > 0) {
+        Image(wearLog.photoUris[0])
+          .width(78)
+          .height(92)
+          .objectFit(ImageFit.Cover)
+          .borderRadius(YibuqueRadius.xl)
+      } else {
+        Stack({ alignContent: Alignment.Center }) {
+          Text('搭')
+            .fontSize(26)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(YibuqueColor.textPrimary)
+        }
+        .width(78)
+        .height(92)
+        .backgroundColor(YibuqueColor.cardBlue)
+        .borderRadius(YibuqueRadius.xl)
+      }
+
+      Column({ space: YibuqueSpacing.xs }) {
+        Text(wearLog.outfitTitleSnapshot)
+          .fontSize(17)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(YibuqueColor.textPrimary)
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+        Text(wearLog.note ?? wearLog.placeText ?? '每日穿搭')
+          .fontSize(14)
+          .fontColor(YibuqueColor.textSecondary)
+          .maxLines(2)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+        Text('编辑')
+          .fontSize(13)
+          .fontWeight(FontWeight.Bold)
+          .fontColor(YibuqueColor.textPrimary)
+          .onClick(() => {
+            this.openWearLogEditor(wearLog);
+          })
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
+    }
+    .width('100%')
+    .padding(YibuqueSpacing.md)
+    .backgroundColor(YibuqueColor.cardWhite)
+    .borderRadius(YibuqueRadius.xxl)
+    .shadow(YibuqueShadow.card)
   }
 
   @Builder
