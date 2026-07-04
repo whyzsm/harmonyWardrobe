@@ -166,7 +166,10 @@ struct Index {
       .height('100%')
       .justifyContent(FlexAlign.Center)
       .alignItems(HorizontalAlign.Center)
-      .backgroundColor(YibuqueColor.bgBlueGray)
+      .linearGradient({
+        angle: 135,
+        colors: [[YibuqueColor.bgDefault, 0], [YibuqueColor.bgHeaderBlue, 1]]
+      })
     } else if (this.showClothingEditor) {
       ClothingEditPage({
         clothingRepository: this.runtime.clothingRepository,
@@ -292,7 +295,10 @@ struct Index {
         }
         .width('100%')
         .height('100%')
-        .backgroundColor(YibuqueColor.bgDefault)
+        .linearGradient({
+          angle: 135,
+          colors: [[YibuqueColor.bgDefault, 0], [YibuqueColor.bgHeaderBlue, 1]]
+        })
 
         if (this.showQuickActions) {
           QuickCaptureSheet({

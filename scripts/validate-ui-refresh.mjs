@@ -20,16 +20,18 @@ function forbidIncludes(source, value, label) {
   }
 }
 
-requireIncludes(tokenSource, "primary: '#4894FE'", 'primary token');
-requireIncludes(tokenSource, "primaryPressed: '#246BFE'", 'primary pressed token');
-requireIncludes(tokenSource, "primarySoft: '#EAF3FF'", 'primary soft token');
-requireIncludes(tokenSource, "surfaceMuted: '#F6F8FC'", 'app background token');
-requireIncludes(tokenSource, "success: '#22C55E'", 'success token');
+requireIncludes(tokenSource, "primary: '#B11B68'", 'primary token');
+requireIncludes(tokenSource, "primaryPressed: '#7A1048'", 'primary pressed token');
+requireIncludes(tokenSource, "primarySoft: '#FCE3EF'", 'primary soft token');
+requireIncludes(tokenSource, "surfaceMuted: '#FDE7F2'", 'app background token');
+requireIncludes(tokenSource, "success: '#C53B88'", 'success token');
 requireIncludes(tokenSource, "warning: '#FFB020'", 'warning token');
-requireIncludes(tokenSource, "danger: '#EF4444'", 'danger token');
-requireIncludes(tokenSource, "accent: '#FF7A90'", 'fashion accent token');
+requireIncludes(tokenSource, "danger: '#D94870'", 'danger token');
+requireIncludes(tokenSource, "accent: '#E85D9E'", 'fashion accent token');
 forbidIncludes(tokenSource, "'#0F766E'", 'old teal primary');
 forbidIncludes(tokenSource, "'#115E59'", 'old teal primaryStrong');
+forbidIncludes(tokenSource, "'#4894FE'", 'old blue primary');
+forbidIncludes(tokenSource, "'#246BFE'", 'old blue primaryStrong');
 
 const componentFiles = [
   'entry/src/main/ets/components/ClothingCard.ets',

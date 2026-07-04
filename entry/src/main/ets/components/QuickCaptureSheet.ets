@@ -57,7 +57,7 @@ export struct QuickCaptureSheet {
         this.ActionRow(
           '从相册选择',
           '选好照片后再补小记和类型',
-          YibuqueColor.cardSoftGray,
+          YibuqueColor.cardMint,
           YibuqueColor.textPrimary,
           YibuqueColor.textSecondary,
           () => {
@@ -67,7 +67,10 @@ export struct QuickCaptureSheet {
       }
       .width('100%')
       .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.xl, bottom: 36 })
-      .backgroundColor(YibuqueColor.cardWhite)
+      .linearGradient({
+        angle: 135,
+        colors: [[YibuqueColor.cardWhite, 0], [YibuqueColor.bgDefault, 1]]
+      })
       .borderRadius({ topLeft: YibuqueRadius.sheet, topRight: YibuqueRadius.sheet })
       .shadow(YibuqueShadow.floating)
       .translate({ y: this.sheetTranslateY })
@@ -79,7 +82,7 @@ export struct QuickCaptureSheet {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(YibuqueColor.overlayDark)
+    .backgroundColor('#66391327')
     .opacity(this.backgroundOpacity)
     .animation({
       duration: 300,
@@ -114,6 +117,7 @@ export struct QuickCaptureSheet {
     .alignItems(VerticalAlign.Center)
     .backgroundColor(backgroundColor)
     .borderRadius(YibuqueRadius.xxl)
+    .shadow(title === '拍照' ? YibuqueShadow.soft : YibuqueShadow.card)
     .scale({ x: this.pressedAction === title ? 0.98 : 1.0, y: this.pressedAction === title ? 0.98 : 1.0 })
     .animation({
       duration: 160,

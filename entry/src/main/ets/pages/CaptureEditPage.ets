@@ -339,7 +339,10 @@ export struct CaptureEditPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(YibuqueColor.bgBlueGray)
+    .linearGradient({
+      angle: 135,
+      colors: [[YibuqueColor.bgDefault, 0], [YibuqueColor.bgHeaderBlue, 1]]
+    })
   }
 
   @Builder

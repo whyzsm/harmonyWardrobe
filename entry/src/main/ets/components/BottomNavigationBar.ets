@@ -38,7 +38,8 @@ export struct BottomNavigationBar {
     .height(76 + YibuqueSpacing.bottomSafe)
     .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.sm, bottom: YibuqueSpacing.bottomSafe })
     .backgroundColor(YibuqueColor.cardWhite)
-    .border({ width: { top: 1 }, color: YibuqueColor.borderLight })
+    .border({ width: { top: 1 }, color: '#66F2C7DA' })
+    .shadow({ radius: 24, color: '#1AB11B68', offsetX: 0, offsetY: -6 })
     .alignItems(VerticalAlign.Center)
   }
 
@@ -46,10 +47,13 @@ export struct BottomNavigationBar {
   CameraIcon() {
     Stack({ alignContent: Alignment.Center }) {
       Row()
-        .width(30)
-        .height(22)
-        .backgroundColor(YibuqueColor.textInverse)
-        .borderRadius(8)
+        .width(32)
+        .height(24)
+        .linearGradient({
+          angle: 135,
+          colors: [['#FFFFFF', 0], ['#FFE7F1', 1]]
+        })
+        .borderRadius(10)
 
       Row()
         .width(12)
@@ -60,11 +64,21 @@ export struct BottomNavigationBar {
 
       Circle({ width: 10, height: 10 })
         .fill(YibuqueColor.actionBlack)
+
+      Circle({ width: 18, height: 18 })
+        .fill('#33FFFFFF')
+        .stroke('#F7A0BC')
+        .strokeWidth(2)
+        .margin({ left: -22, top: -24 })
     }
-    .width(56)
-    .height(44)
-    .backgroundColor(YibuqueColor.actionBlack)
+    .width(58)
+    .height(46)
+    .linearGradient({
+      angle: 135,
+      colors: [[YibuqueColor.actionBlack, 0], ['#D83E8E', 1]]
+    })
     .borderRadius(YibuqueRadius.full)
+    .shadow({ radius: 20, color: '#3AB11B68', offsetX: 0, offsetY: 8 })
   }
 
   @Builder
