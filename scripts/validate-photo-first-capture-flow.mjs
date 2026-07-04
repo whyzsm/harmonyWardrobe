@@ -34,6 +34,16 @@ function mustOrder(source, file, first, second, message) {
   }
 }
 
+function methodBody(source, file, methodName) {
+  const start = source.indexOf(methodName);
+  if (start < 0) {
+    throw new Error(`${file} missing ${methodName}`);
+  }
+
+  const nextMethod = source.indexOf('\n  private ', start + methodName.length);
+  return nextMethod < 0 ? source.substring(start) : source.substring(start, nextMethod);
+}
+
 const indexPath = 'entry/src/main/ets/pages/Index.ets';
 const navPath = 'entry/src/main/ets/components/BottomNavigationBar.ets';
 const quickSheetPath = 'entry/src/main/ets/components/QuickCaptureSheet.ets';
@@ -66,9 +76,15 @@ mustInclude(index, indexPath, "target === '店铺'");
 mustInclude(index, indexPath, "this.selectedMainTab = 'store'");
 mustInclude(index, indexPath, "this.selectedMainTab = 'wardrobe'");
 
-mustOrder(index, indexPath, 'photoPickerAdapter.captureFromCamera', 'photoStorage.copyToAppStorage', 'camera capture should happen before local photo storage');
-mustOrder(index, indexPath, 'photoPickerAdapter.pickFromGallery', 'photoStorage.copyToAppStorage', 'gallery pick should happen before local photo storage');
-mustOrder(index, indexPath, 'photoStorage.copyToAppStorage', 'showCaptureEditor = true', 'photos should be copied before opening CaptureEditPage');
+const cameraCaptureBody = methodBody(index, indexPath, 'startCameraCapture');
+const galleryCaptureBody = methodBody(index, indexPath, 'startGalleryCapture');
+const copySourcesBody = methodBody(index, indexPath, 'copySourcesToLocalUris');
+const openEditorBody = methodBody(index, indexPath, 'openCaptureEditor');
+
+mustOrder(cameraCaptureBody, indexPath, 'photoPickerAdapter.captureFromCamera', 'copySourcesToLocalUris', 'camera capture should happen before local photo storage');
+mustOrder(galleryCaptureBody, indexPath, 'photoPickerAdapter.pickFromGallery', 'copySourcesToLocalUris', 'gallery pick should happen before local photo storage');
+mustOrder(copySourcesBody, indexPath, 'photoStorage.copyToAppStorage', 'localUris.push', 'photos should be copied before they are passed to CaptureEditPage');
+mustOrder(openEditorBody, indexPath, 'capturePhotoUris = photoUris', 'showCaptureEditor = true', 'photos should be set before opening CaptureEditPage');
 mustMatch(index, indexPath, /target\s*===\s*['"`]店铺['"`][\s\S]*?selectedMainTab\s*=\s*['"`]store['"`]/, 'must route store captures back to the store tab');
 mustMatch(index, indexPath, /(target\s*===\s*['"`]衣橱['"`]|target\s*===\s*['"`]美搭['"`]|else)[\s\S]*?selectedMainTab\s*=\s*['"`]wardrobe['"`]/, 'must route wardrobe and outfit captures back to the wardrobe tab');
 

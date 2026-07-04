@@ -6,7 +6,9 @@ import { WardrobeRuntime } from '../app/WardrobeRuntime';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { StoreVisit } from '../domain/store/StoreModels';
+import { PhotoSource } from '../media/PhotoModels';
 import { AppTheme, YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
+import { CaptureEditPage } from './CaptureEditPage';
 import { ClothingEditPage } from './ClothingEditPage';
 import { OutfitEditPage } from './OutfitEditPage';
 import { ProfilePage } from './ProfilePage';
@@ -25,8 +27,13 @@ struct Index {
   @State private showOutfitEditor: boolean = false;
   @State private showStoreVisitEditor: boolean = false;
   @State private showProfilePage: boolean = false;
+  @State private showCaptureEditor: boolean = false;
   @State private quickActionErrorMessage: string = '';
   @State private quickActionClothingItems: ClothingItem[] = [];
+  @State private capturePhotoUris: string[] = [];
+  @State private captureCapturedAt: string = '';
+  @State private captureClothingItems: ClothingItem[] = [];
+  @State private isCapturing: boolean = false;
   private runtime?: WardrobeRuntime = undefined;
 
   aboutToAppear(): void {
@@ -55,33 +62,76 @@ struct Index {
     this.showStoreVisitEditor = false;
   }
 
-  private openAddClothing(): void {
-    this.showQuickActions = false;
-    this.quickActionErrorMessage = '';
-    this.showClothingEditor = true;
+  private async copySourcesToLocalUris(sources: PhotoSource[]): Promise<string[]> {
+    if (this.runtime === undefined) {
+      return [];
+    }
+
+    const localUris: string[] = [];
+    for (const source of sources) {
+      const storedPhoto = await this.runtime.photoStorage.copyToAppStorage(source);
+      localUris.push(storedPhoto.localUri);
+    }
+
+    return localUris;
   }
 
-  private async openCreateOutfit(): Promise<void> {
-    if (this.runtime === undefined) {
+  private async openCaptureEditor(photoUris: string[]): Promise<void> {
+    if (this.runtime === undefined || photoUris.length === 0) {
       return;
     }
 
+    this.captureClothingItems = await this.runtime.clothingRepository.listClothing();
+    this.capturePhotoUris = photoUris;
+    this.captureCapturedAt = new Date().toISOString();
+    this.showCaptureEditor = true;
+  }
+
+  private closeCaptureEditor(): void {
+    this.showCaptureEditor = false;
+    this.capturePhotoUris = [];
+    this.captureCapturedAt = '';
+    this.captureClothingItems = [];
+  }
+
+  private async startCameraCapture(): Promise<void> {
+    if (this.runtime === undefined || this.isCapturing) {
+      return;
+    }
+
+    this.isCapturing = true;
     this.showQuickActions = false;
     this.quickActionErrorMessage = '';
 
     try {
-      this.quickActionClothingItems = await this.runtime.clothingRepository.listClothing();
-      this.showOutfitEditor = true;
+      const source = await this.runtime.photoPickerAdapter.captureFromCamera();
+      const photoUris = await this.copySourcesToLocalUris([source]);
+      await this.openCaptureEditor(photoUris);
     } catch (error) {
-      this.quickActionErrorMessage = error instanceof Error ? error.message : '打开拍搭配失败';
+      this.quickActionErrorMessage = error instanceof Error ? error.message : '拍照失败，请重试';
+    } finally {
+      this.isCapturing = false;
     }
   }
 
-  private openCreateStoreVisit(): void {
+  private async startGalleryCapture(): Promise<void> {
+    if (this.runtime === undefined || this.isCapturing) {
+      return;
+    }
+
+    this.isCapturing = true;
     this.showQuickActions = false;
     this.quickActionErrorMessage = '';
-    this.selectedMainTab = 'store';
-    this.showStoreVisitEditor = true;
+
+    try {
+      const sources = await this.runtime.photoPickerAdapter.pickFromGallery({ maxSelectNumber: 6 });
+      const photoUris = await this.copySourcesToLocalUris(sources);
+      await this.openCaptureEditor(photoUris);
+    } catch (error) {
+      this.quickActionErrorMessage = error instanceof Error ? error.message : '选择照片失败，请重试';
+    } finally {
+      this.isCapturing = false;
+    }
   }
 
   build() {
@@ -157,6 +207,27 @@ struct Index {
           this.closeQuickEditors();
         }
       })
+    } else if (this.showCaptureEditor) {
+      CaptureEditPage({
+        initialPhotoUris: this.capturePhotoUris,
+        capturedAt: this.captureCapturedAt,
+        clothingItems: this.captureClothingItems,
+        clothingRepository: this.runtime.clothingRepository,
+        outfitRepository: this.runtime.outfitRepository,
+        storeRepository: this.runtime.storeRepository,
+        wearLogRepository: this.runtime.wearLogRepository,
+        onSave: (target: string) => {
+          this.closeCaptureEditor();
+          if (target === '店铺') {
+            this.selectedMainTab = 'store';
+          } else {
+            this.selectedMainTab = 'wardrobe';
+          }
+        },
+        onCancel: () => {
+          this.closeCaptureEditor();
+        }
+      })
     } else if (this.showProfilePage) {
       ProfilePage({
         profileRepository: this.runtime.profileRepository,
@@ -225,10 +296,10 @@ struct Index {
         if (this.showQuickActions) {
           QuickCaptureSheet({
             onCapturePhoto: () => {
-              this.openAddClothing();
+              this.startCameraCapture();
             },
             onPickPhoto: () => {
-              this.openCreateOutfit();
+              this.startGalleryCapture();
             },
             onCancel: () => {
               this.showQuickActions = false;
