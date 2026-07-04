@@ -46,6 +46,7 @@ for (const needle of [
   '美搭',
   '店铺',
   '小记',
+  '写一点小记',
   'TextArea',
   'photoUris',
   'capturedAt',

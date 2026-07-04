@@ -372,7 +372,7 @@ export struct CaptureEditPage {
         .fontWeight(FontWeight.Bold)
         .fontColor(YibuqueColor.textPrimary)
 
-      TextArea({ text: this.note, placeholder: '写一点当时的想法、试穿感受或搭配灵感' })
+      TextArea({ text: this.note, placeholder: '写一点小记' })
         .height(108)
         .fontSize(16)
         .fontColor(YibuqueColor.textPrimary)
