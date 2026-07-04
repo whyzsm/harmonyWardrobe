@@ -16,6 +16,14 @@ function optionalText(value: string): string | undefined {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
+function padTwoDigits(value: number): string {
+  return value < 10 ? `0${value}` : `${value}`;
+}
+
+function formatTimeForStoreName(date: Date): string {
+  return `${padTwoDigits(date.getMonth() + 1)}-${padTwoDigits(date.getDate())} ${padTwoDigits(date.getHours())}:${padTwoDigits(date.getMinutes())}`;
+}
+
 @Component
 export struct StoreVisitEditPage {
   @Prop initialVisit?: StoreVisit = undefined;
@@ -46,7 +54,15 @@ export struct StoreVisitEditPage {
   }
 
   private canSave(): boolean {
-    return !this.isSaving && this.storeName.trim().length > 0;
+    return !this.isSaving && (this.photoUris.length > 0 || this.note.trim().length > 0);
+  }
+
+  private generatedStoreName(): string {
+    return `逛店 ${formatTimeForStoreName(new Date())}`;
+  }
+
+  private normalizedStoreName(): string {
+    return optionalText(this.storeName) ?? this.generatedStoreName();
   }
 
   private async copySourcesToLocalUris(sources: PhotoSource[]): Promise<string[]> {
@@ -77,6 +93,10 @@ export struct StoreVisitEditPage {
       return undefined;
     }
 
+    if (this.storeName.trim().length === 0) {
+      return undefined;
+    }
+
     const existing = await this.storeRepository.findStoreByName(this.storeName);
     if (existing !== undefined) {
       return existing.id;
@@ -94,7 +114,7 @@ export struct StoreVisitEditPage {
   private createInput(storeId?: string): CreateStoreVisitInput {
     return {
       storeId,
-      storeNameSnapshot: this.storeName,
+      storeNameSnapshot: this.normalizedStoreName(),
       districtOrAddress: optionalText(this.districtOrAddress),
       visitDate: this.visitDate,
       photoUris: this.photoUris,
@@ -106,7 +126,7 @@ export struct StoreVisitEditPage {
     return {
       id,
       storeId,
-      storeNameSnapshot: this.storeName,
+      storeNameSnapshot: this.normalizedStoreName(),
       districtOrAddress: optionalText(this.districtOrAddress),
       visitDate: this.visitDate,
       photoUris: this.photoUris,
@@ -145,7 +165,7 @@ export struct StoreVisitEditPage {
               .fontWeight(FontWeight.Bold)
               .fontColor(YibuqueColor.textPrimary)
 
-            Text('记录店铺、位置和试穿感受。')
+            Text('照片和小记优先，店铺信息都可以稍后补。')
               .fontSize(14)
               .fontColor(YibuqueColor.textSecondary)
           }
@@ -180,12 +200,28 @@ export struct StoreVisitEditPage {
           })
 
         Column({ space: YibuqueSpacing.md }) {
-          Text('店铺信息')
+          Text('小记')
             .fontSize(18)
             .fontWeight(FontWeight.Bold)
             .fontColor(YibuqueColor.textPrimary)
 
-          TextInput({ text: this.storeName, placeholder: '店铺名' })
+          TextArea({ text: this.note, placeholder: '写一点小记' })
+            .height(96)
+            .fontSize(16)
+            .fontColor(YibuqueColor.textPrimary)
+            .placeholderColor(YibuqueColor.textTertiary)
+            .backgroundColor(YibuqueColor.cardSoftGray)
+            .borderRadius(YibuqueRadius.lg)
+            .onChange((value: string) => {
+              this.note = value;
+            })
+
+          Text('选填信息')
+            .fontSize(18)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(YibuqueColor.textPrimary)
+
+          TextInput({ text: this.storeName, placeholder: this.generatedStoreName() })
             .height(52)
             .fontSize(16)
             .fontColor(YibuqueColor.textPrimary)
@@ -218,16 +254,6 @@ export struct StoreVisitEditPage {
               this.visitDate = value;
             })
 
-          TextInput({ text: this.note, placeholder: '试穿备注' })
-            .height(72)
-            .fontSize(16)
-            .fontColor(YibuqueColor.textPrimary)
-            .placeholderColor(YibuqueColor.textTertiary)
-            .backgroundColor(YibuqueColor.cardSoftGray)
-            .borderRadius(YibuqueRadius.lg)
-            .onChange((value: string) => {
-              this.note = value;
-            })
         }
         .width('100%')
         .padding(YibuqueSpacing.lg)

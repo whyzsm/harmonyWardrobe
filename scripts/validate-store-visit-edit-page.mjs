@@ -23,9 +23,9 @@ for (const needle of [
   'YibuqueShadow',
   'YibuqueColor.actionBlack',
   '小记',
+  '写一点小记',
   '选填信息',
-  '地址或商圈',
-  '试穿备注'
+  '地址或商圈'
 ]) {
   if (!text.includes(needle)) {
     throw new Error(`${file} missing ${needle}`);
@@ -43,6 +43,7 @@ if (!/generatedStore|fallbackStore|逛店\s+\$\{|未命名店铺/.test(text)) {
 for (const forbidden of [
   'WishlistRepository',
   'note / 备注',
+  '试穿备注',
   'AppTheme.color.primary'
 ]) {
   if (text.includes(forbidden)) {
