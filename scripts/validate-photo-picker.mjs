@@ -56,6 +56,10 @@ function assertNoForbiddenNeedles(source) {
     'startAbility',
     'Repository',
     'data/repositories',
+    '@kit.CoreFileKit',
+    'fileIo',
+    'fileUri',
+    'saveUri',
     '@ohos.net',
     '@ohos.request',
     '@ohos.net.http',
@@ -141,6 +145,8 @@ assertRejectsForbiddenNeedle('promptAction.showToast({ message: "bad" });', 'pro
 assertRejectsForbiddenNeedle('context.startAbility({});', 'startAbility');
 assertRejectsForbiddenNeedle("import { SearchRepository } from '../data/repositories/SearchRepository';", 'Repository');
 assertRejectsForbiddenNeedle("import repo from '../data/repositories/photo-adapter-store';", 'data/repositories');
+assertRejectsForbiddenNeedle("import { fileIo } from '@kit.CoreFileKit';", '@kit.CoreFileKit');
+assertRejectsForbiddenNeedle('profile.saveUri = saveUri;', 'saveUri');
 assertRejectsForbiddenNeedle('fetch("https://example.com");', 'fetch(');
 
 const adapter = readRequired(adapterPath);

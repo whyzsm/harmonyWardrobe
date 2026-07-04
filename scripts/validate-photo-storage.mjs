@@ -173,6 +173,9 @@ assertMatches(storage, /Date\.now|new Date\(\)\.getTime|clock/, 'PhotoStorage mu
 assertMatches(storage, /idFactory|createId|random|sequence/, 'PhotoStorage must use an id/sequence dependency for unique names');
 assertMatches(storage, /File exists|EEXIST|fileExists|isFileExistsError/, 'PhotoStorage must handle existing directory or file conflicts');
 assertMatches(storage, /MAX_COPY_ATTEMPTS|copyAttempts|for\s*\(\s*let\s+attempt/, 'PhotoStorage must retry when a generated destination already exists');
+if (/substring\s*\(\s*['"`]file:\/\/['"`]\.length\s*\)/.test(storage)) {
+  throw new Error('PhotoStorage must preserve file:// source URIs for fileIo.copyFile');
+}
 
 const copyBody = extractMethodBody(storage, 'copyToAppStorage');
 const deleteBody = extractMethodBody(storage, 'deleteLocalPhoto');
