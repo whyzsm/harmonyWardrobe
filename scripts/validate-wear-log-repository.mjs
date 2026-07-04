@@ -97,7 +97,8 @@ assertMatches(source, /constructor\s*\(\s*database:\s*MigrationDatabase\s*,\s*se
 assertMatches(source, /new\s+SearchRepository\s*\(\s*database\s*,\s*searchIndexMode\s*\)/, 'WearLogRepository must build SearchRepository from the same database');
 assertMatches(source, /INSERT\s+INTO\s+wear_logs/i, 'createWearLog must insert wear_logs');
 assertMatches(source, /UPDATE\s+wear_logs/i, 'updateWearLog must update wear_logs');
-assertMatches(source, /outfitTemplateId\??:\s*string/, 'Create/Update wear log input should allow an optional outfitTemplateId');
+assertMatches(source, /export\s+interface\s+CreateWearLogInput\s*{[\s\S]*?outfitTemplateId\?:\s*string/, 'CreateWearLogInput should allow an optional outfitTemplateId');
+assertMatches(source, /export\s+interface\s+UpdateWearLogInput\s*{[\s\S]*?outfitTemplateId\?:\s*string/, 'UpdateWearLogInput should allow an optional outfitTemplateId');
 assertMatches(source, /wearLogBindArgs\s*\(\s*wearLog:\s*WearLog\s*,\s*outfitTemplateId\??:\s*string\s*\)/, 'wearLogBindArgs must accept an optional outfitTemplateId');
 assertMatches(source, /optionalOutfitSnapshot|requiredOutfitSnapshot|fallbackTitle/, 'WearLogRepository must support a fallback snapshot when no outfit is selected');
 assert.equal(source.includes('wearLog.outfitTemplateId,'), false, 'SQL bind args must not use optional wearLog.outfitTemplateId directly');

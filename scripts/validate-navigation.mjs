@@ -47,6 +47,19 @@ if (nav.includes('onOpenQuickActions')) {
 }
 
 for (const forbidden of [
+  'openAddClothing',
+  'openCreateOutfit',
+  'openCreateStoreVisit',
+  'onCaptureClothing',
+  'onCaptureOutfit',
+  'onCaptureStore'
+]) {
+  if (index.includes(forbidden)) {
+    throw new Error(`Index should not keep old direct quick editor routing: ${forbidden}`);
+  }
+}
+
+for (const forbidden of [
   'TodayPage({',
   'CalendarPage({',
   'ShoppingPage({',

@@ -29,7 +29,6 @@ for (const needle of [
   'WearLogRepository',
   'WearLog',
   'MonthCalendar',
-  'WearLogEditPage',
   'selectedWardrobeTab',
   '衣橱',
   '美搭',
@@ -40,6 +39,10 @@ for (const needle of [
   '今天穿了什么'
 ]) {
   mustInclude(wardrobe, wardrobePath, needle);
+}
+
+if (!wardrobe.includes('WearLogEditPage') && !wardrobe.includes('DailyWearLogEditor')) {
+  throw new Error(`${wardrobePath} must expose WearLogEditPage or an embedded daily-log editor`);
 }
 
 for (const forbidden of [

@@ -26,6 +26,14 @@ function mustMatch(source, file, pattern, message) {
   }
 }
 
+function mustOrder(source, file, first, second, message) {
+  const firstIndex = source.indexOf(first);
+  const secondIndex = source.indexOf(second);
+  if (firstIndex < 0 || secondIndex < 0 || firstIndex >= secondIndex) {
+    throw new Error(`${file} ${message}`);
+  }
+}
+
 const indexPath = 'entry/src/main/ets/pages/Index.ets';
 const navPath = 'entry/src/main/ets/components/BottomNavigationBar.ets';
 const quickSheetPath = 'entry/src/main/ets/components/QuickCaptureSheet.ets';
@@ -57,5 +65,22 @@ mustInclude(index, indexPath, 'captureCapturedAt');
 mustInclude(index, indexPath, "target === '店铺'");
 mustInclude(index, indexPath, "this.selectedMainTab = 'store'");
 mustInclude(index, indexPath, "this.selectedMainTab = 'wardrobe'");
+
+mustOrder(index, indexPath, 'photoPickerAdapter.captureFromCamera', 'photoStorage.copyToAppStorage', 'camera capture should happen before local photo storage');
+mustOrder(index, indexPath, 'photoPickerAdapter.pickFromGallery', 'photoStorage.copyToAppStorage', 'gallery pick should happen before local photo storage');
+mustOrder(index, indexPath, 'photoStorage.copyToAppStorage', 'showCaptureEditor = true', 'photos should be copied before opening CaptureEditPage');
+mustMatch(index, indexPath, /target\s*===\s*['"`]店铺['"`][\s\S]*?selectedMainTab\s*=\s*['"`]store['"`]/, 'must route store captures back to the store tab');
+mustMatch(index, indexPath, /(target\s*===\s*['"`]衣橱['"`]|target\s*===\s*['"`]美搭['"`]|else)[\s\S]*?selectedMainTab\s*=\s*['"`]wardrobe['"`]/, 'must route wardrobe and outfit captures back to the wardrobe tab');
+
+for (const forbidden of [
+  'openAddClothing',
+  'openCreateOutfit',
+  'openCreateStoreVisit',
+  'onCaptureClothing',
+  'onCaptureOutfit',
+  'onCaptureStore'
+]) {
+  mustNotInclude(index, indexPath, forbidden);
+}
 
 console.log('PASS');
