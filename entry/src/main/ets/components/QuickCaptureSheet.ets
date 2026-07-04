@@ -2,9 +2,8 @@ import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../t
 
 @Component
 export struct QuickCaptureSheet {
-  onCaptureClothing: () => void = () => {};
-  onCaptureOutfit: () => void = () => {};
-  onCaptureStore: () => void = () => {};
+  onCapturePhoto: () => void = () => {};
+  onPickPhoto: () => void = () => {};
   onCancel: () => void = () => {};
   @State private sheetTranslateY: number = 300;
   @State private backgroundOpacity: number = 0;
@@ -45,35 +44,24 @@ export struct QuickCaptureSheet {
         .alignItems(VerticalAlign.Center)
 
         this.ActionRow(
-          '拍衣服',
-          '选择图片并保存到衣裤分类',
+          '拍照',
+          '打开相机，先留下这张照片',
           YibuqueColor.actionBlack,
           YibuqueColor.textInverse,
           '#CCFFFFFF',
           () => {
-            this.onCaptureClothing();
+            this.onCapturePhoto();
           }
         )
 
         this.ActionRow(
-          '拍搭配',
-          '保存一组美搭照片和备注',
+          '从相册选择',
+          '选好照片后再补小记和类型',
           YibuqueColor.cardSoftGray,
           YibuqueColor.textPrimary,
           YibuqueColor.textSecondary,
           () => {
-            this.onCaptureOutfit();
-          }
-        )
-
-        this.ActionRow(
-          '拍店铺',
-          '记录店铺、日期和试穿感受',
-          YibuqueColor.cardMint,
-          YibuqueColor.textPrimary,
-          YibuqueColor.textSecondary,
-          () => {
-            this.onCaptureStore();
+            this.onPickPhoto();
           }
         )
       }

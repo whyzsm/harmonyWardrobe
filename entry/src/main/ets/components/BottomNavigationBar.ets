@@ -3,10 +3,10 @@ import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
 @Component
 export struct BottomNavigationBar {
   @Prop selected: string = 'wardrobe';
-  @State private addButtonScale: number = 1.0;
+  @State private captureButtonScale: number = 1.0;
   @State private pressedTab: string = '';
   onSelectWardrobe: () => void = () => {};
-  onOpenQuickActions: () => void = () => {};
+  onOpenCapture: () => void = () => {};
   onSelectStore: () => void = () => {};
 
   build() {
@@ -14,30 +14,22 @@ export struct BottomNavigationBar {
       this.NavItem('wardrobe', '衣橱')
 
       Stack({ alignContent: Alignment.Center }) {
-        Text('+')
-          .width(56)
-          .height(44)
-          .fontSize(30)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(YibuqueColor.textInverse)
-          .textAlign(TextAlign.Center)
-          .backgroundColor(YibuqueColor.actionBlack)
-          .borderRadius(YibuqueRadius.full)
+        this.CameraIcon()
       }
       .layoutWeight(1)
       .height(64)
-      .scale({ x: this.addButtonScale, y: this.addButtonScale })
+      .scale({ x: this.captureButtonScale, y: this.captureButtonScale })
       .animation({
         duration: 200,
         curve: Curve.EaseInOut,
         playMode: PlayMode.Normal
       })
       .onTouch((event: TouchEvent) => {
-        this.addButtonScale = event.type === TouchType.Down ? 0.9 : 1.0;
+        this.captureButtonScale = event.type === TouchType.Down ? 0.9 : 1.0;
       })
       .onClick(() => {
-        this.addButtonScale = 1.0;
-        this.onOpenQuickActions();
+        this.captureButtonScale = 1.0;
+        this.onOpenCapture();
       })
 
       this.NavItem('store', '逛店')
@@ -48,6 +40,31 @@ export struct BottomNavigationBar {
     .backgroundColor(YibuqueColor.cardWhite)
     .border({ width: { top: 1 }, color: YibuqueColor.borderLight })
     .alignItems(VerticalAlign.Center)
+  }
+
+  @Builder
+  CameraIcon() {
+    Stack({ alignContent: Alignment.Center }) {
+      Row()
+        .width(30)
+        .height(22)
+        .backgroundColor(YibuqueColor.textInverse)
+        .borderRadius(8)
+
+      Row()
+        .width(12)
+        .height(5)
+        .backgroundColor(YibuqueColor.textInverse)
+        .borderRadius(3)
+        .margin({ bottom: 24 })
+
+      Circle({ width: 10, height: 10 })
+        .fill(YibuqueColor.actionBlack)
+    }
+    .width(56)
+    .height(44)
+    .backgroundColor(YibuqueColor.actionBlack)
+    .borderRadius(YibuqueRadius.full)
   }
 
   @Builder

@@ -46,8 +46,12 @@ for (const needle of ['衣橱', '逛店']) {
   mustInclude(nav, navPath, needle);
 }
 
-for (const needle of ['拍衣服', '拍搭配', '拍店铺']) {
+for (const needle of ['拍照', '从相册选择']) {
   mustInclude(quickSheet, quickSheetPath, needle);
+}
+
+for (const forbidden of ['拍衣服', '拍搭配', '拍店铺']) {
+  mustNotInclude(quickSheet, quickSheetPath, forbidden);
 }
 
 for (const forbidden of [

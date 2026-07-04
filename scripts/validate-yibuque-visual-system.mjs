@@ -54,12 +54,16 @@ for (const needle of ['衣不缺', '我的', '44', '48', 'profilePressed', '.sca
   mustInclude(topBar, topBarPath, needle);
 }
 
-for (const needle of ['衣橱', '逛店', '+', 'actionBlack', '44', 'bottomSafe']) {
+for (const needle of ['衣橱', '逛店', 'CameraIcon', 'actionBlack', '44', 'bottomSafe']) {
   mustInclude(nav, navPath, needle);
 }
 
-for (const needle of ['拍衣服', '拍搭配', '拍店铺', 'sheet', 'actionBlack', '64']) {
+for (const needle of ['拍照', '从相册选择', 'sheet', 'actionBlack', '64']) {
   mustInclude(quickSheet, quickSheetPath, needle);
+}
+
+for (const forbidden of ['拍衣服', '拍搭配', '拍店铺']) {
+  mustNotInclude(quickSheet, quickSheetPath, forbidden);
 }
 
 for (const text of [topBar, nav, quickSheet]) {

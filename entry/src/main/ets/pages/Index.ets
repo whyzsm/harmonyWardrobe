@@ -208,7 +208,7 @@ struct Index {
               this.showQuickActions = false;
               this.quickActionErrorMessage = '';
             },
-            onOpenQuickActions: () => {
+            onOpenCapture: () => {
               this.showQuickActions = true;
             },
             onSelectStore: () => {
@@ -224,14 +224,11 @@ struct Index {
 
         if (this.showQuickActions) {
           QuickCaptureSheet({
-            onCaptureClothing: () => {
+            onCapturePhoto: () => {
               this.openAddClothing();
             },
-            onCaptureOutfit: () => {
+            onPickPhoto: () => {
               this.openCreateOutfit();
-            },
-            onCaptureStore: () => {
-              this.openCreateStoreVisit();
             },
             onCancel: () => {
               this.showQuickActions = false;
