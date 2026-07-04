@@ -31,10 +31,30 @@ for (const needle of [
   'capturePhoto',
   'copyToAppStorage',
   'createWearLog',
-  'updateWearLog'
+  'updateWearLog',
+  '每日穿搭',
+  '小记',
+  'YibuqueColor.actionBlack'
 ]) {
   if (!editPage.includes(needle)) {
     throw new Error(`WearLogEditPage missing ${needle}`);
+  }
+}
+
+if (/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?outfitTemplateId\.length\s*>\s*0/.test(editPage)) {
+  throw new Error('WearLogEditPage must not require an outfit to save a daily wear log');
+}
+
+if (!/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?wornDate\.trim\(\)\.length\s*>\s*0[\s\S]*?\(this\.photoUris\.length\s*>\s*0\s*\|\|[\s\S]*?this\.note\.trim\(\)\.length\s*>\s*0/.test(editPage)) {
+  throw new Error('WearLogEditPage save gate must require a date and either a photo or note');
+}
+
+for (const forbidden of [
+  '选择套装，补充日期、地点、照片和备注。',
+  'AppTheme.color.primary'
+]) {
+  if (editPage.includes(forbidden)) {
+    throw new Error(`WearLogEditPage should use Yibuque photo-first copy and tokens, not ${forbidden}`);
   }
 }
 

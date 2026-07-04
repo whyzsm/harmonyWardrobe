@@ -10,7 +10,7 @@ import { WearLog } from '../domain/wearLog/WearLogModels';
 import { PhotoSource } from '../media/PhotoModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { AppTheme } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
 import { toIsoDate } from '../utils/date';
 
 function optionalText(value: string): string | undefined {
@@ -51,7 +51,8 @@ export struct WearLogEditPage {
   }
 
   private canSave(): boolean {
-    return !this.isSaving && this.outfitTemplateId.length > 0 && this.wornDate.trim().length > 0;
+    return !this.isSaving && this.wornDate.trim().length > 0 &&
+      (this.photoUris.length > 0 || this.note.trim().length > 0);
   }
 
   private async copySourcesToLocalUris(sources: PhotoSource[]): Promise<string[]> {
@@ -132,14 +133,14 @@ export struct WearLogEditPage {
       Column({ space: 16 }) {
         Row() {
           Column({ space: 4 }) {
-            Text(this.initialWearLog === undefined ? '记录一次穿着' : '编辑穿着记录')
+            Text(this.initialWearLog === undefined ? '记录每日穿搭' : '编辑每日穿搭')
               .fontSize(28)
               .fontWeight(FontWeight.Bold)
-              .fontColor(AppTheme.color.text)
+              .fontColor(YibuqueColor.textPrimary)
 
-            Text('选择套装，补充日期、地点、照片和备注。')
+            Text('照片和小记优先，美搭关联可以稍后再补。')
               .fontSize(14)
-              .fontColor(AppTheme.color.textMuted)
+              .fontColor(YibuqueColor.textSecondary)
           }
           .layoutWeight(1)
           .alignItems(HorizontalAlign.Start)
@@ -147,10 +148,10 @@ export struct WearLogEditPage {
           Button('取消')
             .height(40)
             .fontSize(14)
-            .fontColor(AppTheme.color.textMuted)
-            .backgroundColor(AppTheme.color.surface)
-            .borderRadius(8)
-            .border({ width: 1, color: AppTheme.color.border })
+            .fontColor(YibuqueColor.textSecondary)
+            .backgroundColor(YibuqueColor.cardWhite)
+            .borderRadius(YibuqueRadius.full)
+            .border({ width: 1, color: YibuqueColor.borderLight })
             .onClick(() => {
               this.onCancel();
             })
@@ -169,9 +170,10 @@ export struct WearLogEditPage {
         TextInput({ text: this.wornDate, placeholder: 'wornDate / 日期 YYYY-MM-DD' })
           .height(44)
           .fontSize(15)
-          .backgroundColor(AppTheme.color.surface)
-          .borderRadius(8)
-          .border({ width: 1, color: AppTheme.color.border })
+          .fontColor(YibuqueColor.textPrimary)
+          .backgroundColor(YibuqueColor.cardWhite)
+          .borderRadius(YibuqueRadius.lg)
+          .border({ width: 1, color: YibuqueColor.borderLight })
           .onChange((value: string) => {
             this.wornDate = value;
           })
@@ -182,9 +184,9 @@ export struct WearLogEditPage {
           Button('从相册选择')
             .height(40)
             .fontSize(14)
-            .backgroundColor(AppTheme.color.primary)
-            .fontColor(AppTheme.color.surface)
-            .borderRadius(8)
+            .backgroundColor(YibuqueColor.actionBlack)
+            .fontColor(YibuqueColor.textInverse)
+            .borderRadius(YibuqueRadius.full)
             .onClick(() => {
               this.pickGalleryPhotos();
             })
@@ -192,10 +194,10 @@ export struct WearLogEditPage {
           Button('拍照')
             .height(40)
             .fontSize(14)
-            .backgroundColor(AppTheme.color.surface)
-            .fontColor(AppTheme.color.primary)
-            .borderRadius(8)
-            .border({ width: 1, color: AppTheme.color.border })
+            .backgroundColor(YibuqueColor.cardWhite)
+            .fontColor(YibuqueColor.textPrimary)
+            .borderRadius(YibuqueRadius.full)
+            .border({ width: 1, color: YibuqueColor.borderLight })
             .onClick(() => {
               this.capturePhoto();
             })
@@ -205,19 +207,22 @@ export struct WearLogEditPage {
         TextInput({ text: this.placeText, placeholder: 'placeText / 地点' })
           .height(44)
           .fontSize(15)
-          .backgroundColor(AppTheme.color.surface)
-          .borderRadius(8)
-          .border({ width: 1, color: AppTheme.color.border })
+          .fontColor(YibuqueColor.textPrimary)
+          .backgroundColor(YibuqueColor.cardWhite)
+          .borderRadius(YibuqueRadius.lg)
+          .border({ width: 1, color: YibuqueColor.borderLight })
           .onChange((value: string) => {
             this.placeText = value;
           })
 
-        TextInput({ text: this.note, placeholder: 'note / 备注' })
-          .height(44)
+        TextArea({ text: this.note, placeholder: '小记' })
+          .height(96)
           .fontSize(15)
-          .backgroundColor(AppTheme.color.surface)
-          .borderRadius(8)
-          .border({ width: 1, color: AppTheme.color.border })
+          .fontColor(YibuqueColor.textPrimary)
+          .placeholderColor(YibuqueColor.textTertiary)
+          .backgroundColor(YibuqueColor.cardWhite)
+          .borderRadius(YibuqueRadius.lg)
+          .border({ width: 1, color: YibuqueColor.borderLight })
           .onChange((value: string) => {
             this.note = value;
           })
@@ -225,27 +230,27 @@ export struct WearLogEditPage {
         if (this.errorMessage.length > 0) {
           Text(this.errorMessage)
             .fontSize(13)
-            .fontColor(AppTheme.color.danger)
+            .fontColor('#EF4444')
         }
 
         Button(this.isSaving ? '保存中...' : '保存记录')
           .height(44)
           .width('100%')
           .fontSize(15)
-          .fontColor(AppTheme.color.surface)
-          .backgroundColor(this.canSave() ? AppTheme.color.primary : AppTheme.color.disabled)
-          .borderRadius(8)
+          .fontColor(YibuqueColor.textInverse)
+          .backgroundColor(this.canSave() ? YibuqueColor.actionBlack : YibuqueColor.textDisabled)
+          .borderRadius(YibuqueRadius.full)
           .enabled(this.canSave())
           .onClick(() => {
             this.saveWearLog();
           })
       }
       .width('100%')
-      .padding(20)
+      .padding(YibuqueSpacing.pageX)
       .alignItems(HorizontalAlign.Start)
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(AppTheme.color.surfaceMuted)
+    .backgroundColor(YibuqueColor.bgBlueGray)
   }
 }

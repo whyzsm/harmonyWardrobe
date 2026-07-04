@@ -124,7 +124,7 @@ interface WearLogRow {
 }
 
 export interface CreateWearLogInput {
-  outfitTemplateId: string;
+  outfitTemplateId?: string;
   wornDate: string;
   photoUris?: string[];
   placeText?: string;
@@ -133,7 +133,7 @@ export interface CreateWearLogInput {
 
 export interface UpdateWearLogInput {
   id: string;
-  outfitTemplateId: string;
+  outfitTemplateId?: string;
   wornDate: string;
   photoUris?: string[];
   placeText?: string;
@@ -239,10 +239,10 @@ export class WearLogRepository {
   async createWearLog(input: CreateWearLogInput): Promise<WearLog> {
     return this.database.transaction(async () => {
       const now = toIsoDateTime(new Date());
-      const snapshot = await this.requireOutfitSnapshot(input.outfitTemplateId);
+      const snapshot = await this.optionalOutfitSnapshot(input.outfitTemplateId);
       const wearLog: WearLog = {
         id: createId('wear_log'),
-        outfitTemplateId: input.outfitTemplateId,
+        outfitTemplateId: toSqlNullableText(input.outfitTemplateId) ?? undefined,
         outfitTitleSnapshot: snapshot.title,
         clothingItemIdsSnapshot: snapshot.clothingItemIds,
         wornDate: input.wornDate,
@@ -268,10 +268,10 @@ export class WearLogRepository {
         throw new Error(`Wear log not found: ${input.id}`);
       }
 
-      const snapshot = await this.requireOutfitSnapshot(input.outfitTemplateId);
+      const snapshot = await this.optionalOutfitSnapshot(input.outfitTemplateId, existing.outfitTitleSnapshot);
       const wearLog: WearLog = {
         id: input.id,
-        outfitTemplateId: input.outfitTemplateId,
+        outfitTemplateId: toSqlNullableText(input.outfitTemplateId) ?? undefined,
         outfitTitleSnapshot: snapshot.title,
         clothingItemIdsSnapshot: snapshot.clothingItemIds,
         wornDate: input.wornDate,
@@ -283,7 +283,7 @@ export class WearLogRepository {
       };
 
       await this.database.executeSql(UPDATE_WEAR_LOG_SQL, [
-        input.outfitTemplateId,
+        wearLog.outfitTemplateId ?? null,
         wearLog.outfitTitleSnapshot,
         encodeClothingItemIdsSnapshot(wearLog.clothingItemIdsSnapshot),
         wearLog.wornDate,
@@ -356,10 +356,10 @@ export class WearLogRepository {
     return new DeleteCleanupService(this.database, this.searchRepository);
   }
 
-  private wearLogBindArgs(wearLog: WearLog, outfitTemplateId: string): MigrationSqlValue[] {
+  private wearLogBindArgs(wearLog: WearLog, outfitTemplateId?: string): MigrationSqlValue[] {
     return [
       wearLog.id,
-      outfitTemplateId,
+      toSqlNullableText(outfitTemplateId) ?? null,
       wearLog.outfitTitleSnapshot,
       encodeClothingItemIdsSnapshot(wearLog.clothingItemIdsSnapshot),
       wearLog.wornDate,
@@ -381,6 +381,18 @@ export class WearLogRepository {
         index
       ]);
     }
+  }
+
+  private async optionalOutfitSnapshot(outfitId?: string, fallbackTitle: string = '每日穿搭'): Promise<OutfitSnapshot> {
+    const normalizedOutfitId = toSqlNullableText(outfitId);
+    if (normalizedOutfitId === null) {
+      return {
+        title: fallbackTitle,
+        clothingItemIds: []
+      };
+    }
+
+    return this.requireOutfitSnapshot(normalizedOutfitId);
   }
 
   private async requireOutfitSnapshot(outfitId: string): Promise<OutfitSnapshot> {
