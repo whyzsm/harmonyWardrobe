@@ -32,4 +32,8 @@ for (const needle of [
   }
 }
 
+if (!/this\.photoUris\s*=\s*\[\s*\.\.\.this\.initialItem\.photoUris\s*\]/.test(text)) {
+  throw new Error('WishlistEditPage must clone initial item photoUris before assigning to state');
+}
+
 console.log('PASS');

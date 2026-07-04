@@ -9,6 +9,14 @@ const PHOTOS_DIR_NAME = 'photos';
 const DEFAULT_PHOTO_EXTENSION = 'jpg';
 const ALLOWED_PHOTO_EXTENSIONS: string[] = ['jpg', 'jpeg', 'png', 'webp', 'heic', 'heif'];
 const LOCAL_FILE_URI_PREFIX = 'file://';
+const MAX_COPY_ATTEMPTS = 3;
+
+interface ErrorLike {
+  message?: string;
+  code?: string | number;
+}
+
+type ThrowableError = Error | string | ErrorLike;
 
 export interface PhotoStorageOptions {
   clock?: () => string;
@@ -163,12 +171,37 @@ function errorMessage(error: Error | string | null | undefined): string {
   return error instanceof Error ? error.message : String(error ?? 'Delete failed');
 }
 
-function safeString(error: Object): string {
-  try {
-    return String(error);
-  } catch (_error) {
+function errorText(error: ThrowableError | null | undefined): string {
+  if (error instanceof Error) {
+    return errorMessage(error);
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  if (error === null || error === undefined) {
     return 'Delete failed';
   }
+
+  if (error.message !== undefined && error.message.length > 0) {
+    return error.message;
+  }
+
+  if (error.code !== undefined) {
+    return String(error.code);
+  }
+
+  return 'Delete failed';
+}
+
+function isFileExistsError(error: ThrowableError | null | undefined): boolean {
+  const message = errorText(error).toLowerCase();
+  return message.includes('file exists') || message.includes('eexist');
+}
+
+function copyErrorText(error: ThrowableError | null | undefined): string {
+  return errorText(error).replace(/^Delete failed$/, 'Photo copy failed');
 }
 
 export class PhotoStorage {
@@ -190,17 +223,37 @@ export class PhotoStorage {
     const safeOriginalName = buildSafeOriginalName(source);
     const safeExtension = sanitizeExtension(splitExtension(safeOriginalName), source.mimeType);
     const safeBaseName = sanitizeBaseName(safeOriginalName, safeExtension);
-    const fileName = `${sanitizeTimestamp(createdAt)}-${sanitizeNamePart(this.idFactory())}-${safeBaseName}.${safeExtension}`;
-    const localPath = joinPath(photosDir, fileName);
 
-    await this.fileSystem.ensureDirectory(photosDir);
-    await this.fileSystem.copyFile(source.uri, localPath);
+    try {
+      await this.fileSystem.ensureDirectory(photosDir);
+    } catch (error) {
+      const caughtError = error as ThrowableError;
+      if (!isFileExistsError(caughtError)) {
+        throw new Error(copyErrorText(caughtError));
+      }
+    }
 
-    return {
-      localUri: displayUriFromLocalPath(localPath),
-      fileName,
-      createdAt
-    };
+    for (let attempt = 0; attempt < MAX_COPY_ATTEMPTS; attempt += 1) {
+      const fileName = `${sanitizeTimestamp(createdAt)}-${sanitizeNamePart(this.idFactory())}-${safeBaseName}.${safeExtension}`;
+      const localPath = joinPath(photosDir, fileName);
+
+      try {
+        await this.fileSystem.copyFile(source.uri, localPath);
+
+        return {
+          localUri: displayUriFromLocalPath(localPath),
+          fileName,
+          createdAt
+        };
+      } catch (error) {
+        const caughtError = error as ThrowableError;
+        if (!isFileExistsError(caughtError) || attempt === MAX_COPY_ATTEMPTS - 1) {
+          throw new Error(copyErrorText(caughtError));
+        }
+      }
+    }
+
+    throw new Error('Photo copy failed after retrying existing destination names.');
   }
 
   async deleteLocalPhoto(localUri: string): Promise<PhotoDeleteResult> {
@@ -222,17 +275,11 @@ export class PhotoStorage {
         retryable: false
       };
     } catch (error) {
-      let deleteError = 'Delete failed';
-      if (error instanceof Error || typeof error === 'string' || error === null || error === undefined) {
-        deleteError = errorMessage(error);
-      } else {
-        deleteError = safeString(error);
-      }
-
+      const caughtError = error as ThrowableError;
       return {
         localUri,
         deleted: false,
-        error: deleteError,
+        error: errorText(caughtError),
         retryable: true
       };
     }

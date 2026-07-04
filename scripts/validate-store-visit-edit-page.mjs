@@ -36,6 +36,10 @@ if (/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?storeName\.trim\(\)\.length\s*>\s*0/.t
   throw new Error(`${file} must not require storeName to save`);
 }
 
+if (!/this\.photoUris\s*=\s*\[\s*\.\.\.this\.initialVisit\.photoUris\s*\]/.test(text)) {
+  throw new Error(`${file} must clone initial visit photoUris before assigning to state`);
+}
+
 if (!/generatedStore|fallbackStore|逛店\s+\$\{|未命名店铺/.test(text)) {
   throw new Error(`${file} must provide a default store visit name`);
 }

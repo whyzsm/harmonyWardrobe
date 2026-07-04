@@ -45,6 +45,10 @@ if (/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?outfitTemplateId\.length\s*>\s*0/.test
   throw new Error('WearLogEditPage must not require an outfit to save a daily wear log');
 }
 
+if (!/this\.photoUris\s*=\s*\[\s*\.\.\.this\.initialWearLog\.photoUris\s*\]/.test(editPage)) {
+  throw new Error('WearLogEditPage must clone initial wear log photoUris before assigning to state');
+}
+
 if (!/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?wornDate\.trim\(\)\.length\s*>\s*0[\s\S]*?\(this\.photoUris\.length\s*>\s*0\s*\|\|[\s\S]*?this\.note\.trim\(\)\.length\s*>\s*0/.test(editPage)) {
   throw new Error('WearLogEditPage save gate must require a date and either a photo or note');
 }

@@ -50,7 +50,7 @@ export struct StoreVisitEditPage {
     this.districtOrAddress = this.initialVisit.districtOrAddress ?? '';
     this.visitDate = this.initialVisit.visitDate;
     this.note = this.initialVisit.note ?? '';
-    this.photoUris = this.initialVisit.photoUris;
+    this.photoUris = [...this.initialVisit.photoUris];
   }
 
   private canSave(): boolean {

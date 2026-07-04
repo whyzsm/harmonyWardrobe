@@ -97,6 +97,7 @@ function createRunnableStorageSource(source) {
   return source
     .replace(/^import[\s\S]*?;\n/gm, '')
     .replace(/\bexport\s+/g, '')
+    .replace(/type\s+\w+\s*=\s*[^;]+;\n/g, '')
     .replace(/interface\s+\w+\s*{[\s\S]*?\n}\n/g, '')
     .replace(/private\s+readonly\s+/g, '')
     .replace(/private\s+/g, '')
@@ -110,9 +111,12 @@ function createRunnableStorageSource(source) {
     .replace(/:\s*PhotoSource/g, '')
     .replace(/:\s*StoredPhoto/g, '')
     .replace(/:\s*PhotoDeleteResult/g, '')
+    .replace(/:\s*ThrowableError\s*\|\s*null\s*\|\s*undefined/g, '')
+    .replace(/\s+as\s+ThrowableError\b/g, '')
     .replace(/:\s*Promise<[^>]+>/g, '')
     .replace(/:\s*Array<[^>]+>/g, '')
     .replace(/:\s*string\[\]/g, '')
+    .replace(/:\s*Error\s*\|\s*string\s*\|\s*null\s*\|\s*undefined\s*\|\s*Object/g, '')
     .replace(/:\s*Error\s*\|\s*string\s*\|\s*null\s*\|\s*undefined/g, '')
     .replace(/:\s*string\s*\|\s*undefined/g, '')
     .replace(/:\s*Error\s*\|\s*undefined/g, '')
@@ -167,6 +171,8 @@ assertMatches(storage, /const\s+PHOTOS_DIR_NAME\s*=\s*['"`]photos['"`]/, 'PhotoS
 assertMatches(storage, /sanitize|safeFileName|safeExtension/, 'PhotoStorage must sanitize file names or extensions');
 assertMatches(storage, /Date\.now|new Date\(\)\.getTime|clock/, 'PhotoStorage must use time for uniqueness or createdAt');
 assertMatches(storage, /idFactory|createId|random|sequence/, 'PhotoStorage must use an id/sequence dependency for unique names');
+assertMatches(storage, /File exists|EEXIST|fileExists|isFileExistsError/, 'PhotoStorage must handle existing directory or file conflicts');
+assertMatches(storage, /MAX_COPY_ATTEMPTS|copyAttempts|for\s*\(\s*let\s+attempt/, 'PhotoStorage must retry when a generated destination already exists');
 
 const copyBody = extractMethodBody(storage, 'copyToAppStorage');
 const deleteBody = extractMethodBody(storage, 'deleteLocalPhoto');
@@ -269,6 +275,61 @@ await assert.rejects(
   () => failingCopy.copyToAppStorage({ uri: 'file:///tmp/source/fail.jpg', fileName: 'fail.jpg' }),
   /copy failed/
 );
+
+const existingDirectoryOperations = [];
+const existingDirectoryStorage = new context.PhotoStorage('/sandbox/root', {
+  async ensureDirectory(path) {
+    existingDirectoryOperations.push(['ensureDirectory', path]);
+    throw new Error('File exists');
+  },
+  async copyFile(sourceUri, destinationUri) {
+    existingDirectoryOperations.push(['copyFile', sourceUri, destinationUri]);
+  },
+  async deleteFile() {}
+}, {
+  clock: () => '2026-06-29T01:02:03.000Z',
+  idFactory: () => 'id-dir-exists'
+});
+const existingDirectoryPhoto = await existingDirectoryStorage.copyToAppStorage({
+  uri: 'file:///tmp/source/photo.jpg',
+  fileName: 'photo.jpg',
+  mimeType: 'image/jpeg'
+});
+assert.equal(existingDirectoryPhoto.fileName, '2026-06-29T01-02-03-000Z-id-dir-exists-photo.jpg');
+assert.deepEqual(existingDirectoryOperations[0], ['ensureDirectory', '/sandbox/root/photos']);
+assert.equal(existingDirectoryOperations[1][0], 'copyFile');
+
+let retryId = 0;
+const copyConflictOperations = [];
+const copyConflictStorage = new context.PhotoStorage('/sandbox/root', {
+  async ensureDirectory(path) {
+    copyConflictOperations.push(['ensureDirectory', path]);
+  },
+  async copyFile(sourceUri, destinationUri) {
+    copyConflictOperations.push(['copyFile', sourceUri, destinationUri]);
+    if (copyConflictOperations.filter((operation) => operation[0] === 'copyFile').length === 1) {
+      throw new Error('File exists');
+    }
+  },
+  async deleteFile() {}
+}, {
+  clock: () => '2026-06-29T01:02:03.000Z',
+  idFactory: () => {
+    retryId += 1;
+    return `id-retry-${retryId}`;
+  }
+});
+const copyConflictPhoto = await copyConflictStorage.copyToAppStorage({
+  uri: 'file:///tmp/source/photo.jpg',
+  fileName: 'photo.jpg',
+  mimeType: 'image/jpeg'
+});
+const copyDestinations = copyConflictOperations
+  .filter((operation) => operation[0] === 'copyFile')
+  .map((operation) => operation[2]);
+assert.equal(copyDestinations.length, 2);
+assert.notEqual(copyDestinations[0], copyDestinations[1]);
+assert.equal(copyConflictPhoto.fileName, '2026-06-29T01-02-03-000Z-id-retry-2-photo.jpg');
 
 const failingEnsureDirectory = new context.PhotoStorage('/sandbox/root', {
   async ensureDirectory() {

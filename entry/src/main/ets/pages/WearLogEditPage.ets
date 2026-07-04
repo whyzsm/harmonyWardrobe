@@ -45,7 +45,7 @@ export struct WearLogEditPage {
 
     this.outfitTemplateId = this.initialWearLog.outfitTemplateId ?? '';
     this.wornDate = this.initialWearLog.wornDate;
-    this.photoUris = this.initialWearLog.photoUris;
+    this.photoUris = [...this.initialWearLog.photoUris];
     this.placeText = this.initialWearLog.placeText ?? '';
     this.note = this.initialWearLog.note ?? '';
   }

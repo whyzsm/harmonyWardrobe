@@ -77,6 +77,10 @@ if (!/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?return\s+!this\.isSaving\s*&&\s*this\
   throw new Error('ClothingEditPage save gate must only require a selected photo');
 }
 
+if (!/this\.photoUris\s*=\s*\[\s*\.\.\.this\.initialItem\.photoUris\s*\]/.test(editPage)) {
+  throw new Error('ClothingEditPage must clone initial item photoUris before assigning to state');
+}
+
 if (!/this\.name\s*=\s*this\.generatedName\(\)/.test(editPage)) {
   throw new Error('ClothingEditPage must auto-fill a generated name after photo selection');
 }

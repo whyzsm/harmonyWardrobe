@@ -56,6 +56,14 @@ if (!/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?return\s+!this\.isSaving\s*&&\s*this\
   throw new Error('OutfitEditPage save gate must only require at least one photo');
 }
 
+if (!/this\.clothingItemIds\s*=\s*\[\s*\.\.\.this\.initialOutfit\.clothingItemIds\s*\]/.test(editPage)) {
+  throw new Error('OutfitEditPage must clone initial clothingItemIds before assigning to state');
+}
+
+if (!/this\.photoUris\s*=\s*\[\s*\.\.\.this\.initialOutfit\.photoUris\s*\]/.test(editPage)) {
+  throw new Error('OutfitEditPage must clone initial photoUris before assigning to state');
+}
+
 if (editPage.includes('this.title.trim().length > 0 &&')) {
   throw new Error('OutfitEditPage must not require a title to save');
 }

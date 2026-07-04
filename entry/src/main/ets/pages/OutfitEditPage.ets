@@ -48,8 +48,8 @@ export struct OutfitEditPage {
     }
 
     this.title = this.initialOutfit.title;
-    this.clothingItemIds = this.initialOutfit.clothingItemIds;
-    this.photoUris = this.initialOutfit.photoUris;
+    this.clothingItemIds = [...this.initialOutfit.clothingItemIds];
+    this.photoUris = [...this.initialOutfit.photoUris];
     this.note = this.initialOutfit.note ?? '';
   }
 

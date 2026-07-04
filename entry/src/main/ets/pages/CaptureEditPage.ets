@@ -94,7 +94,7 @@ export struct CaptureEditPage {
 
   aboutToAppear(): void {
     if (this.photoUris.length === 0) {
-      this.photoUris = this.initialPhotoUris;
+      this.photoUris = [...this.initialPhotoUris];
     }
 
     if (this.wearDate.length === 0) {

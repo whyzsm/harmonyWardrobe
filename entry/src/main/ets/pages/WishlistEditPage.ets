@@ -38,7 +38,7 @@ export struct WishlistEditPage {
     }
 
     this.title = this.initialItem.title;
-    this.photoUris = this.initialItem.photoUris;
+    this.photoUris = [...this.initialItem.photoUris];
     this.storeName = this.initialItem.storeName ?? '';
     this.price = this.initialItem.price?.toString() ?? '';
     this.note = this.initialItem.note ?? '';

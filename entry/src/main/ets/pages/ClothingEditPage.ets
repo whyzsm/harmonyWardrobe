@@ -96,7 +96,7 @@ export struct ClothingEditPage {
 
     this.name = this.initialItem.name;
     this.category = this.initialItem.category;
-    this.photoUris = this.initialItem.photoUris;
+    this.photoUris = [...this.initialItem.photoUris];
     this.previewPhotoUri = this.initialItem.photoUris[0] ?? '';
     this.note = this.initialItem.note ?? '';
     this.storeName = this.initialItem.purchaseInfo?.storeName ?? '';
