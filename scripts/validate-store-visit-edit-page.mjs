@@ -22,13 +22,22 @@ for (const needle of [
   'YibuqueRadius',
   'YibuqueShadow',
   'YibuqueColor.actionBlack',
-  '店铺信息',
+  '小记',
+  '选填信息',
   '地址或商圈',
   '试穿备注'
 ]) {
   if (!text.includes(needle)) {
     throw new Error(`${file} missing ${needle}`);
   }
+}
+
+if (/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?storeName\.trim\(\)\.length\s*>\s*0/.test(text)) {
+  throw new Error(`${file} must not require storeName to save`);
+}
+
+if (!/generatedStore|fallbackStore|逛店\s+\$\{|未命名店铺/.test(text)) {
+  throw new Error(`${file} must provide a default store visit name`);
 }
 
 for (const forbidden of [

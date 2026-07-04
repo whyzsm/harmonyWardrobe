@@ -13,9 +13,7 @@ for (const needle of [
   'WardrobePage',
   'StoreVisitPage',
   'ProfilePage',
-  'ClothingEditPage',
-  'OutfitEditPage',
-  'StoreVisitEditPage'
+  'CaptureEditPage'
 ]) {
   if (!index.includes(needle)) {
     throw new Error(`Index missing ${needle}`);
@@ -28,10 +26,24 @@ for (const label of ['衣橱', '逛店']) {
   }
 }
 
-for (const action of ['拍衣服', '拍搭配', '拍店铺']) {
+for (const action of ['拍照', '从相册选择']) {
   if (!sheet.includes(action)) {
     throw new Error(`QuickCaptureSheet missing ${action}`);
   }
+}
+
+for (const forbiddenAction of ['拍衣服', '拍搭配', '拍店铺']) {
+  if (sheet.includes(forbiddenAction)) {
+    throw new Error(`QuickCaptureSheet should not branch by business type: ${forbiddenAction}`);
+  }
+}
+
+if (!nav.includes('onOpenCapture')) {
+  throw new Error('BottomNavigationBar missing onOpenCapture');
+}
+
+if (nav.includes('onOpenQuickActions')) {
+  throw new Error('BottomNavigationBar should use photo-first onOpenCapture');
 }
 
 for (const forbidden of [
