@@ -1,4 +1,4 @@
-import { AppTheme } from '../theme/Tokens';
+import { YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
 
 @Component
 export struct PhotoGrid {
@@ -12,13 +12,13 @@ export struct PhotoGrid {
             .width('100%')
             .height('100%')
             .objectFit(ImageFit.Cover)
-            .borderRadius(AppTheme.radius.md)
+            .borderRadius(YibuqueRadius.xl)
         }
       }, (photoUri: string) => photoUri)
     }
     .columnsTemplate('1fr 1fr 1fr')
-    .columnsGap(AppTheme.spacing.sm)
-    .rowsGap(AppTheme.spacing.sm)
+    .columnsGap(YibuqueSpacing.sm)
+    .rowsGap(YibuqueSpacing.sm)
     .width('100%')
     .height(this.photoUris.length === 0 ? 0 : 220)
   }

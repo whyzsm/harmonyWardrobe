@@ -1,5 +1,5 @@
 import { OutfitTemplate } from '../domain/outfit/OutfitModels';
-import { AppTheme } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
 
 @Component
 export struct OutfitPicker {
@@ -8,16 +8,16 @@ export struct OutfitPicker {
   onSelect: (id: string) => void = () => {};
 
   build() {
-    Column({ space: 8 }) {
-      Text('选择套装')
+    Column({ space: YibuqueSpacing.sm }) {
+      Text('选择美搭')
         .fontSize(16)
-        .fontWeight(FontWeight.Medium)
-        .fontColor(AppTheme.color.text)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(YibuqueColor.textPrimary)
 
       if (this.outfits.length === 0) {
-        Text('暂无套装，可先创建套装。')
+        Text('暂无美搭，可先记录一套美搭。')
           .fontSize(14)
-          .fontColor(AppTheme.color.textMuted)
+          .fontColor(YibuqueColor.textSecondary)
       } else {
         ForEach(this.outfits, (outfit: OutfitTemplate) => {
           Row() {
@@ -25,28 +25,28 @@ export struct OutfitPicker {
               Text(outfit.title)
                 .fontSize(15)
                 .fontWeight(FontWeight.Medium)
-                .fontColor(AppTheme.color.text)
+                .fontColor(YibuqueColor.textPrimary)
 
               Text(`${outfit.clothingItemIds.length} 件单品`)
                 .fontSize(12)
-                .fontColor(AppTheme.color.textMuted)
+                .fontColor(YibuqueColor.textSecondary)
             }
             .layoutWeight(1)
             .alignItems(HorizontalAlign.Start)
 
             Text(outfit.id === this.selectedOutfitId ? '已选' : '选择')
               .fontSize(13)
-              .fontColor(outfit.id === this.selectedOutfitId ? AppTheme.color.surface : AppTheme.color.primary)
+              .fontColor(outfit.id === this.selectedOutfitId ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
               .padding({ left: 10, right: 10, top: 6, bottom: 6 })
-              .borderRadius(AppTheme.radius.md)
-              .backgroundColor(outfit.id === this.selectedOutfitId ? AppTheme.color.primary : AppTheme.color.surface)
-              .border({ width: 1, color: outfit.id === this.selectedOutfitId ? AppTheme.color.primary : AppTheme.color.border })
+              .borderRadius(YibuqueRadius.full)
+              .backgroundColor(outfit.id === this.selectedOutfitId ? YibuqueColor.actionBlack : YibuqueColor.cardWhite)
+              .border({ width: 1, color: outfit.id === this.selectedOutfitId ? YibuqueColor.actionBlack : YibuqueColor.borderLight })
           }
           .width('100%')
           .padding(10)
-          .borderRadius(AppTheme.radius.md)
-          .backgroundColor(AppTheme.color.surface)
-          .border({ width: 1, color: outfit.id === this.selectedOutfitId ? AppTheme.color.primary : AppTheme.color.border })
+          .borderRadius(YibuqueRadius.lg)
+          .backgroundColor(YibuqueColor.cardWhite)
+          .border({ width: 1, color: outfit.id === this.selectedOutfitId ? YibuqueColor.borderStrong : YibuqueColor.borderLight })
           .onClick(() => {
             this.onSelect(outfit.id);
           })

@@ -138,15 +138,15 @@ export struct StoreVisitPage {
             .fontColor(YibuqueColor.textPrimary)
             .layoutWeight(1)
 
-          Button('拍店铺')
-            .height(44)
-            .fontSize(15)
-            .fontColor(YibuqueColor.textInverse)
-            .backgroundColor(YibuqueColor.actionBlack)
+          Text('相机记录')
+            .height(36)
+            .padding({ left: 14, right: 14 })
+            .fontSize(13)
+            .fontWeight(FontWeight.Bold)
+            .fontColor(YibuqueColor.textPrimary)
+            .textAlign(TextAlign.Center)
+            .backgroundColor(YibuqueColor.cardMint)
             .borderRadius(YibuqueRadius.full)
-            .onClick(() => {
-              this.openCreateEditor();
-            })
         }
         .width('100%')
         .alignItems(VerticalAlign.Center)
@@ -201,7 +201,7 @@ export struct StoreVisitPage {
                   .fontWeight(FontWeight.Bold)
                   .fontColor(YibuqueColor.textPrimary)
 
-                Text(this.isSearching() ? '试试店铺名、商圈或备注关键词。' : '点右上角「拍店铺」记录这次逛店。')
+                Text(this.isSearching() ? '试试店铺名、商圈或备注关键词。' : '点底部相机，选择照片后归类为店铺。')
                   .fontSize(15)
                   .fontColor(YibuqueColor.textSecondary)
               }
@@ -223,17 +223,15 @@ export struct StoreVisitPage {
             .alignItems(VerticalAlign.Center)
 
             if (!this.isSearching()) {
-              Button('拍店铺')
-                .height(48)
+              Text('底部相机会把照片保存到这里')
+                .height(44)
                 .width('100%')
-                .fontSize(16)
+                .fontSize(14)
                 .fontWeight(FontWeight.Bold)
-                .fontColor(YibuqueColor.textInverse)
-                .backgroundColor(YibuqueColor.actionBlack)
+                .fontColor(YibuqueColor.textPrimary)
+                .textAlign(TextAlign.Center)
+                .backgroundColor(YibuqueColor.cardSoftGray)
                 .borderRadius(YibuqueRadius.full)
-                .onClick(() => {
-                  this.openCreateEditor();
-                })
             }
           }
           .width('100%')

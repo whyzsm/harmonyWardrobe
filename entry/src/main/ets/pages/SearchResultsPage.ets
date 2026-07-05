@@ -3,7 +3,7 @@ import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { SearchRepository } from '../data/repositories/SearchRepository';
 import { SearchEntityType, SearchResult } from '../domain/search/SearchModels';
-import { AppTheme } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
 
 function entityTypeLabel(entityType: SearchEntityType): string {
   if (entityType === SearchEntityType.Clothing) {
@@ -61,28 +61,28 @@ export struct SearchResultsPage {
   }
 
   build() {
-    Column({ space: 16 }) {
+    Column({ space: YibuqueSpacing.lg }) {
       Row() {
         Column({ space: 4 }) {
-          Text('统一搜索')
+          Text('搜索')
             .fontSize(28)
             .fontWeight(FontWeight.Bold)
-            .fontColor(AppTheme.color.text)
+            .fontColor(YibuqueColor.textPrimary)
 
-          Text(`query: ${this.query}`)
+          Text(`正在找「${this.query}」`)
             .fontSize(14)
-            .fontColor(AppTheme.color.textMuted)
+            .fontColor(YibuqueColor.textSecondary)
         }
         .layoutWeight(1)
         .alignItems(HorizontalAlign.Start)
 
         Button('关闭')
-          .height(40)
+          .height(44)
           .fontSize(14)
-          .fontColor(AppTheme.color.textMuted)
-          .backgroundColor(AppTheme.color.surface)
-          .borderRadius(8)
-          .border({ width: 1, color: AppTheme.color.border })
+          .fontColor(YibuqueColor.textSecondary)
+          .backgroundColor(YibuqueColor.cardWhite)
+          .borderRadius(YibuqueRadius.full)
+          .border({ width: 1, color: YibuqueColor.borderLight })
           .onClick(() => {
             this.onClose();
           })
@@ -90,18 +90,14 @@ export struct SearchResultsPage {
       .width('100%')
       .alignItems(VerticalAlign.Center)
 
-      Text('entity_type / entity_id')
-        .fontSize(12)
-        .fontColor(AppTheme.color.disabled)
-
       if (this.isSearching) {
         Text('搜索中...')
           .fontSize(14)
-          .fontColor(AppTheme.color.textMuted)
+          .fontColor(YibuqueColor.textSecondary)
       } else if (this.errorMessage.length > 0) {
         Text(this.errorMessage)
           .fontSize(14)
-          .fontColor(AppTheme.color.danger)
+          .fontColor('#EF4444')
       } else if (this.searchResults.length === 0) {
         EmptyState({
           title: '没有搜索结果',
@@ -112,26 +108,27 @@ export struct SearchResultsPage {
           Column({ space: 4 }) {
             Text(result.title)
               .fontSize(16)
-              .fontWeight(FontWeight.Medium)
-              .fontColor(AppTheme.color.text)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(YibuqueColor.textPrimary)
 
-            Text(`${entityTypeLabel(result.entityType)} · entity_type=${result.entityType} · entity_id=${result.entityId}`)
+            Text(entityTypeLabel(result.entityType))
               .fontSize(12)
-              .fontColor(AppTheme.color.textMuted)
+              .fontWeight(FontWeight.Bold)
+              .fontColor(YibuqueColor.textSecondary)
           }
           .width('100%')
-          .padding(12)
-          .borderRadius(8)
-          .backgroundColor(AppTheme.color.surface)
-          .border({ width: 1, color: AppTheme.color.border })
+          .padding(YibuqueSpacing.md)
+          .borderRadius(YibuqueRadius.xl)
+          .backgroundColor(YibuqueColor.cardWhite)
+          .border({ width: 1, color: YibuqueColor.borderLight })
           .alignItems(HorizontalAlign.Start)
         }, (result: SearchResult) => `${result.entityType}:${result.entityId}`)
       }
     }
     .width('100%')
     .height('100%')
-    .padding(20)
+    .padding(YibuqueSpacing.pageX)
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor(AppTheme.color.surfaceMuted)
+    .backgroundColor(YibuqueColor.bgBlueGray)
   }
 }

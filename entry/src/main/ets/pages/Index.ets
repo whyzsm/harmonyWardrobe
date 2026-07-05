@@ -7,7 +7,7 @@ import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { StoreVisit } from '../domain/store/StoreModels';
 import { PhotoSource } from '../media/PhotoModels';
-import { AppTheme, YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
 import { CaptureEditPage } from './CaptureEditPage';
 import { ClothingEditPage } from './ClothingEditPage';
 import { OutfitEditPage } from './OutfitEditPage';
@@ -33,6 +33,7 @@ struct Index {
   @State private capturePhotoUris: string[] = [];
   @State private captureCapturedAt: string = '';
   @State private captureClothingItems: ClothingItem[] = [];
+  @State private initialWardrobeTab: string = '衣裤';
   @State private isCapturing: boolean = false;
   private runtime?: WardrobeRuntime = undefined;
 
@@ -145,7 +146,7 @@ struct Index {
         if (this.errorMessage.length > 0) {
           Text(this.errorMessage)
             .fontSize(14)
-            .fontColor(AppTheme.color.danger)
+            .fontColor('#EF4444')
 
           Button('重试')
             .height(44)
@@ -223,7 +224,11 @@ struct Index {
           this.closeCaptureEditor();
           if (target === '店铺') {
             this.selectedMainTab = 'store';
+          } else if (target === '美搭') {
+            this.initialWardrobeTab = '美搭';
+            this.selectedMainTab = 'wardrobe';
           } else {
+            this.initialWardrobeTab = '衣裤';
             this.selectedMainTab = 'wardrobe';
           }
         },
@@ -255,7 +260,8 @@ struct Index {
               wearLogRepository: this.runtime.wearLogRepository,
               searchRepository: this.runtime.searchRepository,
               photoPickerAdapter: this.runtime.photoPickerAdapter,
-              photoStorage: this.runtime.photoStorage
+              photoStorage: this.runtime.photoStorage,
+              initialWardrobeTab: this.initialWardrobeTab
             })
               .layoutWeight(1)
           } else {
@@ -272,7 +278,7 @@ struct Index {
               .width('100%')
               .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: 8, bottom: 8 })
               .fontSize(13)
-              .fontColor(AppTheme.color.danger)
+              .fontColor('#EF4444')
               .backgroundColor(YibuqueColor.cardWhite)
           }
 

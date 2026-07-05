@@ -1,6 +1,5 @@
 import { PhotoGrid } from '../components/PhotoGrid';
 import {
-  CreateStoreVisitInput,
   StoreRepository,
   UpdateStoreVisitInput
 } from '../data/repositories/StoreRepository';
@@ -88,40 +87,6 @@ export struct StoreVisitEditPage {
     this.photoUris = this.photoUris.concat(await this.copySourcesToLocalUris(sources));
   }
 
-  private async ensureStoreId(): Promise<string | undefined> {
-    if (this.storeRepository === undefined) {
-      return undefined;
-    }
-
-    if (this.storeName.trim().length === 0) {
-      return undefined;
-    }
-
-    const existing = await this.storeRepository.findStoreByName(this.storeName);
-    if (existing !== undefined) {
-      return existing.id;
-    }
-
-    const store = await this.storeRepository.createStore({
-      name: this.storeName,
-      districtOrAddress: optionalText(this.districtOrAddress),
-      photoUris: this.photoUris.slice(0, 1),
-      note: undefined
-    });
-    return store.id;
-  }
-
-  private createInput(storeId?: string): CreateStoreVisitInput {
-    return {
-      storeId,
-      storeNameSnapshot: this.normalizedStoreName(),
-      districtOrAddress: optionalText(this.districtOrAddress),
-      visitDate: this.visitDate,
-      photoUris: this.photoUris,
-      note: optionalText(this.note)
-    };
-  }
-
   private updateInput(id: string, storeId?: string): UpdateStoreVisitInput {
     return {
       id,
@@ -143,10 +108,16 @@ export struct StoreVisitEditPage {
     this.errorMessage = '';
 
     try {
-      const storeId = await this.ensureStoreId();
       const savedVisit = this.initialVisit === undefined
-        ? await this.storeRepository.createStoreVisit(this.createInput(storeId))
-        : await this.storeRepository.updateStoreVisit(this.updateInput(this.initialVisit.id, storeId));
+        ? await this.storeRepository.createStoreVisitWithOptionalStore({
+          storeName: optionalText(this.storeName),
+          storeNameSnapshot: this.normalizedStoreName(),
+          districtOrAddress: optionalText(this.districtOrAddress),
+          visitDate: this.visitDate,
+          photoUris: this.photoUris,
+          note: optionalText(this.note)
+        })
+        : await this.storeRepository.updateStoreVisit(this.updateInput(this.initialVisit.id, this.initialVisit.storeId));
       this.onSave(savedVisit);
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '保存逛店失败';

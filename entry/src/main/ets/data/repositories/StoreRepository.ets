@@ -194,6 +194,15 @@ export interface CreateStoreVisitInput {
   note?: string;
 }
 
+export interface CreateStoreVisitWithOptionalStoreInput {
+  storeName?: string;
+  storeNameSnapshot: string;
+  districtOrAddress?: string;
+  visitDate?: string;
+  photoUris?: string[];
+  note?: string;
+}
+
 export interface UpdateStoreVisitInput {
   id: string;
   storeId?: string;
@@ -256,21 +265,7 @@ export class StoreRepository {
 
   async createStore(input: CreateStoreInput): Promise<Store> {
     return this.database.transaction(async () => {
-      const now = toIsoDateTime(new Date());
-      const store: Store = {
-        id: createId('store'),
-        name: requiredText(input.name, '未命名店铺'),
-        districtOrAddress: toSqlNullableText(input.districtOrAddress) ?? undefined,
-        photoUris: normalizePhotoUris(input.photoUris),
-        note: toSqlNullableText(input.note) ?? undefined,
-        createdAt: now,
-        updatedAt: now
-      };
-
-      await this.database.executeSql(INSERT_STORE_SQL, this.storeBindArgs(store));
-      await this.replaceStorePhotoRows(store.id, store.photoUris);
-      await this.searchRepository.upsertDocumentInTransaction(buildStoreSearchDocument(store));
-      return store;
+      return this.createStoreInTransaction(input);
     });
   }
 
@@ -315,23 +310,38 @@ export class StoreRepository {
 
   async createStoreVisit(input: CreateStoreVisitInput): Promise<StoreVisit> {
     return this.database.transaction(async () => {
-      const now = toIsoDateTime(new Date());
-      const visit: StoreVisit = {
-        id: createId('store_visit'),
-        storeId: toSqlNullableText(input.storeId) ?? undefined,
-        storeNameSnapshot: requiredText(input.storeNameSnapshot, '未命名店铺'),
-        districtOrAddress: toSqlNullableText(input.districtOrAddress) ?? undefined,
-        visitDate: normalizeVisitDate(input.visitDate),
-        photoUris: normalizePhotoUris(input.photoUris),
-        note: toSqlNullableText(input.note) ?? undefined,
-        createdAt: now,
-        updatedAt: now
-      };
+      return this.createStoreVisitInTransaction(input);
+    });
+  }
 
-      await this.database.executeSql(INSERT_STORE_VISIT_SQL, this.storeVisitBindArgs(visit));
-      await this.replaceStoreVisitPhotoRows(visit.id, visit.photoUris);
-      await this.searchRepository.upsertDocumentInTransaction(buildStoreVisitSearchDocument(visit));
-      return visit;
+  async createStoreVisitWithOptionalStore(input: CreateStoreVisitWithOptionalStoreInput): Promise<StoreVisit> {
+    return this.database.transaction(async () => {
+      const normalizedStoreName = toSqlNullableText(input.storeName);
+      let storeId: string | undefined = undefined;
+
+      if (normalizedStoreName !== null) {
+        const existingStore = await this.findStoreByNameInTransaction(normalizedStoreName);
+        if (existingStore !== undefined) {
+          storeId = existingStore.id;
+        } else {
+          const store = await this.createStoreInTransaction({
+            name: normalizedStoreName,
+            districtOrAddress: input.districtOrAddress,
+            photoUris: normalizePhotoUris(input.photoUris).slice(0, 1),
+            note: input.note
+          });
+          storeId = store.id;
+        }
+      }
+
+      return this.createStoreVisitInTransaction({
+        storeId,
+        storeNameSnapshot: input.storeNameSnapshot,
+        districtOrAddress: input.districtOrAddress,
+        visitDate: input.visitDate,
+        photoUris: input.photoUris,
+        note: input.note
+      });
     });
   }
 
@@ -387,12 +397,55 @@ export class StoreRepository {
   }
 
   async findStoreByName(name: string): Promise<Store | undefined> {
+    return this.findStoreByNameInTransaction(name);
+  }
+
+  private async createStoreInTransaction(input: CreateStoreInput): Promise<Store> {
+    const now = toIsoDateTime(new Date());
+    const store: Store = {
+      id: createId('store'),
+      name: requiredText(input.name, '未命名店铺'),
+      districtOrAddress: toSqlNullableText(input.districtOrAddress) ?? undefined,
+      photoUris: normalizePhotoUris(input.photoUris),
+      note: toSqlNullableText(input.note) ?? undefined,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    await this.database.executeSql(INSERT_STORE_SQL, this.storeBindArgs(store));
+    await this.replaceStorePhotoRows(store.id, store.photoUris);
+    await this.searchRepository.upsertDocumentInTransaction(buildStoreSearchDocument(store));
+    return store;
+  }
+
+  private async createStoreVisitInTransaction(input: CreateStoreVisitInput): Promise<StoreVisit> {
+    const now = toIsoDateTime(new Date());
+    const visit: StoreVisit = {
+      id: createId('store_visit'),
+      storeId: toSqlNullableText(input.storeId) ?? undefined,
+      storeNameSnapshot: requiredText(input.storeNameSnapshot, '未命名店铺'),
+      districtOrAddress: toSqlNullableText(input.districtOrAddress) ?? undefined,
+      visitDate: normalizeVisitDate(input.visitDate),
+      photoUris: normalizePhotoUris(input.photoUris),
+      note: toSqlNullableText(input.note) ?? undefined,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    await this.database.executeSql(INSERT_STORE_VISIT_SQL, this.storeVisitBindArgs(visit));
+    await this.replaceStoreVisitPhotoRows(visit.id, visit.photoUris);
+    await this.searchRepository.upsertDocumentInTransaction(buildStoreVisitSearchDocument(visit));
+    return visit;
+  }
+
+  private async findStoreByNameInTransaction(name: string): Promise<Store | undefined> {
     const normalized = normalizeSearchText(name);
     if (normalized.length === 0) {
       return undefined;
     }
 
-    const stores = await this.listStores();
+    const rows = await this.readStoreRows(BASE_LIST_STORES_SQL);
+    const stores = await this.hydrateStores(rows);
     for (const store of stores) {
       if (normalizeSearchText(store.name) === normalized) {
         return store;

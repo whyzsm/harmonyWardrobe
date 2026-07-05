@@ -73,6 +73,8 @@ mustInclude(index, indexPath, 'showCaptureEditor');
 mustInclude(index, indexPath, 'capturePhotoUris');
 mustInclude(index, indexPath, 'captureCapturedAt');
 mustInclude(index, indexPath, "target === '店铺'");
+mustInclude(index, indexPath, "target === '美搭'");
+mustInclude(index, indexPath, "initialWardrobeTab = '美搭'");
 mustInclude(index, indexPath, "this.selectedMainTab = 'store'");
 mustInclude(index, indexPath, "this.selectedMainTab = 'wardrobe'");
 
@@ -86,6 +88,7 @@ mustOrder(galleryCaptureBody, indexPath, 'photoPickerAdapter.pickFromGallery', '
 mustOrder(copySourcesBody, indexPath, 'photoStorage.copyToAppStorage', 'localUris.push', 'photos should be copied before they are passed to CaptureEditPage');
 mustOrder(openEditorBody, indexPath, 'capturePhotoUris = photoUris', 'showCaptureEditor = true', 'photos should be set before opening CaptureEditPage');
 mustMatch(index, indexPath, /target\s*===\s*['"`]店铺['"`][\s\S]*?selectedMainTab\s*=\s*['"`]store['"`]/, 'must route store captures back to the store tab');
+mustMatch(index, indexPath, /target\s*===\s*['"`]美搭['"`][\s\S]*?initialWardrobeTab\s*=\s*['"`]美搭['"`][\s\S]*?selectedMainTab\s*=\s*['"`]wardrobe['"`]/, 'must route outfit captures back to the outfit tab');
 mustMatch(index, indexPath, /(target\s*===\s*['"`]衣橱['"`]|target\s*===\s*['"`]美搭['"`]|else)[\s\S]*?selectedMainTab\s*=\s*['"`]wardrobe['"`]/, 'must route wardrobe and outfit captures back to the wardrobe tab');
 
 for (const forbidden of [

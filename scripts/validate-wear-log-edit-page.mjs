@@ -55,10 +55,14 @@ if (!/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?wornDate\.trim\(\)\.length\s*>\s*0[\s
 
 for (const forbidden of [
   '选择套装，补充日期、地点、照片和备注。',
-  'AppTheme.color.primary'
+  'AppTheme.color.primary',
+  'wornDate /',
+  'placeText /',
+  '选择套装',
+  '暂无套装'
 ]) {
-  if (editPage.includes(forbidden)) {
-    throw new Error(`WearLogEditPage should use Yibuque photo-first copy and tokens, not ${forbidden}`);
+  if (editPage.includes(forbidden) || picker.includes(forbidden)) {
+    throw new Error(`WearLog flow should use Yibuque photo-first copy and tokens, not ${forbidden}`);
   }
 }
 

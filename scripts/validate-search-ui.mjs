@@ -8,8 +8,6 @@ if (!fs.existsSync(resultPagePath)) {
 const resultPage = fs.readFileSync(resultPagePath, 'utf8');
 for (const needle of [
   'SearchRepository',
-  'entity_type',
-  'entity_id',
   'ClothingRepository',
   'OutfitRepository',
   'SearchResult',
@@ -31,7 +29,10 @@ for (const needle of [
 for (const forbidden of [
   'WishlistRepository',
   '旧心愿',
-  "return '穿着记录';"
+  "return '穿着记录';",
+  'entity_type',
+  'entity_id',
+  '`query:'
 ]) {
   if (resultPage.includes(forbidden)) {
     throw new Error(`SearchResultsPage must not expose old search concept: ${forbidden}`);

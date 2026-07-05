@@ -60,6 +60,7 @@ for (const needle of [
   'createClothing',
   'createOutfit',
   'createStoreVisit',
+  'createStoreVisitWithOptionalStore',
   'createWearLog',
   'YibuqueColor.actionBlack'
 ]) {
@@ -78,6 +79,8 @@ mustMatch(text, /wearLogRepository\??:\s*WearLogRepository/, 'must expose WearLo
 
 for (const forbidden of [
   'AppTheme.color.primary',
+  'findStoreByName(this.storeName)',
+  'createStore({',
   'this.storeName.trim().length > 0 &&',
   'this.outfitTitle.trim().length > 0 &&',
   'this.name.trim().length > 0 &&',

@@ -18,13 +18,14 @@ for (const needle of [
   'wardrobeHeroText',
   "Text('今日衣橱')",
   "Text('轻整理')",
-  '点击底部 + 快速拍衣服或拍搭配',
+  '点底部相机，先保存照片再归类',
   '.opacity(this.homeHeroOpacity)',
   '.translate({ y: this.homeHeroTranslateY })',
   '.scale({ x: this.homeHeroPressed ? 0.98 : 1.0',
   'WardrobeSearchTabs',
   'WardrobeSearchResultCard',
   'selectedWardrobeTab',
+  'initialWardrobeTab',
   "'衣橱'",
   "'衣裤'",
   "'美搭'",
@@ -51,8 +52,8 @@ for (const needle of [
   "'半裙'",
   'Text(item.name)',
   'Text(categoryLabel(item.category))',
-  '点击底部 + 的拍衣服',
-  '点击底部 + 的拍搭配',
+  '点底部相机，选择照片后归类为衣橱',
+  '点底部相机，选择照片后归类为美搭',
   '.cachedCount(8)',
   ".height('100%')",
   '.scrollable(ScrollDirection.Horizontal)',
@@ -65,6 +66,10 @@ for (const needle of [
 
 if (!/this\.selectedWardrobeTab === '衣裤'[\s\S]*?WaterFlow\(\)/.test(text)) {
   throw new Error('WardrobePage clothing tab should keep the WaterFlow search layout');
+}
+
+if (!/initialWardrobeTab[\s\S]*?selectedWardrobeTab\s*=\s*this\.initialWardrobeTab/.test(text)) {
+  throw new Error('WardrobePage must honor the initial tab after capture save');
 }
 
 if (!/this\.selectedWardrobeTab === '美搭'[\s\S]*?Grid\(\)/.test(text)) {

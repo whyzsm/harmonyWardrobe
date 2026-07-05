@@ -1,4 +1,4 @@
-import { AppTheme } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
 
 @Component
 export struct ClothingCard {
@@ -17,49 +17,49 @@ export struct ClothingCard {
   }
 
   build() {
-    Column({ space: 8 }) {
+    Column({ space: YibuqueSpacing.sm }) {
       if (this.photoUri.length > 0) {
         Image(this.photoUri)
           .width('100%')
           .aspectRatio(1)
           .objectFit(ImageFit.Cover)
-          .borderRadius(8)
+          .borderRadius(YibuqueRadius.xl)
       } else {
         Column() {
           Text('衣')
             .fontSize(22)
             .fontWeight(FontWeight.Bold)
-            .fontColor(AppTheme.color.primary)
+            .fontColor(YibuqueColor.textPrimary)
         }
         .width('100%')
         .aspectRatio(1)
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .borderRadius(8)
-        .backgroundColor(AppTheme.color.primarySoft)
+        .borderRadius(YibuqueRadius.xl)
+        .backgroundColor(YibuqueColor.cardMint)
       }
 
       Text(this.name)
         .fontSize(15)
         .fontWeight(FontWeight.Medium)
-        .fontColor(AppTheme.color.text)
+        .fontColor(YibuqueColor.textPrimary)
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
 
       Text(this.category)
         .fontSize(12)
-        .fontColor(AppTheme.color.primary)
-        .padding({ left: AppTheme.spacing.sm, right: AppTheme.spacing.sm, top: 3, bottom: 3 })
-        .backgroundColor(AppTheme.color.primarySoft)
-        .borderRadius(AppTheme.radius.sm)
+        .fontColor(YibuqueColor.textSecondary)
+        .padding({ left: YibuqueSpacing.sm, right: YibuqueSpacing.sm, top: 3, bottom: 3 })
+        .backgroundColor(YibuqueColor.cardSoftGray)
+        .borderRadius(YibuqueRadius.full)
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })
     }
     .width('100%')
-    .padding(8)
-    .borderRadius(AppTheme.radius.lg)
-    .backgroundColor(AppTheme.color.surfaceRaised)
-    .shadow({ radius: 8, color: '#14000000', offsetX: 0, offsetY: 3 })
+    .padding(YibuqueSpacing.sm)
+    .borderRadius(YibuqueRadius.xxl)
+    .backgroundColor(YibuqueColor.cardWhite)
+    .shadow(YibuqueShadow.card)
     .scale({ x: this.cardScale, y: this.cardScale })
     .opacity(this.cardOpacity)
     .animation({

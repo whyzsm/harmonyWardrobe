@@ -16,13 +16,14 @@ for (const needle of [
   'StoreRepository',
   'listStoreVisits',
   'StoreVisitCard',
-  '拍店铺',
+  '相机记录',
   'filterStoreVisits',
   'visitSummaryText',
   'isSearching',
   '重试',
   '没有找到相关逛店记录',
-  '点右上角「拍店铺」记录这次逛店',
+  '点底部相机，选择照片后归类为店铺',
+  '底部相机会把照片保存到这里',
   'storeNameSnapshot',
   'districtOrAddress',
   'note'
@@ -46,6 +47,10 @@ for (const needle of ['StoreVisitPage({', 'storeRepository: this.runtime.storeRe
 
 if (page.includes('WishlistRepository') || card.includes('WishlistRepository')) {
   throw new Error('Store visit UI must not import WishlistRepository');
+}
+
+if (page.includes("Button('拍店铺')") || page.includes('点右上角')) {
+  throw new Error('Store visit UI should guide users through the bottom camera flow');
 }
 
 console.log('PASS');

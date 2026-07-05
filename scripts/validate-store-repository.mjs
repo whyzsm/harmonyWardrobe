@@ -14,6 +14,8 @@ for (const needle of [
   'listStores',
   'getStoreById',
   'createStoreVisit',
+  'createStoreVisitWithOptionalStore',
+  'CreateStoreVisitWithOptionalStoreInput',
   'updateStoreVisit',
   'listStoreVisits',
   'getStoreVisitById',
@@ -29,6 +31,10 @@ for (const needle of [
   if (!text.includes(needle)) {
     throw new Error(`${file} missing ${needle}`);
   }
+}
+
+if (!/createStoreVisitWithOptionalStore[\s\S]*?this\.database\.transaction[\s\S]*?findStoreByNameInTransaction[\s\S]*?createStoreInTransaction[\s\S]*?createStoreVisitInTransaction/.test(text)) {
+  throw new Error(`${file} must create optional store and store visit in one transaction`);
 }
 
 for (const forbidden of ['PhotoStorage', ': any', ': unknown']) {

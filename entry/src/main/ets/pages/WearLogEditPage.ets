@@ -167,7 +167,7 @@ export struct WearLogEditPage {
           }
         })
 
-        TextInput({ text: this.wornDate, placeholder: 'wornDate / 日期 YYYY-MM-DD' })
+        TextInput({ text: this.wornDate, placeholder: '穿搭日期 YYYY-MM-DD' })
           .height(44)
           .fontSize(15)
           .fontColor(YibuqueColor.textPrimary)
@@ -204,7 +204,7 @@ export struct WearLogEditPage {
         }
         .width('100%')
 
-        TextInput({ text: this.placeText, placeholder: 'placeText / 地点' })
+        TextInput({ text: this.placeText, placeholder: '地点' })
           .height(44)
           .fontSize(15)
           .fontColor(YibuqueColor.textPrimary)

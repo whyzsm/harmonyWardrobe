@@ -34,7 +34,7 @@ const nav = read(navPath);
 const quickSheet = read(quickSheetPath);
 const icon = read(iconPath);
 const colors = read(colorPath);
-read(designPath);
+const design = read(designPath);
 
 for (const needle of [
   'YibuqueColor',
@@ -56,6 +56,14 @@ for (const needle of [
 
 for (const needle of ['#B11B68', '#FBE1F0', '#F8D4EF', '#D83E8E', '#FFF2F8']) {
   mustInclude(tokens, tokenPath, needle);
+}
+
+for (const needle of ['rose', '深玫瑰', 'Photo-first capture', '拍照', '从相册选择']) {
+  mustInclude(design, designPath, needle);
+}
+
+for (const forbidden of ['#000000', '黑色主按钮', '拍衣服', '拍搭配', '拍店铺']) {
+  mustNotInclude(design, designPath, forbidden);
 }
 
 for (const needle of ['衣不缺', '我的', '44', '48', 'profilePressed', '.scale({ x: this.profilePressed ? 0.96 : 1.0', 'YibuqueColor.textPrimary']) {

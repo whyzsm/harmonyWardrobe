@@ -1,4 +1,4 @@
-import { AppTheme } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
 
 @Component
 export struct EmptyState {
@@ -6,23 +6,23 @@ export struct EmptyState {
   @Prop description: string = '';
 
   build() {
-    Column({ space: 8 }) {
+    Column({ space: YibuqueSpacing.sm }) {
       Text(this.title)
         .fontSize(18)
-        .fontWeight(FontWeight.Medium)
-        .fontColor(AppTheme.color.text)
+        .fontWeight(FontWeight.Bold)
+        .fontColor(YibuqueColor.textPrimary)
         .textAlign(TextAlign.Center)
 
       Text(this.description)
         .fontSize(14)
-        .fontColor(AppTheme.color.textMuted)
+        .fontColor(YibuqueColor.textSecondary)
         .textAlign(TextAlign.Center)
     }
     .width('100%')
-    .padding(AppTheme.spacing.xl)
+    .padding(YibuqueSpacing.xl)
     .alignItems(HorizontalAlign.Center)
-    .borderRadius(AppTheme.radius.lg)
-    .backgroundColor(AppTheme.color.surfaceRaised)
-    .border({ width: 1, color: AppTheme.color.border })
+    .borderRadius(YibuqueRadius.xxl)
+    .backgroundColor(YibuqueColor.cardWhite)
+    .border({ width: 1, color: YibuqueColor.borderLight })
   }
 }

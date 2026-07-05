@@ -9,7 +9,7 @@ import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { WearLog } from '../domain/wearLog/WearLogModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { AppTheme, YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
 import { monthKey, toIsoDate } from '../utils/date';
 import { ClothingEditPage } from './ClothingEditPage';
 import { OutfitEditPage } from './OutfitEditPage';
@@ -50,6 +50,7 @@ export struct WardrobePage {
   searchRepository?: SearchRepository = undefined;
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
+  @Prop initialWardrobeTab: string = '衣裤';
 
   @State private selectedWardrobeTab: string = '衣裤';
   @State private searchQuery: string = '';
@@ -75,6 +76,9 @@ export struct WardrobePage {
   @State private homeHeroPressed: boolean = false;
 
   aboutToAppear(): void {
+    if (this.initialWardrobeTab === '美搭' || this.initialWardrobeTab === '日历' || this.initialWardrobeTab === '衣裤') {
+      this.selectedWardrobeTab = this.initialWardrobeTab;
+    }
     this.loadClothingItems();
     this.loadOutfits();
     this.loadCalendar();
@@ -457,14 +461,14 @@ export struct WardrobePage {
       if (this.loading) {
         Text('正在加载衣橱...')
           .fontSize(14)
-          .fontColor(AppTheme.color.textMuted)
+          .fontColor(YibuqueColor.textSecondary)
       }
 
       if (this.errorMessage.length > 0) {
         Row({ space: 8 }) {
           Text(this.errorMessage)
             .fontSize(14)
-            .fontColor(AppTheme.color.danger)
+            .fontColor('#EF4444')
             .layoutWeight(1)
 
           Button('重试')
@@ -489,36 +493,36 @@ export struct WardrobePage {
             Text('衣')
               .fontSize(30)
               .fontWeight(FontWeight.Bold)
-              .fontColor(AppTheme.color.primary)
+              .fontColor(YibuqueColor.textPrimary)
 
             Text('先放入第一件衣服')
               .fontSize(16)
               .fontWeight(FontWeight.Medium)
-              .fontColor(AppTheme.color.text)
+              .fontColor(YibuqueColor.textPrimary)
 
             Text('拍照或从相册选图后，按分类收进衣橱。')
               .fontSize(13)
-              .fontColor(AppTheme.color.textMuted)
+              .fontColor(YibuqueColor.textSecondary)
           }
           .width('100%')
           .height(190)
           .justifyContent(FlexAlign.Center)
           .alignItems(HorizontalAlign.Center)
-          .backgroundColor(AppTheme.color.primarySoft)
+          .backgroundColor(YibuqueColor.cardMint)
           .borderRadius(8)
 
-          Text('点击底部 + 的拍衣服添加第一件衣服')
+          Text('点底部相机，选择照片后归类为衣橱')
             .fontSize(15)
-            .fontColor(AppTheme.color.text)
+            .fontColor(YibuqueColor.textPrimary)
 
           Text('衣服会按图片检索流排在这里。')
             .fontSize(12)
-            .fontColor(AppTheme.color.textMuted)
+            .fontColor(YibuqueColor.textSecondary)
         }
         .width('100%')
         .padding(8)
-        .borderRadius(AppTheme.radius.lg)
-        .backgroundColor(AppTheme.color.surfaceRaised)
+        .borderRadius(YibuqueRadius.xxl)
+        .backgroundColor(YibuqueColor.cardWhite)
       } else if (this.selectedWardrobeTab === '美搭' && this.visibleOutfits().length === 0) {
         Column({ space: 10 }) {
           Text('搭')
@@ -526,7 +530,7 @@ export struct WardrobePage {
             .fontWeight(FontWeight.Bold)
             .fontColor(YibuqueColor.textPrimary)
 
-          Text('点击底部 + 的拍搭配添加第一套美搭')
+          Text('点底部相机，选择照片后归类为美搭')
             .fontSize(16)
             .fontColor(YibuqueColor.textSecondary)
         }
@@ -591,7 +595,7 @@ export struct WardrobePage {
     .height('100%')
     .padding({ left: 12, right: 12, top: 28, bottom: 14 })
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor(AppTheme.color.surface)
+    .backgroundColor(YibuqueColor.cardWhite)
     }
   }
 
@@ -658,7 +662,7 @@ export struct WardrobePage {
       .width('100%')
       .alignItems(VerticalAlign.Center)
 
-      Text('点击底部 + 快速拍衣服或拍搭配')
+      Text('点底部相机，先保存照片再归类')
         .fontSize(13)
         .fontColor(YibuqueColor.textTertiary)
         .width('100%')
@@ -718,13 +722,13 @@ export struct WardrobePage {
       Row({ space: 10 }) {
         Stack({ alignContent: Alignment.Center }) {
           Circle({ width: 17, height: 17 })
-            .fill('#00000000')
-            .stroke(AppTheme.color.textMuted)
+            .fill(Color.Transparent)
+            .stroke(YibuqueColor.textTertiary)
             .strokeWidth(2)
           Line()
             .startPoint([1, 1])
             .endPoint([9, 9])
-            .stroke(AppTheme.color.textMuted)
+            .stroke(YibuqueColor.textTertiary)
             .strokeWidth(2)
             .margin({ left: 8, top: 8 })
         }
@@ -735,9 +739,9 @@ export struct WardrobePage {
           .height(42)
           .layoutWeight(1)
           .fontSize(16)
-          .fontColor(AppTheme.color.text)
-          .placeholderColor(AppTheme.color.textMuted)
-          .backgroundColor('#00000000')
+          .fontColor(YibuqueColor.textPrimary)
+          .placeholderColor(YibuqueColor.textTertiary)
+          .backgroundColor(Color.Transparent)
           .onChange((value: string) => {
             this.searchQuery = value;
           })
@@ -745,7 +749,7 @@ export struct WardrobePage {
         Divider()
           .vertical(true)
           .height(22)
-          .color(AppTheme.color.border)
+          .color(YibuqueColor.borderLight)
           .strokeWidth(1)
 
         Text('搜索')
@@ -753,7 +757,7 @@ export struct WardrobePage {
           .height(42)
           .fontSize(17)
           .fontWeight(FontWeight.Bold)
-          .fontColor(AppTheme.color.primary)
+          .fontColor(YibuqueColor.actionBlack)
           .textAlign(TextAlign.Center)
           .onClick(() => {
             this.openSearch();
@@ -763,7 +767,7 @@ export struct WardrobePage {
       .height(52)
       .padding({ left: 16, right: 6 })
       .alignItems(VerticalAlign.Center)
-      .backgroundColor(AppTheme.color.surfaceMuted)
+      .backgroundColor(YibuqueColor.cardSoftGray)
       .borderRadius(26)
     }
     .width('100%')
@@ -990,7 +994,7 @@ export struct WardrobePage {
         .height(index < 3 ? 52 : 42)
         .linearGradient({
           angle: 180,
-          colors: [['#00000000', 0], ['#66000000', 1]]
+          colors: [[Color.Transparent, 0], [YibuqueColor.overlayDark, 1]]
         })
         .borderRadius({ bottomLeft: 8, bottomRight: 8 })
 
@@ -998,13 +1002,13 @@ export struct WardrobePage {
         Text(item.name)
           .fontSize(index < 3 ? 16 : 13)
           .fontWeight(FontWeight.Bold)
-          .fontColor(AppTheme.color.surface)
+          .fontColor(YibuqueColor.textInverse)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
         Text(categoryLabel(item.category))
           .fontSize(11)
-          .fontColor(AppTheme.color.surface)
+          .fontColor(YibuqueColor.textInverse)
           .opacity(0.86)
       }
       .width('80%')

@@ -225,27 +225,9 @@ export struct CaptureEditPage {
       return;
     }
 
-    const normalizedStoreName = this.normalizedStoreName();
-    let storeId: string | undefined = undefined;
-
-    if (this.storeName.trim().length > 0) {
-      const existingStore = await this.storeRepository.findStoreByName(this.storeName);
-      if (existingStore !== undefined) {
-        storeId = existingStore.id;
-      } else {
-        const store = await this.storeRepository.createStore({
-          name: normalizedStoreName,
-          districtOrAddress: optionalText(this.districtOrAddress),
-          photoUris: this.photoUris.slice(0, 1),
-          note: optionalText(this.note)
-        });
-        storeId = store.id;
-      }
-    }
-
-    const _visit: StoreVisit = await this.storeRepository.createStoreVisit({
-      storeId,
-      storeNameSnapshot: normalizedStoreName,
+    const _visit: StoreVisit = await this.storeRepository.createStoreVisitWithOptionalStore({
+      storeName: optionalText(this.storeName),
+      storeNameSnapshot: this.normalizedStoreName(),
       districtOrAddress: optionalText(this.districtOrAddress),
       visitDate: optionalText(this.visitDate) ?? this.captureDate(),
       photoUris: this.photoUris,

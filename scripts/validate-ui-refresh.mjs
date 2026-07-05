@@ -40,9 +40,8 @@ const componentFiles = [
 
 for (const file of componentFiles) {
   const source = fs.readFileSync(file, 'utf8');
-  requireIncludes(source, "import { AppTheme } from '../theme/Tokens';", `${file} theme import`);
-  requireIncludes(source, 'AppTheme.color.', `${file} theme colors`);
-  requireIncludes(source, 'AppTheme.radius.', `${file} theme radius`);
+  requireIncludes(source, 'YibuqueColor', `${file} yibuque colors`);
+  requireIncludes(source, 'YibuqueRadius', `${file} yibuque radius`);
   forbidIncludes(source, "'#0F766E'", `${file} old teal`);
   forbidIncludes(source, "'#0F172A'", `${file} old near-black action`);
   forbidIncludes(source, "'#E2E8F0'", `${file} old slate border`);
@@ -56,8 +55,11 @@ const controlFiles = [
 
 for (const file of controlFiles) {
   const source = fs.readFileSync(file, 'utf8');
-  requireIncludes(source, "import { AppTheme } from '../theme/Tokens';", `${file} theme import`);
-  requireIncludes(source, 'AppTheme.color.', `${file} theme colors`);
+  if (file.endsWith('SearchBar.ets')) {
+    requireIncludes(source, 'AppTheme.color.', `${file} compatibility theme colors`);
+  } else {
+    requireIncludes(source, 'YibuqueColor', `${file} yibuque colors`);
+  }
   forbidIncludes(source, "'#0F172A'", `${file} old selected state`);
   forbidIncludes(source, "'#E2E8F0'", `${file} old border`);
 }
@@ -101,7 +103,7 @@ const flowFiles = [
 
 for (const file of flowFiles) {
   const source = fs.readFileSync(file, 'utf8');
-  requireIncludes(source, 'AppTheme', `${file} theme usage`);
+  requireIncludes(source, 'Yibuque', `${file} yibuque token usage`);
   forbidIncludes(source, "'#0F172A'", `${file} old black primary action`);
   forbidIncludes(source, "'#F8FAFC'", `${file} old background`);
   forbidIncludes(source, "'#B91C1C'", `${file} old danger`);

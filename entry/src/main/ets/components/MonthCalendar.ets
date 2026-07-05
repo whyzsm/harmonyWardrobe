@@ -1,4 +1,4 @@
-import { AppTheme } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
 
 interface CalendarDay {
   key: string;
@@ -77,21 +77,21 @@ export struct MonthCalendar {
           Column({ space: 4 }) {
             Text(day.dayNumber)
               .fontSize(14)
-              .fontColor(day.date === this.selectedDate ? AppTheme.color.surface : AppTheme.color.text)
+              .fontColor(day.date === this.selectedDate ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
 
             if (day.marked) {
               Text('•')
                 .fontSize(16)
-                .fontColor(day.date === this.selectedDate ? AppTheme.color.surface : AppTheme.color.primary)
+                .fontColor(day.date === this.selectedDate ? YibuqueColor.textInverse : YibuqueColor.actionBlack)
             }
           }
           .width('100%')
           .height(44)
           .justifyContent(FlexAlign.Center)
           .alignItems(HorizontalAlign.Center)
-          .borderRadius(AppTheme.radius.md)
-          .backgroundColor(day.date === this.selectedDate ? AppTheme.color.primary : AppTheme.color.surface)
-          .border({ width: 1, color: day.marked ? AppTheme.color.primary : AppTheme.color.border })
+          .borderRadius(YibuqueRadius.md)
+          .backgroundColor(day.date === this.selectedDate ? YibuqueColor.actionBlack : YibuqueColor.cardWhite)
+          .border({ width: 1, color: day.marked ? YibuqueColor.borderStrong : YibuqueColor.borderLight })
           .onClick(() => {
             if (day.inMonth) {
               this.onSelectDate(day.date);
