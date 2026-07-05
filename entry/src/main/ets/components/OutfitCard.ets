@@ -16,10 +16,9 @@ export struct OutfitCard {
           .borderRadius(YibuqueRadius.xl)
       } else {
         Column() {
-          Text('美搭')
-            .fontSize(18)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textPrimary)
+          SymbolGlyph($r('sys.symbol.hanger_and_towels'))
+            .fontSize(34)
+            .fontColor([YibuqueColor.textPrimary])
         }
         .width('100%')
         .height(132)

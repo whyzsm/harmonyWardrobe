@@ -1,5 +1,4 @@
-import type { BusinessError } from '@kit.BasicServicesKit';
-import { photoAccessHelper } from '@kit.MediaLibraryKit';
+import { PhotoGrid } from '../components/PhotoGrid';
 import {
   ClothingRepository,
   CreateClothingInput,
@@ -24,6 +23,7 @@ const CATEGORY_OPTIONS: ClothingCategoryOption[] = [
   { label: '长裙', value: ClothingCategory.LongSkirt },
   { label: '半裙', value: ClothingCategory.HalfSkirt }
 ];
+const MAX_CLOTHING_PHOTOS = 20;
 
 function labelForCategory(category: ClothingCategory): string {
   for (const option of CATEGORY_OPTIONS) {
@@ -110,7 +110,7 @@ export struct ClothingEditPage {
   }
 
   private hasSelectedPhoto(): boolean {
-    return this.previewPhotoUri.length > 0;
+    return this.photoUris.length > 0;
   }
 
   private purchasePrice(): number | undefined {
@@ -153,7 +153,7 @@ export struct ClothingEditPage {
   }
 
   private openPurchaseDatePicker(): void {
-    DatePickerDialog.show({
+    this.getUIContext().showDatePickerDialog({
       start: new Date(2000, 0, 1),
       end: new Date(),
       selected: dateFromStorage(this.purchaseDate),
@@ -178,43 +178,36 @@ export struct ClothingEditPage {
   }
 
   private async pickGalleryPhotos(): Promise<void> {
+    if (this.photoPickerAdapter === undefined) {
+      this.errorMessage = '照片选择能力不可用';
+      return;
+    }
+
     try {
-      const photoSelectOptions = new photoAccessHelper.PhotoSelectOptions();
-      photoSelectOptions.MIMEType = photoAccessHelper.PhotoViewMIMETypes.IMAGE_TYPE;
-      photoSelectOptions.maxSelectNumber = 1;
-
-      const photoPicker = new photoAccessHelper.PhotoViewPicker();
-      const photoSelectResult = await photoPicker.select(photoSelectOptions);
-      const selectedUri = photoSelectResult.photoUris?.[0] ?? '';
-
-      if (selectedUri.length === 0) {
+      this.errorMessage = '';
+      const sources = await this.photoPickerAdapter.pickFromGallery({ maxSelectNumber: MAX_CLOTHING_PHOTOS });
+      if (sources.length === 0) {
         return;
       }
 
-      this.previewPhotoUri = selectedUri;
-      this.photoUris = [selectedUri];
+      const fallbackUris = sources.map((source: PhotoSource): string => source.uri);
+      this.photoUris = fallbackUris;
+      this.previewPhotoUri = fallbackUris[0] ?? '';
       if (this.name.trim().length === 0) {
         this.name = this.generatedName();
       }
 
       try {
-        const localUris = await this.copySourcesToLocalUris([{
-          uri: selectedUri,
-          mimeType: 'image/*'
-        }]);
+        const localUris = await this.copySourcesToLocalUris(sources);
         if (localUris.length > 0) {
           this.photoUris = localUris;
           this.previewPhotoUri = localUris[0];
         }
       } catch (copyError) {
-        const err: BusinessError = copyError as BusinessError;
-        console.info(`PhotoViewPicker.copy failed with err: ${err.code}, ${err.message}`);
+        console.info(`PhotoPickerAdapter.copy failed: ${copyError instanceof Error ? copyError.message : 'unavailable error detail'}`);
       }
-
-      console.info(`PhotoViewPicker.select succeed, PhotoSelectResult uri: ${selectedUri}`);
     } catch (error) {
-      const err: BusinessError = error as BusinessError;
-      console.info(`PhotoViewPicker.select failed with err: ${err.code}, ${err.message}`);
+      this.errorMessage = error instanceof Error ? error.message : '选择照片失败';
     }
   }
 
@@ -264,11 +257,9 @@ export struct ClothingEditPage {
     Stack({ alignContent: Alignment.Center }) {
       if (this.hasSelectedPhoto()) {
         Stack({ alignContent: Alignment.TopStart }) {
-          Image(this.previewPhotoUri)
+          PhotoGrid({ photoUris: this.photoUris })
             .width('100%')
             .height('100%')
-            .objectFit(ImageFit.Cover)
-            .borderRadius(YibuqueRadius.xxl)
 
           Text('封面')
             .fontSize(12)
@@ -294,17 +285,16 @@ export struct ClothingEditPage {
         .clip(true)
       } else {
         Column({ space: YibuqueSpacing.sm }) {
-          Text('+')
+          SymbolGlyph($r('sys.symbol.plus_circle'))
             .fontSize(34)
-            .fontWeight(FontWeight.Medium)
-            .fontColor(YibuqueColor.textPrimary)
+            .fontColor([YibuqueColor.textPrimary])
 
           Text('添加衣服照片')
             .fontSize(17)
             .fontWeight(FontWeight.Bold)
             .fontColor(YibuqueColor.textPrimary)
 
-          Text('从相册选择一张清晰单品照')
+          Text('从相册选择一组清晰单品照')
             .fontSize(13)
             .fontColor(YibuqueColor.textSecondary)
         }

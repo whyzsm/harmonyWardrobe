@@ -5,7 +5,7 @@ export interface MigrationResultSet {
   goToNextRow(): boolean;
   getNumber(columnName: string): number;
   getString(columnName: string): string;
-  close(): void;
+  close(): string | undefined;
 }
 
 export interface MigrationDatabase {

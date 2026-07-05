@@ -80,9 +80,9 @@ export struct MonthCalendar {
               .fontColor(day.date === this.selectedDate ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
 
             if (day.marked) {
-              Text('•')
-                .fontSize(16)
-                .fontColor(day.date === this.selectedDate ? YibuqueColor.textInverse : YibuqueColor.actionBlack)
+              SymbolGlyph($r('sys.symbol.circle_fill'))
+                .fontSize(6)
+                .fontColor([day.date === this.selectedDate ? YibuqueColor.textInverse : YibuqueColor.actionBlack])
             }
           }
           .width('100%')
@@ -91,7 +91,7 @@ export struct MonthCalendar {
           .alignItems(HorizontalAlign.Center)
           .borderRadius(YibuqueRadius.md)
           .backgroundColor(day.date === this.selectedDate ? YibuqueColor.actionBlack : YibuqueColor.cardWhite)
-          .border({ width: 1, color: day.marked ? YibuqueColor.borderStrong : YibuqueColor.borderLight })
+          .border({ width: 1, color: day.marked || day.date === this.selectedDate ? YibuqueColor.actionBlack : YibuqueColor.borderLight })
           .onClick(() => {
             if (day.inMonth) {
               this.onSelectDate(day.date);

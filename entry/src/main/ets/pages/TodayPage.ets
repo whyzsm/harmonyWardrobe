@@ -157,9 +157,9 @@ export struct TodayPage {
     Column() {
       Row() {
         Stack({ alignContent: Alignment.Center }) {
-          Text('☰')
+          SymbolGlyph($r('sys.symbol.list_bullet'))
             .fontSize(24)
-            .fontColor(AppTheme.color.text)
+            .fontColor([AppTheme.color.text])
         }
         .width(44)
         .height(44)
@@ -174,16 +174,9 @@ export struct TodayPage {
         .alignItems(VerticalAlign.Center)
 
         Stack({ alignContent: Alignment.Center }) {
-          Circle({ width: 18, height: 18 })
-            .fill('#00000000')
-            .stroke(AppTheme.color.text)
-            .strokeWidth(2.4)
-          Line()
-            .startPoint([1, 1])
-            .endPoint([11, 11])
-            .stroke(AppTheme.color.text)
-            .strokeWidth(2.4)
-            .margin({ left: 7, top: 7 })
+          SymbolGlyph($r('sys.symbol.magnifyingglass'))
+            .fontSize(23)
+            .fontColor([AppTheme.color.text])
         }
         .width(44)
         .height(44)
@@ -205,7 +198,7 @@ export struct TodayPage {
       Text(title)
         .fontSize(16)
         .fontWeight(this.selectedHomeTabIndex === index ? FontWeight.Bold : FontWeight.Medium)
-        .fontColor(this.selectedHomeTabIndex === index ? AppTheme.color.primaryStrong : AppTheme.color.textMuted)
+        .fontColor(this.selectedHomeTabIndex === index ? AppTheme.color.primary : AppTheme.color.textMuted)
         .lineHeight(22)
         .margin({ top: 14, bottom: 6 })
 
@@ -298,13 +291,15 @@ export struct TodayPage {
   @Builder
   TipBar() {
     Row({ space: 8 }) {
-      Text('今')
-        .width(22).height(22).fontSize(12)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(AppTheme.color.primary)
-        .textAlign(TextAlign.Center)
-        .backgroundColor(AppTheme.color.primarySoft)
-        .borderRadius(11)
+      Stack({ alignContent: Alignment.Center }) {
+        SymbolGlyph($r('sys.symbol.calendar'))
+          .fontSize(14)
+          .fontColor([AppTheme.color.primary])
+      }
+      .width(22)
+      .height(22)
+      .backgroundColor(AppTheme.color.primarySoft)
+      .borderRadius(11)
 
       Text(this.todaysWearLog === undefined ? '今天穿什么？看看推荐穿搭灵感' : '今日记录已保存，继续看看推荐灵感')
         .fontSize(13)
@@ -515,10 +510,7 @@ export struct TodayPage {
           .borderRadius({ topLeft: 10, topRight: 10 })
       } else {
         Column() {
-          Text(item.placeholder)
-            .fontSize(28).fontWeight(FontWeight.Bold).fontColor(AppTheme.color.primary)
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
+          this.CardPlaceholderIcon(item.type)
         }
         .width('100%')
         .aspectRatio(item.aspectRatio)
@@ -534,11 +526,13 @@ export struct TodayPage {
           .maxLines(2).textOverflow({ overflow: TextOverflow.Ellipsis }).width('100%')
 
         Row({ space: 6 }) {
-          Text(item.iconText)
-            .width(20).height(20).fontSize(11)
-            .fontWeight(FontWeight.Bold).fontColor(AppTheme.color.primary)
-            .textAlign(TextAlign.Center)
-            .backgroundColor(AppTheme.color.primarySoft).borderRadius(10)
+          Stack({ alignContent: Alignment.Center }) {
+            this.CardTypeIcon(item.type)
+          }
+          .width(20)
+          .height(20)
+          .backgroundColor(AppTheme.color.primarySoft)
+          .borderRadius(10)
 
           Text(item.subtitle)
             .fontSize(12).fontColor(AppTheme.color.textMuted)
@@ -558,11 +552,47 @@ export struct TodayPage {
       this.openRecommendation(item);
     })
   }
+
+  @Builder
+  CardPlaceholderIcon(type: CardItemType) {
+    if (type === 'clothing') {
+      SymbolGlyph($r('sys.symbol.shirt'))
+        .fontSize(34)
+        .fontColor([AppTheme.color.primary])
+    } else if (type === 'wearlog' || type === 'wearlog-empty') {
+      SymbolGlyph($r('sys.symbol.calendar'))
+        .fontSize(34)
+        .fontColor([AppTheme.color.primary])
+    } else {
+      SymbolGlyph($r('sys.symbol.hanger_and_towels'))
+        .fontSize(34)
+        .fontColor([AppTheme.color.primary])
+    }
+  }
+
+  @Builder
+  CardTypeIcon(type: CardItemType) {
+    if (type === 'clothing') {
+      SymbolGlyph($r('sys.symbol.shirt'))
+        .fontSize(13)
+        .fontColor([AppTheme.color.primary])
+    } else if (type === 'wearlog' || type === 'wearlog-empty') {
+      SymbolGlyph($r('sys.symbol.calendar'))
+        .fontSize(13)
+        .fontColor([AppTheme.color.primary])
+    } else {
+      SymbolGlyph($r('sys.symbol.hanger_and_towels'))
+        .fontSize(13)
+        .fontColor([AppTheme.color.primary])
+    }
+  }
 }
+
+type CardItemType = 'today' | 'clothing' | 'outfit' | 'outfit-empty' | 'wearlog' | 'wearlog-empty';
 
 interface CardItem {
   id: string
-  type: 'today' | 'clothing' | 'outfit' | 'outfit-empty' | 'wearlog' | 'wearlog-empty'
+  type: CardItemType
   photoUri: string
   photoUris: string[]
   placeholder: string

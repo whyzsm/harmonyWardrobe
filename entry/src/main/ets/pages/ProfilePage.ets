@@ -145,13 +145,13 @@ export struct ProfilePage {
       .alignItems(VerticalAlign.Center)
 
       Column({ space: YibuqueSpacing.md }) {
-        Text('我')
+        Stack({ alignContent: Alignment.Center }) {
+          SymbolGlyph($r('sys.symbol.person_fill'))
+            .fontSize(46)
+            .fontColor([YibuqueColor.textPrimary])
+        }
           .width(112)
           .height(112)
-          .fontSize(36)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(YibuqueColor.textPrimary)
-          .textAlign(TextAlign.Center)
           .backgroundColor(YibuqueColor.cardSoftGray)
           .borderRadius(56)
 

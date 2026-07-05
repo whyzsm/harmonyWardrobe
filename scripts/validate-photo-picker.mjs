@@ -95,6 +95,10 @@ function stripTypeBlock(source, keyword) {
   return source.replace(new RegExp(`${keyword}\\s+\\w+\\s*{[\\s\\S]*?\\n}\\n`, 'g'), '');
 }
 
+function stripTypeAlias(source) {
+  return source.replace(/^type\s+\w+\s*=\s*.*;\n/gm, '');
+}
+
 function createRunnableAdapterSource(source) {
   let runnable = source
     .replace(/^import[\s\S]*?;\n/gm, '')
@@ -102,10 +106,10 @@ function createRunnableAdapterSource(source) {
     .replace(/private\s+readonly\s+/g, '')
     .replace(/\bprivate\s+/g, '')
     .replace(/readonly\s+/g, '')
-    .replace(/\s+as\s+string\b/g, '')
-    .replace(/\s+as\s+Error\b/g, '');
+    .replace(/\s+as\s+[A-Za-z_$][\w$.]*/g, '');
 
   runnable = stripTypeBlock(runnable, 'interface');
+  runnable = stripTypeAlias(runnable);
   runnable = stripTypeBlock(runnable, 'type');
 
   return runnable
@@ -120,6 +124,8 @@ function createRunnableAdapterSource(source) {
     .replace(/:\s*PhotoPickerAdapter/g, '')
     .replace(/:\s*PhotoSource\[\]/g, '')
     .replace(/:\s*PhotoSource/g, '')
+    .replace(/:\s*PickerThrowable/g, '')
+    .replace(/:\s*PickerErrorLike/g, '')
     .replace(/:\s*camera\.CameraPosition/g, '')
     .replace(/:\s*Promise<PhotoSource\[\]>/g, '')
     .replace(/:\s*Promise<PhotoSource>/g, '')

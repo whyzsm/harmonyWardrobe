@@ -46,7 +46,7 @@ export struct OutfitPicker {
           .padding(10)
           .borderRadius(YibuqueRadius.lg)
           .backgroundColor(YibuqueColor.cardWhite)
-          .border({ width: 1, color: outfit.id === this.selectedOutfitId ? YibuqueColor.borderStrong : YibuqueColor.borderLight })
+          .border({ width: 1, color: outfit.id === this.selectedOutfitId ? YibuqueColor.actionBlack : YibuqueColor.borderLight })
           .onClick(() => {
             this.onSelect(outfit.id);
           })

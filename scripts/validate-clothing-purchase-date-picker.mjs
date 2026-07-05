@@ -16,7 +16,7 @@ function forbidIncludes(needle) {
 }
 
 for (const needle of [
-  'DatePickerDialog.show',
+  'this.getUIContext().showDatePickerDialog',
   'onDateAccept',
   'formatDateForStorage',
   'dateFromStorage',
@@ -28,6 +28,7 @@ for (const needle of [
   requireIncludes(needle);
 }
 
+forbidIncludes('DatePickerDialog.show');
 forbidIncludes("TextInput({ text: this.purchaseDate, placeholder: 'purchaseDate / 购买日期 YYYY-MM-DD' })");
 forbidIncludes("placeholder: 'purchaseDate / 购买日期 YYYY-MM-DD'");
 

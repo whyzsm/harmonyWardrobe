@@ -9,7 +9,10 @@ for (const needle of [
   'OutfitRepository',
   'WearLog',
   'OutfitTemplate',
-  "Text('☰')",
+  "SymbolGlyph($r('sys.symbol.list_bullet'))",
+  "SymbolGlyph($r('sys.symbol.magnifyingglass'))",
+  'CardPlaceholderIcon',
+  'CardTypeIcon',
   '推荐',
   '今日',
   '灵感',
@@ -70,8 +73,14 @@ if (/Text\s*\(\s*this\.todayIsoDate\s*\)/.test(text)) {
   throw new Error('TodayPage must keep the date out of the home header');
 }
 
-if (!/Stack\s*\(\s*\{\s*alignContent:\s*Alignment\.Center\s*\}\s*\)[\s\S]*?Circle\s*\([\s\S]*?Line\s*\(/.test(text)) {
-  throw new Error('TodayPage should use a centered shape-based search icon, not a text glyph');
+if (!/Stack\s*\(\s*\{\s*alignContent:\s*Alignment\.Center\s*\}\s*\)[\s\S]*?SymbolGlyph\(\$r\('sys\.symbol\.magnifyingglass'\)\)/.test(text)) {
+  throw new Error('TodayPage should use the system search icon');
+}
+
+for (const forbidden of ["Text('☰')", 'Circle({', 'Line()']) {
+  if (text.includes(forbidden)) {
+    throw new Error(`TodayPage should use system icons instead of ${forbidden}`);
+  }
 }
 
 if (text.includes('bottom: 92') || text.includes('bottom: 66')) {

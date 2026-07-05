@@ -11,6 +11,7 @@ import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
 import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
 import { monthKey, toIsoDate } from '../utils/date';
+import { ClothingDetailPage } from './ClothingDetailPage';
 import { ClothingEditPage } from './ClothingEditPage';
 import { OutfitEditPage } from './OutfitEditPage';
 import { SearchResultsPage } from './SearchResultsPage';
@@ -50,6 +51,7 @@ export struct WardrobePage {
   searchRepository?: SearchRepository = undefined;
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
+  onDetailModeChange: (showDetailTopBar: boolean) => void = () => {};
   @Prop initialWardrobeTab: string = '衣裤';
 
   @State private selectedWardrobeTab: string = '衣裤';
@@ -58,8 +60,10 @@ export struct WardrobePage {
   @State private clothingItems: ClothingItem[] = [];
   @State private outfits: OutfitTemplate[] = [];
   @State private showEditor: boolean = false;
+  @State private showClothingDetail: boolean = false;
   @State private showOutfitEditor: boolean = false;
   @State private editingClothingId: string = '';
+  @State private detailClothingId: string = '';
   @State private editingOutfitId: string = '';
   @State private currentMonth: string = monthKey(new Date());
   @State private selectedDate: string = toIsoDate(new Date());
@@ -86,6 +90,10 @@ export struct WardrobePage {
       this.homeHeroOpacity = 1.0;
       this.homeHeroTranslateY = 0;
     }, 80);
+  }
+
+  aboutToDisappear(): void {
+    this.onDetailModeChange(false);
   }
 
   private async loadClothingItems(): Promise<void> {
@@ -219,6 +227,20 @@ export struct WardrobePage {
     return undefined;
   }
 
+  private detailItem(): ClothingItem | undefined {
+    if (this.detailClothingId.length === 0) {
+      return undefined;
+    }
+
+    for (const item of this.clothingItems) {
+      if (item.id === this.detailClothingId) {
+        return item;
+      }
+    }
+
+    return undefined;
+  }
+
   private editingOutfit(): OutfitTemplate | undefined {
     if (this.editingOutfitId.length === 0) {
       return undefined;
@@ -246,6 +268,23 @@ export struct WardrobePage {
   private closeEditor(): void {
     this.showEditor = false;
     this.editingClothingId = '';
+  }
+
+  private openClothingDetail(item: ClothingItem): void {
+    this.detailClothingId = item.id;
+    this.showClothingDetail = true;
+    this.onDetailModeChange(true);
+  }
+
+  private closeClothingDetail(): void {
+    this.showClothingDetail = false;
+    this.detailClothingId = '';
+    this.onDetailModeChange(false);
+  }
+
+  private editFromDetail(item: ClothingItem): void {
+    this.editingClothingId = item.id;
+    this.showEditor = true;
   }
 
   private openOutfitEditor(outfit?: OutfitTemplate): void {
@@ -403,9 +442,22 @@ export struct WardrobePage {
         onSave: (item: ClothingItem) => {
           this.upsertClothingItem(item);
           this.closeEditor();
+          if (this.showClothingDetail) {
+            this.detailClothingId = item.id;
+          }
         },
         onCancel: () => {
           this.closeEditor();
+        }
+      })
+    } else if (this.showClothingDetail) {
+      ClothingDetailPage({
+        item: this.detailItem(),
+        onBack: () => {
+          this.closeClothingDetail();
+        },
+        onEdit: (item: ClothingItem) => {
+          this.editFromDetail(item);
         }
       })
     } else if (this.showOutfitEditor) {
@@ -490,10 +542,9 @@ export struct WardrobePage {
       } else if (this.selectedWardrobeTab === '衣裤' && this.visibleClothingItems().length === 0) {
         Column({ space: 10 }) {
           Column({ space: 8 }) {
-            Text('衣')
-              .fontSize(30)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(YibuqueColor.textPrimary)
+            SymbolGlyph($r('sys.symbol.shirt'))
+              .fontSize(36)
+              .fontColor([YibuqueColor.textPrimary])
 
             Text('先放入第一件衣服')
               .fontSize(16)
@@ -525,10 +576,9 @@ export struct WardrobePage {
         .backgroundColor(YibuqueColor.cardWhite)
       } else if (this.selectedWardrobeTab === '美搭' && this.visibleOutfits().length === 0) {
         Column({ space: 10 }) {
-          Text('搭')
-            .fontSize(36)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textPrimary)
+          SymbolGlyph($r('sys.symbol.hanger_and_towels'))
+            .fontSize(42)
+            .fontColor([YibuqueColor.textPrimary])
 
           Text('点底部相机，选择照片后归类为美搭')
             .fontSize(16)
@@ -648,10 +698,9 @@ export struct WardrobePage {
               }, (photoUri: string) => photoUri)
             }
           } else {
-            Text('衣')
-              .fontSize(22)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(YibuqueColor.textPrimary)
+            SymbolGlyph($r('sys.symbol.shirt'))
+              .fontSize(28)
+              .fontColor([YibuqueColor.textPrimary])
           }
         }
         .layoutWeight(1)
@@ -718,19 +767,12 @@ export struct WardrobePage {
 
   @Builder
   WardrobeSearchHeader() {
-    Row({ space: 0 }) {
-      Row({ space: 10 }) {
-        Stack({ alignContent: Alignment.Center }) {
-          Circle({ width: 17, height: 17 })
-            .fill(Color.Transparent)
-            .stroke(YibuqueColor.textTertiary)
-            .strokeWidth(2)
-          Line()
-            .startPoint([1, 1])
-            .endPoint([9, 9])
-            .stroke(YibuqueColor.textTertiary)
-            .strokeWidth(2)
-            .margin({ left: 8, top: 8 })
+      Row({ space: 0 }) {
+        Row({ space: 10 }) {
+          Stack({ alignContent: Alignment.Center }) {
+          SymbolGlyph($r('sys.symbol.magnifyingglass'))
+            .fontSize(20)
+            .fontColor([YibuqueColor.textTertiary])
         }
         .width(26)
         .height(42)
@@ -784,11 +826,11 @@ export struct WardrobePage {
           .padding({ left: 22, right: 22 })
           .fontSize(16)
           .fontWeight(FontWeight.Bold)
-          .fontColor(this.isWardrobePrimaryTabSelected(tab) ? YibuqueColor.textPrimary : YibuqueColor.textTertiary)
+          .fontColor(this.isWardrobePrimaryTabSelected(tab) ? YibuqueColor.actionBlack : YibuqueColor.textTertiary)
           .textAlign(TextAlign.Center)
           .backgroundColor(YibuqueColor.cardWhite)
           .borderRadius(YibuqueRadius.full)
-          .border({ width: this.isWardrobePrimaryTabSelected(tab) ? 2 : 1, color: this.isWardrobePrimaryTabSelected(tab) ? YibuqueColor.borderStrong : YibuqueColor.borderLight })
+          .border({ width: this.isWardrobePrimaryTabSelected(tab) ? 2 : 1, color: this.isWardrobePrimaryTabSelected(tab) ? YibuqueColor.actionBlack : YibuqueColor.borderLight })
           .onClick(() => {
             this.selectedWardrobeTab = tab === '衣橱' ? '衣裤' : tab;
             if (tab === '日历') {
@@ -893,10 +935,9 @@ export struct WardrobePage {
           .borderRadius(YibuqueRadius.xl)
       } else {
         Stack({ alignContent: Alignment.Center }) {
-          Text('搭')
-            .fontSize(26)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textPrimary)
+          SymbolGlyph($r('sys.symbol.hanger_and_towels'))
+            .fontSize(32)
+            .fontColor([YibuqueColor.textPrimary])
         }
         .width(78)
         .height(92)
@@ -946,11 +987,11 @@ export struct WardrobePage {
             .padding({ left: 22, right: 22 })
             .fontSize(16)
             .fontWeight(FontWeight.Bold)
-            .fontColor(this.selectedCategoryLabel === category ? YibuqueColor.textPrimary : YibuqueColor.textTertiary)
+            .fontColor(this.selectedCategoryLabel === category ? YibuqueColor.actionBlack : YibuqueColor.textTertiary)
             .textAlign(TextAlign.Center)
             .backgroundColor(YibuqueColor.cardWhite)
             .borderRadius(YibuqueRadius.full)
-            .border({ width: this.selectedCategoryLabel === category ? 2 : 1, color: this.selectedCategoryLabel === category ? YibuqueColor.borderStrong : YibuqueColor.borderLight })
+            .border({ width: this.selectedCategoryLabel === category ? 2 : 1, color: this.selectedCategoryLabel === category ? YibuqueColor.actionBlack : YibuqueColor.borderLight })
             .onClick(() => {
               this.selectedCategoryLabel = category;
             })
@@ -976,10 +1017,9 @@ export struct WardrobePage {
           .borderRadius(24)
       } else {
         Column() {
-          Text(categoryLabel(item.category))
-            .fontSize(index < 3 ? 34 : 20)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textPrimary)
+          SymbolGlyph($r('sys.symbol.shirt'))
+            .fontSize(index < 3 ? 42 : 30)
+            .fontColor([YibuqueColor.textPrimary])
         }
         .width('100%')
         .aspectRatio(this.wardrobeCardAspectRatio(index))
@@ -1020,7 +1060,7 @@ export struct WardrobePage {
     .clip(true)
     .shadow(YibuqueShadow.card)
     .onClick(() => {
-      this.onEdit(item);
+      this.openClothingDetail(item);
     })
   }
 
@@ -1035,10 +1075,9 @@ export struct WardrobePage {
           .borderRadius(24)
       } else {
         Column() {
-          Text('搭')
-            .fontSize(28)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textPrimary)
+          SymbolGlyph($r('sys.symbol.hanger_and_towels'))
+            .fontSize(36)
+            .fontColor([YibuqueColor.textPrimary])
         }
         .width('100%')
         .height(150)

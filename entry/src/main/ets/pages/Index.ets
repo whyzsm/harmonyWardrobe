@@ -35,6 +35,7 @@ struct Index {
   @State private captureClothingItems: ClothingItem[] = [];
   @State private initialWardrobeTab: string = '衣裤';
   @State private isCapturing: boolean = false;
+  @State private showWardrobeDetailTopBar: boolean = false;
   private runtime?: WardrobeRuntime = undefined;
 
   aboutToAppear(): void {
@@ -49,7 +50,12 @@ struct Index {
     this.errorMessage = '';
 
     try {
-      const context = getContext(this) as common.Context;
+      const hostContext = this.getUIContext().getHostContext();
+      if (hostContext === undefined) {
+        throw new Error('应用上下文不可用，请稍后重试');
+      }
+
+      const context = hostContext as common.Context;
       this.runtime = await WardrobeRuntime.create(context);
       this.runtimeReady = true;
     } catch (error) {
@@ -246,12 +252,14 @@ struct Index {
     } else {
       Stack({ alignContent: Alignment.Bottom }) {
         Column() {
-          AppTopBar({
-            onOpenProfile: () => {
-              this.showProfilePage = true;
-              this.showQuickActions = false;
-            }
-          })
+          if (!(this.selectedMainTab === 'wardrobe' && this.showWardrobeDetailTopBar)) {
+            AppTopBar({
+              onOpenProfile: () => {
+                this.showProfilePage = true;
+                this.showQuickActions = false;
+              }
+            })
+          }
 
           if (this.selectedMainTab === 'wardrobe') {
             WardrobePage({
@@ -261,7 +269,10 @@ struct Index {
               searchRepository: this.runtime.searchRepository,
               photoPickerAdapter: this.runtime.photoPickerAdapter,
               photoStorage: this.runtime.photoStorage,
-              initialWardrobeTab: this.initialWardrobeTab
+              initialWardrobeTab: this.initialWardrobeTab,
+              onDetailModeChange: (showDetailTopBar: boolean) => {
+                this.showWardrobeDetailTopBar = showDetailTopBar;
+              }
             })
               .layoutWeight(1)
           } else {
@@ -294,6 +305,7 @@ struct Index {
             },
             onSelectStore: () => {
               this.selectedMainTab = 'store';
+              this.showWardrobeDetailTopBar = false;
               this.showQuickActions = false;
               this.quickActionErrorMessage = '';
             }

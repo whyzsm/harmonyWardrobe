@@ -44,6 +44,13 @@ if (!moduleJson.includes('"pages": "$profile:main_pages"')) {
   throw new Error('module.json5 must declare pages profile');
 }
 
+const buildProfile = fs.readFileSync('build-profile.json5', 'utf8');
+for (const forbidden of ['signingConfigs', 'keyPassword', 'storePassword', '/Users/']) {
+  if (buildProfile.includes(forbidden)) {
+    throw new Error(`build-profile.json5 must not contain local signing material: ${forbidden}`);
+  }
+}
+
 const mainPages = JSON.parse(fs.readFileSync('entry/src/main/resources/base/profile/main_pages.json', 'utf8'));
 if (!Array.isArray(mainPages.src) || !mainPages.src.includes('pages/Index')) {
   throw new Error('main_pages.json must route pages/Index');

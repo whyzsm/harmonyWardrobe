@@ -7,6 +7,13 @@ const DEFAULT_MAX_SELECT_NUMBER = 20;
 const MAX_GALLERY_SELECT_NUMBER = 20;
 const IMAGE_MIME_TYPE = 'image/*';
 
+interface PickerErrorLike {
+  message?: string;
+  code?: string | number;
+}
+
+type PickerThrowable = Error | string | PickerErrorLike;
+
 export interface GalleryPickOptions {
   maxSelectNumber?: number;
 }
@@ -32,8 +39,12 @@ export class HarmonyGalleryPickerProvider implements GalleryPickerProvider {
     options.maxSelectNumber = maxSelectNumber;
 
     const picker = new photoAccessHelper.PhotoViewPicker();
-    const result = await picker.select(options);
-    return result.photoUris;
+    try {
+      const result = await picker.select(options);
+      return result.photoUris;
+    } catch (error) {
+      throw new Error(`HarmonyOS gallery picker failed: ${errorText(error as PickerThrowable)}`);
+    }
   }
 }
 
@@ -60,8 +71,34 @@ export class HarmonyCameraCaptureProvider implements CameraCaptureProvider {
   }
 
   private createDefaultPickerProfile(): cameraPicker.PickerProfile {
-    return new cameraPicker.PickerProfile();
+    try {
+      return new cameraPicker.PickerProfile();
+    } catch (error) {
+      throw new Error(`HarmonyOS camera picker profile failed: ${errorText(error as PickerThrowable)}`);
+    }
   }
+}
+
+function errorText(error: PickerThrowable): string {
+  if (error instanceof Error && error.message.length > 0) {
+    return error.message;
+  }
+
+  if (typeof error === 'string' && error.length > 0) {
+    return error;
+  }
+
+  return pickerErrorLikeText(error as PickerErrorLike);
+}
+
+function pickerErrorLikeText(error: PickerErrorLike): string {
+  const message = error.message;
+  if (message !== undefined && message.length > 0) {
+    return message;
+  }
+
+  const code = error.code;
+  return code !== undefined ? String(code) : 'unavailable error detail';
 }
 
 function normalizeMaxSelectNumber(value?: number): number {

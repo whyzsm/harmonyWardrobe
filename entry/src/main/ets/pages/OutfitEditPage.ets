@@ -153,10 +153,9 @@ export struct OutfitEditPage {
         PhotoGrid({ photoUris: this.photoUris })
       } else {
         Column({ space: YibuqueSpacing.sm }) {
-          Text('+')
+          SymbolGlyph($r('sys.symbol.plus_circle'))
             .fontSize(34)
-            .fontWeight(FontWeight.Medium)
-            .fontColor(YibuqueColor.textPrimary)
+            .fontColor([YibuqueColor.textPrimary])
 
           Text('添加搭配照片')
             .fontSize(17)

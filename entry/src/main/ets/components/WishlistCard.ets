@@ -17,10 +17,9 @@ export struct WishlistCard {
           .borderRadius(AppTheme.radius.lg)
       } else {
         Column() {
-          Text('愿')
-            .fontSize(20)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(AppTheme.color.accent)
+          SymbolGlyph($r('sys.symbol.heart_fill'))
+            .fontSize(26)
+            .fontColor([AppTheme.color.accent])
         }
         .width(72)
         .height(72)

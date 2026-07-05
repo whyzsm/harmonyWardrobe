@@ -148,22 +148,48 @@ class DatabaseResultSet implements MigrationResultSet {
   }
 
   goToFirstRow(): boolean {
-    return this.resultSet.goToFirstRow();
+    try {
+      return this.resultSet.goToFirstRow();
+    } catch (error) {
+      const cause = error as Error;
+      throw new DatabaseError(messageWithCause('Failed to move database result set to first row.', cause), cause);
+    }
   }
 
   goToNextRow(): boolean {
-    return this.resultSet.goToNextRow();
+    try {
+      return this.resultSet.goToNextRow();
+    } catch (error) {
+      const cause = error as Error;
+      throw new DatabaseError(messageWithCause('Failed to move database result set to next row.', cause), cause);
+    }
   }
 
   getNumber(columnName: string): number {
-    return this.resultSet.getLong(this.resultSet.getColumnIndex(columnName));
+    try {
+      return this.resultSet.getLong(this.resultSet.getColumnIndex(columnName));
+    } catch (error) {
+      const cause = error as Error;
+      throw new DatabaseError(messageWithCause(`Failed to read numeric database column "${columnName}".`, cause), cause);
+    }
   }
 
   getString(columnName: string): string {
-    return this.resultSet.getString(this.resultSet.getColumnIndex(columnName));
+    try {
+      return this.resultSet.getString(this.resultSet.getColumnIndex(columnName));
+    } catch (error) {
+      const cause = error as Error;
+      throw new DatabaseError(messageWithCause(`Failed to read text database column "${columnName}".`, cause), cause);
+    }
   }
 
-  close(): void {
-    this.resultSet.close();
+  close(): string | undefined {
+    try {
+      this.resultSet.close();
+      return undefined;
+    } catch (error) {
+      const cause = error as Error;
+      return messageWithCause('Failed to close database result set.', cause);
+    }
   }
 }

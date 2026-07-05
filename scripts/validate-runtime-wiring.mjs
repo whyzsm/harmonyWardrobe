@@ -73,7 +73,8 @@ for (const needle of [
   'await fileIo.open(sourceUri, fileIo.OpenMode.READ_ONLY)',
   'await fileIo.copyFile(sourceFile.fd, destinationUri)',
   'finally',
-  'await fileIo.close(sourceFile)'
+  'const closeError = await this.closeFile(sourceFile)',
+  'fallbackFailure.message'
 ]) {
   mustInclude(copyFileBody, runtimePath, needle);
 }
@@ -93,7 +94,9 @@ for (const needle of [
 
 for (const needle of [
   'WardrobeRuntime',
-  'getContext(this) as common.Context',
+  'const hostContext = this.getUIContext().getHostContext()',
+  'hostContext === undefined',
+  '应用上下文不可用，请稍后重试',
   'WardrobeRuntime.create',
   '@State private runtimeReady',
   'clothingRepository: this.runtime.clothingRepository',

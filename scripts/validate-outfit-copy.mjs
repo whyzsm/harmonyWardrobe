@@ -31,9 +31,9 @@ for (const needle of ['创建美搭', '编辑美搭', '保存美搭', '美搭名
 
 mustInclude(page, pagePath, 'this.photoUris.length > 0');
 mustInclude(page, pagePath, 'normalizedTitle');
-mustInclude(card, cardPath, '美搭');
+mustInclude(card, cardPath, "SymbolGlyph($r('sys.symbol.hanger_and_towels'))");
 
-for (const forbidden of ['创建套装', '编辑套装', '保存套装', '套装名称', "Text('套装')"]) {
+for (const forbidden of ['创建套装', '编辑套装', '保存套装', '套装名称', "Text('套装')", "Text('美搭')"]) {
   mustNotInclude(page, pagePath, forbidden);
   mustNotInclude(card, cardPath, forbidden);
 }

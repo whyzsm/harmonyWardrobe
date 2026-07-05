@@ -33,10 +33,14 @@ for (const needle of [
   }
 }
 
-for (const needle of ['店', 'storeNameSnapshot', 'visitDate', 'borderRadius', 'maxLines(2)']) {
+for (const needle of ["SymbolGlyph($r('sys.symbol.store_fill'))", 'storeNameSnapshot', 'visitDate', 'borderRadius', 'maxLines(2)']) {
   if (!card.includes(needle)) {
     throw new Error(`StoreVisitCard missing ${needle}`);
   }
+}
+
+if (card.includes("Text('店')")) {
+  throw new Error('StoreVisitCard should use the system store icon instead of text glyph 店');
 }
 
 for (const needle of ['StoreVisitPage({', 'storeRepository: this.runtime.storeRepository', 'StoreVisitEditPage({']) {

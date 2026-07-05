@@ -70,7 +70,7 @@ for (const needle of ['衣不缺', '我的', '44', '48', 'profilePressed', '.sca
   mustInclude(topBar, topBarPath, needle);
 }
 
-for (const needle of ['衣橱', '逛店', 'CameraIcon', 'actionBlack', '46', 'bottomSafe', 'linearGradient']) {
+for (const needle of ['衣橱', '逛店', "SymbolGlyph($r('sys.symbol.camera_fill'))", 'actionBlack', '46', 'bottomSafe', 'linearGradient']) {
   mustInclude(nav, navPath, needle);
 }
 

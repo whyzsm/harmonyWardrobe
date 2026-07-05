@@ -26,10 +26,9 @@ export struct StoreVisitCard {
           .borderRadius(24)
       } else {
         Column() {
-          Text('店')
-            .fontSize(30)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textPrimary)
+          SymbolGlyph($r('sys.symbol.store_fill'))
+            .fontSize(34)
+            .fontColor([YibuqueColor.textPrimary])
         }
         .width('100%')
         .height(150)

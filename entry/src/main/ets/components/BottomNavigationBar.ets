@@ -46,30 +46,9 @@ export struct BottomNavigationBar {
   @Builder
   CameraIcon() {
     Stack({ alignContent: Alignment.Center }) {
-      Row()
-        .width(32)
-        .height(24)
-        .linearGradient({
-          angle: 135,
-          colors: [['#FFFFFF', 0], ['#FFE7F1', 1]]
-        })
-        .borderRadius(10)
-
-      Row()
-        .width(12)
-        .height(5)
-        .backgroundColor(YibuqueColor.textInverse)
-        .borderRadius(3)
-        .margin({ bottom: 24 })
-
-      Circle({ width: 10, height: 10 })
-        .fill(YibuqueColor.actionBlack)
-
-      Circle({ width: 18, height: 18 })
-        .fill('#33FFFFFF')
-        .stroke('#F7A0BC')
-        .strokeWidth(2)
-        .margin({ left: -22, top: -24 })
+      SymbolGlyph($r('sys.symbol.camera_fill'))
+        .fontSize(29)
+        .fontColor([YibuqueColor.textInverse])
     }
     .width(58)
     .height(46)
@@ -87,7 +66,7 @@ export struct BottomNavigationBar {
       Text(label)
         .fontSize(15)
         .fontWeight(this.selected === value ? FontWeight.Bold : FontWeight.Medium)
-        .fontColor(this.selected === value ? YibuqueColor.textPrimary : YibuqueColor.textTertiary)
+        .fontColor(this.selected === value ? YibuqueColor.actionBlack : YibuqueColor.textTertiary)
 
       Row()
         .width(this.selected === value ? 18 : 4)

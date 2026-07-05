@@ -26,10 +26,9 @@ export struct ClothingCard {
           .borderRadius(YibuqueRadius.xl)
       } else {
         Column() {
-          Text('衣')
-            .fontSize(22)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textPrimary)
+          SymbolGlyph($r('sys.symbol.shirt'))
+            .fontSize(28)
+            .fontColor([YibuqueColor.textPrimary])
         }
         .width('100%')
         .aspectRatio(1)

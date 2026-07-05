@@ -18,16 +18,9 @@ export struct AppTopBar {
             })
             .borderRadius(12)
 
-          Text('衣')
-            .fontSize(17)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.actionBlack)
-
-          Circle({ width: 14, height: 14 })
-            .fill('#66FFFFFF')
-            .stroke('#F7A0BC')
-            .strokeWidth(2)
-            .margin({ left: -19, top: -18 })
+          SymbolGlyph($r('sys.symbol.shirt'))
+            .fontSize(20)
+            .fontColor([YibuqueColor.actionBlack])
         }
         .width(36)
         .height(36)
@@ -45,11 +38,9 @@ export struct AppTopBar {
 
       Row({ space: YibuqueSpacing.xs }) {
         Stack({ alignContent: Alignment.Center }) {
-          Text('我')
-            .fontSize(13)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textInverse)
-            .textAlign(TextAlign.Center)
+          SymbolGlyph($r('sys.symbol.person_fill'))
+            .fontSize(17)
+            .fontColor([YibuqueColor.textInverse])
         }
         .width(30)
         .height(30)

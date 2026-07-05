@@ -51,7 +51,7 @@ export struct ClothingPicker {
           .padding({ left: 14, right: 12, top: 12, bottom: 12 })
           .borderRadius(YibuqueRadius.lg)
           .backgroundColor(YibuqueColor.cardSoftGray)
-          .border({ width: 1, color: this.isSelected(item.id) ? YibuqueColor.borderStrong : YibuqueColor.borderLight })
+          .border({ width: 1, color: this.isSelected(item.id) ? YibuqueColor.actionBlack : YibuqueColor.borderLight })
           .onClick(() => {
             this.onToggle(item.id);
           })

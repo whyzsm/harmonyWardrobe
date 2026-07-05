@@ -209,10 +209,9 @@ export struct StoreVisitPage {
               .alignItems(HorizontalAlign.Start)
 
               Stack({ alignContent: Alignment.Center }) {
-                Text('店')
-                  .fontSize(28)
-                  .fontWeight(FontWeight.Bold)
-                  .fontColor(YibuqueColor.textPrimary)
+                SymbolGlyph($r('sys.symbol.store_fill'))
+                  .fontSize(34)
+                  .fontColor([YibuqueColor.textPrimary])
               }
               .width(64)
               .height(64)

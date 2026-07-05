@@ -9,6 +9,8 @@ entry/build/
 
 # Other files and folders
 .settings/
+.idea/
+.appanalyzer/
 
 # Executables
 *.swf
