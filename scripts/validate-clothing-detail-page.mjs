@@ -116,7 +116,6 @@ for (const needle of [
 
 for (const needle of [
   'showWardrobeDetailTopBar',
-  "if (!(this.selectedMainTab === 'wardrobe' && this.showWardrobeDetailTopBar))",
   'onDetailModeChange: (showDetailTopBar: boolean) => {',
   'this.showWardrobeDetailTopBar = showDetailTopBar'
 ]) {

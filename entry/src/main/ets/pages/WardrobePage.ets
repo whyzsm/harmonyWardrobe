@@ -20,28 +20,27 @@ import { WearLogEditPage } from './WearLogEditPage';
 interface WardrobeCategoryFilter {
   label: string;
   category?: ClothingCategory;
+  categories?: ClothingCategory[];
 }
 
 const WARDROBE_CATEGORY_FILTERS: WardrobeCategoryFilter[] = [
+  { label: '全部' },
   { label: '上衣', category: ClothingCategory.Top },
-  { label: '裤子', category: ClothingCategory.Pants },
-  { label: '短裤', category: ClothingCategory.Shorts },
-  { label: '长裙', category: ClothingCategory.LongSkirt },
-  { label: '半裙', category: ClothingCategory.HalfSkirt }
+  { label: '裤装', categories: [ClothingCategory.Pants, ClothingCategory.Shorts] },
+  { label: '裙装', categories: [ClothingCategory.LongSkirt, ClothingCategory.HalfSkirt] },
+  { label: '包袋', categories: [] },
+  { label: '待同步', categories: [] }
 ];
 
-const WARDROBE_TOP_RESULT_COUNT = 3;
-const WARDROBE_HERO_PREVIEW_COUNT = 3;
+const OPEN_DESIGN_BLACK = '#242021';
+const OPEN_DESIGN_SURFACE = '#FFFFFF';
+const OPEN_DESIGN_MUTED = '#717177';
+const OPEN_DESIGN_BORDER = '#D9D9DE';
+const SCREENSHOT_BLUE = '#3174D3';
+const SCREENSHOT_BLUE_BG = '#EDF4FF';
+const SCREENSHOT_NAV_GRAY = '#74747A';
 
-function categoryLabel(category: ClothingCategory): string {
-  for (const filter of WARDROBE_CATEGORY_FILTERS) {
-    if (filter.category === category) {
-      return filter.label;
-    }
-  }
-
-  return '上衣';
-}
+const DEMO_TITLES: string[] = ['牛仔短外套', '白毛衣牛仔裤', '衣架上的上衣', '极简灯下裙'];
 
 @Component
 export struct WardrobePage {
@@ -56,7 +55,7 @@ export struct WardrobePage {
 
   @State private selectedWardrobeTab: string = '衣裤';
   @State private searchQuery: string = '';
-  @State private selectedCategoryLabel: string = '上衣';
+  @State private selectedCategoryLabel: string = '全部';
   @State private clothingItems: ClothingItem[] = [];
   @State private outfits: OutfitTemplate[] = [];
   @State private showEditor: boolean = false;
@@ -75,9 +74,6 @@ export struct WardrobePage {
   @State private unifiedSearchQuery: string = '';
   @State private loading: boolean = false;
   @State private errorMessage: string = '';
-  @State private homeHeroOpacity: number = 0.0;
-  @State private homeHeroTranslateY: number = 12;
-  @State private homeHeroPressed: boolean = false;
 
   aboutToAppear(): void {
     if (this.initialWardrobeTab === '美搭' || this.initialWardrobeTab === '日历' || this.initialWardrobeTab === '衣裤') {
@@ -86,10 +82,6 @@ export struct WardrobePage {
     this.loadClothingItems();
     this.loadOutfits();
     this.loadCalendar();
-    setTimeout(() => {
-      this.homeHeroOpacity = 1.0;
-      this.homeHeroTranslateY = 0;
-    }, 80);
   }
 
   aboutToDisappear(): void {
@@ -153,10 +145,16 @@ export struct WardrobePage {
     this.loadSelectedDateLogs();
   }
 
-  private selectedCategory(): ClothingCategory | undefined {
+  private selectedCategories(): ClothingCategory[] | undefined {
     for (const filter of WARDROBE_CATEGORY_FILTERS) {
       if (filter.label === this.selectedCategoryLabel) {
-        return filter.category;
+        if (filter.categories !== undefined) {
+          return filter.categories;
+        }
+
+        if (filter.category !== undefined) {
+          return [filter.category];
+        }
       }
     }
 
@@ -164,11 +162,11 @@ export struct WardrobePage {
   }
 
   private filterClothingItems(): ClothingItem[] {
-    const selectedCategory = this.selectedCategory();
+    const selectedCategories = this.selectedCategories();
     const normalizedQuery = this.searchQuery.trim().toLowerCase();
 
     return this.clothingItems.filter((item: ClothingItem) => {
-      const matchesCategory = selectedCategory === undefined || item.category === selectedCategory;
+      const matchesCategory = selectedCategories === undefined || selectedCategories.includes(item.category);
       const matchesQuery = normalizedQuery.length === 0 ||
         item.name.toLowerCase().includes(normalizedQuery) ||
         (item.note !== undefined && item.note.toLowerCase().includes(normalizedQuery));
@@ -210,7 +208,43 @@ export struct WardrobePage {
   }
 
   private wardrobeCardAspectRatio(index: number): number {
-    return index < 3 ? 2.18 : 1.38;
+    if (index % 4 === 0) {
+      return 0.73;
+    }
+
+    if (index % 4 === 1) {
+      return 0.83;
+    }
+
+    return 0.82;
+  }
+
+  private isDesignFallbackPhoto(photoUri: string): boolean {
+    return photoUri.length === 0 || photoUri.startsWith('debug://');
+  }
+
+  private designDemoResource(index: number): Resource {
+    if (index % 4 === 0) {
+      return $r('app.media.wardrobe_demo_1');
+    }
+
+    if (index % 4 === 1) {
+      return $r('app.media.wardrobe_demo_2');
+    }
+
+    if (index % 4 === 2) {
+      return $r('app.media.wardrobe_demo_3');
+    }
+
+    return $r('app.media.wardrobe_demo_4');
+  }
+
+  private designDemoTitle(index: number): string {
+    return DEMO_TITLES[index % DEMO_TITLES.length];
+  }
+
+  private displayItemTitle(item: ClothingItem, index: number): string {
+    return this.isDesignFallbackPhoto(this.firstPhotoUri(item)) ? this.designDemoTitle(index) : item.name;
   }
 
   private editingItem(): ClothingItem | undefined {
@@ -394,44 +428,6 @@ export struct WardrobePage {
       : `${this.clothingItems.length} 件衣物`;
   }
 
-  private wardrobeHeroText(): string {
-    if (this.clothingItems.length === 0 && this.outfits.length === 0) {
-      return '从第一张衣服照片开始，慢慢整理自己的风格。';
-    }
-
-    if (this.outfits.length > 0) {
-      return '翻一翻最近保存的美搭，今天也能轻松出门。';
-    }
-
-    return '衣物已经开始成形，可以继续补几张常穿单品。';
-  }
-
-  private heroPreviewPhotoUris(): string[] {
-    const photoUris: string[] = [];
-
-    for (const item of this.clothingItems) {
-      if (photoUris.length >= WARDROBE_HERO_PREVIEW_COUNT) {
-        return photoUris;
-      }
-      const photoUri = this.firstPhotoUri(item);
-      if (photoUri.length > 0) {
-        photoUris.push(photoUri);
-      }
-    }
-
-    for (const outfit of this.outfits) {
-      if (photoUris.length >= WARDROBE_HERO_PREVIEW_COUNT) {
-        return photoUris;
-      }
-      const photoUri = this.firstOutfitPhotoUri(outfit);
-      if (photoUri.length > 0) {
-        photoUris.push(photoUri);
-      }
-    }
-
-    return photoUris;
-  }
-
   build() {
     if (this.showEditor) {
       ClothingEditPage({
@@ -503,12 +499,6 @@ export struct WardrobePage {
     } else {
       Column({ space: 14 }) {
       this.WardrobeSearchHeader()
-      this.WardrobePrimaryTabs()
-
-      Text(this.wardrobeSummaryText())
-        .fontSize(14)
-        .fontColor(YibuqueColor.textSecondary)
-        .width('100%')
 
       if (this.loading) {
         Text('正在加载衣橱...')
@@ -591,36 +581,7 @@ export struct WardrobePage {
         .backgroundColor(YibuqueColor.cardBlue)
         .borderRadius(YibuqueRadius.xxl)
       } else if (this.selectedWardrobeTab === '衣裤') {
-        Scroll() {
-          Column({ space: 8 }) {
-            ForEach(this.visibleClothingItems().slice(0, WARDROBE_TOP_RESULT_COUNT), (item: ClothingItem, index: number) => {
-              this.WardrobeSearchResultCard(item, index)
-            }, (item: ClothingItem) => item.id)
-
-            if (this.visibleClothingItems().length > WARDROBE_TOP_RESULT_COUNT) {
-              WaterFlow() {
-                ForEach(this.visibleClothingItems().slice(WARDROBE_TOP_RESULT_COUNT), (item: ClothingItem, index: number) => {
-                  FlowItem() {
-                    this.WardrobeSearchResultCard(item, index + WARDROBE_TOP_RESULT_COUNT)
-                  }
-                  .width('100%')
-                }, (item: ClothingItem) => item.id)
-              }
-              .cachedCount(8)
-              .columnsTemplate('1fr 1fr')
-              .columnsGap(8)
-              .rowsGap(8)
-              .width('100%')
-              .height(360)
-              .scrollBar(BarState.Off)
-            }
-          }
-          .width('100%')
-          .padding({ bottom: 16 })
-        }
-        .width('100%')
-        .layoutWeight(1)
-        .scrollBar(BarState.Off)
+        this.WardrobeWaterFlow()
       } else {
         Scroll() {
           Grid() {
@@ -643,178 +604,45 @@ export struct WardrobePage {
     }
     .width('100%')
     .height('100%')
-    .padding({ left: 12, right: 12, top: 28, bottom: 14 })
+    .padding({ left: 20, right: 20, top: 14, bottom: 0 })
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor(YibuqueColor.cardWhite)
+    .backgroundColor(OPEN_DESIGN_SURFACE)
     }
-  }
-
-  @Builder
-  WardrobeHomeHero() {
-    Column({ space: YibuqueSpacing.lg }) {
-      Row() {
-        Column({ space: YibuqueSpacing.xs }) {
-          Text('今日衣橱')
-            .fontSize(26)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textPrimary)
-
-          Text(this.wardrobeHeroText())
-            .fontSize(14)
-            .fontColor(YibuqueColor.textSecondary)
-            .maxLines(2)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-        }
-        .layoutWeight(1)
-        .alignItems(HorizontalAlign.Start)
-
-        Text('轻整理')
-          .height(34)
-          .padding({ left: 14, right: 14 })
-          .fontSize(13)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(YibuqueColor.textPrimary)
-          .textAlign(TextAlign.Center)
-          .backgroundColor(YibuqueColor.cardMint)
-          .borderRadius(YibuqueRadius.full)
-      }
-      .width('100%')
-      .alignItems(VerticalAlign.Center)
-
-      Row({ space: YibuqueSpacing.md }) {
-        this.HeroMetric('衣物', `${this.clothingItems.length}`, '件')
-        this.HeroMetric('美搭', `${this.outfits.length}`, '套')
-
-        Stack({ alignContent: Alignment.Center }) {
-          if (this.heroPreviewPhotoUris().length > 0) {
-            Row({ space: -8 }) {
-              ForEach(this.heroPreviewPhotoUris(), (photoUri: string) => {
-                Image(photoUri)
-                  .width(46)
-                  .height(54)
-                  .objectFit(ImageFit.Cover)
-                  .borderRadius(YibuqueRadius.lg)
-                  .border({ width: 2, color: YibuqueColor.cardWhite })
-              }, (photoUri: string) => photoUri)
-            }
-          } else {
-            SymbolGlyph($r('sys.symbol.shirt'))
-              .fontSize(28)
-              .fontColor([YibuqueColor.textPrimary])
-          }
-        }
-        .layoutWeight(1)
-        .height(64)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.xl)
-      }
-      .width('100%')
-      .alignItems(VerticalAlign.Center)
-
-      Text('点底部相机，先保存照片再归类')
-        .fontSize(13)
-        .fontColor(YibuqueColor.textTertiary)
-        .width('100%')
-    }
-    .width('100%')
-    .padding(YibuqueSpacing.xl)
-    .backgroundColor(YibuqueColor.cardWhite)
-    .borderRadius(YibuqueRadius.xxxl)
-    .shadow(YibuqueShadow.soft)
-    .opacity(this.homeHeroOpacity)
-    .translate({ y: this.homeHeroTranslateY })
-    .scale({ x: this.homeHeroPressed ? 0.98 : 1.0, y: this.homeHeroPressed ? 0.98 : 1.0 })
-    .animation({
-      duration: 320,
-      curve: Curve.FastOutSlowIn,
-      playMode: PlayMode.Normal
-    })
-    .onTouch((event: TouchEvent) => {
-      this.homeHeroPressed = event.type === TouchType.Down;
-    })
-    .onClick(() => {
-      this.homeHeroPressed = false;
-    })
-  }
-
-  @Builder
-  HeroMetric(label: string, value: string, unit: string) {
-    Column({ space: YibuqueSpacing.xxs }) {
-      Row({ space: 2 }) {
-        Text(value)
-          .fontSize(24)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(YibuqueColor.textPrimary)
-
-        Text(unit)
-          .fontSize(12)
-          .fontColor(YibuqueColor.textSecondary)
-          .margin({ top: 8 })
-      }
-      .alignItems(VerticalAlign.Top)
-
-      Text(label)
-        .fontSize(12)
-        .fontColor(YibuqueColor.textSecondary)
-    }
-    .width(74)
-    .height(64)
-    .justifyContent(FlexAlign.Center)
-    .alignItems(HorizontalAlign.Center)
-    .backgroundColor(YibuqueColor.cardBlue)
-    .borderRadius(YibuqueRadius.xl)
   }
 
   @Builder
   WardrobeSearchHeader() {
-      Row({ space: 0 }) {
-        Row({ space: 10 }) {
-          Stack({ alignContent: Alignment.Center }) {
-          SymbolGlyph($r('sys.symbol.magnifyingglass'))
-            .fontSize(20)
-            .fontColor([YibuqueColor.textTertiary])
-        }
-        .width(26)
-        .height(42)
-
-        TextInput({ text: this.searchQuery, placeholder: '搜索衣服、美搭、备注' })
-          .height(42)
-          .layoutWeight(1)
-          .fontSize(16)
-          .fontColor(YibuqueColor.textPrimary)
-          .placeholderColor(YibuqueColor.textTertiary)
-          .backgroundColor(Color.Transparent)
-          .onChange((value: string) => {
-            this.searchQuery = value;
-          })
-
-        Divider()
-          .vertical(true)
-          .height(22)
-          .color(YibuqueColor.borderLight)
-          .strokeWidth(1)
-
-        Text('搜索')
-          .width(76)
-          .height(42)
-          .fontSize(17)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(YibuqueColor.actionBlack)
-          .textAlign(TextAlign.Center)
-          .onClick(() => {
-            this.openSearch();
-          })
+    Row({ space: 10 }) {
+      Stack({ alignContent: Alignment.Center }) {
+        SymbolGlyph($r('sys.symbol.magnifyingglass'))
+          .fontSize(18)
+          .fontColor([OPEN_DESIGN_MUTED])
       }
-      .layoutWeight(1)
-      .height(52)
-      .padding({ left: 16, right: 6 })
-      .alignItems(VerticalAlign.Center)
-      .backgroundColor(YibuqueColor.cardSoftGray)
-      .borderRadius(26)
+      .width(22)
+      .height(46)
+
+      TextInput({ text: this.searchQuery, placeholder: '搜索衣服、裤子、裙子' })
+        .height(46)
+        .layoutWeight(1)
+        .fontSize(14)
+        .fontColor(OPEN_DESIGN_BLACK)
+        .placeholderColor('#96969C')
+        .backgroundColor(Color.Transparent)
+        .enterKeyType(EnterKeyType.Search)
+        .onChange((value: string) => {
+          this.searchQuery = value;
+        })
+        .onSubmit(() => {
+          this.openSearch();
+        })
     }
     .width('100%')
-    .height(54)
+    .height(48)
+    .padding({ left: 16, right: 14 })
     .alignItems(VerticalAlign.Center)
+    .backgroundColor(OPEN_DESIGN_SURFACE)
+    .borderRadius(12)
+    .border({ width: 1, color: OPEN_DESIGN_BORDER })
   }
 
   @Builder
@@ -824,13 +652,13 @@ export struct WardrobePage {
         Text(tab)
           .height(42)
           .padding({ left: 22, right: 22 })
-          .fontSize(16)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(this.isWardrobePrimaryTabSelected(tab) ? YibuqueColor.actionBlack : YibuqueColor.textTertiary)
+          .fontSize(15)
+          .fontWeight(this.isWardrobePrimaryTabSelected(tab) ? FontWeight.Bold : FontWeight.Medium)
+          .fontColor(this.isWardrobePrimaryTabSelected(tab) ? YibuqueColor.textInverse : OPEN_DESIGN_BLACK)
           .textAlign(TextAlign.Center)
-          .backgroundColor(YibuqueColor.cardWhite)
+          .backgroundColor(this.isWardrobePrimaryTabSelected(tab) ? OPEN_DESIGN_BLACK : OPEN_DESIGN_SURFACE)
           .borderRadius(YibuqueRadius.full)
-          .border({ width: this.isWardrobePrimaryTabSelected(tab) ? 2 : 1, color: this.isWardrobePrimaryTabSelected(tab) ? YibuqueColor.actionBlack : YibuqueColor.borderLight })
+          .border({ width: 1, color: this.isWardrobePrimaryTabSelected(tab) ? OPEN_DESIGN_BLACK : OPEN_DESIGN_BORDER })
           .onClick(() => {
             this.selectedWardrobeTab = tab === '衣橱' ? '衣裤' : tab;
             if (tab === '日历') {
@@ -982,19 +810,24 @@ export struct WardrobePage {
     Scroll() {
       Row({ space: 10 }) {
         ForEach(this.categoryLabels(), (category: string) => {
-          Text(category)
-            .height(42)
-            .padding({ left: 22, right: 22 })
-            .fontSize(16)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(this.selectedCategoryLabel === category ? YibuqueColor.actionBlack : YibuqueColor.textTertiary)
-            .textAlign(TextAlign.Center)
-            .backgroundColor(YibuqueColor.cardWhite)
-            .borderRadius(YibuqueRadius.full)
-            .border({ width: this.selectedCategoryLabel === category ? 2 : 1, color: this.selectedCategoryLabel === category ? YibuqueColor.actionBlack : YibuqueColor.borderLight })
-            .onClick(() => {
-              this.selectedCategoryLabel = category;
-            })
+          Row({ space: 6 }) {
+            this.CategoryFilterIcon(category)
+
+            Text(category)
+              .fontSize(13)
+              .fontWeight(this.selectedCategoryLabel === category ? FontWeight.Bold : FontWeight.Medium)
+              .fontColor(this.selectedCategoryLabel === category ? SCREENSHOT_BLUE : '#626267')
+          }
+          .width(76)
+          .height(42)
+          .justifyContent(FlexAlign.Center)
+          .alignItems(VerticalAlign.Center)
+          .backgroundColor(this.selectedCategoryLabel === category ? SCREENSHOT_BLUE_BG : OPEN_DESIGN_SURFACE)
+          .borderRadius(YibuqueRadius.full)
+          .border({ width: 1, color: this.selectedCategoryLabel === category ? '#8CB4EC' : OPEN_DESIGN_BORDER })
+          .onClick(() => {
+            this.selectedCategoryLabel = category;
+          })
         }, (category: string) => category)
       }
       .padding({ right: 12 })
@@ -1003,65 +836,143 @@ export struct WardrobePage {
     .scrollable(ScrollDirection.Horizontal)
     .scrollBar(BarState.Off)
     .width('100%')
-    .height(46)
+    .height(44)
+  }
+
+  @Builder
+  CategoryFilterIcon(category: string) {
+    if (category === '全部') {
+      SymbolGlyph($r('sys.symbol.square_grid_2x2'))
+        .fontSize(14)
+        .fontColor([this.selectedCategoryLabel === category ? SCREENSHOT_BLUE : SCREENSHOT_NAV_GRAY])
+    } else if (category === '上衣') {
+      SymbolGlyph($r('sys.symbol.shirt'))
+        .fontSize(14)
+        .fontColor([this.selectedCategoryLabel === category ? SCREENSHOT_BLUE : SCREENSHOT_NAV_GRAY])
+    } else if (category === '裤装') {
+      SymbolGlyph($r('sys.symbol.clothing'))
+        .fontSize(14)
+        .fontColor([this.selectedCategoryLabel === category ? SCREENSHOT_BLUE : SCREENSHOT_NAV_GRAY])
+    } else if (category === '裙装') {
+      SymbolGlyph($r('sys.symbol.hanger_and_towels'))
+        .fontSize(14)
+        .fontColor([this.selectedCategoryLabel === category ? SCREENSHOT_BLUE : SCREENSHOT_NAV_GRAY])
+    } else if (category === '包袋') {
+      SymbolGlyph($r('sys.symbol.bag'))
+        .fontSize(14)
+        .fontColor([this.selectedCategoryLabel === category ? SCREENSHOT_BLUE : SCREENSHOT_NAV_GRAY])
+    } else {
+      SymbolGlyph($r('sys.symbol.arrow_left_arrow_right'))
+        .fontSize(14)
+        .fontColor([this.selectedCategoryLabel === category ? SCREENSHOT_BLUE : SCREENSHOT_NAV_GRAY])
+    }
+  }
+
+  @Builder
+  WardrobeWaterFlow() {
+    WaterFlow() {
+      ForEach(this.visibleClothingItems(), (item: ClothingItem, index: number) => {
+        FlowItem() {
+          this.WardrobeSearchResultCard(item, index)
+        }
+        .width('100%')
+      }, (item: ClothingItem) => item.id)
+    }
+    .columnsTemplate('1fr 1fr')
+    .columnsGap(16)
+    .rowsGap(20)
+    .padding({ top: 4, bottom: 92 })
+    .width('100%')
+    .height('100%')
+    .layoutWeight(1)
+    .scrollBar(BarState.Off)
   }
 
   @Builder
   WardrobeSearchResultCard(item: ClothingItem, index: number) {
-    Stack({ alignContent: Alignment.BottomStart }) {
-      if (this.firstPhotoUri(item).length > 0) {
-        Image(this.firstPhotoUri(item))
-          .width('100%')
-          .aspectRatio(this.wardrobeCardAspectRatio(index))
-          .objectFit(ImageFit.Cover)
-          .borderRadius(24)
-      } else {
-        Column() {
-          SymbolGlyph($r('sys.symbol.shirt'))
-            .fontSize(index < 3 ? 42 : 30)
-            .fontColor([YibuqueColor.textPrimary])
+    Column({ space: 6 }) {
+      Stack({ alignContent: Alignment.TopStart }) {
+        if (this.isDesignFallbackPhoto(this.firstPhotoUri(item))) {
+          Image(this.designDemoResource(index))
+            .width('100%')
+            .aspectRatio(this.wardrobeCardAspectRatio(index))
+            .objectFit(ImageFit.Cover)
+            .borderRadius(5)
+        } else {
+          Image(this.firstPhotoUri(item))
+            .width('100%')
+            .aspectRatio(this.wardrobeCardAspectRatio(index))
+            .objectFit(ImageFit.Cover)
+            .borderRadius(5)
+        }
+
+        Row() {
+          this.CardCategoryIcon(item.category)
+
+          Blank()
+            .layoutWeight(1)
+
+          if (!this.isDesignFallbackPhoto(this.firstPhotoUri(item))) {
+            this.CardHeart()
+          }
         }
         .width('100%')
-        .aspectRatio(this.wardrobeCardAspectRatio(index))
-        .justifyContent(FlexAlign.Center)
-        .alignItems(HorizontalAlign.Center)
-        .backgroundColor(index % 2 === 0 ? YibuqueColor.cardBlue : YibuqueColor.cardMint)
-        .borderRadius(24)
+        .padding({ left: 8, right: 8, top: 8 })
+        .alignItems(VerticalAlign.Top)
       }
+      .width('100%')
 
-      Column()
+      Text(this.displayItemTitle(item, index))
         .width('100%')
-        .height(index < 3 ? 52 : 42)
-        .linearGradient({
-          angle: 180,
-          colors: [[Color.Transparent, 0], [YibuqueColor.overlayDark, 1]]
-        })
-        .borderRadius({ bottomLeft: 8, bottomRight: 8 })
-
-      Column({ space: 2 }) {
-        Text(item.name)
-          .fontSize(index < 3 ? 16 : 13)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(YibuqueColor.textInverse)
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-
-        Text(categoryLabel(item.category))
-          .fontSize(11)
-          .fontColor(YibuqueColor.textInverse)
-          .opacity(0.86)
-      }
-      .width('80%')
-      .alignItems(HorizontalAlign.Start)
-      .margin({ left: 12, bottom: 10 })
+        .fontSize(14)
+        .fontWeight(FontWeight.Medium)
+        .fontColor(OPEN_DESIGN_BLACK)
+        .lineHeight(20)
+        .maxLines(2)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
     }
     .width('100%')
-    .borderRadius(24)
-    .clip(true)
-    .shadow(YibuqueShadow.card)
     .onClick(() => {
       this.openClothingDetail(item);
     })
+  }
+
+  @Builder
+  CardCategoryIcon(category: ClothingCategory) {
+    Stack({ alignContent: Alignment.Center }) {
+      if (category === ClothingCategory.Top) {
+        SymbolGlyph($r('sys.symbol.shirt'))
+          .fontSize(14)
+          .fontColor([OPEN_DESIGN_BLACK])
+      } else if (category === ClothingCategory.Pants || category === ClothingCategory.Shorts) {
+        SymbolGlyph($r('sys.symbol.clothing'))
+          .fontSize(14)
+          .fontColor([OPEN_DESIGN_BLACK])
+      } else {
+        SymbolGlyph($r('sys.symbol.hanger_and_towels'))
+          .fontSize(14)
+          .fontColor([OPEN_DESIGN_BLACK])
+      }
+    }
+    .width(28)
+    .height(28)
+    .backgroundColor('#E6FFFFFF')
+    .borderRadius(14)
+    .shadow({ radius: 8, color: '#16000000', offsetX: 0, offsetY: 3 })
+  }
+
+  @Builder
+  CardHeart() {
+    Stack({ alignContent: Alignment.Center }) {
+      SymbolGlyph($r('sys.symbol.heart'))
+        .fontSize(14)
+        .fontColor([OPEN_DESIGN_BLACK])
+    }
+    .width(30)
+    .height(30)
+    .backgroundColor('#F5FFFFFF')
+    .borderRadius(15)
+    .shadow({ radius: 10, color: '#1A000000', offsetX: 0, offsetY: 4 })
   }
 
   @Builder

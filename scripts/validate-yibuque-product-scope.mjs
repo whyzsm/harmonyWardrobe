@@ -31,7 +31,6 @@ const nav = read(navPath);
 
 for (const needle of [
   '衣不缺',
-  'AppTopBar',
   'BottomNavigationBar',
   'QuickCaptureSheet'
 ]) {
@@ -42,7 +41,7 @@ for (const needle of ['衣橱', '美搭', '日历']) {
   mustInclude(wardrobe, wardrobePath, needle);
 }
 
-for (const needle of ['衣橱', '逛店']) {
+for (const needle of ['衣柜', '逛店', '套装', '我的']) {
   mustInclude(nav, navPath, needle);
 }
 

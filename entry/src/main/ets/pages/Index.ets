@@ -1,5 +1,4 @@
 import common from '@ohos.app.ability.common';
-import { AppTopBar } from '../components/AppTopBar';
 import { BottomNavigationBar } from '../components/BottomNavigationBar';
 import { QuickCaptureSheet } from '../components/QuickCaptureSheet';
 import { WardrobeRuntime } from '../app/WardrobeRuntime';
@@ -252,15 +251,6 @@ struct Index {
     } else {
       Stack({ alignContent: Alignment.Bottom }) {
         Column() {
-          if (!(this.selectedMainTab === 'wardrobe' && this.showWardrobeDetailTopBar)) {
-            AppTopBar({
-              onOpenProfile: () => {
-                this.showProfilePage = true;
-                this.showQuickActions = false;
-              }
-            })
-          }
-
           if (this.selectedMainTab === 'wardrobe') {
             WardrobePage({
               clothingRepository: this.runtime.clothingRepository,
@@ -292,30 +282,42 @@ struct Index {
               .fontColor('#EF4444')
               .backgroundColor(YibuqueColor.cardWhite)
           }
-
-          BottomNavigationBar({
-            selected: this.selectedMainTab,
-            onSelectWardrobe: () => {
-              this.selectedMainTab = 'wardrobe';
-              this.showQuickActions = false;
-              this.quickActionErrorMessage = '';
-            },
-            onOpenCapture: () => {
-              this.showQuickActions = true;
-            },
-            onSelectStore: () => {
-              this.selectedMainTab = 'store';
-              this.showWardrobeDetailTopBar = false;
-              this.showQuickActions = false;
-              this.quickActionErrorMessage = '';
-            }
-          })
         }
         .width('100%')
         .height('100%')
-        .linearGradient({
-          angle: 135,
-          colors: [[YibuqueColor.bgDefault, 0], [YibuqueColor.bgHeaderBlue, 1]]
+        .backgroundColor('#FFFFFF')
+
+        BottomNavigationBar({
+          selected: this.selectedMainTab === 'store' ? 'store' : this.initialWardrobeTab === '美搭' ? 'outfit' : 'wardrobe',
+          onSelectWardrobe: () => {
+            this.selectedMainTab = 'wardrobe';
+            this.initialWardrobeTab = '衣裤';
+            this.showWardrobeDetailTopBar = false;
+            this.showQuickActions = false;
+            this.quickActionErrorMessage = '';
+          },
+          onOpenCapture: () => {
+            this.showQuickActions = true;
+            this.quickActionErrorMessage = '';
+          },
+          onSelectStore: () => {
+            this.selectedMainTab = 'store';
+            this.showWardrobeDetailTopBar = false;
+            this.showQuickActions = false;
+            this.quickActionErrorMessage = '';
+          },
+          onSelectOutfit: () => {
+            this.selectedMainTab = 'wardrobe';
+            this.initialWardrobeTab = '美搭';
+            this.showWardrobeDetailTopBar = false;
+            this.showQuickActions = false;
+            this.quickActionErrorMessage = '';
+          },
+          onOpenProfile: () => {
+            this.showProfilePage = true;
+            this.showQuickActions = false;
+            this.quickActionErrorMessage = '';
+          }
         })
 
         if (this.showQuickActions) {

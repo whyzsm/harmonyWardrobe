@@ -9,7 +9,6 @@ const nav = fs.readFileSync(navPath, 'utf8');
 const sheet = fs.readFileSync(sheetPath, 'utf8');
 
 for (const needle of [
-  'AppTopBar',
   'WardrobePage',
   'StoreVisitPage',
   'ProfilePage',
@@ -20,7 +19,7 @@ for (const needle of [
   }
 }
 
-for (const label of ['衣橱', '逛店']) {
+for (const label of ['衣柜', '逛店', '套装', '我的']) {
   if (!nav.includes(label)) {
     throw new Error(`BottomNavigationBar missing ${label}`);
   }
@@ -42,8 +41,33 @@ if (!nav.includes('onOpenCapture')) {
   throw new Error('BottomNavigationBar missing onOpenCapture');
 }
 
+if (!nav.includes(".width('90%')")) {
+  throw new Error('BottomNavigationBar should use 90% floating capsule width');
+}
+
+if (!nav.includes('onSelectOutfit') || !nav.includes('onOpenProfile')) {
+  throw new Error('BottomNavigationBar missing screenshot navigation actions');
+}
+
+for (const symbol of [
+  "SymbolGlyph($r('sys.symbol.shirt'))",
+  "SymbolGlyph($r('sys.symbol.store_fill'))",
+  "SymbolGlyph($r('sys.symbol.hanger_and_towels'))",
+  "SymbolGlyph($r('sys.symbol.person'))"
+]) {
+  if (!nav.includes(symbol)) {
+    throw new Error(`BottomNavigationBar missing system icon ${symbol}`);
+  }
+}
+
 if (nav.includes('onOpenQuickActions')) {
   throw new Error('BottomNavigationBar should use photo-first onOpenCapture');
+}
+
+for (const legacyIcon of ["'⌂'", "'▤'", "'▢'", "'○'"]) {
+  if (nav.includes(legacyIcon)) {
+    throw new Error(`BottomNavigationBar should not use text icon ${legacyIcon}`);
+  }
 }
 
 for (const forbidden of [

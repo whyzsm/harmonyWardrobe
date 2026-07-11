@@ -70,7 +70,7 @@ for (const needle of ['衣不缺', '我的', '44', '48', 'profilePressed', '.sca
   mustInclude(topBar, topBarPath, needle);
 }
 
-for (const needle of ['衣橱', '逛店', "SymbolGlyph($r('sys.symbol.camera_fill'))", 'actionBlack', '46', 'bottomSafe', 'linearGradient']) {
+for (const needle of ['衣柜', '逛店', '套装', '我的', "SymbolGlyph($r('sys.symbol.camera_fill'))", "SymbolGlyph($r('sys.symbol.shirt'))", "SymbolGlyph($r('sys.symbol.store_fill'))", "SymbolGlyph($r('sys.symbol.hanger_and_towels'))", "SymbolGlyph($r('sys.symbol.person'))", ".width('90%')", '#E62D2C2C', 'onSelectOutfit', 'onOpenProfile', 'bottom: 0', 'linearGradient']) {
   mustInclude(nav, navPath, needle);
 }
 

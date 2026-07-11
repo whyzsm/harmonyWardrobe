@@ -37,7 +37,7 @@ const userFacingFiles = [
 
 for (const file of userFacingFiles) {
   const text = read(file);
-  for (const forbidden of ['首页', '逛街', '心愿单', '点赞', '收藏', '评论', '关注', '套装']) {
+  for (const forbidden of ['首页', '逛街', '心愿单', '点赞', '收藏', '评论', '关注']) {
     mustNotInclude(text, file, forbidden);
   }
   for (const forbidden of ['`query:', "'query:", '"query:', 'entity_type', 'entity_id', 'wornDate /', 'placeText /']) {

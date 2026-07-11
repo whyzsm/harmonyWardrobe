@@ -22,11 +22,15 @@ for (const needle of [
 const qa = fs.readFileSync(qaPath, 'utf8');
 for (const needle of [
   '衣不缺',
-  '衣橱 / + / 逛店',
-  '拍衣服',
-  '拍搭配',
-  '拍店铺',
-  '衣裤 / 美搭',
+  '衣柜 / 逛店 / 拍照 / 套装 / 我的',
+  '拍照',
+  '从相册选择',
+  '归类为 `衣橱`',
+  '归类为 `美搭`',
+  '归类为 `店铺`',
+  '全宽搜索框',
+  '双列原生瀑布流',
+  '图片左上角显示分类图标',
   '逛店',
   '我的',
   '身高',
@@ -36,6 +40,12 @@ for (const needle of [
 ]) {
   if (!qa.includes(needle)) {
     throw new Error(`QA script missing ${needle}`);
+  }
+}
+
+for (const removedHomeChrome of ['`我的衣柜` 标题', '黑色筛选按钮', '`一眼看衣服` 标题']) {
+  if (qa.includes(removedHomeChrome)) {
+    throw new Error(`QA script should not describe removed wardrobe chrome: ${removedHomeChrome}`);
   }
 }
 

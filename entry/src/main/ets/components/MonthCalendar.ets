@@ -80,9 +80,9 @@ export struct MonthCalendar {
               .fontColor(day.date === this.selectedDate ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
 
             if (day.marked) {
-              SymbolGlyph($r('sys.symbol.circle_fill'))
+              Text('•')
                 .fontSize(6)
-                .fontColor([day.date === this.selectedDate ? YibuqueColor.textInverse : YibuqueColor.actionBlack])
+                .fontColor(day.date === this.selectedDate ? YibuqueColor.textInverse : YibuqueColor.actionBlack)
             }
           }
           .width('100%')

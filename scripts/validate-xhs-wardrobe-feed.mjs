@@ -5,14 +5,23 @@ const wardrobe = fs.readFileSync('entry/src/main/ets/pages/WardrobePage.ets', 'u
 for (const needle of [
   '衣裤',
   '美搭',
-  '搜索衣服、美搭、备注',
+  '搜索衣服、裤子、裙子',
+  '全部',
   '上衣',
-  '裤子',
-  '短裤',
-  '长裙',
-  '半裙',
+  '裤装',
+  '裙装',
+  '包袋',
+  '待同步',
+  'CategoryFilterIcon',
+  'designDemoResource',
+  "sys.symbol.clothing",
+  "sys.symbol.hanger_and_towels",
+  'WardrobeWaterFlow',
   'WaterFlow()',
   'FlowItem()',
+  ".columnsTemplate('1fr 1fr')",
+  '.columnsGap(16)',
+  '.rowsGap(20)',
   'visibleOutfits'
 ]) {
   if (!wardrobe.includes(needle)) {
@@ -22,12 +31,28 @@ for (const needle of [
 
 for (const forbidden of [
   '搜索衣服、套装、备注',
+  "Text('我的衣柜')",
+  'FilterSlidersIcon',
+  '一眼看衣服',
   '添加衣服',
-  '套装',
-  'GridItem() should use WaterFlow'
+  'GridItem() should use WaterFlow',
+  'WardrobeTwoColumnWaterfall',
+  'WardrobeWaterfallColumn',
+  'wardrobeCardOffset',
+  'wardrobeDemoIndexes',
+  'WardrobeDemoResultCard',
+  'this.onOpenCapture()',
+  'sys.symbol.list_bullet',
+  'sys.symbol.figure_figure_dress'
 ]) {
   if (wardrobe.includes(forbidden)) {
     throw new Error(`WardrobePage still contains old wardrobe feed concept ${forbidden}`);
+  }
+}
+
+for (const forbidden of ['WardrobeMockStatusBar', "Text('9:41')", "Text('⌘')"]) {
+  if (wardrobe.includes(forbidden)) {
+    throw new Error(`WardrobePage should not keep phone model artifacts ${forbidden}`);
   }
 }
 
