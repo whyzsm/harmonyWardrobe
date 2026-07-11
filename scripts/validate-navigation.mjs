@@ -45,6 +45,16 @@ if (!nav.includes(".width('90%')")) {
   throw new Error('BottomNavigationBar should use 90% floating capsule width');
 }
 
+for (const layoutNeedle of ['Column({ space: 4 })', '.height(22)', '.lineHeight(15)']) {
+  if (!nav.includes(layoutNeedle)) {
+    throw new Error(`BottomNavigationBar missing aligned icon-label spacing: ${layoutNeedle}`);
+  }
+}
+
+if (nav.includes("Text('拍照')")) {
+  throw new Error('BottomNavigationBar center camera should not render a text label');
+}
+
 if (!nav.includes('onSelectOutfit') || !nav.includes('onOpenProfile')) {
   throw new Error('BottomNavigationBar missing screenshot navigation actions');
 }

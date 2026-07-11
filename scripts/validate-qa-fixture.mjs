@@ -22,7 +22,7 @@ for (const needle of [
 const qa = fs.readFileSync(qaPath, 'utf8');
 for (const needle of [
   '衣不缺',
-  '衣柜 / 逛店 / 拍照 / 套装 / 我的',
+  '衣柜 / 逛店 / 相机 / 套装 / 我的',
   '拍照',
   '从相册选择',
   '归类为 `衣橱`',

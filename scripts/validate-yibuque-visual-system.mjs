@@ -88,6 +88,8 @@ for (const forbidden of ['拍衣服', '拍搭配', '拍店铺']) {
   mustNotInclude(quickSheet, quickSheetPath, forbidden);
 }
 
+mustNotInclude(nav, navPath, "Text('拍照')");
+
 for (const text of [topBar, nav, quickSheet]) {
   mustNotInclude(text, 'yibuque visual components', 'AppTheme.color.primary');
 }

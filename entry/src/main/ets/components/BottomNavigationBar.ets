@@ -50,64 +50,54 @@ export struct BottomNavigationBar {
 
   @Builder
   CameraIcon() {
-    Column({ space: 1 }) {
-      Stack({ alignContent: Alignment.Center }) {
-        SymbolGlyph($r('sys.symbol.camera_fill'))
-          .fontSize(19)
-          .fontColor([YibuqueColor.textInverse])
-      }
-      .width(36)
-      .height(36)
-      .linearGradient({
-        angle: 135,
-        colors: [['#F37A59', 0], ['#4578FF', 0.55], ['#56D0FF', 1]]
-      })
-      .borderRadius(YibuqueRadius.full)
-      .shadow({ radius: 18, color: '#735A7CFF', offsetX: 0, offsetY: 0 })
-
-      Text('拍照')
-        .fontSize(12)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(YibuqueColor.textInverse)
+    Stack({ alignContent: Alignment.Center }) {
+      SymbolGlyph($r('sys.symbol.camera_fill'))
+        .fontSize(20)
+        .fontColor([YibuqueColor.textInverse])
     }
-    .width('100%')
-    .height(52)
-    .justifyContent(FlexAlign.Center)
-    .alignItems(HorizontalAlign.Center)
+    .width(40)
+    .height(40)
+    .linearGradient({
+      angle: 135,
+      colors: [['#F37A59', 0], ['#4578FF', 0.55], ['#56D0FF', 1]]
+    })
+    .borderRadius(YibuqueRadius.full)
+    .shadow({ radius: 18, color: '#735A7CFF', offsetX: 0, offsetY: 0 })
   }
 
   @Builder
   NavIcon(value: string) {
     if (value === 'wardrobe') {
       SymbolGlyph($r('sys.symbol.shirt'))
-        .fontSize(21)
+        .fontSize(20)
         .fontColor([this.selected === value ? YibuqueColor.textInverse : '#8D8D92'])
     } else if (value === 'store') {
       SymbolGlyph($r('sys.symbol.store_fill'))
-        .fontSize(21)
+        .fontSize(20)
         .fontColor([this.selected === value ? YibuqueColor.textInverse : '#8D8D92'])
     } else if (value === 'outfit') {
       SymbolGlyph($r('sys.symbol.hanger_and_towels'))
-        .fontSize(21)
+        .fontSize(20)
         .fontColor([this.selected === value ? YibuqueColor.textInverse : '#8D8D92'])
     } else {
       SymbolGlyph($r('sys.symbol.person'))
-        .fontSize(21)
+        .fontSize(20)
         .fontColor([this.selected === value ? YibuqueColor.textInverse : '#8D8D92'])
     }
   }
 
   @Builder
   NavItem(value: string, label: string) {
-    Column({ space: 2 }) {
+    Column({ space: 4 }) {
       Stack({ alignContent: Alignment.Center }) {
         this.NavIcon(value)
       }
       .width(32)
-      .height(23)
+      .height(22)
 
       Text(label)
         .fontSize(11)
+        .lineHeight(15)
         .fontWeight(this.selected === value ? FontWeight.Bold : FontWeight.Medium)
         .fontColor(this.selected === value ? YibuqueColor.textInverse : '#8D8D92')
     }

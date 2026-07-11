@@ -55,6 +55,7 @@ const quickSheet = readRequired(quickSheetPath);
 mustInclude(nav, navPath, 'onOpenCapture');
 mustNotInclude(nav, navPath, 'onOpenQuickActions');
 mustNotInclude(nav, navPath, "Text('+')");
+mustNotInclude(nav, navPath, "Text('拍照')");
 mustMatch(nav, navPath, /SymbolGlyph\(\$r\('sys\.symbol\.camera_fill'\)\)|相机|拍照|PhotoIcon|CameraButton/, 'must render a camera/photo center action');
 
 for (const needle of ['拍照', '从相册选择']) {
