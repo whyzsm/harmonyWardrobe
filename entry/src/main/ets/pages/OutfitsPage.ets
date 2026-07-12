@@ -477,40 +477,43 @@ export struct OutfitsPage {
 
   @Builder
   WeatherCard() {
-    Row({ space: 12 }) {
-      Column({ space: 2 }) {
-        Text('今天适合轻外套')
-          .fontSize(15)
-          .fontWeight(FontWeight.Regular)
-          .fontColor(TEXT_PRIMARY)
-          .lineHeight(18)
+    Row() {
+      Row({ space: 12 }) {
+        Column({ space: 2 }) {
+          Text('今天适合轻外套')
+            .fontSize(15)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(TEXT_PRIMARY)
+            .lineHeight(18)
 
-        Text('按已有单品组合，优先选好走路的搭配。')
+          Text('按已有单品组合，优先选好走路的搭配。')
+            .fontSize(12)
+            .fontColor(TEXT_MUTED)
+            .maxLines(2)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
+
+        Text('22°')
+          .height(36)
+          .padding({ left: 12, right: 12 })
           .fontSize(12)
-          .fontColor(TEXT_MUTED)
-          .maxLines(2)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .fontWeight(FontWeight.Regular)
+          .fontColor(ACCENT)
+          .textAlign(TextAlign.Center)
+          .backgroundColor(ACCENT_SOFT)
+          .borderRadius(18)
       }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-
-      Text('22°')
-        .height(36)
-        .padding({ left: 12, right: 12 })
-        .fontSize(12)
-        .fontWeight(FontWeight.Regular)
-        .fontColor(ACCENT)
-        .textAlign(TextAlign.Center)
-        .backgroundColor(ACCENT_SOFT)
-        .borderRadius(18)
+      .width('100%')
+      .padding(14)
+      .alignItems(VerticalAlign.Center)
+      .backgroundColor(SURFACE_WARM)
+      .borderRadius(18)
+      .border({ width: 1, color: BORDER_SOFT })
     }
     .width('100%')
-    .padding(14)
-    .margin({ left: 20, right: 20, bottom: 16 })
-    .alignItems(VerticalAlign.Center)
-    .backgroundColor(SURFACE_WARM)
-    .borderRadius(18)
-    .border({ width: 1, color: BORDER_SOFT })
+    .padding({ left: 20, right: 20, bottom: 16 })
   }
 
   @Builder

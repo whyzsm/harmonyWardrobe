@@ -12,6 +12,8 @@ for (const needle of [
   "{ label: '通勤'",
   '今天适合轻外套',
   "Text('22°')",
+  'WeatherCard',
+  '.padding({ left: 20, right: 20, bottom: 16 })',
   '创建套装',
   '记录一次穿着',
   'filterOutfits',
@@ -29,6 +31,14 @@ for (const needle of [
   if (!text.includes(needle)) {
     throw new Error(`OutfitsPage missing ${needle}`);
   }
+}
+
+if (/WeatherCard\(\)[\s\S]*?\.margin\(\{ left: 20, right: 20, bottom: 16 \}\)/.test(text)) {
+  throw new Error('OutfitsPage weather card must use container padding instead of overflowing full-width margins');
+}
+
+if (!/WeatherCard\(\)[\s\S]*?Row\(\)\s*\{[\s\S]*?Row\(\{ space: 12 \}\)[\s\S]*?\.padding\(\{ left: 20, right: 20, bottom: 16 \}\)/.test(text)) {
+  throw new Error('OutfitsPage weather card must align to the waterfall grid horizontal padding');
 }
 
 console.log('PASS');
