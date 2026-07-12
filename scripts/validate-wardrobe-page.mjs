@@ -9,6 +9,9 @@ for (const needle of [
   'ForEach',
   'WardrobeSearchHeader',
   'designDemoResource',
+  'displayItemMeta',
+  'designDemoMeta',
+  'DEMO_META',
   'wardrobe_demo_1',
   'OPEN_DESIGN_BLACK',
   'OPEN_DESIGN_SURFACE',
@@ -53,6 +56,7 @@ for (const needle of [
   "SymbolGlyph($r('sys.symbol.bag'))",
   "SymbolGlyph($r('sys.symbol.arrow_left_arrow_right'))",
   'Text(this.displayItemTitle(item, index))',
+  'Text(this.displayItemMeta(item, index))',
   'CardCategoryIcon(item.category)',
   'CardCategoryIcon(category: ClothingCategory)',
   '.fontSize(14)',
@@ -136,14 +140,16 @@ for (const fakeCard of ['shouldShowWardrobeDemoCards', 'wardrobeDemoIndexes', 'W
   }
 }
 
-for (const oldCardMeta of ['displayItemMeta', 'designDemoMeta', 'DEMO_META', 'Text(this.displayItemMeta(item, index))']) {
-  if (text.includes(oldCardMeta)) {
-    throw new Error(`Wardrobe card category should be an image overlay icon, not ${oldCardMeta}`);
-  }
+if (!/displayItemTitle\(item: ClothingItem, index: number\)[\s\S]*?autoNamePattern[\s\S]*?autoNamePattern\.test\(item\.name\)[\s\S]*?categoryLabel/.test(text)) {
+  throw new Error('Wardrobe card title must hide timestamps from generated clothing names');
 }
 
-if (!/WardrobeSearchResultCard\(item: ClothingItem, index: number\)[\s\S]*?CardCategoryIcon\(item\.category\)[\s\S]*?Text\(this\.displayItemTitle\(item, index\)\)[\s\S]*?\.fontSize\(14\)[\s\S]*?\.maxLines\(2\)/.test(text)) {
-  throw new Error('Wardrobe card should overlay the category icon and render a compact two-line title');
+if (!/displayItemMeta\(item: ClothingItem, index: number\)[\s\S]*?item\.note[\s\S]*?displayItemTitle\(item, index\) === categoryLabel \? '' : categoryLabel/.test(text)) {
+  throw new Error('Wardrobe card meta must prefer notes and avoid repeating an auto-generated category title');
+}
+
+if (!/WardrobeSearchResultCard\(item: ClothingItem, index: number\)[\s\S]*?CardCategoryIcon\(item\.category\)[\s\S]*?Row\(\{ space: 8 \}\)[\s\S]*?Text\(this\.displayItemTitle\(item, index\)\)[\s\S]*?\.layoutWeight\(1\)[\s\S]*?Text\(this\.displayItemMeta\(item, index\)\)[\s\S]*?\.maxLines\(1\)/.test(text)) {
+  throw new Error('Wardrobe card should render title and secondary text in one compact row');
 }
 
 for (const wrongCategoryIcon of ["sys.symbol.list_bullet", "sys.symbol.figure_figure_dress"]) {

@@ -41,6 +41,7 @@ const SCREENSHOT_BLUE_BG = '#EDF4FF';
 const SCREENSHOT_NAV_GRAY = '#74747A';
 
 const DEMO_TITLES: string[] = ['牛仔短外套', '白毛衣牛仔裤', '衣架上的上衣', '极简灯下裙'];
+const DEMO_META: string[] = ['亮色外套', '周末轻搭', '待回看', '极简陈列'];
 
 @Component
 export struct WardrobePage {
@@ -247,8 +248,49 @@ export struct WardrobePage {
     return DEMO_TITLES[index % DEMO_TITLES.length];
   }
 
+  private designDemoMeta(index: number): string {
+    return DEMO_META[index % DEMO_META.length];
+  }
+
+  private categoryLabel(category: ClothingCategory): string {
+    if (category === ClothingCategory.Pants) {
+      return '裤子';
+    }
+    if (category === ClothingCategory.Shorts) {
+      return '短裤';
+    }
+    if (category === ClothingCategory.LongSkirt) {
+      return '长裙';
+    }
+    if (category === ClothingCategory.HalfSkirt) {
+      return '半裙';
+    }
+
+    return '上衣';
+  }
+
   private displayItemTitle(item: ClothingItem, index: number): string {
-    return this.isDesignFallbackPhoto(this.firstPhotoUri(item)) ? this.designDemoTitle(index) : item.name;
+    if (this.isDesignFallbackPhoto(this.firstPhotoUri(item))) {
+      return this.designDemoTitle(index);
+    }
+
+    const categoryLabel = this.categoryLabel(item.category);
+    const autoNamePattern = new RegExp(`^${categoryLabel} \\d{2}-\\d{2} \\d{2}:\\d{2}$`);
+    return autoNamePattern.test(item.name) ? categoryLabel : item.name;
+  }
+
+  private displayItemMeta(item: ClothingItem, index: number): string {
+    if (this.isDesignFallbackPhoto(this.firstPhotoUri(item))) {
+      return this.designDemoMeta(index);
+    }
+
+    const note = item.note?.trim() ?? '';
+    if (note.length > 0) {
+      return note;
+    }
+
+    const categoryLabel = this.categoryLabel(item.category);
+    return this.displayItemTitle(item, index) === categoryLabel ? '' : categoryLabel;
   }
 
   private editingItem(): ClothingItem | undefined {
@@ -942,14 +984,25 @@ export struct WardrobePage {
       }
       .width('100%')
 
-      Text(this.displayItemTitle(item, index))
+      Row({ space: 8 }) {
+        Text(this.displayItemTitle(item, index))
+          .layoutWeight(1)
+          .fontSize(14)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(OPEN_DESIGN_BLACK)
+          .lineHeight(20)
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+        Text(this.displayItemMeta(item, index))
+          .fontSize(12)
+          .fontColor(OPEN_DESIGN_MUTED)
+          .lineHeight(20)
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+      }
         .width('100%')
-        .fontSize(14)
-        .fontWeight(FontWeight.Regular)
-        .fontColor(OPEN_DESIGN_BLACK)
-        .lineHeight(20)
-        .maxLines(2)
-        .textOverflow({ overflow: TextOverflow.Ellipsis })
+        .alignItems(VerticalAlign.Center)
     }
     .width('100%')
     .onClick(() => {
