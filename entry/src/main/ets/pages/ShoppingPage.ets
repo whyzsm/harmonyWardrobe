@@ -156,7 +156,7 @@ export struct ShoppingPage {
         Column({ space: 4 }) {
           Text('心仪单品')
             .fontSize(30)
-            .fontWeight(FontWeight.Bold)
+            .fontWeight(FontWeight.Regular)
             .fontColor(AppTheme.color.text)
 
           Text('记录想买的衣物、门店、价格和试穿照片。')

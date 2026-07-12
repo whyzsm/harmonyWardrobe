@@ -129,7 +129,7 @@ export struct CalendarPage {
           Column({ space: 4 }) {
             Text('日历')
               .fontSize(30)
-              .fontWeight(FontWeight.Bold)
+              .fontWeight(FontWeight.Regular)
               .fontColor(AppTheme.color.text)
 
             Text('按日期回看穿搭、地点和照片记录。')
@@ -178,7 +178,7 @@ export struct CalendarPage {
         Column({ space: 12 }) {
           Text(this.currentMonth)
             .fontSize(18)
-            .fontWeight(FontWeight.Medium)
+            .fontWeight(FontWeight.Regular)
             .fontColor(AppTheme.color.text)
 
           MonthCalendar({
@@ -199,7 +199,7 @@ export struct CalendarPage {
 
         Text(`${this.selectedDate} 记录`)
           .fontSize(18)
-          .fontWeight(FontWeight.Medium)
+          .fontWeight(FontWeight.Regular)
           .fontColor(AppTheme.color.text)
 
         if (this.selectedDateLogs.length === 0) {
@@ -213,7 +213,7 @@ export struct CalendarPage {
               Column({ space: 4 }) {
                 Text(wearLog.outfitTitleSnapshot)
                   .fontSize(15)
-                  .fontWeight(FontWeight.Medium)
+                  .fontWeight(FontWeight.Regular)
                   .fontColor(AppTheme.color.text)
 
                 Text(wearLog.placeText ?? '未记录地点')

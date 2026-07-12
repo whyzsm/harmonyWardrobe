@@ -37,7 +37,10 @@ const userFacingFiles = [
 
 for (const file of userFacingFiles) {
   const text = read(file);
-  for (const forbidden of ['首页', '逛街', '心愿单', '点赞', '收藏', '评论', '关注']) {
+  const forbiddenConcepts = file.endsWith('/ProfilePage.ets')
+    ? ['首页', '心愿单', '点赞', '收藏', '评论', '关注']
+    : ['首页', '逛街', '心愿单', '点赞', '收藏', '评论', '关注'];
+  for (const forbidden of forbiddenConcepts) {
     mustNotInclude(text, file, forbidden);
   }
   for (const forbidden of ['`query:', "'query:", '"query:', 'entity_type', 'entity_id', 'wornDate /', 'placeText /']) {

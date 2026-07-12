@@ -1,4 +1,5 @@
 import { PhotoGrid } from '../components/PhotoGrid';
+import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import {
   CreateWishlistItemInput,
   UpdateWishlistItemInput,
@@ -132,36 +133,17 @@ export struct WishlistEditPage {
   }
 
   build() {
-    Scroll() {
-      Column({ space: 16 }) {
-        Row() {
-          Column({ space: 4 }) {
-            Text(this.initialItem === undefined ? '添加心愿' : '编辑心愿')
-              .fontSize(28)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(AppTheme.color.text)
-
-            Text('记录照片、标题、门店、价格和备注。')
-              .fontSize(14)
-              .fontColor(AppTheme.color.textMuted)
-          }
-          .layoutWeight(1)
-          .alignItems(HorizontalAlign.Start)
-
-          Button('取消')
-            .height(40)
-            .fontSize(14)
-            .fontColor(AppTheme.color.textMuted)
-            .backgroundColor(AppTheme.color.surface)
-            .borderRadius(8)
-            .border({ width: 1, color: AppTheme.color.border })
-            .onClick(() => {
-              this.onCancel();
-            })
+    Column() {
+      SecondaryPageHeader({
+        title: this.initialItem === undefined ? '添加心愿' : '编辑心愿',
+        backAccessibilityText: '返回心愿',
+        onBack: () => {
+          this.onCancel();
         }
-        .width('100%')
-        .alignItems(VerticalAlign.Center)
+      })
 
+      Scroll() {
+        Column({ space: 16 }) {
         PhotoGrid({ photoUris: this.photoUris })
 
         Row({ space: 10 }) {
@@ -246,10 +228,14 @@ export struct WishlistEditPage {
           .onClick(() => {
             this.saveWishlistItem();
           })
+        }
+        .width('100%')
+        .padding(20)
+        .alignItems(HorizontalAlign.Start)
       }
       .width('100%')
-      .padding(20)
-      .alignItems(HorizontalAlign.Start)
+      .layoutWeight(1)
+      .scrollBar(BarState.Off)
     }
     .width('100%')
     .height('100%')

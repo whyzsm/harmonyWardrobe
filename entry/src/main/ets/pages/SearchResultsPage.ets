@@ -1,4 +1,5 @@
 import { EmptyState } from '../components/EmptyState';
+import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { SearchRepository } from '../data/repositories/SearchRepository';
@@ -61,74 +62,62 @@ export struct SearchResultsPage {
   }
 
   build() {
-    Column({ space: YibuqueSpacing.lg }) {
-      Row() {
-        Column({ space: 4 }) {
-          Text('搜索')
-            .fontSize(28)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textPrimary)
+    Column() {
+      SecondaryPageHeader({
+        title: '搜索',
+        backAccessibilityText: '关闭搜索',
+        onBack: () => {
+          this.onClose();
+        }
+      })
 
-          Text(`正在找「${this.query}」`)
+      Column({ space: YibuqueSpacing.lg }) {
+        Text(`正在找「${this.query}」`)
+          .fontSize(14)
+          .fontColor(YibuqueColor.textSecondary)
+
+        if (this.isSearching) {
+          Text('搜索中...')
             .fontSize(14)
             .fontColor(YibuqueColor.textSecondary)
-        }
-        .layoutWeight(1)
-        .alignItems(HorizontalAlign.Start)
-
-        Button('关闭')
-          .height(44)
-          .fontSize(14)
-          .fontColor(YibuqueColor.textSecondary)
-          .backgroundColor(YibuqueColor.cardWhite)
-          .borderRadius(YibuqueRadius.full)
-          .border({ width: 1, color: YibuqueColor.borderLight })
-          .onClick(() => {
-            this.onClose();
+        } else if (this.errorMessage.length > 0) {
+          Text(this.errorMessage)
+            .fontSize(14)
+            .fontColor('#EF4444')
+        } else if (this.searchResults.length === 0) {
+          EmptyState({
+            title: '没有搜索结果',
+            description: '换个关键词试试衣物、美搭、逛店记录或店铺。'
           })
+        } else {
+          ForEach(this.searchResults, (result: SearchResult) => {
+            Column({ space: 4 }) {
+              Text(result.title)
+                .fontSize(16)
+                .fontWeight(FontWeight.Regular)
+                .fontColor(YibuqueColor.textPrimary)
+
+              Text(entityTypeLabel(result.entityType))
+                .fontSize(12)
+                .fontWeight(FontWeight.Regular)
+                .fontColor(YibuqueColor.textSecondary)
+            }
+            .width('100%')
+            .padding(YibuqueSpacing.md)
+            .borderRadius(YibuqueRadius.xl)
+            .backgroundColor(YibuqueColor.cardWhite)
+            .border({ width: 1, color: YibuqueColor.borderLight })
+            .alignItems(HorizontalAlign.Start)
+          }, (result: SearchResult) => `${result.entityType}:${result.entityId}`)
+        }
       }
       .width('100%')
-      .alignItems(VerticalAlign.Center)
-
-      if (this.isSearching) {
-        Text('搜索中...')
-          .fontSize(14)
-          .fontColor(YibuqueColor.textSecondary)
-      } else if (this.errorMessage.length > 0) {
-        Text(this.errorMessage)
-          .fontSize(14)
-          .fontColor('#EF4444')
-      } else if (this.searchResults.length === 0) {
-        EmptyState({
-          title: '没有搜索结果',
-          description: '换个关键词试试衣物、美搭、逛店记录或店铺。'
-        })
-      } else {
-        ForEach(this.searchResults, (result: SearchResult) => {
-          Column({ space: 4 }) {
-            Text(result.title)
-              .fontSize(16)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(YibuqueColor.textPrimary)
-
-            Text(entityTypeLabel(result.entityType))
-              .fontSize(12)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(YibuqueColor.textSecondary)
-          }
-          .width('100%')
-          .padding(YibuqueSpacing.md)
-          .borderRadius(YibuqueRadius.xl)
-          .backgroundColor(YibuqueColor.cardWhite)
-          .border({ width: 1, color: YibuqueColor.borderLight })
-          .alignItems(HorizontalAlign.Start)
-        }, (result: SearchResult) => `${result.entityType}:${result.entityId}`)
-      }
+      .layoutWeight(1)
+      .padding(YibuqueSpacing.pageX)
+      .alignItems(HorizontalAlign.Start)
     }
     .width('100%')
     .height('100%')
-    .padding(YibuqueSpacing.pageX)
-    .alignItems(HorizontalAlign.Start)
     .backgroundColor(YibuqueColor.bgBlueGray)
   }
 }

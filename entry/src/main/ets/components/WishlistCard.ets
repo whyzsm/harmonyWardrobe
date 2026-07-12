@@ -32,7 +32,7 @@ export struct WishlistCard {
       Column({ space: 6 }) {
         Text(this.title)
           .fontSize(16)
-          .fontWeight(FontWeight.Medium)
+          .fontWeight(FontWeight.Regular)
           .fontColor(AppTheme.color.text)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })

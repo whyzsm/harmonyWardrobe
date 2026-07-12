@@ -1,42 +1,63 @@
-import { EmptyState } from '../components/EmptyState';
-import { OutfitCard } from '../components/OutfitCard';
-import { SearchBar } from '../components/SearchBar';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
-import { SearchRepository } from '../data/repositories/SearchRepository';
 import { WearLogRepository } from '../data/repositories/WearLogRepository';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { WearLog } from '../domain/wearLog/WearLogModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { AppTheme } from '../theme/Tokens';
 import { OutfitEditPage } from './OutfitEditPage';
-import { SearchResultsPage } from './SearchResultsPage';
 import { WearLogEditPage } from './WearLogEditPage';
+
+interface OutfitSceneFilter {
+  label: string;
+  keywords?: string[];
+}
+
+const OUTFIT_SCENE_FILTERS: OutfitSceneFilter[] = [
+  { label: '全部' },
+  { label: '逛街', keywords: ['逛街', '逛店', '试衣', '购物'] },
+  { label: '周末', keywords: ['周末', '休闲', '轻便', '出游'] },
+  { label: '通勤', keywords: ['通勤', '上班', '工作', '职场'] }
+];
+
+const PAGE_BG = '#FFFFFF';
+const SURFACE_WARM = '#FBFBFD';
+const TEXT_PRIMARY = '#1D1D1F';
+const TEXT_MUTED = '#6E6E73';
+const TEXT_META = '#86868B';
+const BORDER = '#D2D2D7';
+const BORDER_SOFT = '#E8E8ED';
+const ACCENT = '#0071E3';
+const ACCENT_SOFT = '#EDF6FF';
+const ERROR = '#DC2626';
+const ERROR_BG = '#FFF3F3';
+const RECORD_WEAR_ACCESSIBILITY_TEXT = '记录一次穿着';
 
 @Component
 export struct OutfitsPage {
   outfitRepository?: OutfitRepository = undefined;
   clothingRepository?: ClothingRepository = undefined;
   wearLogRepository?: WearLogRepository = undefined;
-  searchRepository?: SearchRepository = undefined;
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
+  onNestedPageVisibilityChange: (visible: boolean) => void = () => {};
 
-  @State private searchQuery: string = '';
+  @State private selectedFilterLabel: string = '全部';
   @State private outfits: OutfitTemplate[] = [];
   @State private clothingItems: ClothingItem[] = [];
   @State private selectedOutfitId: string = '';
   @State private showOutfitEditor: boolean = false;
   @State private showWearLogEditor: boolean = false;
-  @State private showUnifiedSearch: boolean = false;
-  @State private unifiedSearchQuery: string = '';
   @State private loading: boolean = false;
   @State private errorMessage: string = '';
 
   aboutToAppear(): void {
     this.loadOutfits();
+  }
+
+  aboutToDisappear(): void {
+    this.onNestedPageVisibilityChange(false);
   }
 
   private async loadOutfits(): Promise<void> {
@@ -59,20 +80,105 @@ export struct OutfitsPage {
     }
   }
 
-  private filterOutfits(): OutfitTemplate[] {
-    const normalizedQuery = this.searchQuery.trim().toLowerCase();
-    if (normalizedQuery.length === 0) {
-      return this.outfits;
+  private selectedSceneFilter(): OutfitSceneFilter | undefined {
+    for (const filter of OUTFIT_SCENE_FILTERS) {
+      if (filter.label === this.selectedFilterLabel) {
+        return filter;
+      }
     }
 
+    return undefined;
+  }
+
+  private filterOutfits(): OutfitTemplate[] {
+    const selectedFilter = this.selectedSceneFilter();
+
     return this.outfits.filter((outfit: OutfitTemplate) => {
-      return outfit.title.toLowerCase().includes(normalizedQuery) ||
-        (outfit.note !== undefined && outfit.note.toLowerCase().includes(normalizedQuery));
+      const searchableText = `${outfit.title} ${outfit.note ?? ''}`.toLowerCase();
+      if (selectedFilter?.keywords === undefined) {
+        return true;
+      }
+
+      for (const keyword of selectedFilter.keywords) {
+        if (searchableText.includes(keyword)) {
+          return true;
+        }
+      }
+
+      return false;
     });
   }
 
-  private firstPhotoUri(outfit: OutfitTemplate): string {
-    return outfit.photoUris.length > 0 ? outfit.photoUris[0] : '';
+  private photoUriAt(outfit: OutfitTemplate, slot: number): string {
+    return outfit.photoUris.length > slot ? outfit.photoUris[slot] : '';
+  }
+
+  private isDesignFallbackPhoto(photoUri: string): boolean {
+    return photoUri.length === 0 || photoUri.startsWith('debug://');
+  }
+
+  private designLookResource(index: number, slot: number): Resource {
+    const cardIndex = index % 4;
+    if (slot === 0) {
+      if (cardIndex === 0) {
+        return $r('app.media.wardrobe_look_shirt');
+      }
+
+      if (cardIndex === 1) {
+        return $r('app.media.wardrobe_look_dress');
+      }
+
+      if (cardIndex === 2) {
+        return $r('app.media.wardrobe_look_pants');
+      }
+
+      return $r('app.media.wardrobe_look_bag');
+    }
+
+    if (cardIndex === 0) {
+      return $r('app.media.wardrobe_look_dress');
+    }
+
+    if (cardIndex === 1) {
+      return $r('app.media.wardrobe_look_bag');
+    }
+
+    if (cardIndex === 2) {
+      return $r('app.media.wardrobe_look_shirt');
+    }
+
+    return $r('app.media.wardrobe_look_pants');
+  }
+
+  private outfitStackAspectRatio(index: number): number {
+    return index % 4 === 2 ? 1 / 1.18 : 1 / 1.48;
+  }
+
+  private outfitTopMargin(index: number): number {
+    return index > 1 && index % 4 === 3 ? 6 : 0;
+  }
+
+  private outfitSceneLabel(outfit: OutfitTemplate): string {
+    const searchableText = `${outfit.title} ${outfit.note ?? ''}`.toLowerCase();
+    for (const filter of OUTFIT_SCENE_FILTERS) {
+      if (filter.keywords === undefined) {
+        continue;
+      }
+
+      for (const keyword of filter.keywords) {
+        if (searchableText.includes(keyword)) {
+          return filter.label;
+        }
+      }
+    }
+
+    return '日常';
+  }
+
+  private outfitMeta(outfit: OutfitTemplate): string {
+    const note = outfit.note?.trim() ?? '';
+    const detail = note.length > 0 ? note : `${outfit.clothingItemIds.length} 件单品`;
+    return `${this.outfitSceneLabel(outfit)} · ${detail}`;
   }
 
   private selectedOutfit(): OutfitTemplate | undefined {
@@ -92,11 +198,19 @@ export struct OutfitsPage {
   private onCreateOutfit(): void {
     this.selectedOutfitId = '';
     this.showOutfitEditor = true;
+    this.onNestedPageVisibilityChange(true);
+  }
+
+  private onEditOutfit(outfit: OutfitTemplate): void {
+    this.selectedOutfitId = outfit.id;
+    this.showOutfitEditor = true;
+    this.onNestedPageVisibilityChange(true);
   }
 
   private onRecordWear(outfit?: OutfitTemplate): void {
     this.selectedOutfitId = outfit?.id ?? '';
     this.showWearLogEditor = true;
+    this.onNestedPageVisibilityChange(true);
   }
 
   private upsertOutfit(savedOutfit: OutfitTemplate): void {
@@ -122,16 +236,13 @@ export struct OutfitsPage {
   private closeOutfitEditor(): void {
     this.showOutfitEditor = false;
     this.selectedOutfitId = '';
+    this.onNestedPageVisibilityChange(false);
   }
 
   private closeWearLogEditor(): void {
     this.showWearLogEditor = false;
     this.selectedOutfitId = '';
-  }
-
-  private openUnifiedSearch(query: string): void {
-    this.unifiedSearchQuery = query;
-    this.showUnifiedSearch = query.trim().length > 0;
+    this.onNestedPageVisibilityChange(false);
   }
 
   private retry(): void {
@@ -168,134 +279,291 @@ export struct OutfitsPage {
           this.closeWearLogEditor();
         }
       })
-    } else if (this.showUnifiedSearch) {
-      SearchResultsPage({
-        query: this.unifiedSearchQuery,
-        searchRepository: this.searchRepository,
-        outfitRepository: this.outfitRepository,
-        onClose: () => {
-          this.showUnifiedSearch = false;
-        }
-      })
     } else {
-      Column({ space: 16 }) {
-      Row() {
-        Column({ space: 4 }) {
-          Text('套装')
-            .fontSize(30)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(AppTheme.color.text)
+      Column({ space: 0 }) {
+        this.FilterStrip()
+        this.WeatherCard()
 
-          Text('组合常穿搭配，方便每天快速记录。')
-            .fontSize(15)
-            .fontColor(AppTheme.color.textMuted)
+        if (this.loading) {
+          Column({ space: 10 }) {
+            Text('正在加载套装...')
+              .fontSize(14)
+              .fontColor(TEXT_MUTED)
+          }
+          .width('100%')
+          .layoutWeight(1)
+          .justifyContent(FlexAlign.Center)
+          .alignItems(HorizontalAlign.Center)
+        } else if (this.errorMessage.length > 0) {
+          Column({ space: 12 }) {
+            Row({ space: 10 }) {
+              Text(this.errorMessage)
+                .fontSize(14)
+                .fontColor(ERROR)
+                .layoutWeight(1)
+                .maxLines(3)
+
+              Button('重试')
+                .height(36)
+                .fontSize(13)
+                .fontColor(PAGE_BG)
+                .backgroundColor(ERROR)
+                .borderRadius(18)
+                .onClick(() => {
+                  this.retry();
+                })
+            }
+            .width('100%')
+            .padding(14)
+            .backgroundColor(ERROR_BG)
+            .borderRadius(12)
+          }
+          .width('100%')
+          .layoutWeight(1)
+          .padding({ left: 20, right: 20 })
+          .justifyContent(FlexAlign.Center)
+        } else if (this.outfits.length === 0) {
+          Column({ space: 14 }) {
+            this.OutfitEmptyState('还没有套装', '创建套装后会在这里显示，也可以从套装快速记录一次穿着。')
+
+            Button('创建套装')
+              .height(44)
+              .fontSize(14)
+              .fontColor(PAGE_BG)
+              .backgroundColor(ACCENT)
+              .borderRadius(22)
+              .onClick(() => {
+                this.onCreateOutfit();
+              })
+          }
+          .width('100%')
+          .layoutWeight(1)
+          .padding({ left: 20, right: 20 })
+          .justifyContent(FlexAlign.Center)
+        } else if (this.filterOutfits().length === 0) {
+          Column({ space: 14 }) {
+            this.OutfitEmptyState('暂时没有这类套装', '换一个场景看看，或先创建一套新的搭配。')
+
+            Button('查看全部')
+              .height(44)
+              .fontSize(14)
+              .fontColor(ACCENT)
+              .backgroundColor(ACCENT_SOFT)
+              .borderRadius(22)
+              .onClick(() => {
+                this.selectedFilterLabel = '全部';
+              })
+          }
+          .width('100%')
+          .layoutWeight(1)
+          .padding({ left: 20, right: 20 })
+          .justifyContent(FlexAlign.Center)
+        } else {
+          Grid() {
+            ForEach(this.filterOutfits(), (outfit: OutfitTemplate, index: number) => {
+              GridItem() {
+                this.OutfitWallCard(outfit, index)
+              }
+            }, (outfit: OutfitTemplate) => outfit.id)
+          }
+          .columnsTemplate('1fr 1fr')
+          .columnsGap(13)
+          .rowsGap(18)
+          .width('100%')
+          .layoutWeight(1)
+          .padding({ left: 20, right: 20, bottom: 96 })
+          .scrollBar(BarState.Off)
         }
-        .layoutWeight(1)
-        .alignItems(HorizontalAlign.Start)
+      }
+      .width('100%')
+      .height('100%')
+      .backgroundColor(PAGE_BG)
+    }
+  }
 
-        Button('创建套装')
-          .height(40)
-          .fontSize(14)
-          .fontColor(AppTheme.color.surface)
-          .backgroundColor(AppTheme.color.primary)
-          .borderRadius(AppTheme.radius.md)
+  @Builder
+  OutfitEmptyState(title: string, description: string) {
+    Column({ space: 8 }) {
+      SymbolGlyph($r('sys.symbol.hanger_and_towels'))
+        .fontSize(32)
+        .fontColor([TEXT_PRIMARY])
+
+      Text(title)
+        .fontSize(14)
+        .fontWeight(FontWeight.Regular)
+        .fontColor(TEXT_PRIMARY)
+        .textAlign(TextAlign.Center)
+
+      Text(description)
+        .fontSize(12)
+        .lineHeight(18)
+        .fontColor(TEXT_MUTED)
+        .textAlign(TextAlign.Center)
+    }
+    .width('100%')
+    .padding(18)
+    .alignItems(HorizontalAlign.Center)
+    .backgroundColor(SURFACE_WARM)
+    .borderRadius(18)
+    .border({ width: 1, color: BORDER })
+  }
+
+  @Builder
+  FilterStrip() {
+    Scroll() {
+      Row({ space: 10 }) {
+        ForEach(OUTFIT_SCENE_FILTERS, (filter: OutfitSceneFilter) => {
+          Row({ space: 7 }) {
+            this.FilterIcon(filter.label)
+
+            Text(filter.label)
+              .fontSize(12)
+              .fontWeight(this.selectedFilterLabel === filter.label ? FontWeight.Regular : FontWeight.Regular)
+              .fontColor(this.selectedFilterLabel === filter.label ? ACCENT : TEXT_MUTED)
+          }
+          .height(44)
+          .padding({ left: 12, right: 15 })
+          .justifyContent(FlexAlign.Center)
+          .alignItems(VerticalAlign.Center)
+          .backgroundColor(this.selectedFilterLabel === filter.label ? ACCENT_SOFT : SURFACE_WARM)
+          .borderRadius(22)
+          .border({ width: 1, color: this.selectedFilterLabel === filter.label ? '#8ABBEA' : BORDER })
           .onClick(() => {
-            this.onCreateOutfit();
+            this.selectedFilterLabel = filter.label;
+          })
+        }, (filter: OutfitSceneFilter) => filter.label)
+
+      }
+      .padding({ right: 20, bottom: 4 })
+      .alignItems(VerticalAlign.Center)
+    }
+    .scrollable(ScrollDirection.Horizontal)
+    .scrollBar(BarState.Off)
+    .width('100%')
+    .height(50)
+    .margin({ top: 2, bottom: 12 })
+    .padding({ left: 20 })
+  }
+
+  @Builder
+  FilterIcon(label: string) {
+    if (label === '全部') {
+      SymbolGlyph($r('sys.symbol.hanger_and_towels'))
+        .fontSize(17)
+        .fontColor([this.selectedFilterLabel === label ? ACCENT : TEXT_MUTED])
+    } else if (label === '逛街') {
+      SymbolGlyph($r('sys.symbol.bag'))
+        .fontSize(17)
+        .fontColor([this.selectedFilterLabel === label ? ACCENT : TEXT_MUTED])
+    } else if (label === '周末') {
+      SymbolGlyph($r('sys.symbol.shirt'))
+        .fontSize(17)
+        .fontColor([this.selectedFilterLabel === label ? ACCENT : TEXT_MUTED])
+    } else {
+      SymbolGlyph($r('sys.symbol.clothing'))
+        .fontSize(17)
+        .fontColor([this.selectedFilterLabel === label ? ACCENT : TEXT_MUTED])
+    }
+  }
+
+  @Builder
+  WeatherCard() {
+    Row({ space: 12 }) {
+      Column({ space: 2 }) {
+        Text('今天适合轻外套')
+          .fontSize(15)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(TEXT_PRIMARY)
+          .lineHeight(18)
+
+        Text('按已有单品组合，优先选好走路的搭配。')
+          .fontSize(12)
+          .fontColor(TEXT_MUTED)
+          .maxLines(2)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
+
+      Text('22°')
+        .height(36)
+        .padding({ left: 12, right: 12 })
+        .fontSize(12)
+        .fontWeight(FontWeight.Regular)
+        .fontColor(ACCENT)
+        .textAlign(TextAlign.Center)
+        .backgroundColor(ACCENT_SOFT)
+        .borderRadius(18)
+    }
+    .width('100%')
+    .padding(14)
+    .margin({ left: 20, right: 20, bottom: 16 })
+    .alignItems(VerticalAlign.Center)
+    .backgroundColor(SURFACE_WARM)
+    .borderRadius(18)
+    .border({ width: 1, color: BORDER_SOFT })
+  }
+
+  @Builder
+  OutfitWallCard(outfit: OutfitTemplate, index: number) {
+    Column({ space: 8 }) {
+      Column({ space: 6 }) {
+        this.OutfitPhoto(outfit, index, 0, 1.18)
+        this.OutfitPhoto(outfit, index, 1, 0.92)
+      }
+      .width('100%')
+      .aspectRatio(this.outfitStackAspectRatio(index))
+      .onClick(() => {
+        this.onEditOutfit(outfit);
+      })
+
+      Row({ space: 8 }) {
+        Text(outfit.title)
+          .fontSize(14)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(TEXT_PRIMARY)
+          .lineHeight(17)
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .layoutWeight(1)
+          .onClick(() => {
+            this.onEditOutfit(outfit);
+          })
+
+        Text(this.outfitMeta(outfit))
+          .fontSize(11)
+          .fontColor(TEXT_META)
+          .lineHeight(15)
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .accessibilityText(RECORD_WEAR_ACCESSIBILITY_TEXT)
+          .onClick(() => {
+            this.onRecordWear(outfit);
           })
       }
       .width('100%')
       .alignItems(VerticalAlign.Center)
-
-      if (this.loading) {
-        Text('loading / 正在加载套装...')
-          .fontSize(14)
-          .fontColor(AppTheme.color.textMuted)
-      }
-
-      if (this.errorMessage.length > 0) {
-        Row({ space: 8 }) {
-          Text(`error / ${this.errorMessage}`)
-            .fontSize(14)
-            .fontColor(AppTheme.color.danger)
-            .layoutWeight(1)
-
-          Button('retry')
-            .height(34)
-            .fontSize(13)
-            .onClick(() => {
-              this.retry();
-            })
-        }
-        .width('100%')
-      }
-
-      SearchBar({
-        value: this.searchQuery,
-        placeholder: '搜索套装、备注',
-        onChange: (value: string) => {
-          this.searchQuery = value;
-          this.openUnifiedSearch(value);
-        }
-      })
-
-      Button('记录一次穿着')
-        .height(40)
-        .fontSize(14)
-        .fontColor(AppTheme.color.primary)
-        .backgroundColor(AppTheme.color.surface)
-        .borderRadius(AppTheme.radius.md)
-        .border({ width: 1, color: AppTheme.color.primary })
-        .onClick(() => {
-          this.onRecordWear();
-        })
-
-      if (this.filterOutfits().length === 0) {
-        EmptyState({
-          title: '还没有套装',
-          description: '创建套装后会在这里显示，也可以从套装快速记录一次穿着。'
-        })
-      } else {
-        Grid() {
-          ForEach(this.filterOutfits(), (outfit: OutfitTemplate) => {
-            GridItem() {
-              Column({ space: 8 }) {
-                OutfitCard({
-                  title: outfit.title,
-                  itemCount: outfit.clothingItemIds.length,
-                  photoUri: this.firstPhotoUri(outfit)
-                })
-                  .onClick(() => {
-                    this.selectedOutfitId = outfit.id;
-                    this.showOutfitEditor = true;
-                  })
-
-                Button('记录一次穿着')
-                  .height(36)
-                  .width('100%')
-                  .fontSize(13)
-                  .fontColor(AppTheme.color.primary)
-                  .backgroundColor(AppTheme.color.surface)
-                  .borderRadius(AppTheme.radius.md)
-                  .border({ width: 1, color: AppTheme.color.primary })
-                  .onClick(() => {
-                    this.onRecordWear(outfit);
-                  })
-              }
-            }
-          }, (outfit: OutfitTemplate) => outfit.id)
-        }
-        .columnsTemplate('1fr 1fr')
-        .columnsGap(12)
-        .rowsGap(12)
-        .width('100%')
-        .layoutWeight(1)
-      }
     }
     .width('100%')
-    .height('100%')
-    .padding(20)
-    .alignItems(HorizontalAlign.Start)
-    .backgroundColor(AppTheme.color.surfaceMuted)
+    .margin({ top: this.outfitTopMargin(index) })
+  }
+
+  @Builder
+  OutfitPhoto(outfit: OutfitTemplate, index: number, slot: number, weight: number) {
+    if (this.isDesignFallbackPhoto(this.photoUriAt(outfit, slot))) {
+      Image(this.designLookResource(index, slot))
+        .width('100%')
+        .layoutWeight(weight)
+        .objectFit(ImageFit.Cover)
+        .borderRadius(5)
+        .border({ width: 1, color: BORDER_SOFT })
+    } else {
+      Image(this.photoUriAt(outfit, slot))
+        .width('100%')
+        .layoutWeight(weight)
+        .objectFit(ImageFit.Cover)
+        .borderRadius(5)
+        .border({ width: 1, color: BORDER_SOFT })
     }
   }
 }

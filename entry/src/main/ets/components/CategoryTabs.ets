@@ -12,7 +12,7 @@ export struct CategoryTabs {
         ForEach(this.categories, (category: string) => {
           Text(category)
             .fontSize(14)
-            .fontWeight(FontWeight.Bold)
+            .fontWeight(FontWeight.Regular)
             .fontColor(category === this.selected ? YibuqueColor.actionBlack : YibuqueColor.textTertiary)
             .padding({ left: YibuqueSpacing.md, right: YibuqueSpacing.md, top: YibuqueSpacing.sm, bottom: YibuqueSpacing.sm })
             .backgroundColor(YibuqueColor.cardWhite)

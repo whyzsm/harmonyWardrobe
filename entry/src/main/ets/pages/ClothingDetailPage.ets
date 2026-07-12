@@ -1,5 +1,6 @@
 import { ClothingCategory } from '../domain/clothing/ClothingCategory';
 import { ClothingItem, PurchaseInfo } from '../domain/clothing/ClothingModels';
+import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
 
 function labelForCategory(category: ClothingCategory): string {
@@ -155,68 +156,21 @@ export struct ClothingDetailPage {
   }
 
   @Builder
-  BackIcon() {
-    Stack({ alignContent: Alignment.Center }) {
-      SymbolGlyph($r('sys.symbol.arrow_left'))
-        .fontSize(24)
-        .fontColor([YibuqueColor.textPrimary])
-    }
-    .width(40)
-    .height(40)
-  }
-
-  @Builder
-  EditIcon() {
-    Stack({ alignContent: Alignment.Center }) {
-      SymbolGlyph($r('sys.symbol.square_and_pencil'))
-        .fontSize(23)
-        .fontColor([YibuqueColor.textPrimary])
-    }
-    .width(40)
-    .height(40)
-  }
-
-  @Builder
   DetailTopBar() {
-    Row() {
-      Stack({ alignContent: Alignment.Center }) {
-        this.BackIcon()
-      }
-      .width(48)
-      .height(48)
-      .borderRadius(YibuqueRadius.full)
-      .onClick(() => {
+    SecondaryPageHeader({
+      title: '衣物详情',
+      showEditAction: true,
+      backAccessibilityText: '返回衣柜',
+      onBack: () => {
         this.onBack();
-      })
-
-      Text('衣物详情')
-        .layoutWeight(1)
-        .fontSize(24)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(YibuqueColor.textPrimary)
-        .textAlign(TextAlign.Center)
-
-      Stack({ alignContent: Alignment.Center }) {
-        this.EditIcon()
-      }
-      .width(48)
-      .height(48)
-      .borderRadius(YibuqueRadius.full)
-      .onClick(() => {
+      },
+      onEdit: () => {
         const item = this.item;
         if (item !== undefined) {
           this.onEdit(item);
         }
-      })
-    }
-    .width('100%')
-    .height(96)
-    .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.xl })
-    .linearGradient({
-      angle: 135,
-      colors: [['#E6FFF2F8', 0], ['#E6F8D4EF', 1]]
+      }
     })
-    .alignItems(VerticalAlign.Center)
   }
 
   @Builder
@@ -314,7 +268,7 @@ export struct ClothingDetailPage {
       Column()
         .width('100%')
         .height('100%')
-        .backgroundColor('#E6391327')
+        .backgroundColor('#D11D1D1F')
         .onClick(() => {
           this.closePhotoPreview();
         })
@@ -325,7 +279,7 @@ export struct ClothingDetailPage {
         Column({ space: 3 }) {
           Text(this.itemName())
             .fontSize(16)
-            .fontWeight(FontWeight.Bold)
+            .fontWeight(FontWeight.Regular)
             .fontColor(YibuqueColor.textInverse)
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -333,7 +287,7 @@ export struct ClothingDetailPage {
           if (this.photoCount() > 1) {
             Text(`${this.currentPhotoIndex() + 1} / ${this.photoCount()}`)
               .fontSize(12)
-              .fontWeight(FontWeight.Bold)
+              .fontWeight(FontWeight.Regular)
               .fontColor(YibuqueColor.textInverse)
               .opacity(0.86)
           }
@@ -345,7 +299,7 @@ export struct ClothingDetailPage {
           .height(40)
           .padding({ left: 18, right: 18 })
           .fontSize(15)
-          .fontWeight(FontWeight.Bold)
+          .fontWeight(FontWeight.Regular)
           .fontColor(YibuqueColor.textPrimary)
           .textAlign(TextAlign.Center)
           .backgroundColor(YibuqueColor.cardWhite)
@@ -383,7 +337,7 @@ export struct ClothingDetailPage {
         Column({ space: 4 }) {
           Text(this.itemName())
             .fontSize(22)
-            .fontWeight(FontWeight.Bold)
+            .fontWeight(FontWeight.Regular)
             .fontColor(YibuqueColor.textPrimary)
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -399,7 +353,7 @@ export struct ClothingDetailPage {
           .height(34)
           .padding({ left: 14, right: 14 })
           .fontSize(14)
-          .fontWeight(FontWeight.Bold)
+          .fontWeight(FontWeight.Regular)
           .fontColor(YibuqueColor.actionBlack)
           .textAlign(TextAlign.Center)
           .backgroundColor(YibuqueColor.cardSoftGray)
@@ -431,7 +385,7 @@ export struct ClothingDetailPage {
     Column({ space: YibuqueSpacing.md }) {
       Text('购买信息')
         .fontSize(18)
-        .fontWeight(FontWeight.Bold)
+        .fontWeight(FontWeight.Regular)
         .fontColor(YibuqueColor.textPrimary)
 
       if (purchaseInfoHasContent(this.purchaseInfo())) {
@@ -463,7 +417,7 @@ export struct ClothingDetailPage {
     Column({ space: YibuqueSpacing.md }) {
       Text('记录信息')
         .fontSize(18)
-        .fontWeight(FontWeight.Bold)
+        .fontWeight(FontWeight.Regular)
         .fontColor(YibuqueColor.textPrimary)
 
       this.DetailRow('创建', this.createdAtText())
@@ -479,33 +433,45 @@ export struct ClothingDetailPage {
 
   build() {
     if (this.item === undefined) {
-      Column({ space: YibuqueSpacing.lg }) {
-        Text('衣物不存在')
-          .fontSize(24)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(YibuqueColor.textPrimary)
-
-        Text('可能已经被删除，请返回衣橱重新选择。')
-          .fontSize(14)
-          .fontColor(YibuqueColor.textSecondary)
-
-        Text('返回')
-          .height(44)
-          .padding({ left: 24, right: 24 })
-          .fontSize(15)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(YibuqueColor.textInverse)
-          .textAlign(TextAlign.Center)
-          .backgroundColor(YibuqueColor.actionBlack)
-          .borderRadius(YibuqueRadius.full)
-          .onClick(() => {
+      Column() {
+        SecondaryPageHeader({
+          title: '衣物详情',
+          backAccessibilityText: '返回衣柜',
+          onBack: () => {
             this.onBack();
-          })
+          }
+        })
+
+        Column({ space: YibuqueSpacing.lg }) {
+          Text('衣物不存在')
+            .fontSize(24)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textPrimary)
+
+          Text('可能已经被删除，请返回衣橱重新选择。')
+            .fontSize(14)
+            .fontColor(YibuqueColor.textSecondary)
+
+          Text('返回')
+            .height(44)
+            .padding({ left: 24, right: 24 })
+            .fontSize(15)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textInverse)
+            .textAlign(TextAlign.Center)
+            .backgroundColor(YibuqueColor.actionBlack)
+            .borderRadius(YibuqueRadius.full)
+            .onClick(() => {
+              this.onBack();
+            })
+        }
+        .width('100%')
+        .layoutWeight(1)
+        .justifyContent(FlexAlign.Center)
+        .alignItems(HorizontalAlign.Center)
       }
       .width('100%')
       .height('100%')
-      .justifyContent(FlexAlign.Center)
-      .alignItems(HorizontalAlign.Center)
       .backgroundColor(YibuqueColor.bgBlueGray)
     } else {
       Stack() {

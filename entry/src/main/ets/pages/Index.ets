@@ -3,13 +3,11 @@ import { BottomNavigationBar } from '../components/BottomNavigationBar';
 import { QuickCaptureSheet } from '../components/QuickCaptureSheet';
 import { WardrobeRuntime } from '../app/WardrobeRuntime';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
-import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { StoreVisit } from '../domain/store/StoreModels';
 import { PhotoSource } from '../media/PhotoModels';
 import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
 import { CaptureEditPage } from './CaptureEditPage';
-import { ClothingEditPage } from './ClothingEditPage';
-import { OutfitEditPage } from './OutfitEditPage';
+import { OutfitsPage } from './OutfitsPage';
 import { ProfilePage } from './ProfilePage';
 import { StoreVisitEditPage } from './StoreVisitEditPage';
 import { StoreVisitPage } from './StoreVisitPage';
@@ -22,19 +20,17 @@ struct Index {
   @State private errorMessage: string = '';
   @State private selectedMainTab: string = 'wardrobe';
   @State private showQuickActions: boolean = false;
-  @State private showClothingEditor: boolean = false;
-  @State private showOutfitEditor: boolean = false;
-  @State private showStoreVisitEditor: boolean = false;
-  @State private showProfilePage: boolean = false;
   @State private showCaptureEditor: boolean = false;
+  @State private showStoreEditor: boolean = false;
+  @State private showQuickStoreEditor: boolean = false;
+  @State private showClothingEditor: boolean = false;
+  @State private showNestedPage: boolean = false;
   @State private quickActionErrorMessage: string = '';
-  @State private quickActionClothingItems: ClothingItem[] = [];
   @State private capturePhotoUris: string[] = [];
   @State private captureCapturedAt: string = '';
   @State private captureClothingItems: ClothingItem[] = [];
   @State private initialWardrobeTab: string = '衣裤';
   @State private isCapturing: boolean = false;
-  @State private showWardrobeDetailTopBar: boolean = false;
   private runtime?: WardrobeRuntime = undefined;
 
   aboutToAppear(): void {
@@ -60,12 +56,6 @@ struct Index {
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '初始化应用失败';
     }
-  }
-
-  private closeQuickEditors(): void {
-    this.showClothingEditor = false;
-    this.showOutfitEditor = false;
-    this.showStoreVisitEditor = false;
   }
 
   private async copySourcesToLocalUris(sources: PhotoSource[]): Promise<string[]> {
@@ -98,6 +88,26 @@ struct Index {
     this.capturePhotoUris = [];
     this.captureCapturedAt = '';
     this.captureClothingItems = [];
+  }
+
+  private openQuickStoreEditor(): void {
+    this.closeCaptureEditor();
+    this.selectedMainTab = 'store';
+    this.showQuickActions = false;
+    this.quickActionErrorMessage = '';
+    this.showQuickStoreEditor = true;
+  }
+
+  private closeQuickStoreEditor(): void {
+    this.showQuickStoreEditor = false;
+  }
+
+  private openStoreVisitList(): void {
+    this.closeCaptureEditor();
+    this.closeQuickStoreEditor();
+    this.selectedMainTab = 'store';
+    this.showQuickActions = false;
+    this.quickActionErrorMessage = '';
   }
 
   private async startCameraCapture(): Promise<void> {
@@ -140,12 +150,26 @@ struct Index {
     }
   }
 
+  private async pickCapturePhotos(): Promise<string[]> {
+    if (this.runtime === undefined || this.isCapturing) {
+      return [];
+    }
+
+    this.isCapturing = true;
+    try {
+      const sources = await this.runtime.photoPickerAdapter.pickFromGallery({ maxSelectNumber: 6 });
+      return await this.copySourcesToLocalUris(sources);
+    } finally {
+      this.isCapturing = false;
+    }
+  }
+
   build() {
     if (!this.runtimeReady || this.runtime === undefined) {
       Column({ space: 12 }) {
         Text('衣不缺')
           .fontSize(28)
-          .fontWeight(FontWeight.Bold)
+          .fontWeight(FontWeight.Regular)
           .fontColor(YibuqueColor.textPrimary)
 
         if (this.errorMessage.length > 0) {
@@ -172,86 +196,53 @@ struct Index {
       .height('100%')
       .justifyContent(FlexAlign.Center)
       .alignItems(HorizontalAlign.Center)
-      .linearGradient({
-        angle: 135,
-        colors: [[YibuqueColor.bgDefault, 0], [YibuqueColor.bgHeaderBlue, 1]]
-      })
-    } else if (this.showClothingEditor) {
-      ClothingEditPage({
-        clothingRepository: this.runtime.clothingRepository,
-        photoPickerAdapter: this.runtime.photoPickerAdapter,
-        photoStorage: this.runtime.photoStorage,
-        onSave: (_item: ClothingItem) => {
-          this.closeQuickEditors();
-          this.selectedMainTab = 'wardrobe';
-        },
-        onCancel: () => {
-          this.closeQuickEditors();
-        }
-      })
-    } else if (this.showOutfitEditor) {
-      OutfitEditPage({
-        clothingItems: this.quickActionClothingItems,
-        outfitRepository: this.runtime.outfitRepository,
-        photoPickerAdapter: this.runtime.photoPickerAdapter,
-        photoStorage: this.runtime.photoStorage,
-        onSave: (_outfit: OutfitTemplate) => {
-          this.closeQuickEditors();
-          this.selectedMainTab = 'wardrobe';
-        },
-        onCancel: () => {
-          this.closeQuickEditors();
-        }
-      })
-    } else if (this.showStoreVisitEditor) {
-      StoreVisitEditPage({
-        storeRepository: this.runtime.storeRepository,
-        photoPickerAdapter: this.runtime.photoPickerAdapter,
-        photoStorage: this.runtime.photoStorage,
-        onSave: (_visit: StoreVisit) => {
-          this.closeQuickEditors();
-          this.selectedMainTab = 'store';
-        },
-        onCancel: () => {
-          this.closeQuickEditors();
-        }
-      })
-    } else if (this.showCaptureEditor) {
-      CaptureEditPage({
-        initialPhotoUris: this.capturePhotoUris,
-        capturedAt: this.captureCapturedAt,
-        clothingItems: this.captureClothingItems,
-        clothingRepository: this.runtime.clothingRepository,
-        outfitRepository: this.runtime.outfitRepository,
-        storeRepository: this.runtime.storeRepository,
-        wearLogRepository: this.runtime.wearLogRepository,
-        onSave: (target: string) => {
-          this.closeCaptureEditor();
-          if (target === '店铺') {
-            this.selectedMainTab = 'store';
-          } else if (target === '美搭') {
-            this.initialWardrobeTab = '美搭';
-            this.selectedMainTab = 'wardrobe';
-          } else {
-            this.initialWardrobeTab = '衣裤';
-            this.selectedMainTab = 'wardrobe';
-          }
-        },
-        onCancel: () => {
-          this.closeCaptureEditor();
-        }
-      })
-    } else if (this.showProfilePage) {
-      ProfilePage({
-        profileRepository: this.runtime.profileRepository,
-        onClose: () => {
-          this.showProfilePage = false;
-        }
-      })
+      .backgroundColor(YibuqueColor.bgDefault)
     } else {
       Stack({ alignContent: Alignment.Bottom }) {
         Column() {
-          if (this.selectedMainTab === 'wardrobe') {
+          if (this.showQuickStoreEditor) {
+            StoreVisitEditPage({
+              storeRepository: this.runtime.storeRepository,
+              photoPickerAdapter: this.runtime.photoPickerAdapter,
+              photoStorage: this.runtime.photoStorage,
+              onSave: (_visit: StoreVisit) => {
+                this.closeQuickStoreEditor();
+                this.selectedMainTab = 'store';
+              },
+              onCancel: () => {
+                this.closeQuickStoreEditor();
+              }
+            })
+              .layoutWeight(1)
+          } else if (this.showCaptureEditor) {
+            CaptureEditPage({
+              initialPhotoUris: this.capturePhotoUris,
+              capturedAt: this.captureCapturedAt,
+              clothingItems: this.captureClothingItems,
+              clothingRepository: this.runtime.clothingRepository,
+              outfitRepository: this.runtime.outfitRepository,
+              storeRepository: this.runtime.storeRepository,
+              wearLogRepository: this.runtime.wearLogRepository,
+              onChoosePhotos: async (): Promise<string[]> => {
+                return await this.pickCapturePhotos();
+              },
+              onCancel: () => {
+                this.closeCaptureEditor();
+              },
+              onSave: (target: string) => {
+                this.closeCaptureEditor();
+                if (target === '店铺') {
+                  this.selectedMainTab = 'store';
+                } else if (target === '美搭') {
+                  this.selectedMainTab = 'outfit';
+                } else {
+                  this.initialWardrobeTab = '衣裤';
+                  this.selectedMainTab = 'wardrobe';
+                }
+              }
+            })
+              .layoutWeight(1)
+          } else if (this.selectedMainTab === 'wardrobe') {
             WardrobePage({
               clothingRepository: this.runtime.clothingRepository,
               outfitRepository: this.runtime.outfitRepository,
@@ -260,16 +251,57 @@ struct Index {
               photoPickerAdapter: this.runtime.photoPickerAdapter,
               photoStorage: this.runtime.photoStorage,
               initialWardrobeTab: this.initialWardrobeTab,
-              onDetailModeChange: (showDetailTopBar: boolean) => {
-                this.showWardrobeDetailTopBar = showDetailTopBar;
+              onClothingEditorVisibilityChange: (visible: boolean) => {
+                this.showClothingEditor = visible;
+              },
+              onNestedPageVisibilityChange: (visible: boolean) => {
+                this.showNestedPage = visible;
+              }
+            })
+              .layoutWeight(1)
+          } else if (this.selectedMainTab === 'store') {
+            StoreVisitPage({
+              storeRepository: this.runtime.storeRepository,
+              photoPickerAdapter: this.runtime.photoPickerAdapter,
+              photoStorage: this.runtime.photoStorage,
+              onEditorVisibilityChange: (visible: boolean) => {
+                this.showStoreEditor = visible;
+              }
+            })
+              .layoutWeight(1)
+          } else if (this.selectedMainTab === 'outfit') {
+            OutfitsPage({
+              outfitRepository: this.runtime.outfitRepository,
+              clothingRepository: this.runtime.clothingRepository,
+              wearLogRepository: this.runtime.wearLogRepository,
+              photoPickerAdapter: this.runtime.photoPickerAdapter,
+              photoStorage: this.runtime.photoStorage,
+              onNestedPageVisibilityChange: (visible: boolean) => {
+                this.showNestedPage = visible;
               }
             })
               .layoutWeight(1)
           } else {
-            StoreVisitPage({
+            ProfilePage({
+              profileRepository: this.runtime.profileRepository,
+              clothingRepository: this.runtime.clothingRepository,
               storeRepository: this.runtime.storeRepository,
-              photoPickerAdapter: this.runtime.photoPickerAdapter,
-              photoStorage: this.runtime.photoStorage
+              outfitRepository: this.runtime.outfitRepository,
+              onOpenStoreEditor: () => {
+                this.openQuickStoreEditor();
+              },
+              onOpenCapture: () => {
+                this.showQuickActions = true;
+                this.quickActionErrorMessage = '';
+              },
+              onOpenOutfits: () => {
+                this.selectedMainTab = 'outfit';
+                this.showQuickActions = false;
+                this.quickActionErrorMessage = '';
+              },
+              onNestedPageVisibilityChange: (visible: boolean) => {
+                this.showNestedPage = visible;
+              }
             })
               .layoutWeight(1)
           }
@@ -287,38 +319,37 @@ struct Index {
         .height('100%')
         .backgroundColor('#FFFFFF')
 
-        BottomNavigationBar({
-          selected: this.selectedMainTab === 'store' ? 'store' : this.initialWardrobeTab === '美搭' ? 'outfit' : 'wardrobe',
-          onSelectWardrobe: () => {
-            this.selectedMainTab = 'wardrobe';
-            this.initialWardrobeTab = '衣裤';
-            this.showWardrobeDetailTopBar = false;
-            this.showQuickActions = false;
-            this.quickActionErrorMessage = '';
-          },
-          onOpenCapture: () => {
-            this.showQuickActions = true;
-            this.quickActionErrorMessage = '';
-          },
-          onSelectStore: () => {
-            this.selectedMainTab = 'store';
-            this.showWardrobeDetailTopBar = false;
-            this.showQuickActions = false;
-            this.quickActionErrorMessage = '';
-          },
-          onSelectOutfit: () => {
-            this.selectedMainTab = 'wardrobe';
-            this.initialWardrobeTab = '美搭';
-            this.showWardrobeDetailTopBar = false;
-            this.showQuickActions = false;
-            this.quickActionErrorMessage = '';
-          },
-          onOpenProfile: () => {
-            this.showProfilePage = true;
-            this.showQuickActions = false;
-            this.quickActionErrorMessage = '';
-          }
-        })
+        if (!this.showCaptureEditor && !this.showStoreEditor && !this.showQuickStoreEditor && !this.showClothingEditor && !this.showNestedPage) {
+          BottomNavigationBar({
+            selected: this.showCaptureEditor ? 'capture' : this.selectedMainTab,
+            onSelectWardrobe: () => {
+              this.closeCaptureEditor();
+              this.selectedMainTab = 'wardrobe';
+              this.initialWardrobeTab = '衣裤';
+              this.showQuickActions = false;
+              this.quickActionErrorMessage = '';
+            },
+            onOpenCapture: () => {
+              this.showQuickActions = true;
+              this.quickActionErrorMessage = '';
+            },
+            onSelectStore: () => {
+              this.openStoreVisitList();
+            },
+            onSelectOutfit: () => {
+              this.closeCaptureEditor();
+              this.selectedMainTab = 'outfit';
+              this.showQuickActions = false;
+              this.quickActionErrorMessage = '';
+            },
+            onOpenProfile: () => {
+              this.closeCaptureEditor();
+              this.selectedMainTab = 'profile';
+              this.showQuickActions = false;
+              this.quickActionErrorMessage = '';
+            }
+          })
+        }
 
         if (this.showQuickActions) {
           QuickCaptureSheet({
@@ -327,6 +358,9 @@ struct Index {
             },
             onPickPhoto: () => {
               this.startGalleryCapture();
+            },
+            onOpenStoreVisit: () => {
+              this.openQuickStoreEditor();
             },
             onCancel: () => {
               this.showQuickActions = false;

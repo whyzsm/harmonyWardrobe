@@ -1,15 +1,26 @@
-import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
+
+const SHEET_BACKGROUND: string = '#FFFFFF';
+const SHEET_TEXT: string = '#1D1D1F';
+const SHEET_MUTED: string = '#6E6E73';
+const SHEET_BORDER: string = '#D2D2D7';
+const SHEET_SURFACE: string = '#FBFBFD';
+const SHEET_PRIMARY: string = '#1C1C1E';
+const SHEET_PRIMARY_ICON: string = '#3A3A3C';
+const SHEET_ACCENT: string = '#0071E3';
+const SHEET_ACCENT_SOFT: string = '#EAF3FE';
 
 @Component
 export struct QuickCaptureSheet {
   onCapturePhoto: () => void = () => {};
   onPickPhoto: () => void = () => {};
+  onOpenStoreVisit: () => void = () => {};
   onCancel: () => void = () => {};
   @State private sheetTranslateY: number = 300;
   @State private backgroundOpacity: number = 0;
   @State private pressedAction: string = '';
 
-  aboutToAppear() {
+  aboutToAppear(): void {
     setTimeout(() => {
       this.backgroundOpacity = 1;
       this.sheetTranslateY = 0;
@@ -24,87 +35,112 @@ export struct QuickCaptureSheet {
           this.onCancel();
         })
 
-      Column({ space: YibuqueSpacing.md }) {
+      Column({ space: 14 }) {
         Row() {
-          Text('快捷')
+          Text('快捷录入')
             .fontSize(22)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textPrimary)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(SHEET_TEXT)
             .layoutWeight(1)
 
           Text('取消')
             .height(44)
-            .fontSize(15)
-            .fontColor(YibuqueColor.textSecondary)
+            .fontSize(16)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(SHEET_ACCENT)
+            .textAlign(TextAlign.Center)
             .onClick(() => {
               this.onCancel();
             })
         }
         .width('100%')
+        .height(44)
         .alignItems(VerticalAlign.Center)
 
-        this.ActionRow(
-          '拍照',
-          '打开相机，先留下这张照片',
-          YibuqueColor.actionBlack,
-          YibuqueColor.textInverse,
-          '#CCFFFFFF',
-          () => {
-            this.onCapturePhoto();
-          }
-        )
+        this.ActionCard('拍一张', '打开相机，录入新衣物', 'camera', () => {
+          this.onCapturePhoto();
+        })
 
-        this.ActionRow(
-          '从相册选择',
-          '选好照片后再补小记和类型',
-          YibuqueColor.cardMint,
-          YibuqueColor.textPrimary,
-          YibuqueColor.textSecondary,
-          () => {
-            this.onPickPhoto();
-          }
-        )
+        this.ActionCard('从相册选择', '选择已有照片再补充类型', 'photo', () => {
+          this.onPickPhoto();
+        })
+
+        this.ActionCard('新增逛店', '记录店铺、试穿和回看理由', 'store', () => {
+          this.onOpenStoreVisit();
+        })
       }
       .width('100%')
-      .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.xl, bottom: 36 })
-      .linearGradient({
-        angle: 135,
-        colors: [[YibuqueColor.cardWhite, 0], [YibuqueColor.bgDefault, 1]]
-      })
-      .borderRadius({ topLeft: YibuqueRadius.sheet, topRight: YibuqueRadius.sheet })
-      .shadow(YibuqueShadow.floating)
+      .padding({ left: 20, right: 20, top: 22, bottom: 24 })
+      .backgroundColor(SHEET_BACKGROUND)
+      .borderRadius({ topLeft: 28, topRight: 28, bottomLeft: 28, bottomRight: 28 })
+      .shadow({ radius: 24, color: '#26000000', offsetX: 0, offsetY: 8 })
+      .margin({ bottom: 16 })
       .translate({ y: this.sheetTranslateY })
       .animation({
-        duration: 350,
+        duration: 300,
         curve: Curve.FastOutSlowIn,
         playMode: PlayMode.Normal
       })
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#66391327')
+    .backgroundColor('#521D1D1F')
     .opacity(this.backgroundOpacity)
     .animation({
-      duration: 300,
+      duration: 220,
       curve: Curve.Linear,
       playMode: PlayMode.Normal
     })
   }
 
   @Builder
-  ActionRow(title: string, description: string, backgroundColor: string, titleColor: string, descriptionColor: string, action: () => void) {
-    Row() {
-      Column({ space: 4 }) {
+  ActionCard(title: string, description: string, variant: string, action: () => void) {
+    if (variant === 'camera') {
+      this.ActionCardContent(title, description, variant, true, action)
+    } else {
+      this.ActionCardContent(title, description, variant, false, action)
+    }
+  }
+
+  @Builder
+  ActionIcon(variant: string) {
+    if (variant === 'camera') {
+      SymbolGlyph($r('sys.symbol.camera_fill'))
+        .fontSize(20)
+        .fontColor([YibuqueColor.textInverse])
+    } else if (variant === 'store') {
+      SymbolGlyph($r('sys.symbol.store_fill'))
+        .fontSize(20)
+        .fontColor([SHEET_ACCENT])
+    } else {
+      SymbolGlyph($r('sys.symbol.picture'))
+        .fontSize(20)
+        .fontColor([SHEET_ACCENT])
+    }
+  }
+
+  @Builder
+  ActionCardContent(title: string, description: string, variant: string, primary: boolean, action: () => void) {
+    Row({ space: 12 }) {
+      Stack({ alignContent: Alignment.Center }) {
+        this.ActionIcon(variant)
+      }
+      .width(38)
+      .height(38)
+      .backgroundColor(primary ? SHEET_PRIMARY_ICON : SHEET_ACCENT_SOFT)
+      .borderRadius(YibuqueRadius.full)
+
+      Column({ space: 2 }) {
         Text(title)
-          .fontSize(17)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(titleColor)
           .width('100%')
+          .fontSize(17)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(primary ? YibuqueColor.textInverse : SHEET_TEXT)
 
         Text(description)
-          .fontSize(13)
-          .fontColor(descriptionColor)
           .width('100%')
+          .fontSize(13)
+          .fontColor(primary ? '#B8B8BD' : SHEET_MUTED)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
       }
@@ -112,15 +148,15 @@ export struct QuickCaptureSheet {
       .alignItems(HorizontalAlign.Start)
     }
     .width('100%')
-    .height(64)
-    .padding({ left: YibuqueSpacing.lg, right: YibuqueSpacing.lg })
+    .height(78)
+    .padding({ left: 15, right: 15 })
     .alignItems(VerticalAlign.Center)
-    .backgroundColor(backgroundColor)
-    .borderRadius(YibuqueRadius.xxl)
-    .shadow(title === '拍照' ? YibuqueShadow.soft : YibuqueShadow.card)
+    .backgroundColor(primary ? SHEET_PRIMARY : SHEET_SURFACE)
+    .borderRadius(18)
+    .border({ width: primary ? 0 : 1, color: SHEET_BORDER })
     .scale({ x: this.pressedAction === title ? 0.98 : 1.0, y: this.pressedAction === title ? 0.98 : 1.0 })
     .animation({
-      duration: 160,
+      duration: 150,
       curve: Curve.EaseInOut,
       playMode: PlayMode.Normal
     })

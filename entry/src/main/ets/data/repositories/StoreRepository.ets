@@ -8,7 +8,7 @@ import { SearchRepository } from './SearchRepository';
 import { SearchIndexMode } from '../searchIndex/SearchCapability';
 import { buildStoreSearchDocument, buildStoreVisitSearchDocument } from '../../domain/search/SearchDocumentBuilder';
 import { SearchEntityType } from '../../domain/search/SearchModels';
-import { Store, StoreVisit } from '../../domain/store/StoreModels';
+import { Store, StoreVisit, StoreVisitStatus } from '../../domain/store/StoreModels';
 import { toIsoDate, toIsoDateTime } from '../../utils/date';
 import { createId } from '../../utils/id';
 import { normalizeSearchText } from '../../utils/text';
@@ -84,11 +84,13 @@ const INSERT_STORE_VISIT_SQL = `
     store_name_snapshot,
     district_or_address,
     visit_date,
+    status,
+    focus_tags,
     note,
     created_at,
     updated_at
   )
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
 
 const UPDATE_STORE_VISIT_SQL = `
@@ -98,6 +100,8 @@ const UPDATE_STORE_VISIT_SQL = `
     store_name_snapshot = ?,
     district_or_address = ?,
     visit_date = ?,
+    status = ?,
+    focus_tags = ?,
     note = ?,
     updated_at = ?
   WHERE id = ?
@@ -123,6 +127,8 @@ const SELECT_STORE_VISIT_BY_ID_SQL = `
     store_name_snapshot,
     COALESCE(district_or_address, '') AS district_or_address,
     visit_date,
+    status,
+    COALESCE(focus_tags, '') AS focus_tags,
     COALESCE(note, '') AS note,
     created_at,
     updated_at
@@ -137,6 +143,8 @@ const BASE_LIST_STORE_VISITS_SQL = `
     store_name_snapshot,
     COALESCE(district_or_address, '') AS district_or_address,
     visit_date,
+    status,
+    COALESCE(focus_tags, '') AS focus_tags,
     COALESCE(note, '') AS note,
     created_at,
     updated_at
@@ -165,6 +173,8 @@ interface StoreVisitRow {
   storeNameSnapshot: string;
   districtOrAddress?: string;
   visitDate: string;
+  status: StoreVisitStatus;
+  focusTags: string[];
   note?: string;
   createdAt: string;
   updatedAt: string;
@@ -191,6 +201,8 @@ export interface CreateStoreVisitInput {
   districtOrAddress?: string;
   visitDate?: string;
   photoUris?: string[];
+  status?: StoreVisitStatus;
+  focusTags?: string[];
   note?: string;
 }
 
@@ -200,6 +212,8 @@ export interface CreateStoreVisitWithOptionalStoreInput {
   districtOrAddress?: string;
   visitDate?: string;
   photoUris?: string[];
+  status?: StoreVisitStatus;
+  focusTags?: string[];
   note?: string;
 }
 
@@ -210,6 +224,8 @@ export interface UpdateStoreVisitInput {
   districtOrAddress?: string;
   visitDate?: string;
   photoUris?: string[];
+  status?: StoreVisitStatus;
+  focusTags?: string[];
   note?: string;
 }
 
@@ -245,6 +261,33 @@ function normalizePhotoUris(photoUris?: string[]): string[] {
   }
 
   return normalized;
+}
+
+function normalizeStoreVisitStatus(status?: StoreVisitStatus): StoreVisitStatus {
+  return status ?? StoreVisitStatus.Visited;
+}
+
+function normalizeFocusTags(tags?: string[]): string[] {
+  if (tags === undefined) {
+    return [];
+  }
+
+  const normalized: string[] = [];
+  for (const tag of tags) {
+    const trimmed = tag.trim();
+    if (trimmed.length > 0 && !normalized.includes(trimmed)) {
+      normalized.push(trimmed);
+    }
+  }
+  return normalized;
+}
+
+function encodeFocusTags(tags?: string[]): string {
+  return normalizeFocusTags(tags).join('|');
+}
+
+function decodeFocusTags(value: string): string[] {
+  return normalizeFocusTags(value.split('|'));
 }
 
 function normalizeVisitDate(value?: string): string {
@@ -340,6 +383,8 @@ export class StoreRepository {
         districtOrAddress: input.districtOrAddress,
         visitDate: input.visitDate,
         photoUris: input.photoUris,
+        status: input.status,
+        focusTags: input.focusTags,
         note: input.note
       });
     });
@@ -359,6 +404,8 @@ export class StoreRepository {
         districtOrAddress: toSqlNullableText(input.districtOrAddress) ?? undefined,
         visitDate: normalizeVisitDate(input.visitDate),
         photoUris: normalizePhotoUris(input.photoUris),
+        status: normalizeStoreVisitStatus(input.status ?? existing.status),
+        focusTags: normalizeFocusTags(input.focusTags ?? existing.focusTags),
         note: toSqlNullableText(input.note) ?? undefined,
         createdAt: existing.createdAt,
         updatedAt: toIsoDateTime(new Date())
@@ -369,6 +416,8 @@ export class StoreRepository {
         visit.storeNameSnapshot,
         visit.districtOrAddress ?? null,
         visit.visitDate,
+        visit.status ?? StoreVisitStatus.Visited,
+        encodeFocusTags(visit.focusTags),
         visit.note ?? null,
         visit.updatedAt,
         visit.id
@@ -427,6 +476,8 @@ export class StoreRepository {
       districtOrAddress: toSqlNullableText(input.districtOrAddress) ?? undefined,
       visitDate: normalizeVisitDate(input.visitDate),
       photoUris: normalizePhotoUris(input.photoUris),
+      status: normalizeStoreVisitStatus(input.status),
+      focusTags: normalizeFocusTags(input.focusTags),
       note: toSqlNullableText(input.note) ?? undefined,
       createdAt: now,
       updatedAt: now
@@ -485,6 +536,8 @@ export class StoreRepository {
       visit.storeNameSnapshot,
       visit.districtOrAddress ?? null,
       visit.visitDate,
+      visit.status ?? StoreVisitStatus.Visited,
+      encodeFocusTags(visit.focusTags),
       visit.note ?? null,
       visit.createdAt,
       visit.updatedAt
@@ -531,6 +584,8 @@ export class StoreRepository {
         districtOrAddress: row.districtOrAddress,
         visitDate: row.visitDate,
         photoUris: await this.readPhotoUris(SELECT_STORE_VISIT_PHOTOS_SQL, row.id),
+        status: row.status,
+        focusTags: row.focusTags,
         note: row.note,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt
@@ -596,6 +651,8 @@ export class StoreRepository {
           storeNameSnapshot: resultSet.getString('store_name_snapshot'),
           districtOrAddress: optionalString(resultSet.getString('district_or_address')),
           visitDate: resultSet.getString('visit_date'),
+          status: normalizeStoreVisitStatus(resultSet.getString('status') as StoreVisitStatus),
+          focusTags: decodeFocusTags(resultSet.getString('focus_tags')),
           note: optionalString(resultSet.getString('note')),
           createdAt: resultSet.getString('created_at'),
           updatedAt: resultSet.getString('updated_at')

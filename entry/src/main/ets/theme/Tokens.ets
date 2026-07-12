@@ -115,22 +115,22 @@ export interface AppThemeTokens {
 
 export const AppTheme: AppThemeTokens = {
   color: {
-    primary: '#B11B68',
-    primaryStrong: '#8E1454',
-    primaryPressed: '#7A1048',
-    primarySoft: '#FCE3EF',
+    primary: '#0071E3',
+    primaryStrong: '#005EB8',
+    primaryPressed: '#004E9A',
+    primarySoft: '#EAF3FE',
     surface: '#FFFFFF',
-    surfaceRaised: '#FFF7FB',
-    surfaceMuted: '#FDE7F2',
-    border: '#F1C1D8',
-    text: '#381528',
-    textMuted: '#8B5D73',
-    textDisabled: '#C9A8B8',
-    success: '#C53B88',
-    warning: '#FFB020',
-    danger: '#D94870',
-    accent: '#E85D9E',
-    disabled: '#C9A8B8'
+    surfaceRaised: '#FBFBFD',
+    surfaceMuted: '#F5F5F7',
+    border: '#D2D2D7',
+    text: '#1D1D1F',
+    textMuted: '#6E6E73',
+    textDisabled: '#B8B8BD',
+    success: '#16A34A',
+    warning: '#EAB308',
+    danger: '#DC2626',
+    accent: '#0071E3',
+    disabled: '#B8B8BD'
   },
   radius: {
     sm: 6,
@@ -147,27 +147,27 @@ export const AppTheme: AppThemeTokens = {
 };
 
 export const YibuqueColor: YibuqueColorTokens = {
-  bgDefault: '#FFF2F8',
-  bgGray: '#F7D8E6',
-  bgBlueGray: '#FBE1F0',
-  bgHeaderBlue: '#F8D4EF',
-  cardWhite: '#FFFFFE',
-  cardBlue: '#F2DDFB',
-  cardMint: '#FFE3EE',
-  cardSoftGray: '#FFF6FA',
-  textPrimary: '#391327',
-  textSecondary: '#8A536B',
-  textTertiary: '#B9879E',
-  textDisabled: '#D0AFC0',
+  bgDefault: '#FFFFFF',
+  bgGray: '#F5F5F7',
+  bgBlueGray: '#FFFFFF',
+  bgHeaderBlue: '#F5F5F7',
+  cardWhite: '#FFFFFF',
+  cardBlue: '#EAF3FE',
+  cardMint: '#F5F5F7',
+  cardSoftGray: '#FBFBFD',
+  textPrimary: '#1D1D1F',
+  textSecondary: '#6E6E73',
+  textTertiary: '#86868B',
+  textDisabled: '#B8B8BD',
   textInverse: '#FFFFFF',
-  actionBlack: '#B11B68',
-  brandCyan: '#D83E8E',
-  success: '#C53B88',
-  successBg: '#FFEAF4',
-  borderLight: '#F2C7DA',
-  borderMedium: '#E7A3C4',
-  borderStrong: '#8E1454',
-  overlayDark: '#7A391327'
+  actionBlack: '#1D1D1F',
+  brandCyan: '#0071E3',
+  success: '#16A34A',
+  successBg: '#ECFDF3',
+  borderLight: '#E8E8ED',
+  borderMedium: '#D2D2D7',
+  borderStrong: '#0071E3',
+  overlayDark: '#7A1D1D1F'
 };
 
 export const YibuqueFontSize: YibuqueFontSizeTokens = {
@@ -205,19 +205,19 @@ export const YibuqueSpacing: YibuqueSpacingTokens = {
 };
 
 export const YibuqueRadius: YibuqueRadiusTokens = {
-  xs: 8,
-  sm: 12,
-  md: 16,
-  lg: 20,
-  xl: 24,
-  xxl: 28,
-  xxxl: 32,
-  sheet: 36,
+  xs: 5,
+  sm: 8,
+  md: 12,
+  lg: 14,
+  xl: 16,
+  xxl: 18,
+  xxxl: 20,
+  sheet: 28,
   full: 999
 };
 
 export const YibuqueShadow: YibuqueShadowTokens = {
-  card: { radius: 28, color: '#1FD83E8E', offsetX: 0, offsetY: 10 },
-  soft: { radius: 22, color: '#18B11B68', offsetX: 0, offsetY: 8 },
-  floating: { radius: 32, color: '#2AB11B68', offsetX: 0, offsetY: 14 }
+  card: { radius: 20, color: '#14000000', offsetX: 0, offsetY: 6 },
+  soft: { radius: 16, color: '#18000000', offsetX: 0, offsetY: 5 },
+  floating: { radius: 24, color: '#26000000', offsetX: 0, offsetY: 8 }
 };

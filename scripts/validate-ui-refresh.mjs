@@ -20,18 +20,18 @@ function forbidIncludes(source, value, label) {
   }
 }
 
-requireIncludes(tokenSource, "primary: '#B11B68'", 'primary token');
-requireIncludes(tokenSource, "primaryPressed: '#7A1048'", 'primary pressed token');
-requireIncludes(tokenSource, "primarySoft: '#FCE3EF'", 'primary soft token');
-requireIncludes(tokenSource, "surfaceMuted: '#FDE7F2'", 'app background token');
-requireIncludes(tokenSource, "success: '#C53B88'", 'success token');
-requireIncludes(tokenSource, "warning: '#FFB020'", 'warning token');
-requireIncludes(tokenSource, "danger: '#D94870'", 'danger token');
-requireIncludes(tokenSource, "accent: '#E85D9E'", 'fashion accent token');
-forbidIncludes(tokenSource, "'#0F766E'", 'old teal primary');
-forbidIncludes(tokenSource, "'#115E59'", 'old teal primaryStrong');
-forbidIncludes(tokenSource, "'#4894FE'", 'old blue primary');
-forbidIncludes(tokenSource, "'#246BFE'", 'old blue primaryStrong');
+requireIncludes(tokenSource, "primary: '#0071E3'", 'primary token');
+requireIncludes(tokenSource, "primaryPressed: '#004E9A'", 'primary pressed token');
+requireIncludes(tokenSource, "primarySoft: '#EAF3FE'", 'primary soft token');
+requireIncludes(tokenSource, "surfaceMuted: '#F5F5F7'", 'app background token');
+requireIncludes(tokenSource, "success: '#16A34A'", 'success token');
+requireIncludes(tokenSource, "warning: '#EAB308'", 'warning token');
+requireIncludes(tokenSource, "danger: '#DC2626'", 'danger token');
+requireIncludes(tokenSource, "accent: '#0071E3'", 'fashion accent token');
+
+for (const oldRoseColor of ['#B11B68', '#8E1454', '#7A1048', '#FCE3EF', '#FFF2F8', '#FBE1F0', '#F8D4EF', '#D83E8E']) {
+  forbidIncludes(tokenSource, oldRoseColor, 'legacy rose token');
+}
 
 const componentFiles = [
   'entry/src/main/ets/components/ClothingCard.ets',
@@ -82,14 +82,32 @@ for (const file of yibuqueComponentFiles) {
 
 const mainPageFiles = [
   'entry/src/main/ets/pages/Index.ets',
-  'entry/src/main/ets/pages/WardrobePage.ets',
-  'entry/src/main/ets/pages/StoreVisitPage.ets',
-  'entry/src/main/ets/pages/ProfilePage.ets'
+  'entry/src/main/ets/pages/WardrobePage.ets'
 ];
 
 for (const file of mainPageFiles) {
   const source = fs.readFileSync(file, 'utf8');
   requireIncludes(source, 'YibuqueColor', `${file} yibuque colors`);
+  forbidIncludes(source, "'#0F172A'", `${file} old black primary action`);
+  forbidIncludes(source, "'#F8FAFC'", `${file} old background`);
+  forbidIncludes(source, "'#B91C1C'", `${file} old danger`);
+}
+
+const designPageFiles = [
+  ['entry/src/main/ets/pages/ProfilePage.ets', 'PROFILE_ACCENT'],
+  ['entry/src/main/ets/pages/OutfitsPage.ets', 'ACCENT'],
+  ['entry/src/main/ets/pages/CaptureEditPage.ets', 'CAPTURE_ACCENT'],
+  ['entry/src/main/ets/pages/StoreVisitPage.ets', 'ACCENT']
+];
+
+for (const [file, accentToken] of designPageFiles) {
+  const source = fs.readFileSync(file, 'utf8');
+  if (file.endsWith('/StoreVisitPage.ets')) {
+    requireIncludes(source, 'YibuqueColor.brandCyan', `${file} design accent`);
+  } else {
+    requireIncludes(source, "'#0071E3'", `${file} design accent`);
+  }
+  requireIncludes(source, accentToken, `${file} design token usage`);
   forbidIncludes(source, "'#0F172A'", `${file} old black primary action`);
   forbidIncludes(source, "'#F8FAFC'", `${file} old background`);
   forbidIncludes(source, "'#B91C1C'", `${file} old danger`);

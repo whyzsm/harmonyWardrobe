@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 
 const detailPath = 'entry/src/main/ets/pages/ClothingDetailPage.ets';
+const headerPath = 'entry/src/main/ets/components/SecondaryPageHeader.ets';
 const wardrobePath = 'entry/src/main/ets/pages/WardrobePage.ets';
 const indexPath = 'entry/src/main/ets/pages/Index.ets';
 
@@ -9,6 +10,7 @@ if (!fs.existsSync(detailPath)) {
 }
 
 const detail = fs.readFileSync(detailPath, 'utf8');
+const header = fs.readFileSync(headerPath, 'utf8');
 const wardrobe = fs.readFileSync(wardrobePath, 'utf8');
 const index = fs.readFileSync(indexPath, 'utf8');
 
@@ -18,17 +20,13 @@ for (const needle of [
   'ClothingItem',
   'onBack',
   'onEdit',
-  "Text('衣物详情')",
+  "title: '衣物详情'",
   'visibleItemName',
   'autoNamePattern',
   'autoNamePattern.test(item.name) ? categoryLabel : item.name',
   'DetailTopBar',
-  'BackIcon',
-  'EditIcon',
-  "SymbolGlyph($r('sys.symbol.arrow_left'))",
-  "SymbolGlyph($r('sys.symbol.square_and_pencil'))",
-  "'#E6FFF2F8'",
-  "'#E6F8D4EF'",
+  'SecondaryPageHeader',
+  'showEditAction: true',
   'YibuqueColor.actionBlack',
   'YibuqueShadow.card',
   '购买信息',
@@ -115,17 +113,17 @@ for (const needle of [
 }
 
 for (const needle of [
-  'showWardrobeDetailTopBar',
-  'onDetailModeChange: (showDetailTopBar: boolean) => {',
-  'this.showWardrobeDetailTopBar = showDetailTopBar'
+  'export struct SecondaryPageHeader',
+  "SymbolGlyph($r('sys.symbol.arrow_left'))",
+  "SymbolGlyph($r('sys.symbol.square_and_pencil'))",
+  "backgroundColor('#F2FFFFFF')",
+  'YibuqueColor.borderLight',
+  '.fontSize(20)',
+  '.fontWeight(FontWeight.Regular)'
 ]) {
-  if (!index.includes(needle)) {
-    throw new Error(`Index missing detail top bar flow ${needle}`);
+  if (!header.includes(needle)) {
+    throw new Error(`SecondaryPageHeader missing ${needle}`);
   }
-}
-
-if (!/DetailTopBar\(\)[\s\S]*?linearGradient\([\s\S]*?'#E6FFF2F8'[\s\S]*?'#E6F8D4EF'/.test(detail)) {
-  throw new Error('ClothingDetailPage detail top bar must keep the home-style translucent rose background');
 }
 
 const detailTopBarMatch = detail.match(/@Builder\s+DetailTopBar\(\)\s*\{[\s\S]*?\n  \}\n\n  @Builder\s+DetailRow/);
@@ -140,24 +138,19 @@ for (const forbidden of ["TopAction('返回'", "TopAction('编辑'", "Text('返�
   }
 }
 
-const topIconMatch = detail.match(/@Builder\s+BackIcon\(\)[\s\S]*?@Builder\s+DetailTopBar/);
-if (!topIconMatch) {
-  throw new Error('ClothingDetailPage top icon builders not found');
-}
-
-const topIcons = topIconMatch[0];
+const topIcons = header;
 for (const needle of [
   "SymbolGlyph($r('sys.symbol.arrow_left'))",
   "SymbolGlyph($r('sys.symbol.square_and_pencil'))"
 ]) {
   if (!topIcons.includes(needle)) {
-    throw new Error(`ClothingDetailPage top icon builders should use system icon ${needle}`);
+    throw new Error(`SecondaryPageHeader should use system icon ${needle}`);
   }
 }
 
 for (const forbidden of ['Line()', 'Circle({']) {
   if (topIcons.includes(forbidden)) {
-    throw new Error(`ClothingDetailPage top icon builders should use system icons, not custom shape ${forbidden}`);
+    throw new Error(`SecondaryPageHeader should use system icons, not custom shape ${forbidden}`);
   }
 }
 

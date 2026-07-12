@@ -1,16 +1,15 @@
 import { ClothingPicker } from '../components/ClothingPicker';
-import { PhotoGrid } from '../components/PhotoGrid';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { StoreRepository } from '../data/repositories/StoreRepository';
 import { WearLogRepository } from '../data/repositories/WearLogRepository';
 import { ClothingCategory } from '../domain/clothing/ClothingCategory';
+import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import { ClothingItem, PurchaseInfo } from '../domain/clothing/ClothingModels';
 import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { StoreVisit } from '../domain/store/StoreModels';
 import { WearLog } from '../domain/wearLog/WearLogModels';
 import { toIsoDate } from '../utils/date';
-import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
 
 interface CaptureCategoryOption {
   label: string;
@@ -19,11 +18,19 @@ interface CaptureCategoryOption {
 
 const CAPTURE_CATEGORY_OPTIONS: CaptureCategoryOption[] = [
   { label: '上衣', value: ClothingCategory.Top },
-  { label: '裤子', value: ClothingCategory.Pants },
-  { label: '短裤', value: ClothingCategory.Shorts },
-  { label: '长裙', value: ClothingCategory.LongSkirt },
-  { label: '半裙', value: ClothingCategory.HalfSkirt }
+  { label: '裤装', value: ClothingCategory.Pants },
+  { label: '裙装', value: ClothingCategory.LongSkirt }
 ];
+
+const CAPTURE_BG: string = '#FFFFFF';
+const CAPTURE_SURFACE: string = '#FBFBFD';
+const CAPTURE_TEXT: string = '#1D1D1F';
+const CAPTURE_MUTED: string = '#6E6E73';
+const CAPTURE_META: string = '#86868B';
+const CAPTURE_BORDER: string = '#D2D2D7';
+const CAPTURE_BORDER_SOFT: string = '#E8E8ED';
+const CAPTURE_ACCENT: string = '#0071E3';
+const CAPTURE_ACCENT_SOFT: string = '#EAF3FE';
 
 function optionalText(value: string): string | undefined {
   const trimmed = value.trim();
@@ -36,11 +43,7 @@ function padTwoDigits(value: number): string {
 
 function dateFromIsoDateTime(value: string): Date {
   const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return new Date();
-  }
-
-  return parsed;
+  return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
 }
 
 function formatTimeLabel(value: string): string {
@@ -58,7 +61,6 @@ function categoryLabel(category: ClothingCategory): string {
       return option.label;
     }
   }
-
   return '上衣';
 }
 
@@ -71,12 +73,14 @@ export struct CaptureEditPage {
   outfitRepository?: OutfitRepository = undefined;
   storeRepository?: StoreRepository = undefined;
   wearLogRepository?: WearLogRepository = undefined;
+  onChoosePhotos: () => Promise<string[]> = async () => [];
   onSave: (target: string) => void = () => {};
   onCancel: () => void = () => {};
 
+  @State private captureMode: string = '单品';
   @State private captureType: string = '衣橱';
-  @State private note: string = '';
-  @State private name: string = '';
+  @State private note: string = '亮色外套，适合周末出门。';
+  @State private name: string = '牛仔短外套';
   @State private category: ClothingCategory = ClothingCategory.Top;
   @State private photoUris: string[] = [];
   @State private storeName: string = '';
@@ -90,17 +94,16 @@ export struct CaptureEditPage {
   @State private districtOrAddress: string = '';
   @State private visitDate: string = '';
   @State private isSaving: boolean = false;
+  @State private isChoosingPhotos: boolean = false;
   @State private errorMessage: string = '';
 
   aboutToAppear(): void {
     if (this.photoUris.length === 0) {
       this.photoUris = [...this.initialPhotoUris];
     }
-
     if (this.wearDate.length === 0) {
       this.wearDate = this.captureDate();
     }
-
     if (this.visitDate.length === 0) {
       this.visitDate = this.captureDate();
     }
@@ -131,11 +134,11 @@ export struct CaptureEditPage {
   }
 
   private normalizedOutfitTitle(): string {
-    return optionalText(this.outfitTitle) ?? this.generatedOutfitTitle();
+    return optionalText(this.outfitTitle) ?? optionalText(this.name) ?? this.generatedOutfitTitle();
   }
 
   private normalizedStoreName(): string {
-    return optionalText(this.storeName) ?? this.generatedStoreVisitName();
+    return optionalText(this.storeName) ?? optionalText(this.name) ?? this.generatedStoreVisitName();
   }
 
   private canSave(): boolean {
@@ -147,7 +150,6 @@ export struct CaptureEditPage {
     if (trimmedPrice.length === 0) {
       return undefined;
     }
-
     const parsedPrice = Number(trimmedPrice);
     return Number.isFinite(parsedPrice) && parsedPrice >= 0 ? parsedPrice : undefined;
   }
@@ -159,17 +161,21 @@ export struct CaptureEditPage {
       purchaseDate: optionalText(this.purchaseDate),
       note: optionalText(this.purchaseNote)
     };
-
-    if (
-      info.storeName === undefined &&
-      info.price === undefined &&
-      info.purchaseDate === undefined &&
-      info.note === undefined
-    ) {
+    if (info.storeName === undefined && info.price === undefined && info.purchaseDate === undefined && info.note === undefined) {
       return undefined;
     }
-
     return info;
+  }
+
+  private selectMode(mode: string): void {
+    this.captureMode = mode;
+    if (mode === '单品') {
+      this.captureType = '衣橱';
+    } else if (mode === '试穿') {
+      this.captureType = '美搭';
+    } else {
+      this.captureType = '店铺';
+    }
   }
 
   private toggleClothingItem(id: string): void {
@@ -177,15 +183,31 @@ export struct CaptureEditPage {
       this.selectedClothingItemIds = this.selectedClothingItemIds.filter((itemId: string) => itemId !== id);
       return;
     }
-
     this.selectedClothingItemIds = this.selectedClothingItemIds.concat([id]);
+  }
+
+  private async choosePhotos(): Promise<void> {
+    if (this.isChoosingPhotos) {
+      return;
+    }
+    this.isChoosingPhotos = true;
+    this.errorMessage = '';
+    try {
+      const selectedPhotoUris = await this.onChoosePhotos();
+      if (selectedPhotoUris.length > 0) {
+        this.photoUris = selectedPhotoUris;
+      }
+    } catch (error) {
+      this.errorMessage = error instanceof Error ? error.message : '选择照片失败，请重试';
+    } finally {
+      this.isChoosingPhotos = false;
+    }
   }
 
   private async saveWardrobe(): Promise<void> {
     if (this.clothingRepository === undefined) {
       return;
     }
-
     await this.clothingRepository.createClothing({
       name: this.normalizedClothingName(),
       category: this.category,
@@ -200,14 +222,12 @@ export struct CaptureEditPage {
     if (this.outfitRepository === undefined) {
       return;
     }
-
     const outfit: OutfitTemplate = await this.outfitRepository.createOutfit({
       title: this.normalizedOutfitTitle(),
       photoUris: this.photoUris,
       clothingItemIds: this.selectedClothingItemIds,
       note: optionalText(this.note)
     });
-
     if (this.syncWearLog && this.wearLogRepository !== undefined) {
       const _wearLog: WearLog = await this.wearLogRepository.createWearLog({
         outfitTemplateId: outfit.id,
@@ -216,7 +236,6 @@ export struct CaptureEditPage {
         note: optionalText(this.note)
       });
     }
-
     this.onSave('美搭');
   }
 
@@ -224,7 +243,6 @@ export struct CaptureEditPage {
     if (this.storeRepository === undefined) {
       return;
     }
-
     const _visit: StoreVisit = await this.storeRepository.createStoreVisitWithOptionalStore({
       storeName: optionalText(this.storeName),
       storeNameSnapshot: this.normalizedStoreName(),
@@ -240,10 +258,8 @@ export struct CaptureEditPage {
     if (!this.canSave()) {
       return;
     }
-
     this.isSaving = true;
     this.errorMessage = '';
-
     try {
       if (this.captureType === '衣橱') {
         await this.saveWardrobe();
@@ -259,216 +275,135 @@ export struct CaptureEditPage {
     }
   }
 
+  private saveButtonLabel(): string {
+    if (this.isSaving) {
+      return '保存中...';
+    }
+    if (this.captureType === '美搭') {
+      return '保存试穿';
+    }
+    if (this.captureType === '店铺') {
+      return '保存吊牌';
+    }
+    return '存入衣柜';
+  }
+
   build() {
-    Scroll() {
-      Column({ space: YibuqueSpacing.lg }) {
-        Row() {
-          Column({ space: YibuqueSpacing.xs }) {
-            Text('补录照片')
-              .fontSize(28)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(YibuqueColor.textPrimary)
+    Column() {
+      SecondaryPageHeader({
+        title: '拍照录入',
+        backAccessibilityText: '返回',
+        onBack: () => {
+          this.onCancel();
+        }
+      })
 
-            Text(`拍照日期 ${this.captureDate()}`)
-              .fontSize(14)
-              .fontColor(YibuqueColor.textSecondary)
-          }
-          .layoutWeight(1)
-          .alignItems(HorizontalAlign.Start)
+      Scroll() {
+        Column({ space: 14 }) {
+        this.ModeTabs()
+        this.CapturePreview()
 
-          Button('取消')
+        Row({ space: 10 }) {
+          Button(this.isChoosingPhotos ? '选择中...' : '选择照片')
+            .layoutWeight(1)
             .height(44)
-            .fontSize(15)
-            .fontColor(YibuqueColor.textSecondary)
-            .backgroundColor(YibuqueColor.cardWhite)
-            .borderRadius(YibuqueRadius.full)
-            .border({ width: 1, color: YibuqueColor.borderLight })
+            .fontSize(13)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(CAPTURE_TEXT)
+            .backgroundColor(CAPTURE_SURFACE)
+            .borderRadius(22)
+            .border({ width: 1, color: CAPTURE_BORDER })
+            .enabled(!this.isChoosingPhotos)
             .onClick(() => {
-              this.onCancel();
+              this.choosePhotos();
+            })
+
+          Button(this.saveButtonLabel())
+            .layoutWeight(1)
+            .height(44)
+            .fontSize(13)
+            .fontWeight(FontWeight.Regular)
+            .fontColor('#FFFFFF')
+            .backgroundColor(this.canSave() ? CAPTURE_TEXT : CAPTURE_META)
+            .borderRadius(22)
+            .enabled(this.canSave())
+            .onClick(() => {
+              this.saveCapture();
             })
         }
         .width('100%')
-        .alignItems(VerticalAlign.Center)
 
-        PhotoGrid({ photoUris: this.photoUris })
+        if (this.captureType === '衣橱') {
+          this.CategoryTabs()
+        }
 
-        this.CaptureTypeTabs()
+        this.NameField()
         this.NoteInput()
-        this.OptionalFields()
+
+        if (this.captureType === '美搭') {
+          this.OutfitFields()
+        } else if (this.captureType === '店铺') {
+          this.StoreFields()
+        } else {
+          this.PurchaseFields()
+        }
 
         if (this.errorMessage.length > 0) {
           Text(this.errorMessage)
-            .fontSize(13)
-            .fontColor('#EF4444')
+            .width('100%')
+            .fontSize(12)
+            .fontColor('#DC2626')
         }
 
-        Button(this.isSaving ? '保存中...' : `保存到${this.captureType}`)
-          .width('100%')
-          .height(56)
-          .fontSize(17)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(YibuqueColor.textInverse)
-          .backgroundColor(this.canSave() ? YibuqueColor.actionBlack : YibuqueColor.textDisabled)
-          .borderRadius(YibuqueRadius.full)
-          .enabled(this.canSave())
-          .onClick(() => {
-            this.saveCapture();
-          })
+        this.RecentCaptures()
+        }
+        .width('100%')
+        .padding({ left: 20, right: 20, top: 14, bottom: 116 })
+        .alignItems(HorizontalAlign.Start)
       }
       .width('100%')
-      .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.xxl, bottom: YibuqueSpacing.xxl })
-      .alignItems(HorizontalAlign.Start)
+      .layoutWeight(1)
+      .scrollBar(BarState.Off)
     }
     .width('100%')
     .height('100%')
-    .linearGradient({
-      angle: 135,
-      colors: [[YibuqueColor.bgDefault, 0], [YibuqueColor.bgHeaderBlue, 1]]
-    })
+    .backgroundColor(CAPTURE_BG)
   }
 
   @Builder
-  CaptureTypeTabs() {
-    Row({ space: YibuqueSpacing.sm }) {
-      ForEach(['衣橱', '美搭', '店铺'], (type: string) => {
-        Text(type)
-          .height(42)
-          .layoutWeight(1)
-          .fontSize(16)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(this.captureType === type ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
-          .textAlign(TextAlign.Center)
-          .backgroundColor(this.captureType === type ? YibuqueColor.actionBlack : YibuqueColor.cardWhite)
-          .borderRadius(YibuqueRadius.full)
-          .border({ width: 1, color: this.captureType === type ? YibuqueColor.actionBlack : YibuqueColor.borderLight })
-          .onClick(() => {
-            this.captureType = type;
-          })
-      }, (type: string) => type)
-    }
-    .width('100%')
-  }
-
-  @Builder
-  NoteInput() {
-    Column({ space: YibuqueSpacing.sm }) {
-      Text('小记')
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(YibuqueColor.textPrimary)
-
-      TextArea({ text: this.note, placeholder: '写一点小记' })
-        .height(108)
-        .fontSize(16)
-        .fontColor(YibuqueColor.textPrimary)
-        .placeholderColor(YibuqueColor.textTertiary)
-        .backgroundColor(YibuqueColor.cardWhite)
-        .borderRadius(YibuqueRadius.xl)
-        .border({ width: 1, color: YibuqueColor.borderLight })
-        .onChange((value: string) => {
-          this.note = value;
-        })
-    }
-    .width('100%')
-    .alignItems(HorizontalAlign.Start)
-  }
-
-  @Builder
-  OptionalFields() {
-    Column({ space: YibuqueSpacing.md }) {
-      Text('选填信息')
-        .fontSize(18)
-        .fontWeight(FontWeight.Bold)
-        .fontColor(YibuqueColor.textPrimary)
-
-      if (this.captureType === '衣橱') {
-        this.WardrobeFields()
-      } else if (this.captureType === '美搭') {
-        this.OutfitFields()
-      } else {
-        this.StoreFields()
-      }
-    }
-    .width('100%')
-    .padding(YibuqueSpacing.lg)
-    .backgroundColor(YibuqueColor.cardWhite)
-    .borderRadius(YibuqueRadius.xxl)
-    .shadow(YibuqueShadow.card)
-    .alignItems(HorizontalAlign.Start)
-  }
-
-  @Builder
-  WardrobeFields() {
-    Column({ space: YibuqueSpacing.md }) {
-      TextInput({ text: this.name, placeholder: this.generatedClothingName() })
-        .height(52)
-        .fontSize(16)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.lg)
-        .onChange((value: string) => {
-          this.name = value;
-        })
-
-      this.CategoryTabs()
-
-      TextInput({ text: this.storeName, placeholder: '购买店铺' })
-        .height(52)
-        .fontSize(16)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.lg)
-        .onChange((value: string) => {
-          this.storeName = value;
-        })
-
-      TextInput({ text: this.price, placeholder: '价格' })
-        .height(52)
-        .fontSize(16)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.lg)
-        .onChange((value: string) => {
-          this.price = value;
-        })
-
-      TextInput({ text: this.purchaseDate, placeholder: '购买日期 YYYY-MM-DD' })
-        .height(52)
-        .fontSize(16)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.lg)
-        .onChange((value: string) => {
-          this.purchaseDate = value;
-        })
-
-      TextInput({ text: this.purchaseNote, placeholder: '购买备注' })
-        .height(52)
-        .fontSize(16)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.lg)
-        .onChange((value: string) => {
-          this.purchaseNote = value;
-        })
-    }
-    .width('100%')
-    .alignItems(HorizontalAlign.Start)
-  }
-
-  @Builder
-  CategoryTabs() {
+  ModeTabs() {
     Scroll() {
-      Row({ space: YibuqueSpacing.sm }) {
-        ForEach(CAPTURE_CATEGORY_OPTIONS, (option: CaptureCategoryOption) => {
-          Text(option.label)
-            .height(38)
-            .padding({ left: 18, right: 18 })
-            .fontSize(14)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(this.category === option.value ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
-            .textAlign(TextAlign.Center)
-            .backgroundColor(this.category === option.value ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
-            .borderRadius(YibuqueRadius.full)
-            .onClick(() => {
-              this.category = option.value;
-            })
-        }, (option: CaptureCategoryOption) => option.label)
+      Row({ space: 10 }) {
+        ForEach(['单品', '试穿', '吊牌'], (mode: string) => {
+          Row({ space: 7 }) {
+            if (mode === '单品') {
+              SymbolGlyph($r('sys.symbol.shirt'))
+                .fontSize(17)
+                .fontColor([this.captureMode === mode ? CAPTURE_ACCENT : CAPTURE_MUTED])
+            } else if (mode === '试穿') {
+              SymbolGlyph($r('sys.symbol.hanger_and_towels'))
+                .fontSize(17)
+                .fontColor([this.captureMode === mode ? CAPTURE_ACCENT : CAPTURE_MUTED])
+            } else {
+              SymbolGlyph($r('sys.symbol.bag'))
+                .fontSize(17)
+                .fontColor([this.captureMode === mode ? CAPTURE_ACCENT : CAPTURE_MUTED])
+            }
+
+            Text(mode)
+              .fontSize(12)
+              .fontWeight(this.captureMode === mode ? FontWeight.Regular : FontWeight.Regular)
+              .fontColor(this.captureMode === mode ? CAPTURE_ACCENT : CAPTURE_MUTED)
+          }
+          .height(44)
+          .padding({ left: 13, right: 15 })
+          .backgroundColor(this.captureMode === mode ? CAPTURE_ACCENT_SOFT : CAPTURE_SURFACE)
+          .borderRadius(22)
+          .border({ width: 1, color: this.captureMode === mode ? '#A8C9ED' : CAPTURE_BORDER })
+          .onClick(() => {
+            this.selectMode(mode);
+          })
+        }, (mode: string) => mode)
       }
     }
     .scrollable(ScrollDirection.Horizontal)
@@ -477,13 +412,173 @@ export struct CaptureEditPage {
   }
 
   @Builder
+  CapturePreview() {
+    Stack({ alignContent: Alignment.BottomStart }) {
+      if (this.photoUris.length > 0) {
+        Image(this.photoUris[0])
+          .width('100%')
+          .height('100%')
+          .objectFit(ImageFit.Cover)
+      } else {
+        SymbolGlyph($r('sys.symbol.camera_fill'))
+          .fontSize(36)
+          .fontColor([CAPTURE_META])
+      }
+
+      Stack({ alignContent: Alignment.Center }) {
+        Column()
+          .width('100%')
+          .height('100%')
+          .border({ width: 1, color: '#BFFFFFFF' })
+          .borderRadius(5)
+      }
+      .width('91%')
+      .height(336)
+      .margin({ left: 15, bottom: 18 })
+
+      Text(`自动识别：${categoryLabel(this.category)}`)
+        .height(32)
+        .padding({ left: 12, right: 12 })
+        .fontSize(12)
+        .fontWeight(FontWeight.Regular)
+        .fontColor('#FFFFFF')
+        .textAlign(TextAlign.Center)
+        .backgroundColor('#D11D1D1F')
+        .borderRadius(16)
+        .margin({ left: 12, bottom: 12 })
+    }
+    .width('100%')
+    .height(372)
+    .borderRadius(5)
+    .clip(true)
+    .border({ width: 1, color: CAPTURE_BORDER_SOFT })
+    .backgroundColor('#F5F5F7')
+  }
+
+  @Builder
+  CategoryTabs() {
+    Grid() {
+      ForEach(CAPTURE_CATEGORY_OPTIONS, (option: CaptureCategoryOption) => {
+        GridItem() {
+          Text(option.label)
+            .width('100%')
+            .height(46)
+            .fontSize(13)
+            .fontWeight(this.category === option.value ? FontWeight.Regular : FontWeight.Regular)
+            .fontColor(this.category === option.value ? CAPTURE_ACCENT : CAPTURE_MUTED)
+            .textAlign(TextAlign.Center)
+            .backgroundColor(this.category === option.value ? CAPTURE_ACCENT_SOFT : CAPTURE_SURFACE)
+            .borderRadius(12)
+            .border({ width: 1, color: this.category === option.value ? '#A8C9ED' : CAPTURE_BORDER })
+            .onClick(() => {
+              this.category = option.value;
+            })
+        }
+      }, (option: CaptureCategoryOption) => option.label)
+    }
+    .columnsTemplate('1fr 1fr 1fr')
+    .columnsGap(10)
+    .width('100%')
+    .height(46)
+  }
+
+  @Builder
+  NameField() {
+    Row({ space: 9 }) {
+      SymbolGlyph($r('sys.symbol.shirt'))
+        .fontSize(18)
+        .fontColor([CAPTURE_MUTED])
+
+      TextInput({ text: this.name, placeholder: this.generatedClothingName() })
+        .layoutWeight(1)
+        .height(46)
+        .fontSize(14)
+        .fontColor(CAPTURE_TEXT)
+        .placeholderColor(CAPTURE_META)
+        .backgroundColor(Color.Transparent)
+        .onChange((value: string) => {
+          this.name = value;
+        })
+    }
+    .width('100%')
+    .height(48)
+    .padding({ left: 14, right: 10 })
+    .border({ width: 1, color: CAPTURE_BORDER })
+    .borderRadius(12)
+    .backgroundColor(CAPTURE_BG)
+  }
+
+  @Builder
+  NoteInput() {
+    TextArea({ text: this.note, placeholder: '颜色、尺码、在哪里买的…' })
+      .width('100%')
+      .height(82)
+      .padding({ left: 14, right: 14, top: 10, bottom: 10 })
+      .fontSize(14)
+      .fontColor(CAPTURE_TEXT)
+      .placeholderColor(CAPTURE_META)
+      .backgroundColor(CAPTURE_BG)
+      .borderRadius(12)
+      .border({ width: 1, color: CAPTURE_BORDER })
+      .onChange((value: string) => {
+        this.note = value;
+      })
+  }
+
+  @Builder
+  PurchaseFields() {
+    Column({ space: 10 }) {
+      TextInput({ text: this.storeName, placeholder: '购买店铺（选填）' })
+        .height(48)
+        .fontSize(14)
+        .backgroundColor(CAPTURE_SURFACE)
+        .borderRadius(12)
+        .onChange((value: string) => {
+          this.storeName = value;
+        })
+
+      Row({ space: 10 }) {
+        TextInput({ text: this.price, placeholder: '价格' })
+          .layoutWeight(1)
+          .height(48)
+          .fontSize(14)
+          .backgroundColor(CAPTURE_SURFACE)
+          .borderRadius(12)
+          .onChange((value: string) => {
+            this.price = value;
+          })
+
+        TextInput({ text: this.purchaseDate, placeholder: '购买日期' })
+          .layoutWeight(1)
+          .height(48)
+          .fontSize(14)
+          .backgroundColor(CAPTURE_SURFACE)
+          .borderRadius(12)
+          .onChange((value: string) => {
+            this.purchaseDate = value;
+          })
+      }
+
+      TextInput({ text: this.purchaseNote, placeholder: '购买备注' })
+        .height(48)
+        .fontSize(14)
+        .backgroundColor(CAPTURE_SURFACE)
+        .borderRadius(12)
+        .onChange((value: string) => {
+          this.purchaseNote = value;
+        })
+    }
+    .width('100%')
+  }
+
+  @Builder
   OutfitFields() {
-    Column({ space: YibuqueSpacing.md }) {
+    Column({ space: 10 }) {
       TextInput({ text: this.outfitTitle, placeholder: this.generatedOutfitTitle() })
-        .height(52)
-        .fontSize(16)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.lg)
+        .height(48)
+        .fontSize(14)
+        .backgroundColor(CAPTURE_SURFACE)
+        .borderRadius(12)
         .onChange((value: string) => {
           this.outfitTitle = value;
         })
@@ -496,65 +591,82 @@ export struct CaptureEditPage {
         }
       })
 
-      TextInput({ text: this.wearDate, placeholder: '穿搭日期 YYYY-MM-DD' })
-        .height(52)
-        .fontSize(16)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.lg)
-        .onChange((value: string) => {
-          this.wearDate = value;
-          this.syncWearLog = value.trim().length > 0;
-        })
-
-      Row({ space: YibuqueSpacing.sm }) {
+      Row({ space: 8 }) {
         Checkbox()
           .select(this.syncWearLog)
+          .selectedColor(CAPTURE_ACCENT)
           .onChange((checked: boolean) => {
             this.syncWearLog = checked;
           })
 
-        Text('同步到日历')
-          .fontSize(15)
-          .fontColor(YibuqueColor.textPrimary)
+        Text('同步到穿搭日历')
+          .fontSize(13)
+          .fontColor(CAPTURE_TEXT)
       }
       .width('100%')
-      .alignItems(VerticalAlign.Center)
     }
     .width('100%')
-    .alignItems(HorizontalAlign.Start)
   }
 
   @Builder
   StoreFields() {
-    Column({ space: YibuqueSpacing.md }) {
+    Column({ space: 10 }) {
       TextInput({ text: this.storeName, placeholder: this.generatedStoreVisitName() })
-        .height(52)
-        .fontSize(16)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.lg)
+        .height(48)
+        .fontSize(14)
+        .backgroundColor(CAPTURE_SURFACE)
+        .borderRadius(12)
         .onChange((value: string) => {
           this.storeName = value;
         })
 
-      TextInput({ text: this.districtOrAddress, placeholder: '商圈或地址' })
-        .height(52)
-        .fontSize(16)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.lg)
+      TextInput({ text: this.districtOrAddress, placeholder: '商场、商圈或地址' })
+        .height(48)
+        .fontSize(14)
+        .backgroundColor(CAPTURE_SURFACE)
+        .borderRadius(12)
         .onChange((value: string) => {
           this.districtOrAddress = value;
         })
 
       TextInput({ text: this.visitDate, placeholder: '逛店日期 YYYY-MM-DD' })
-        .height(52)
-        .fontSize(16)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.lg)
+        .height(48)
+        .fontSize(14)
+        .backgroundColor(CAPTURE_SURFACE)
+        .borderRadius(12)
         .onChange((value: string) => {
           this.visitDate = value;
         })
     }
     .width('100%')
+  }
+
+  @Builder
+  RecentCaptures() {
+    Column({ space: 10 }) {
+      Text('刚录入')
+        .fontSize(19)
+        .fontWeight(FontWeight.Regular)
+        .fontColor(CAPTURE_TEXT)
+
+      Grid() {
+        ForEach(this.photoUris.slice(0, 3), (photoUri: string) => {
+          GridItem() {
+            Image(photoUri)
+              .width('100%')
+              .height('100%')
+              .objectFit(ImageFit.Cover)
+              .borderRadius(5)
+          }
+        }, (photoUri: string) => photoUri)
+      }
+      .columnsTemplate('1fr 1fr 1fr')
+      .columnsGap(10)
+      .width('100%')
+      .height(112)
+    }
+    .width('100%')
+    .margin({ top: 4 })
     .alignItems(HorizontalAlign.Start)
   }
 }

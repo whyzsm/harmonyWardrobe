@@ -19,7 +19,6 @@ for (const needle of [
   'PhotoStorage',
   'OutfitRepository',
   'ClothingPicker',
-  'PhotoGrid',
   'title',
   'clothingItemIds',
   'note',
@@ -39,8 +38,13 @@ for (const needle of [
   'YibuqueRadius',
   'YibuqueShadow',
   'YibuqueColor.actionBlack',
-  '添加搭配照片',
-  '图片必填，其余信息都可选填',
+  '记录这套美搭的第一眼',
+  '整体、细节或上身效果都可以',
+  '.aspectRatio(530 / 386)',
+  'CameraAction',
+  'GalleryAction',
+  "SymbolGlyph($r('sys.symbol.camera_fill'))",
+  "SymbolGlyph($r('sys.symbol.picture'))",
   '美搭信息（选填）',
   '美搭名称，可不填',
   '备注',
@@ -79,7 +83,13 @@ for (const needle of [
   'onToggle',
   'ForEach',
   'includes',
-  'YibuqueColor.actionBlack'
+  'photoUris',
+  'Image(',
+  'coverPhotoUri',
+  'clothingCategoryLabel',
+  "borderRadius(5)",
+  "SymbolGlyph($r('sys.symbol.checkmark_circle_fill'))",
+  'YibuqueColor.brandCyan'
 ]) {
   if (!picker.includes(needle)) {
     throw new Error(`ClothingPicker missing ${needle}`);
@@ -89,6 +99,8 @@ for (const needle of [
 for (const forbidden of [
   'title / 美搭名称',
   'note / 备注',
+  'PhotoGrid',
+  "Button('拍照')",
   'AppTheme.color.primary'
 ]) {
   if (editPage.includes(forbidden)) {
@@ -97,6 +109,14 @@ for (const forbidden of [
   if (picker.includes(forbidden)) {
     throw new Error(`ClothingPicker must not include ${forbidden}`);
   }
+}
+
+if (!/PhotoSelector\(\)[\s\S]*?Image\(this\.photoUris\[0\]\)[\s\S]*?\.aspectRatio\(530 \/ 386\)[\s\S]*?\.borderRadius\(24\)/.test(editPage)) {
+  throw new Error('OutfitEditPage photo area must match the store editor hero layout');
+}
+
+if (!/Column\(\{ space: 8 \}\)[\s\S]*?\.width\('100%'\)[\s\S]*?\.padding\(\{ left: 24, right: 24, bottom: 24 \}\)/.test(editPage)) {
+  throw new Error('OutfitEditPage photo overlay must be pinned to the image left edge');
 }
 
 console.log('PASS');

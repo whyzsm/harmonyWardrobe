@@ -23,7 +23,7 @@ export struct ClothingCard {
           .width('100%')
           .aspectRatio(1)
           .objectFit(ImageFit.Cover)
-          .borderRadius(YibuqueRadius.xl)
+          .borderRadius(5)
       } else {
         Column() {
           SymbolGlyph($r('sys.symbol.shirt'))
@@ -34,13 +34,13 @@ export struct ClothingCard {
         .aspectRatio(1)
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .borderRadius(YibuqueRadius.xl)
+        .borderRadius(5)
         .backgroundColor(YibuqueColor.cardMint)
       }
 
       Text(this.name)
         .fontSize(15)
-        .fontWeight(FontWeight.Medium)
+        .fontWeight(FontWeight.Regular)
         .fontColor(YibuqueColor.textPrimary)
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })

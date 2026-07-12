@@ -35,8 +35,7 @@ for (const pattern of [
   /import\s*{[^}]*OutfitRepository[^}]*}\s*from\s*['"][^'"]*OutfitRepository['"]/s,
   /import\s*{[^}]*StoreRepository[^}]*}\s*from\s*['"][^'"]*StoreRepository['"]/s,
   /import\s*{[^}]*WearLogRepository[^}]*}\s*from\s*['"][^'"]*WearLogRepository['"]/s,
-  /import\s*{[^}]*ClothingPicker[^}]*}\s*from\s*['"][^'"]*ClothingPicker['"]/s,
-  /import\s*{[^}]*PhotoGrid[^}]*}\s*from\s*['"][^'"]*PhotoGrid['"]/s
+  /import\s*{[^}]*ClothingPicker[^}]*}\s*from\s*['"][^'"]*ClothingPicker['"]/s
 ]) {
   mustMatch(text, pattern, 'must import repositories and shared components explicitly');
 }
@@ -45,8 +44,14 @@ for (const needle of [
   '衣橱',
   '美搭',
   '店铺',
-  '小记',
-  '写一点小记',
+  '单品',
+  '试穿',
+  '吊牌',
+  '选择照片',
+  '存入衣柜',
+  '自动识别',
+  '刚录入',
+  'this.photoUris.slice(0, 3)',
   'TextArea',
   'photoUris',
   'capturedAt',
@@ -56,13 +61,14 @@ for (const needle of [
   'StoreRepository',
   'WearLogRepository',
   'ClothingPicker',
-  'PhotoGrid',
   'createClothing',
   'createOutfit',
   'createStoreVisit',
   'createStoreVisitWithOptionalStore',
   'createWearLog',
-  'YibuqueColor.actionBlack'
+  'CAPTURE_ACCENT',
+  'SecondaryPageHeader',
+  'onCancel'
 ]) {
   mustInclude(text, needle);
 }
@@ -79,6 +85,7 @@ mustMatch(text, /wearLogRepository\??:\s*WearLogRepository/, 'must expose WearLo
 
 for (const forbidden of [
   'AppTheme.color.primary',
+  'wardrobe_look_',
   'findStoreByName(this.storeName)',
   'createStore({',
   'this.storeName.trim().length > 0 &&',

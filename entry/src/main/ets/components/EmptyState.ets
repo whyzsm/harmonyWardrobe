@@ -9,7 +9,7 @@ export struct EmptyState {
     Column({ space: YibuqueSpacing.sm }) {
       Text(this.title)
         .fontSize(18)
-        .fontWeight(FontWeight.Bold)
+        .fontWeight(FontWeight.Regular)
         .fontColor(YibuqueColor.textPrimary)
         .textAlign(TextAlign.Center)
 

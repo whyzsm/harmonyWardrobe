@@ -58,7 +58,7 @@ mustNotInclude(nav, navPath, "Text('+')");
 mustNotInclude(nav, navPath, "Text('拍照')");
 mustMatch(nav, navPath, /SymbolGlyph\(\$r\('sys\.symbol\.camera_fill'\)\)|相机|拍照|PhotoIcon|CameraButton/, 'must render a camera/photo center action');
 
-for (const needle of ['拍照', '从相册选择']) {
+for (const needle of ['拍一张', '从相册选择', '新增逛店', 'onOpenStoreVisit']) {
   mustInclude(quickSheet, quickSheetPath, needle);
 }
 
@@ -71,13 +71,16 @@ mustInclude(index, indexPath, 'photoPickerAdapter.captureFromCamera');
 mustInclude(index, indexPath, 'photoPickerAdapter.pickFromGallery');
 mustInclude(index, indexPath, 'photoStorage.copyToAppStorage');
 mustInclude(index, indexPath, 'showCaptureEditor');
+mustInclude(index, indexPath, 'showQuickStoreEditor');
 mustInclude(index, indexPath, 'capturePhotoUris');
 mustInclude(index, indexPath, 'captureCapturedAt');
 mustInclude(index, indexPath, "target === '店铺'");
 mustInclude(index, indexPath, "target === '美搭'");
-mustInclude(index, indexPath, "initialWardrobeTab = '美搭'");
 mustInclude(index, indexPath, "this.selectedMainTab = 'store'");
+mustInclude(index, indexPath, "this.selectedMainTab = 'outfit'");
 mustInclude(index, indexPath, "this.selectedMainTab = 'wardrobe'");
+mustInclude(index, indexPath, 'OutfitsPage({');
+mustInclude(index, indexPath, 'StoreVisitEditPage({');
 
 const cameraCaptureBody = methodBody(index, indexPath, 'startCameraCapture');
 const galleryCaptureBody = methodBody(index, indexPath, 'startGalleryCapture');
@@ -89,8 +92,8 @@ mustOrder(galleryCaptureBody, indexPath, 'photoPickerAdapter.pickFromGallery', '
 mustOrder(copySourcesBody, indexPath, 'photoStorage.copyToAppStorage', 'localUris.push', 'photos should be copied before they are passed to CaptureEditPage');
 mustOrder(openEditorBody, indexPath, 'capturePhotoUris = photoUris', 'showCaptureEditor = true', 'photos should be set before opening CaptureEditPage');
 mustMatch(index, indexPath, /target\s*===\s*['"`]店铺['"`][\s\S]*?selectedMainTab\s*=\s*['"`]store['"`]/, 'must route store captures back to the store tab');
-mustMatch(index, indexPath, /target\s*===\s*['"`]美搭['"`][\s\S]*?initialWardrobeTab\s*=\s*['"`]美搭['"`][\s\S]*?selectedMainTab\s*=\s*['"`]wardrobe['"`]/, 'must route outfit captures back to the outfit tab');
-mustMatch(index, indexPath, /(target\s*===\s*['"`]衣橱['"`]|target\s*===\s*['"`]美搭['"`]|else)[\s\S]*?selectedMainTab\s*=\s*['"`]wardrobe['"`]/, 'must route wardrobe and outfit captures back to the wardrobe tab');
+mustMatch(index, indexPath, /target\s*===\s*['"`]美搭['"`][\s\S]*?selectedMainTab\s*=\s*['"`]outfit['"`]/, 'must route outfit captures back to the independent outfit tab');
+mustMatch(index, indexPath, /else[\s\S]*?initialWardrobeTab\s*=\s*['"`]衣裤['"`][\s\S]*?selectedMainTab\s*=\s*['"`]wardrobe['"`]/, 'must route wardrobe captures back to the wardrobe tab');
 
 for (const forbidden of [
   'openAddClothing',

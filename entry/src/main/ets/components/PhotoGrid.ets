@@ -1,4 +1,4 @@
-import { YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
+import { YibuqueSpacing } from '../theme/Tokens';
 
 @Component
 export struct PhotoGrid {
@@ -12,7 +12,7 @@ export struct PhotoGrid {
             .width('100%')
             .height('100%')
             .objectFit(ImageFit.Cover)
-            .borderRadius(YibuqueRadius.xl)
+            .borderRadius(5)
         }
       }, (photoUri: string) => photoUri)
     }

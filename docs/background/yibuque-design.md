@@ -1,346 +1,175 @@
-# 衣不缺 Rose VI Design Tokens And UI Rules
+# 衣不缺现代轻量设计规范 / Yibuque Modern Lightweight Design System
 
-This document is the UI contract for `衣不缺`. It describes product scope, rose VI tokens, page rules, and interaction rules for HarmonyOS ArkUI implementation. Keep concrete token values centralized in `entry/src/main/ets/theme/Tokens.ets`.
+## 产品方向 / Product Direction
 
-## Product Direction
+`衣不缺` 是一款本地优先、图片优先的个人衣柜与逛店记录应用。核心流程是点击底部相机，选择“拍一张”或“从相册选择”，再把照片归类为衣柜、套装或逛店记录。
 
-`衣不缺` is a local-first personal wardrobe and store-visit recording app. The core workflow is photo-first: the user taps the bottom camera, chooses `拍照` or `从相册选择`, then classifies the saved photo as `衣橱`、`美搭` or `店铺` and adds a short note if needed. The visual identity uses a soft rose base and deep rose (`深玫瑰`) primary action.
+`Yibuque` is a local-first, image-first personal wardrobe and store-visit app. The primary flow starts from the bottom camera, continues with `拍一张` or `从相册选择`, and then classifies the photo as a wardrobe item, outfit, or store visit.
 
-Keywords:
+视觉方向采用轻量白底、浅灰表面、黑色正文和克制蓝色强调。页面应以真实照片为主要内容，保持低文字密度、清晰层级和安静的工具感。
 
-- Personal wardrobe
-- Photo-first capture
-- Clothes, outfits, stores
-- Daily outfit calendar
-- Local records
-- Soft rose lifestyle utility
-- Image-led cards
-- Large rounded surfaces
-- Lightweight forms
+The visual direction uses white backgrounds, light-gray surfaces, black text, and restrained blue accents. Real photos remain the primary content, with low text density, clear hierarchy, and a quiet utility-oriented feel.
 
-Avoid:
+禁止使用旧 Rose VI 的粉色背景、粉色主按钮、粉色阴影或粉色边框。禁止虚构网络同步、预算、商场或用户记录。
 
-- Social-feed behavior such as likes, comments, follows, fake favorites.
-- Shopping-cart, order, remote sync, or account assumptions.
-- Main navigation concepts such as `首页`、`逛街`、`心愿单`.
-- Asking the user to fill many required fields before a photo is saved.
-- Large saturated pink blocks. Use rose as a refined accent, not a flat theme wash.
+Do not use the legacy Rose VI pink backgrounds, primary buttons, shadows, or borders. Do not invent remote sync, budget, mall, or user-record data.
 
-## Color Tokens
+## 颜色令牌 / Color Tokens
 
-Use semantic roles rather than hardcoded colors in page code.
+页面代码应使用语义 token，不要重新引入零散粉色值。
+
+Page code must use semantic tokens and must not reintroduce isolated pink values.
 
 ```ts
 export const YibuqueColor = {
-  bgDefault: '#FFF2F8',
-  bgGray: '#F7D8E6',
-  bgBlueGray: '#FBE1F0',
-  bgHeaderBlue: '#F8D4EF',
-  cardWhite: '#FFFFFE',
-  cardBlue: '#F2DDFB',
-  cardMint: '#FFE3EE',
-  cardSoftGray: '#FFF6FA',
-  textPrimary: '#391327',
-  textSecondary: '#8A536B',
-  textTertiary: '#B9879E',
-  textDisabled: '#D0AFC0',
+  bgDefault: '#FFFFFF',
+  bgGray: '#F5F5F7',
+  bgBlueGray: '#FFFFFF',
+  bgHeaderBlue: '#F5F5F7',
+  cardWhite: '#FFFFFF',
+  cardBlue: '#EAF3FE',
+  cardMint: '#F5F5F7',
+  cardSoftGray: '#FBFBFD',
+  textPrimary: '#1D1D1F',
+  textSecondary: '#6E6E73',
+  textTertiary: '#86868B',
+  textDisabled: '#B8B8BD',
   textInverse: '#FFFFFF',
-  actionBlack: '#B11B68',
-  brandCyan: '#D83E8E',
-  success: '#C53B88',
-  successBg: '#FFEAF4',
-  borderLight: '#F2C7DA',
-  borderMedium: '#E7A3C4',
-  borderStrong: '#8E1454',
-  overlayDark: '#7A391327'
+  actionBlack: '#1D1D1F',
+  brandCyan: '#0071E3',
+  success: '#16A34A',
+  successBg: '#ECFDF3',
+  borderLight: '#E8E8ED',
+  borderMedium: '#D2D2D7',
+  borderStrong: '#0071E3',
+  overlayDark: '#7A1D1D1F'
 };
 ```
 
-`actionBlack` is a compatibility token name. In the rose VI it means the deep rose primary action, not literal black.
-
-### Color Usage
-
-- Page default background: `bgDefault` or a soft rose gradient from `bgDefault` to `bgHeaderBlue`.
-- Profile and quiet utility pages: `bgBlueGray`.
-- Cards and form panels: `cardWhite`.
-- Inputs and subtle blocks: `cardSoftGray`.
-- Empty image placeholders: `cardBlue`, `cardMint`, or `cardSoftGray`.
-- Primary headings and selected labels: `textPrimary`.
-- Metadata and helper text: `textSecondary` or `textTertiary`.
-- Primary CTA: `actionBlack` background with `textInverse`.
-- Selected chip border: `borderStrong`; unselected chip border: `borderLight`.
-- Error text can use a local danger red, but prefer one consistent red across pages.
-
-## Typography Tokens
-
-Use system Chinese sans fonts through platform defaults. Do not introduce a custom font.
-
-```ts
-export const YibuqueFontSize = {
-  display: 36,
-  pageTitle: 24,
-  section: 22,
-  cardTitle: 21,
-  body: 16,
-  meta: 14,
-  caption: 12
-};
-
-export const YibuqueLineHeight = {
-  display: 44,
-  pageTitle: 32,
-  section: 30,
-  cardTitle: 29,
-  body: 24,
-  meta: 20,
-  caption: 18
-};
-```
-
-Rules:
-
-- App name: 18 to 20, heavy, `textPrimary`.
-- Page title: 24 to 28, heavy, `textPrimary`.
-- Section title: 18 to 22, bold, `textPrimary`.
-- Card title: 17 to 21, bold, `textPrimary`.
-- Body: 15 to 16, regular or medium, `textSecondary`.
-- Metadata: 12 to 14, `textTertiary` or `textSecondary`.
-- Do not expose mixed debug labels such as `query:`, `entity_type`, `wornDate`, or `placeText` in user-facing UI.
-
-## Spacing Tokens
-
-```ts
-export const YibuqueSpacing = {
-  xxs: 2,
-  xs: 4,
-  sm: 8,
-  md: 12,
-  lg: 16,
-  xl: 20,
-  xxl: 24,
-  section: 28,
-  pageX: 20,
-  cardX: 24,
-  bottomSafe: 24
-};
-```
-
-Rules:
-
-- Page horizontal padding: 20 to 24.
-- Card internal padding: 16 to 24.
-- Main section gap: 20 to 32.
-- Bottom controls reserve safe-area spacing.
-- Keep forms lightweight; do not create dense back-office rows.
-
-## Radius And Shadow
-
-```ts
-export const YibuqueRadius = {
-  xs: 8,
-  sm: 12,
-  md: 16,
-  lg: 20,
-  xl: 24,
-  xxl: 28,
-  xxxl: 32,
-  sheet: 36,
-  full: 999
-};
-
-export const YibuqueShadow = {
-  card: { radius: 28, color: '#1FD83E8E', offsetX: 0, offsetY: 10 },
-  soft: { radius: 22, color: '#18B11B68', offsetX: 0, offsetY: 8 },
-  floating: { radius: 32, color: '#2AB11B68', offsetX: 0, offsetY: 14 }
-};
-```
-
-Rules:
-
-- Primary buttons, chips and segmented tabs: `full`.
-- Input fields: 16 to 20.
-- Image thumbnails: 20 to 28.
-- Content cards: 24 to 32.
-- Bottom sheets: `sheet`.
-- Shadows must be light and rose-tinted; avoid heavy ecommerce card shadows.
+`actionBlack` 是兼容名称，实际必须为接近黑色的主操作色；`brandCyan` 是兼容名称，实际映射到系统蓝色。
 
-## Component Rules
+`actionBlack` is a compatibility name and must map to a near-black primary action. `brandCyan` is also a compatibility name and maps to the system blue accent.
 
-### App Top Bar
+### 使用规则 / Usage Rules
 
-- Height about 56.
-- Left: app logo mark plus `衣不缺`.
-- Right: avatar / `我的` entry.
-- Tappable areas at least 44.
-- Press feedback can use slight scale or opacity.
+- 页面背景使用 `bgDefault`；次级区域使用 `bgGray` 或 `cardSoftGray`。
+- Use `bgDefault` for page backgrounds and `bgGray` or `cardSoftGray` for secondary surfaces.
+- 主标题使用 `textPrimary`；说明和元信息使用 `textSecondary`、`textTertiary`。
+- Use `textPrimary` for headings and `textSecondary` or `textTertiary` for descriptions and metadata.
+- 主操作使用 `actionBlack`；当前选中态、链接和轻量反馈使用 `brandCyan`。
+- Use `actionBlack` for primary commands and `brandCyan` for selected states, links, and lightweight feedback.
+- 普通边框使用 `borderLight` 或 `borderMedium`；蓝色只用于明确选中状态。
+- Use `borderLight` or `borderMedium` for regular borders. Reserve blue borders for explicit selected states.
 
-### Bottom Navigation
+## 字体与密度 / Typography And Density
 
-Primary navigation contains only:
+使用系统中文无衬线字体，不引入自定义字体。页面标题 24-28，区块标题 18-21，正文 14-17，元信息 11-13。
 
-- `衣橱`
-- Center camera action
-- `逛店`
+Use the platform Chinese sans-serif font. Page titles are 24-28, section titles 18-21, body text 14-17, and metadata 11-13.
 
-Rules:
+图片优先页面保持低文字密度。表单标题必须清晰，不能只依赖 placeholder 表达字段含义。
 
-- Center action must communicate camera/photo capture, not a generic text plus.
-- Active state uses color, font weight and shape.
-- Keep bottom safe-area padding.
+Image-first pages should keep text density low. Form labels must remain clear and must not rely only on placeholders.
 
-### Quick Capture Sheet
+## 间距、圆角与阴影 / Spacing, Radius, And Shadow
 
-Actions:
+- 页面水平边距：20。
+- Page horizontal padding: 20.
+- 常规区块间距：14-20。
+- Standard section gap: 14-20.
+- 搜索和输入控件高度：48，圆角 12。
+- Search and input controls: 48 high with 12 radius.
+- 图片圆角：5。
+- Image radius: 5.
+- 内容卡片圆角：12-18。
+- Content card radius: 12-18.
+- 胶囊按钮圆角：999。
+- Pill controls use a radius of 999.
+- 阴影必须为中性黑色透明阴影，不使用彩色阴影。
+- Shadows must use translucent neutral black, never tinted color shadows.
 
-- `拍照`
-- `从相册选择`
+## 共享组件 / Shared Components
 
-Rules:
+### 顶部导航 / Top Navigation
 
-- The sheet does not contain type-specific capture labels.
-- Classification happens after the photo is chosen, inside `CaptureEditPage`.
-- Rows or buttons should be large, at least 56 to 64 high.
-- Parent flow must prevent duplicate capture while loading.
+顶部导航使用白色半透明或纯白背景、浅灰底边和系统图标。不得使用粉色渐变。
 
-### Capture Edit Page
+Top navigation uses a white or translucent white background, a soft gray divider, and system icons. Pink gradients are forbidden.
 
-Rules:
+### 底部导航 / Bottom Navigation
 
-- Required: photo.
-- Core input: `小记` as a multiline text area.
-- Type tabs: `衣橱`、`美搭`、`店铺`.
-- All structured fields are optional.
-- `衣橱`: generate a clothing name from category and capture time.
-- `美搭`: generate a title and allow optional clothing links and optional calendar sync.
-- `店铺`: generate a store visit name and allow optional address/date.
-- Save routes back to the corresponding main tab.
+底部导航为宽度 90% 的黑色半透明悬浮胶囊，包含衣柜、逛店、相机、套装、我的。中间相机保留现有彩色圆形图标，不显示“拍照”文字。
 
-### Cards
+The bottom navigation is a 90%-wide translucent black floating capsule with wardrobe, store, camera, outfit, and profile entries. Keep the existing colored circular camera icon and do not show a `拍照` label.
 
-Base card:
+### 快捷录入 / Quick Capture Sheet
 
-- `cardWhite` background.
-- Radius 24 to 32.
-- Use `YibuqueShadow.card` or a very light border.
-- Image or placeholder should be the dominant visual.
-- Image corners must be rounded.
+快捷录入弹层使用白色四角圆角面板、灰色遮罩和中性阴影。标题为“快捷录入”，右侧“取消”使用蓝色。
 
-Clothing card:
+The quick capture sheet uses a white fully-rounded panel, a gray scrim, and a neutral shadow. Its title is `快捷录入`, with a blue `取消` action.
 
-- Large image area.
-- Name in bold `textPrimary`.
-- Category as a small rose pill.
-- Missing image uses a soft rose placeholder.
+- “拍一张”：黑色主卡片、白色相机系统图标。
+- `拍一张`: black primary card with a white system camera icon.
+- “从相册选择”：浅灰卡片、灰色边框、浅蓝图标底。
+- `从相册选择`: light-gray card with a gray border and a light-blue icon surface.
 
-Outfit card:
+### 卡片与空态 / Cards And Empty States
 
-- Use `美搭` / `搭配` wording.
-- Photo cover if available.
-- Linked clothing count is metadata, not a loud badge.
+卡片使用白色或 `cardSoftGray`，配浅灰边框。真实图片优先；缺图时使用中性占位，不得把设计示例冒充用户数据。
 
-Store visit card:
+Cards use white or `cardSoftGray` with soft gray borders. Prefer real images. Missing images use neutral placeholders, and design examples must never be presented as user data.
 
-- Title is store name or generated visit name.
-- Metadata: date and address/district.
-- Note preview max 2 lines.
-- Missing image uses a soft `店` placeholder.
+空态必须说明下一步动作，CTA 使用黑色或蓝色，不使用粉色。
 
-### Forms
+Empty states must explain the next action. CTAs use black or blue, never pink.
 
-- Do not rely on placeholder as the only label for important fields.
-- Group secondary fields under `选填信息`.
-- Save buttons show loading and disable duplicate taps.
-- Error copy explains what to fix.
-- Empty states invite a specific action through the bottom camera.
+## 页面规则 / Page Rules
 
-## Page Rules
+### 衣柜 / Wardrobe
 
-### 衣橱
+保留搜索、分类和双列瀑布流。真实照片占主要面积，图片圆角为 5，收藏按钮保持轻量。
 
-Structure:
+Keep search, categories, and the two-column waterfall. Real photos dominate, image radius is 5, and favorite controls remain lightweight.
 
-```text
-Top bar
-Search / summary
-[衣橱] [美搭] [日历]
-Content
-Bottom nav
-```
+### 套装 / Outfits
 
-Rules:
+使用场景筛选、天气提示和双列套装墙。每张套装卡可显示两张组合图片，标题与元信息保持紧凑。
 
-- `衣橱` manages clothing items.
-- `美搭` manages outfit records.
-- `日历` records daily outfits by date.
-- Empty states reference the bottom camera, not type-specific pre-photo actions.
+Use scene filters, a weather hint, and a two-column outfit wall. Each outfit card may show two combined photos with compact title and metadata.
 
-### 逛店
+### 拍照录入 / Capture
 
-Structure:
+使用单品、试穿、吊牌模式，大图预览、识别提示、分类、名称和备注。保存流程必须继续写入本地 repository。
 
-```text
-Top bar
-逛店
-Search / summary
-Store visit records
-Bottom nav
-```
+Use item, try-on, and tag modes with a large preview, recognition badge, category, name, and note. Saving must continue through local repositories.
 
-Rules:
+### 逛店 / Store Visits
 
-- Records are more important than store master data.
-- The main create path is bottom camera -> photo source -> `店铺`.
-- The page may keep edit affordances for existing visits, but should not show a competing primary capture path.
+使用搜索、状态筛选、路线卡和双列图片墙。loading、empty、error 和重试状态必须保留。
 
-### 我的
+Use search, status filters, a route card, and a two-column photo wall. Preserve loading, empty, error, and retry states.
 
-Rules:
+### 我的 / Profile
 
-- Local-only profile.
-- Fields: height, weight, waist.
-- Use large avatar placeholder, white cards, rose buttons, and soft background.
-- Settings may be a visual placeholder in the first version.
+使用真实衣柜图片、真实单品数量和本地个人数据。未配置预算或商场时必须显示未设置状态，不得虚构记录。
 
-### Search
+Use real wardrobe photos, real item counts, and local profile data. Show unset states for budget or malls when unavailable; do not invent records.
 
-Search result labels:
+### 编辑与搜索页 / Editors And Search
 
-- `衣物`
-- `美搭`
-- `逛店记录`
-- `店铺`
+所有编辑页、搜索结果、日历、选择器和空态必须继承相同白灰蓝 token。保存按钮使用黑色，选中态使用蓝色，错误使用统一红色。
 
-Rules:
+All editors, search results, calendars, pickers, and empty states inherit the same white-gray-blue tokens. Save buttons use black, selected states use blue, and errors use one consistent red.
 
-- Do not expose internal IDs or debug entity labels.
-- Do not expose wishlist as a primary product concept.
+## 交互与数据真实性 / Interaction And Data Integrity
 
-## Interaction Rules
-
-- Tappable controls should be at least 44x44.
-- Selection state must not rely on color alone.
-- Use direct photo-first create flows.
-- Async save buttons must prevent duplicate taps.
-- Empty/loading/error states must be visible and written in user language.
-- Motion should be subtle: sheet translate/opacity, press scale, small hero entrance.
-
-## Implementation Notes For ArkUI
-
-- Keep tokens in `entry/src/main/ets/theme/Tokens.ets`.
-- Prefer `YibuqueColor`, `YibuqueRadius`, `YibuqueSpacing`, and `YibuqueShadow` in active pages/components.
-- `AppTheme` may remain for compatibility, but active `衣不缺` surfaces should not depend on old primary styling.
-- Do not add third-party UI libraries.
-- For arrays passed through props or router params, clone before assigning to state.
-- Store photos in app-local files only; SQLite stores URI/path strings.
-
-## Validation Checklist
-
-Before shipping a screen:
-
-- The screen uses rose VI tokens or mapped compatibility tokens.
-- Primary action is deep rose pill style.
-- Main cards and images have large rounded corners.
-- Empty states point to the bottom camera.
-- Photo-first flow is `拍照 / 从相册选择` before classification.
-- User-facing text does not contain old social, wishlist, or debug concepts.
-- `衣橱`、`美搭`、`店铺` records save locally and re-open with persisted data.
+- 可点击区域至少 44x44。
+- Tap targets are at least 44x44.
+- 保存期间禁用重复提交并显示 loading。
+- Disable duplicate submissions and show loading while saving.
+- 所有业务数据以本地 SQLite 和本地图片 URI 为准。
+- Local SQLite and local photo URIs are the source of truth.
+- 不增加网络权限，不显示不存在的远程同步能力。
+- Do not add network permissions or display nonexistent remote sync behavior.
+- 验收必须包含全量脚本、ArkTS 构建和设备截图。
+- Acceptance requires all validation scripts, an ArkTS build, and device screenshots.

@@ -8,6 +8,12 @@ export interface Store {
   updatedAt: string;
 }
 
+export enum StoreVisitStatus {
+  Visited = 'visited',
+  WantToVisit = 'wantToVisit',
+  Repurchase = 'repurchase'
+}
+
 export interface StoreVisit {
   id: string;
   storeId?: string;
@@ -15,6 +21,8 @@ export interface StoreVisit {
   districtOrAddress?: string;
   visitDate: string;
   photoUris: string[];
+  status?: StoreVisitStatus;
+  focusTags?: string[];
   note?: string;
   createdAt: string;
   updatedAt: string;

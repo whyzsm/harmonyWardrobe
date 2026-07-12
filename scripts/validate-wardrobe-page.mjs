@@ -32,6 +32,7 @@ for (const needle of [
   'visibleOutfits',
   'OutfitRepository',
   'OutfitEditPage',
+  'onNestedPageVisibilityChange',
   'WardrobeWaterFlow',
   'WaterFlow()',
   'FlowItem()',

@@ -54,15 +54,15 @@ for (const needle of [
   mustInclude(tokens, tokenPath, needle);
 }
 
-for (const needle of ['#B11B68', '#FBE1F0', '#F8D4EF', '#D83E8E', '#FFF2F8']) {
+for (const needle of ['#0071E3', '#1D1D1F', '#F5F5F7', '#EAF3FE', '#FFFFFF']) {
   mustInclude(tokens, tokenPath, needle);
 }
 
-for (const needle of ['rose', '深玫瑰', 'Photo-first capture', '拍照', '从相册选择']) {
+for (const needle of ['白灰蓝', 'white-gray-blue', '图片优先', 'image-first', '拍一张', '从相册选择']) {
   mustInclude(design, designPath, needle);
 }
 
-for (const forbidden of ['#000000', '黑色主按钮', '拍衣服', '拍搭配', '拍店铺']) {
+for (const forbidden of ['深玫瑰', '#B11B68', '#FFF2F8', '拍衣服', '拍搭配', '拍店铺']) {
   mustNotInclude(design, designPath, forbidden);
 }
 
@@ -74,15 +74,20 @@ for (const needle of ['衣柜', '逛店', '套装', '我的', "SymbolGlyph($r('s
   mustInclude(nav, navPath, needle);
 }
 
-for (const needle of ['拍照', '从相册选择', 'sheet', 'actionBlack', '64', 'linearGradient']) {
+for (const needle of ['快捷录入', '拍一张', '从相册选择', "SymbolGlyph($r('sys.symbol.camera_fill'))", "SymbolGlyph($r('sys.symbol.picture'))", '#1C1C1E', '#0071E3', '78']) {
   mustInclude(quickSheet, quickSheetPath, needle);
 }
 
-for (const needle of ['#B11B68', '#8E1454', '#D83E8E', '#F7C1DD', 'feDropShadow']) {
+for (const needle of ['#0071E3', '#1D1D1F', '#93C5FD', '#EAF3FE', 'feDropShadow']) {
   mustInclude(icon, iconPath, needle);
 }
 
-mustInclude(colors, colorPath, '#FFF2F8');
+mustInclude(colors, colorPath, '#FFFFFF');
+
+for (const oldRoseColor of ['#B11B68', '#8E1454', '#7A1048', '#FCE3EF', '#FFF2F8', '#FBE1F0', '#F8D4EF', '#D83E8E']) {
+  mustNotInclude(tokens, tokenPath, oldRoseColor);
+  mustNotInclude(icon, iconPath, oldRoseColor);
+}
 
 for (const forbidden of ['拍衣服', '拍搭配', '拍店铺']) {
   mustNotInclude(quickSheet, quickSheetPath, forbidden);

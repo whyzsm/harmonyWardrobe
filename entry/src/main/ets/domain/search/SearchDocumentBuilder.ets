@@ -155,6 +155,8 @@ export function buildStoreVisitSearchDocument(visit: StoreVisit): SearchDocument
   const body = joinSearchText([
     visit.visitDate,
     visit.districtOrAddress,
+    visit.status,
+    visit.focusTags?.join(' '),
     visit.note
   ]);
 

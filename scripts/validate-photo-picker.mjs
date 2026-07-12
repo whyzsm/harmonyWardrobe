@@ -208,6 +208,7 @@ const photoSelectOptions = [];
 const photoPickerSelectCalls = [];
 const cameraPickCalls = [];
 let cameraPickerResultUri = 'camera://native-photo';
+let cameraPickerReturnsUndefined = false;
 const context = {
   photoAccessHelper: {
     PhotoViewMIMETypes: {
@@ -251,6 +252,9 @@ const context = {
         mediaTypes: [...mediaTypes],
         profile
       });
+      if (cameraPickerReturnsUndefined) {
+        return undefined;
+      }
       return { resultUri: cameraPickerResultUri };
     }
   }
@@ -282,7 +286,11 @@ assert.equal(cameraPickCalls[0].profile.createdBy, 'PickerProfile');
 assert.equal(cameraPickCalls[0].profile.cameraPosition, 'read-only-back');
 
 cameraPickerResultUri = '   ';
-await assert.rejects(() => harmonyCameraProvider.capturePhoto(), /camera.*URI/i);
+await assert.rejects(() => harmonyCameraProvider.capturePhoto(), /相机.*照片/);
+
+cameraPickerReturnsUndefined = true;
+await assert.rejects(() => harmonyCameraProvider.capturePhoto(), /相机.*照片/);
+cameraPickerReturnsUndefined = false;
 
 const defaultAdapter = new context.PhotoPickerAdapter();
 const defaultGallerySources = await defaultAdapter.pickFromGallery({ maxSelectNumber: 3 });
@@ -311,14 +319,14 @@ assert.deepEqual(plain(factoryCameraSource), {
   uri: 'camera://factory-photo',
   mimeType: 'image/*'
 });
-assert.equal(cameraPickCalls.length, 3);
-assert.strictEqual(cameraPickCalls[2].context, harmonyContext);
-assert.deepEqual(cameraPickCalls[2].mediaTypes, ['photo']);
-assert.equal(cameraPickCalls[2].profile.createdBy, 'PickerProfile');
-assert.equal(cameraPickCalls[2].profile.cameraPosition, 'read-only-back');
+assert.equal(cameraPickCalls.length, 4);
+assert.strictEqual(cameraPickCalls[3].context, harmonyContext);
+assert.deepEqual(cameraPickCalls[3].mediaTypes, ['photo']);
+assert.equal(cameraPickCalls[3].profile.createdBy, 'PickerProfile');
+assert.equal(cameraPickCalls[3].profile.cameraPosition, 'read-only-back');
 
 cameraPickerResultUri = '   ';
-await assert.rejects(() => factoryAdapter.captureFromCamera(), /camera.*URI/i);
+await assert.rejects(() => factoryAdapter.captureFromCamera(), /相机.*照片/);
 
 const galleryCalls = [];
 const cameraCalls = [];

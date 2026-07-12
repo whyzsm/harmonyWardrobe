@@ -98,7 +98,7 @@ export struct BottomNavigationBar {
       Text(label)
         .fontSize(11)
         .lineHeight(15)
-        .fontWeight(this.selected === value ? FontWeight.Bold : FontWeight.Medium)
+        .fontWeight(this.selected === value ? FontWeight.Regular : FontWeight.Regular)
         .fontColor(this.selected === value ? YibuqueColor.textInverse : '#8D8D92')
     }
     .layoutWeight(1)

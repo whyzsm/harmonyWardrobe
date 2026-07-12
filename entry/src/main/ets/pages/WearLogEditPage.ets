@@ -1,5 +1,6 @@
 import { OutfitPicker } from '../components/OutfitPicker';
 import { PhotoGrid } from '../components/PhotoGrid';
+import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import {
   CreateWearLogInput,
   UpdateWearLogInput,
@@ -129,36 +130,17 @@ export struct WearLogEditPage {
   }
 
   build() {
-    Scroll() {
-      Column({ space: 16 }) {
-        Row() {
-          Column({ space: 4 }) {
-            Text(this.initialWearLog === undefined ? '记录每日穿搭' : '编辑每日穿搭')
-              .fontSize(28)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(YibuqueColor.textPrimary)
-
-            Text('照片和小记优先，美搭关联可以稍后再补。')
-              .fontSize(14)
-              .fontColor(YibuqueColor.textSecondary)
-          }
-          .layoutWeight(1)
-          .alignItems(HorizontalAlign.Start)
-
-          Button('取消')
-            .height(40)
-            .fontSize(14)
-            .fontColor(YibuqueColor.textSecondary)
-            .backgroundColor(YibuqueColor.cardWhite)
-            .borderRadius(YibuqueRadius.full)
-            .border({ width: 1, color: YibuqueColor.borderLight })
-            .onClick(() => {
-              this.onCancel();
-            })
+    Column() {
+      SecondaryPageHeader({
+        title: this.initialWearLog === undefined ? '记录每日穿搭' : '编辑每日穿搭',
+        backAccessibilityText: '返回穿搭',
+        onBack: () => {
+          this.onCancel();
         }
-        .width('100%')
-        .alignItems(VerticalAlign.Center)
+      })
 
+      Scroll() {
+        Column({ space: 16 }) {
         OutfitPicker({
           outfits: this.outfits,
           selectedOutfitId: this.outfitTemplateId,
@@ -244,10 +226,14 @@ export struct WearLogEditPage {
           .onClick(() => {
             this.saveWearLog();
           })
+        }
+        .width('100%')
+        .padding(YibuqueSpacing.pageX)
+        .alignItems(HorizontalAlign.Start)
       }
       .width('100%')
-      .padding(YibuqueSpacing.pageX)
-      .alignItems(HorizontalAlign.Start)
+      .layoutWeight(1)
+      .scrollBar(BarState.Off)
     }
     .width('100%')
     .height('100%')

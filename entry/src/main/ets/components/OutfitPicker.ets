@@ -11,7 +11,7 @@ export struct OutfitPicker {
     Column({ space: YibuqueSpacing.sm }) {
       Text('选择美搭')
         .fontSize(16)
-        .fontWeight(FontWeight.Bold)
+        .fontWeight(FontWeight.Regular)
         .fontColor(YibuqueColor.textPrimary)
 
       if (this.outfits.length === 0) {
@@ -24,7 +24,7 @@ export struct OutfitPicker {
             Column({ space: 2 }) {
               Text(outfit.title)
                 .fontSize(15)
-                .fontWeight(FontWeight.Medium)
+                .fontWeight(FontWeight.Regular)
                 .fontColor(YibuqueColor.textPrimary)
 
               Text(`${outfit.clothingItemIds.length} 件单品`)

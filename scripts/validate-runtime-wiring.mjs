@@ -40,6 +40,7 @@ for (const needle of [
   'MigrationRunner',
   'v1InitialSchema',
   'v3StoreVisitSchema',
+  'v4StoreVisitDetails',
   'detectSearchCapability',
   'new ClothingRepository',
   'new OutfitRepository',
@@ -54,7 +55,8 @@ for (const needle of [
   'runMigrations()',
   'ensureBaseSchema',
   'v1InitialSchema.up(database)',
-  'v3StoreVisitSchema.up(database)'
+  'v3StoreVisitSchema.up(database)',
+  'v4StoreVisitDetails.up(database)'
 ]) {
   mustInclude(runtime, runtimePath, needle);
 }
@@ -107,8 +109,6 @@ for (const needle of [
   'searchRepository: this.runtime.searchRepository',
   'photoPickerAdapter: this.runtime.photoPickerAdapter',
   'photoStorage: this.runtime.photoStorage',
-  'ClothingEditPage({',
-  'OutfitEditPage({',
   'this.runtime.clothingRepository.listClothing()',
   'BottomNavigationBar({',
   'onSelectOutfit',
@@ -116,9 +116,9 @@ for (const needle of [
   'QuickCaptureSheet({',
   'StoreVisitPage({',
   'storeRepository: this.runtime.storeRepository',
-  'StoreVisitEditPage({',
   'ProfilePage({',
   'profileRepository: this.runtime.profileRepository',
+  'clothingRepository: this.runtime.clothingRepository',
   '正在初始化'
 ]) {
   mustInclude(index, indexPath, needle);
@@ -160,8 +160,10 @@ const pageChecks = [
     file: 'entry/src/main/ets/pages/ProfilePage.ets',
     needles: [
       'profileRepository?: ProfileRepository',
+      'clothingRepository?: ClothingRepository',
       'aboutToAppear()',
       'loadProfile',
+      'loadWardrobeSummary',
       'saveProfile'
     ]
   }

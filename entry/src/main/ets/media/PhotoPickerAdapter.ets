@@ -63,8 +63,8 @@ export class HarmonyCameraCaptureProvider implements CameraCaptureProvider {
       profile
     );
 
-    if (result.resultUri.trim().length === 0) {
-      throw new Error('HarmonyOS camera did not return a photo URI.');
+    if (result === undefined || result.resultUri === undefined || result.resultUri.trim().length === 0) {
+      throw new Error('相机未返回照片，请重新拍摄');
     }
 
     return result.resultUri;

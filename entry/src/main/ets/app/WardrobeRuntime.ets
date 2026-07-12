@@ -5,6 +5,7 @@ import { MigrationRunner } from '../data/migrations/MigrationRunner';
 import { v1InitialSchema } from '../data/migrations/V1InitialSchema';
 import { v2ClothingPurchaseColumns } from '../data/migrations/V2ClothingPurchaseColumns';
 import { v3StoreVisitSchema } from '../data/migrations/V3StoreVisitSchema';
+import { v4StoreVisitDetails } from '../data/migrations/V4StoreVisitDetails';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { ProfileRepository } from '../data/repositories/ProfileRepository';
@@ -143,7 +144,12 @@ export class WardrobeRuntime {
 
   static async create(context: common.Context): Promise<WardrobeRuntime> {
     const database = new DatabaseProvider(context);
-    const migrationRunner = new MigrationRunner(database, [v1InitialSchema, v2ClothingPurchaseColumns, v3StoreVisitSchema]);
+    const migrationRunner = new MigrationRunner(database, [
+      v1InitialSchema,
+      v2ClothingPurchaseColumns,
+      v3StoreVisitSchema,
+      v4StoreVisitDetails
+    ]);
     await migrationRunner.runMigrations();
     await WardrobeRuntime.ensureBaseSchema(database);
 
@@ -170,5 +176,6 @@ export class WardrobeRuntime {
     await v1InitialSchema.up(database);
     await v2ClothingPurchaseColumns.up(database);
     await v3StoreVisitSchema.up(database);
+    await v4StoreVisitDetails.up(database);
   }
 }

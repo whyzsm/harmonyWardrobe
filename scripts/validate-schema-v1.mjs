@@ -113,8 +113,8 @@ if (/catch\s*\(\s*error\s*\)[\s\S]*?throw\s+error/.test(v2Text)) {
 }
 
 const runtimeText = fs.readFileSync(runtimeFile, 'utf8');
-if (!runtimeText.includes('v2ClothingPurchaseColumns') || !runtimeText.includes('v3StoreVisitSchema') || !runtimeText.includes('[v1InitialSchema, v2ClothingPurchaseColumns, v3StoreVisitSchema]')) {
-  console.error('WardrobeRuntime must run V1, V2, then V3 migrations in order.');
+if (!runtimeText.includes('v2ClothingPurchaseColumns') || !runtimeText.includes('v3StoreVisitSchema') || !runtimeText.includes('v4StoreVisitDetails')) {
+  console.error('WardrobeRuntime must run V1 through V4 migrations.');
   process.exit(1);
 }
 
@@ -144,4 +144,24 @@ for (const needle of [
 if (/DROP\s+TABLE/i.test(v3Text)) {
   console.error('V3 migration must not drop old tables.');
   process.exit(1);
+}
+
+const v4File = 'entry/src/main/ets/data/migrations/V4StoreVisitDetails.ets';
+if (!fs.existsSync(v4File)) {
+  console.error(`${v4File} must exist for store visit status and focus tags.`);
+  process.exit(1);
+}
+
+const v4Text = fs.readFileSync(v4File, 'utf8');
+for (const needle of [
+  'version: number = 4',
+  'PRAGMA table_info(store_visits)',
+  'status',
+  'focus_tags',
+  'ALTER TABLE store_visits ADD COLUMN'
+]) {
+  if (!v4Text.includes(needle)) {
+    console.error(`V4 store visit details migration missing ${needle}`);
+    process.exit(1);
+  }
 }

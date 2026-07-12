@@ -12,10 +12,7 @@ export struct AppTopBar {
           Row()
             .width(30)
             .height(30)
-            .linearGradient({
-              angle: 135,
-              colors: [[YibuqueColor.cardMint, 0], [YibuqueColor.cardBlue, 1]]
-            })
+            .backgroundColor(YibuqueColor.cardBlue)
             .borderRadius(12)
 
           SymbolGlyph($r('sys.symbol.shirt'))
@@ -26,11 +23,11 @@ export struct AppTopBar {
         .height(36)
         .backgroundColor('#00FFFFFF')
         .borderRadius(YibuqueRadius.lg)
-        .shadow({ radius: 14, color: '#24B11B68', offsetX: 0, offsetY: 6 })
+        .shadow({ radius: 12, color: '#18000000', offsetX: 0, offsetY: 4 })
 
         Text('衣不缺')
           .fontSize(20)
-          .fontWeight(FontWeight.Bold)
+          .fontWeight(FontWeight.Regular)
           .fontColor(YibuqueColor.textPrimary)
       }
       .layoutWeight(1)
@@ -50,7 +47,7 @@ export struct AppTopBar {
         Text('我的')
           .height(44)
           .fontSize(YibuqueFontSize.meta)
-          .fontWeight(FontWeight.Medium)
+          .fontWeight(FontWeight.Regular)
           .fontColor(YibuqueColor.textPrimary)
       }
       .height(48)
@@ -75,10 +72,8 @@ export struct AppTopBar {
     .width('100%')
     .height(60)
     .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX })
-    .linearGradient({
-      angle: 135,
-      colors: [[YibuqueColor.bgDefault, 0], [YibuqueColor.bgHeaderBlue, 1]]
-    })
+    .backgroundColor(YibuqueColor.cardWhite)
+    .border({ width: { bottom: 1 }, color: YibuqueColor.borderLight })
     .alignItems(VerticalAlign.Center)
   }
 }

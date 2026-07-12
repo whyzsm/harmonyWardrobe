@@ -45,7 +45,7 @@ for (const needle of ['衣柜', '逛店', '套装', '我的']) {
   mustInclude(nav, navPath, needle);
 }
 
-for (const needle of ['拍照', '从相册选择']) {
+for (const needle of ['拍一张', '从相册选择']) {
   mustInclude(quickSheet, quickSheetPath, needle);
 }
 

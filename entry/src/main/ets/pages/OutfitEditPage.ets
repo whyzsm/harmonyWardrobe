@@ -1,5 +1,5 @@
 import { ClothingPicker } from '../components/ClothingPicker';
-import { PhotoGrid } from '../components/PhotoGrid';
+import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import {
   CreateOutfitInput,
   OutfitRepository,
@@ -148,103 +148,131 @@ export struct OutfitEditPage {
 
   @Builder
   PhotoSelector() {
-    Column({ space: YibuqueSpacing.md }) {
+    Stack({ alignContent: Alignment.BottomStart }) {
       if (this.hasSelectedPhoto()) {
-        PhotoGrid({ photoUris: this.photoUris })
+        Image(this.photoUris[0])
+          .width('100%')
+          .height('100%')
+          .objectFit(ImageFit.Cover)
       } else {
-        Column({ space: YibuqueSpacing.sm }) {
-          SymbolGlyph($r('sys.symbol.plus_circle'))
-            .fontSize(34)
-            .fontColor([YibuqueColor.textPrimary])
-
-          Text('添加搭配照片')
-            .fontSize(17)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textPrimary)
-
-          Text('图片必填，其余信息都可选填')
-            .fontSize(13)
-            .fontColor(YibuqueColor.textSecondary)
+        Column() {
+          SymbolGlyph($r('sys.symbol.picture'))
+            .fontSize(42)
+            .fontColor([YibuqueColor.textTertiary])
         }
         .width('100%')
-        .height(176)
+        .height('100%')
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .backgroundColor(YibuqueColor.cardWhite)
-        .borderRadius(YibuqueRadius.xxl)
-        .border({ width: 1, color: YibuqueColor.borderLight })
-        .onClick(() => {
-          this.pickGalleryPhotos();
-        })
       }
 
-      Row({ space: YibuqueSpacing.md }) {
-        Button(this.hasSelectedPhoto() ? '继续选图' : '从相册选择')
-          .height(48)
-          .layoutWeight(1)
-          .fontSize(15)
-          .fontWeight(FontWeight.Bold)
-          .backgroundColor(YibuqueColor.actionBlack)
-          .fontColor(YibuqueColor.textInverse)
-          .borderRadius(YibuqueRadius.full)
-          .onClick(() => {
-            this.pickGalleryPhotos();
+      if (this.hasSelectedPhoto()) {
+        Column()
+          .width('100%')
+          .height('60%')
+          .linearGradient({
+            angle: 180,
+            colors: [['#00000000', 0], ['#99000000', 1]]
           })
+      }
 
-        Button('拍照')
-          .height(48)
-          .layoutWeight(1)
-          .fontSize(15)
-          .fontColor(YibuqueColor.textPrimary)
-          .backgroundColor(YibuqueColor.cardWhite)
-          .borderRadius(YibuqueRadius.full)
-          .border({ width: 1, color: YibuqueColor.borderLight })
-          .onClick(() => {
-            this.capturePhoto();
-          })
+      Column() {
+        Row() {
+          Blank()
+          this.CameraAction()
+        }
+        .width('100%')
+        .padding({ top: 16, right: 16 })
+
+        Blank()
+
+        Column({ space: 8 }) {
+          Text('记录这套美搭的第一眼')
+            .fontSize(20)
+            .lineHeight(28)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(this.hasSelectedPhoto() ? '#FFFFFF' : YibuqueColor.textPrimary)
+
+          Text('整体、细节或上身效果都可以')
+            .fontSize(14)
+            .lineHeight(20)
+            .fontColor(this.hasSelectedPhoto() ? '#D9FFFFFF' : YibuqueColor.textSecondary)
+
+          this.GalleryAction()
+        }
+        .width('100%')
+        .padding({ left: 24, right: 24, bottom: 24 })
+        .alignItems(HorizontalAlign.Start)
       }
       .width('100%')
+      .height('100%')
     }
     .width('100%')
+    .aspectRatio(530 / 386)
+    .backgroundColor('#E4E2E2')
+    .borderRadius(24)
+    .border({ width: 1, color: '#4DC4C7C7' })
+    .clip(true)
+    .accessibilityText(this.hasSelectedPhoto() ? `已选择 ${this.photoUris.length} 张美搭照片` : '添加美搭照片')
+  }
+
+  @Builder
+  CameraAction() {
+    Stack({ alignContent: Alignment.Center }) {
+      SymbolGlyph($r('sys.symbol.camera_fill'))
+        .fontSize(24)
+        .fontColor(['#000000'])
+    }
+    .width(48)
+    .height(48)
+    .backgroundColor('#F2FFFFFF')
+    .borderRadius(24)
+    .accessibilityText('拍照')
+    .onClick(() => {
+      this.capturePhoto();
+    })
+  }
+
+  @Builder
+  GalleryAction() {
+    Row({ space: 8 }) {
+      SymbolGlyph($r('sys.symbol.picture'))
+        .fontSize(18)
+        .fontColor(['#000000'])
+      Text(this.photoUris.length > 1 ? `已选择 ${this.photoUris.length} 张` : (this.hasSelectedPhoto() ? '继续选图' : '选择照片'))
+        .fontSize(14)
+        .fontWeight(FontWeight.Regular)
+        .fontColor('#000000')
+    }
+    .width(164)
+    .height(48)
+    .justifyContent(FlexAlign.Center)
+    .backgroundColor('#FFFFFF')
+    .borderRadius(24)
+    .accessibilityText('选择照片')
+    .onClick(() => {
+      this.pickGalleryPhotos();
+    })
   }
 
   build() {
-    Scroll() {
-      Column({ space: YibuqueSpacing.lg }) {
-        Row() {
-          Column({ space: YibuqueSpacing.xs }) {
-            Text(this.initialOutfit === undefined ? '创建美搭' : '编辑美搭')
-              .fontSize(28)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(YibuqueColor.textPrimary)
-
-            Text('添加搭配照片即可保存，其余信息都可选填。')
-              .fontSize(14)
-              .fontColor(YibuqueColor.textSecondary)
-          }
-          .layoutWeight(1)
-          .alignItems(HorizontalAlign.Start)
-
-          Button('取消')
-            .height(44)
-            .fontSize(15)
-            .fontColor(YibuqueColor.textSecondary)
-            .backgroundColor(YibuqueColor.cardWhite)
-            .borderRadius(YibuqueRadius.full)
-            .border({ width: 1, color: YibuqueColor.borderLight })
-            .onClick(() => {
-              this.onCancel();
-            })
+    Column() {
+      SecondaryPageHeader({
+        title: this.initialOutfit === undefined ? '创建美搭' : '编辑美搭',
+        backAccessibilityText: '返回套装',
+        onBack: () => {
+          this.onCancel();
         }
-        .width('100%')
-        .alignItems(VerticalAlign.Center)
+      })
 
+      Scroll() {
+        Column({ space: YibuqueSpacing.lg }) {
         this.PhotoSelector()
 
         Column({ space: YibuqueSpacing.md }) {
           Text('美搭信息（选填）')
             .fontSize(18)
-            .fontWeight(FontWeight.Bold)
+            .fontWeight(FontWeight.Regular)
             .fontColor(YibuqueColor.textPrimary)
 
           TextInput({ text: this.title, placeholder: '美搭名称，可不填' })
@@ -294,7 +322,7 @@ export struct OutfitEditPage {
           .height(56)
           .width('100%')
           .fontSize(17)
-          .fontWeight(FontWeight.Bold)
+          .fontWeight(FontWeight.Regular)
           .fontColor(YibuqueColor.textInverse)
           .backgroundColor(this.canSave() ? YibuqueColor.actionBlack : YibuqueColor.textDisabled)
           .borderRadius(YibuqueRadius.full)
@@ -302,10 +330,14 @@ export struct OutfitEditPage {
           .onClick(() => {
             this.saveOutfit();
           })
+        }
+        .width('100%')
+        .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.lg, bottom: YibuqueSpacing.xxl })
+        .alignItems(HorizontalAlign.Start)
       }
       .width('100%')
-      .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.xxl, bottom: YibuqueSpacing.xxl })
-      .alignItems(HorizontalAlign.Start)
+      .layoutWeight(1)
+      .scrollBar(BarState.Off)
     }
     .width('100%')
     .height('100%')

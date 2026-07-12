@@ -197,7 +197,7 @@ export struct TodayPage {
     Column() {
       Text(title)
         .fontSize(16)
-        .fontWeight(this.selectedHomeTabIndex === index ? FontWeight.Bold : FontWeight.Medium)
+        .fontWeight(this.selectedHomeTabIndex === index ? FontWeight.Regular : FontWeight.Regular)
         .fontColor(this.selectedHomeTabIndex === index ? AppTheme.color.primary : AppTheme.color.textMuted)
         .lineHeight(22)
         .margin({ top: 14, bottom: 6 })
@@ -255,7 +255,7 @@ export struct TodayPage {
   @Builder
   TabDiscover() {
     Column() {
-      Row() { Text('发现页').fontSize(20).fontWeight(FontWeight.Bold) }
+      Row() { Text('发现页').fontSize(20).fontWeight(FontWeight.Regular) }
         .width('100%').justifyContent(FlexAlign.Center).height('100%')
     }
     .width('100%').height('100%').backgroundColor(AppTheme.color.surface)
@@ -264,7 +264,7 @@ export struct TodayPage {
   @Builder
   TabAdd() {
     Column() {
-      Row() { Text('发布内容').fontSize(20).fontWeight(FontWeight.Bold) }
+      Row() { Text('发布内容').fontSize(20).fontWeight(FontWeight.Regular) }
         .width('100%').justifyContent(FlexAlign.Center).height('100%')
     }
     .width('100%').height('100%').backgroundColor(AppTheme.color.surface)
@@ -273,7 +273,7 @@ export struct TodayPage {
   @Builder
   TabMessage() {
     Column() {
-      Row() { Text('消息页').fontSize(20).fontWeight(FontWeight.Bold) }
+      Row() { Text('消息页').fontSize(20).fontWeight(FontWeight.Regular) }
         .width('100%').justifyContent(FlexAlign.Center).height('100%')
     }
     .width('100%').height('100%').backgroundColor(AppTheme.color.surface)
@@ -282,7 +282,7 @@ export struct TodayPage {
   @Builder
   TabProfile() {
     Column() {
-      Row() { Text('个人中心').fontSize(20).fontWeight(FontWeight.Bold) }
+      Row() { Text('个人中心').fontSize(20).fontWeight(FontWeight.Regular) }
         .width('100%').justifyContent(FlexAlign.Center).height('100%')
     }
     .width('100%').height('100%').backgroundColor(AppTheme.color.surface)
@@ -522,7 +522,7 @@ export struct TodayPage {
 
       Column({ space: 6 }) {
         Text(item.title)
-          .fontSize(14).fontWeight(FontWeight.Medium).fontColor(AppTheme.color.text)
+          .fontSize(14).fontWeight(FontWeight.Regular).fontColor(AppTheme.color.text)
           .maxLines(2).textOverflow({ overflow: TextOverflow.Ellipsis }).width('100%')
 
         Row({ space: 6 }) {

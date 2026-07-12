@@ -19,9 +19,12 @@ for (const needle of [
   'createdAt: string',
   'updatedAt: string',
   'export interface StoreVisit',
+  'export enum StoreVisitStatus',
   'storeId?: string',
   'storeNameSnapshot: string',
-  'visitDate: string'
+  'visitDate: string',
+  'status?: StoreVisitStatus',
+  'focusTags?: string[]'
 ]) {
   mustInclude(needle);
 }
