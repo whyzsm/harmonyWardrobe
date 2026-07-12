@@ -51,6 +51,8 @@ export struct WardrobePage {
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
   onDetailModeChange: (showDetailTopBar: boolean) => void = () => {};
+  onClothingEditorVisibilityChange: (visible: boolean) => void = () => {};
+  onNestedPageVisibilityChange: (visible: boolean) => void = () => {};
   @Prop initialWardrobeTab: string = '衣裤';
 
   @State private selectedWardrobeTab: string = '衣裤';
@@ -86,6 +88,8 @@ export struct WardrobePage {
 
   aboutToDisappear(): void {
     this.onDetailModeChange(false);
+    this.onClothingEditorVisibilityChange(false);
+    this.onNestedPageVisibilityChange(false);
   }
 
   private async loadClothingItems(): Promise<void> {
@@ -292,53 +296,67 @@ export struct WardrobePage {
   private openCreateEditor(): void {
     this.editingClothingId = '';
     this.showEditor = true;
+    this.onClothingEditorVisibilityChange(true);
+    this.onNestedPageVisibilityChange(true);
   }
 
   private openEditEditor(item: ClothingItem): void {
     this.editingClothingId = item.id;
     this.showEditor = true;
+    this.onClothingEditorVisibilityChange(true);
+    this.onNestedPageVisibilityChange(true);
   }
 
   private closeEditor(): void {
     this.showEditor = false;
     this.editingClothingId = '';
+    this.onClothingEditorVisibilityChange(false);
+    this.onNestedPageVisibilityChange(this.showClothingDetail);
   }
 
   private openClothingDetail(item: ClothingItem): void {
     this.detailClothingId = item.id;
     this.showClothingDetail = true;
     this.onDetailModeChange(true);
+    this.onNestedPageVisibilityChange(true);
   }
 
   private closeClothingDetail(): void {
     this.showClothingDetail = false;
     this.detailClothingId = '';
     this.onDetailModeChange(false);
+    this.onNestedPageVisibilityChange(false);
   }
 
   private editFromDetail(item: ClothingItem): void {
     this.editingClothingId = item.id;
     this.showEditor = true;
+    this.onClothingEditorVisibilityChange(true);
+    this.onNestedPageVisibilityChange(true);
   }
 
   private openOutfitEditor(outfit?: OutfitTemplate): void {
     this.editingOutfitId = outfit?.id ?? '';
     this.showOutfitEditor = true;
+    this.onNestedPageVisibilityChange(true);
   }
 
   private closeOutfitEditor(): void {
     this.showOutfitEditor = false;
     this.editingOutfitId = '';
+    this.onNestedPageVisibilityChange(false);
   }
 
   private openWearLogEditor(wearLog?: WearLog): void {
     this.editingWearLogId = wearLog?.id ?? '';
     this.showWearLogEditor = true;
+    this.onNestedPageVisibilityChange(true);
   }
 
   private closeWearLogEditor(): void {
     this.showWearLogEditor = false;
     this.editingWearLogId = '';
+    this.onNestedPageVisibilityChange(false);
   }
 
   private editingWearLog(): WearLog | undefined {
@@ -402,6 +420,7 @@ export struct WardrobePage {
   private openUnifiedSearch(query: string): void {
     this.unifiedSearchQuery = query;
     this.showUnifiedSearch = query.trim().length > 0;
+    this.onNestedPageVisibilityChange(this.showUnifiedSearch);
   }
 
   private retry(): void {
@@ -494,6 +513,7 @@ export struct WardrobePage {
         clothingRepository: this.clothingRepository,
         onClose: () => {
           this.showUnifiedSearch = false;
+          this.onNestedPageVisibilityChange(false);
         }
       })
     } else {
@@ -538,7 +558,7 @@ export struct WardrobePage {
 
             Text('先放入第一件衣服')
               .fontSize(16)
-              .fontWeight(FontWeight.Medium)
+              .fontWeight(FontWeight.Regular)
               .fontColor(YibuqueColor.textPrimary)
 
             Text('拍照或从相册选图后，按分类收进衣橱。')
@@ -653,7 +673,7 @@ export struct WardrobePage {
           .height(42)
           .padding({ left: 22, right: 22 })
           .fontSize(15)
-          .fontWeight(this.isWardrobePrimaryTabSelected(tab) ? FontWeight.Bold : FontWeight.Medium)
+          .fontWeight(this.isWardrobePrimaryTabSelected(tab) ? FontWeight.Regular : FontWeight.Regular)
           .fontColor(this.isWardrobePrimaryTabSelected(tab) ? YibuqueColor.textInverse : OPEN_DESIGN_BLACK)
           .textAlign(TextAlign.Center)
           .backgroundColor(this.isWardrobePrimaryTabSelected(tab) ? OPEN_DESIGN_BLACK : OPEN_DESIGN_SURFACE)
@@ -680,14 +700,14 @@ export struct WardrobePage {
           Row() {
             Text(this.currentMonth)
               .fontSize(20)
-              .fontWeight(FontWeight.Bold)
+              .fontWeight(FontWeight.Regular)
               .fontColor(YibuqueColor.textPrimary)
               .layoutWeight(1)
 
             Button('补记')
               .height(38)
               .fontSize(14)
-              .fontWeight(FontWeight.Bold)
+              .fontWeight(FontWeight.Regular)
               .fontColor(YibuqueColor.textInverse)
               .backgroundColor(YibuqueColor.actionBlack)
               .borderRadius(YibuqueRadius.full)
@@ -716,7 +736,7 @@ export struct WardrobePage {
 
         Text(`${this.selectedDate} 的穿搭`)
           .fontSize(18)
-          .fontWeight(FontWeight.Bold)
+          .fontWeight(FontWeight.Regular)
           .fontColor(YibuqueColor.textPrimary)
           .width('100%')
 
@@ -724,7 +744,7 @@ export struct WardrobePage {
           Column({ space: YibuqueSpacing.sm }) {
             Text('今天穿了什么？')
               .fontSize(20)
-              .fontWeight(FontWeight.Bold)
+              .fontWeight(FontWeight.Regular)
               .fontColor(YibuqueColor.textPrimary)
 
             Text('从相机记录一套，也可以在这里补记。')
@@ -776,7 +796,7 @@ export struct WardrobePage {
       Column({ space: YibuqueSpacing.xs }) {
         Text(wearLog.outfitTitleSnapshot)
           .fontSize(17)
-          .fontWeight(FontWeight.Bold)
+          .fontWeight(FontWeight.Regular)
           .fontColor(YibuqueColor.textPrimary)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -789,7 +809,7 @@ export struct WardrobePage {
 
         Text('编辑')
           .fontSize(13)
-          .fontWeight(FontWeight.Bold)
+          .fontWeight(FontWeight.Regular)
           .fontColor(YibuqueColor.textPrimary)
           .onClick(() => {
             this.openWearLogEditor(wearLog);
@@ -815,7 +835,7 @@ export struct WardrobePage {
 
             Text(category)
               .fontSize(13)
-              .fontWeight(this.selectedCategoryLabel === category ? FontWeight.Bold : FontWeight.Medium)
+              .fontWeight(this.selectedCategoryLabel === category ? FontWeight.Regular : FontWeight.Regular)
               .fontColor(this.selectedCategoryLabel === category ? SCREENSHOT_BLUE : '#626267')
           }
           .width(76)
@@ -925,7 +945,7 @@ export struct WardrobePage {
       Text(this.displayItemTitle(item, index))
         .width('100%')
         .fontSize(14)
-        .fontWeight(FontWeight.Medium)
+        .fontWeight(FontWeight.Regular)
         .fontColor(OPEN_DESIGN_BLACK)
         .lineHeight(20)
         .maxLines(2)
@@ -1000,7 +1020,7 @@ export struct WardrobePage {
 
       Text(outfit.title)
         .fontSize(17)
-        .fontWeight(FontWeight.Bold)
+        .fontWeight(FontWeight.Regular)
         .fontColor(YibuqueColor.textPrimary)
         .maxLines(1)
         .textOverflow({ overflow: TextOverflow.Ellipsis })

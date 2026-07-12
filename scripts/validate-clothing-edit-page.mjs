@@ -10,16 +10,45 @@ if (!fs.existsSync(editPagePath)) {
 const editPage = fs.readFileSync(editPagePath, 'utf8');
 const wardrobePage = fs.readFileSync(wardrobePagePath, 'utf8');
 
+function bracedBlock(source, marker) {
+  const markerIndex = source.indexOf(marker);
+  if (markerIndex < 0) {
+    throw new Error(`ClothingEditPage missing block marker ${marker}`);
+  }
+
+  const openIndex = source.indexOf('{', markerIndex + marker.length);
+  if (openIndex < 0) {
+    throw new Error(`ClothingEditPage missing opening brace after ${marker}`);
+  }
+
+  let depth = 0;
+  for (let index = openIndex; index < source.length; index += 1) {
+    if (source[index] === '{') {
+      depth += 1;
+    } else if (source[index] === '}') {
+      depth -= 1;
+      if (depth === 0) {
+        return { body: source.slice(openIndex + 1, index), endIndex: index + 1 };
+      }
+    }
+  }
+
+  throw new Error(`ClothingEditPage has an unterminated block after ${marker}`);
+}
+
 for (const needle of [
   'PhotoPickerAdapter',
   'PhotoStorage',
-  'PhotoGrid',
   'ClothingRepository',
   'name',
   'category',
   'previewPhotoUri',
-  'PhotoSelector',
-  "Text('封面')",
+  'PhotoHero',
+  'ItemDetailCard',
+  'CategorySection',
+  'NoteSection',
+  'PurchaseSection',
+  'SaveAction',
   'purchase',
   'storeName',
   'price',
@@ -41,20 +70,60 @@ for (const needle of [
   'YibuqueRadius',
   'YibuqueShadow',
   'YibuqueColor.actionBlack',
-  '添加衣服照片',
-  '从相册选择一组清晰单品照',
-  '基础信息（选填）',
-  '自动生成衣物名称，可修改',
+  '选择照片',
+  '项目详情',
+  '已选：',
+  '输入关于这件衣服的描述...',
   '分类',
   '备注',
   '购买信息',
   '购买门店',
   '价格',
   '购买备注',
-  '保存衣服'
+  '保存衣物'
 ]) {
   if (!editPage.includes(needle)) {
     throw new Error(`ClothingEditPage missing ${needle}`);
+  }
+}
+
+for (const layoutNeedle of [
+  '.aspectRatio(1)',
+  "Row({ space: 12 })",
+  '.layoutWeight(1)',
+  "TextArea({ text: this.note, placeholder: '输入关于这件衣服的描述...' })",
+  "$r('sys.symbol.picture')",
+  "$r('sys.symbol.store_fill')",
+  "$r('sys.symbol.creditcard')",
+  "$r('sys.symbol.calendar')",
+  "$r('sys.symbol.list_bullet')",
+  'this.SaveAction()',
+  'bottom: 32'
+]) {
+  if (!editPage.includes(layoutNeedle)) {
+    throw new Error(`ClothingEditPage screenshot structure missing ${layoutNeedle}`);
+  }
+}
+
+const scrollBlock = bracedBlock(editPage, 'Scroll()');
+if (scrollBlock.body.includes('this.SaveAction()') || editPage.indexOf('this.SaveAction()', scrollBlock.endIndex) < 0) {
+  throw new Error('ClothingEditPage must keep SaveAction outside the scrolling content');
+}
+
+if (!/const DISPLAY_CATEGORY_OPTIONS[\s\S]*?上衣[\s\S]*?裤子[\s\S]*?短裤[\s\S]*?长裙/.test(editPage)) {
+  throw new Error('ClothingEditPage must expose the four screenshot category choices');
+}
+
+if (!/visibleCategoryOptions\(\)[\s\S]*?ClothingCategory\.HalfSkirt[\s\S]*?LEGACY_HALF_SKIRT_OPTION/.test(editPage)) {
+  throw new Error('ClothingEditPage must preserve and display legacy HalfSkirt values');
+}
+
+for (const marker of ['private createInput()', 'private updateInput(']) {
+  const inputBlock = bracedBlock(editPage, marker).body;
+  for (const field of ['name:', 'category:', 'photoUris:', 'note:', 'purchaseInfo:']) {
+    if (!inputBlock.includes(field)) {
+      throw new Error(`ClothingEditPage ${marker} missing persisted field ${field}`);
+    }
   }
 }
 
@@ -106,6 +175,7 @@ for (const needle of [
   'showEditor',
   'editingClothingId',
   'openCreateEditor',
+  'onClothingEditorVisibilityChange',
   'onEdit',
   'onCancel'
 ]) {

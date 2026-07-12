@@ -1,4 +1,4 @@
-import { PhotoGrid } from '../components/PhotoGrid';
+import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import {
   ClothingRepository,
   CreateClothingInput,
@@ -23,6 +23,16 @@ const CATEGORY_OPTIONS: ClothingCategoryOption[] = [
   { label: '长裙', value: ClothingCategory.LongSkirt },
   { label: '半裙', value: ClothingCategory.HalfSkirt }
 ];
+const DISPLAY_CATEGORY_OPTIONS: ClothingCategoryOption[] = [
+  { label: '上衣', value: ClothingCategory.Top },
+  { label: '裤子', value: ClothingCategory.Pants },
+  { label: '短裤', value: ClothingCategory.Shorts },
+  { label: '长裙', value: ClothingCategory.LongSkirt }
+];
+const LEGACY_HALF_SKIRT_OPTION: ClothingCategoryOption = {
+  label: '半裙',
+  value: ClothingCategory.HalfSkirt
+};
 const MAX_CLOTHING_PHOTOS = 20;
 
 function labelForCategory(category: ClothingCategory): string {
@@ -111,6 +121,19 @@ export struct ClothingEditPage {
 
   private hasSelectedPhoto(): boolean {
     return this.photoUris.length > 0;
+  }
+
+  private visibleCategoryOptions(): ClothingCategoryOption[] {
+    if (this.category === ClothingCategory.HalfSkirt) {
+      return [
+        DISPLAY_CATEGORY_OPTIONS[0],
+        DISPLAY_CATEGORY_OPTIONS[1],
+        DISPLAY_CATEGORY_OPTIONS[2],
+        LEGACY_HALF_SKIRT_OPTION
+      ];
+    }
+
+    return DISPLAY_CATEGORY_OPTIONS;
   }
 
   private purchasePrice(): number | undefined {
@@ -253,281 +276,350 @@ export struct ClothingEditPage {
   }
 
   @Builder
-  PhotoSelector() {
-    Stack({ alignContent: Alignment.Center }) {
+  PhotoHero() {
+    Stack({ alignContent: Alignment.BottomStart }) {
       if (this.hasSelectedPhoto()) {
-        Stack({ alignContent: Alignment.TopStart }) {
-          PhotoGrid({ photoUris: this.photoUris })
-            .width('100%')
-            .height('100%')
-
-          Text('封面')
-            .fontSize(12)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textPrimary)
-            .padding({ left: 12, right: 12, top: 6, bottom: 6 })
-            .backgroundColor(YibuqueColor.cardWhite)
-            .borderRadius(YibuqueRadius.full)
-            .margin({ left: 14, top: 14 })
-
-          Text('更换照片')
-            .fontSize(13)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textInverse)
-            .padding({ left: 14, right: 14, top: 7, bottom: 7 })
-            .backgroundColor(YibuqueColor.overlayDark)
-            .borderRadius(YibuqueRadius.full)
-            .margin({ left: 14, top: 126 })
-        }
-        .width('100%')
-        .height(176)
-        .borderRadius(YibuqueRadius.xxl)
-        .clip(true)
+        Image(this.previewPhotoUri)
+          .width('100%')
+          .height('100%')
+          .objectFit(ImageFit.Cover)
       } else {
-        Column({ space: YibuqueSpacing.sm }) {
-          SymbolGlyph($r('sys.symbol.plus_circle'))
-            .fontSize(34)
-            .fontColor([YibuqueColor.textPrimary])
+        Column({ space: 10 }) {
+          SymbolGlyph($r('sys.symbol.picture'))
+            .fontSize(36)
+            .fontColor([YibuqueColor.textSecondary])
 
-          Text('添加衣服照片')
-            .fontSize(17)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textPrimary)
-
-          Text('从相册选择一组清晰单品照')
-            .fontSize(13)
+          Text('选择一张衣物照片')
+            .fontSize(16)
             .fontColor(YibuqueColor.textSecondary)
         }
         .width('100%')
-        .height(176)
+        .height('100%')
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .backgroundColor(YibuqueColor.cardWhite)
-        .borderRadius(YibuqueRadius.xxl)
-        .border({ width: 1, color: YibuqueColor.borderLight })
+        .backgroundColor(YibuqueColor.cardSoftGray)
       }
+
+      Row({ space: 10 }) {
+        SymbolGlyph($r('sys.symbol.picture'))
+          .fontSize(18)
+          .fontColor([YibuqueColor.textPrimary])
+
+        Text('选择照片')
+          .fontSize(15)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textPrimary)
+      }
+      .height(44)
+      .padding({ left: 18, right: 18 })
+      .margin({ left: 24, bottom: 24 })
+      .backgroundColor(YibuqueColor.cardWhite)
+      .borderRadius(YibuqueRadius.full)
+      .shadow(YibuqueShadow.soft)
     }
     .width('100%')
-    .height(176)
-    .borderRadius(YibuqueRadius.xxl)
-    .shadow(YibuqueShadow.soft)
+    .aspectRatio(1)
+    .borderRadius(YibuqueRadius.xxxl)
+    .clip(true)
+    .accessibilityText('选择衣物照片')
     .onClick(() => {
       this.pickGalleryPhotos();
     })
   }
 
-  build() {
-    Scroll() {
-      Column({ space: YibuqueSpacing.lg }) {
-        Row() {
-          Column({ space: YibuqueSpacing.xs }) {
-            Text(this.initialItem === undefined ? '添加衣服' : '编辑衣服')
-              .fontSize(28)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(YibuqueColor.textPrimary)
+  @Builder
+  ItemDetailCard() {
+    Column({ space: 2 }) {
+      Text('项目详情')
+        .fontSize(13)
+        .fontWeight(FontWeight.Regular)
+        .fontColor(YibuqueColor.textSecondary)
 
-            Text('选图后会自动生成名称，其余信息都可选填。')
-              .fontSize(14)
-              .fontColor(YibuqueColor.textSecondary)
-          }
+      TextInput({ text: this.name, placeholder: '衣物名称' })
+        .width('100%')
+        .height(42)
+        .padding(0)
+        .fontSize(20)
+        .fontWeight(FontWeight.Regular)
+        .fontColor(YibuqueColor.textPrimary)
+        .placeholderColor(YibuqueColor.textTertiary)
+        .backgroundColor('#00FFFFFF')
+        .onChange((value: string) => {
+          this.name = value;
+        })
+    }
+    .width('100%')
+    .height(98)
+    .padding({ left: 24, right: 24, top: 18, bottom: 12 })
+    .alignItems(HorizontalAlign.Start)
+    .justifyContent(FlexAlign.Center)
+    .backgroundColor(YibuqueColor.cardWhite)
+    .borderRadius(YibuqueRadius.xxxl)
+    .border({ width: 1, color: YibuqueColor.borderLight })
+  }
+
+  @Builder
+  CategorySection() {
+    Column({ space: 14 }) {
+      Row() {
+        Text('分类')
+          .fontSize(16)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textPrimary)
           .layoutWeight(1)
-          .alignItems(HorizontalAlign.Start)
 
-          Button('取消')
-            .height(44)
-            .fontSize(15)
-            .fontColor(YibuqueColor.textSecondary)
-            .backgroundColor(YibuqueColor.cardWhite)
-            .borderRadius(YibuqueRadius.full)
-            .border({ width: 1, color: YibuqueColor.borderLight })
-            .onClick(() => {
-              this.onCancel();
-            })
-        }
-        .width('100%')
-        .alignItems(VerticalAlign.Center)
+        Text(`已选：${labelForCategory(this.category)}`)
+          .fontSize(13)
+          .fontColor(YibuqueColor.textSecondary)
+      }
+      .width('100%')
+      .alignItems(VerticalAlign.Center)
 
-        this.PhotoSelector()
-
-        Column({ space: YibuqueSpacing.md }) {
-          Text('基础信息（选填）')
-            .fontSize(18)
-            .fontWeight(FontWeight.Bold)
-            .fontColor(YibuqueColor.textPrimary)
-
-          TextInput({ text: this.name, placeholder: '自动生成衣物名称，可修改' })
-            .height(52)
-            .fontSize(16)
-            .fontColor(YibuqueColor.textPrimary)
-            .placeholderColor(YibuqueColor.textTertiary)
-            .backgroundColor(YibuqueColor.cardSoftGray)
-            .borderRadius(YibuqueRadius.lg)
-            .onChange((value: string) => {
-              this.name = value;
-            })
-
-          Row() {
-            Text('分类')
-              .fontSize(15)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(YibuqueColor.textPrimary)
-              .layoutWeight(1)
-
-            Text(labelForCategory(this.category))
-              .fontSize(13)
-              .fontColor(YibuqueColor.textSecondary)
-          }
-          .width('100%')
-          .alignItems(VerticalAlign.Center)
-
-          Flex({ wrap: FlexWrap.Wrap }) {
-            ForEach(CATEGORY_OPTIONS, (option: ClothingCategoryOption) => {
-              Button(option.label)
-                .height(40)
-                .margin({ right: 8, bottom: 8 })
-                .fontSize(14)
-                .fontWeight(FontWeight.Bold)
-                .fontColor(option.value === this.category ? YibuqueColor.textInverse : YibuqueColor.textSecondary)
-                .backgroundColor(option.value === this.category ? YibuqueColor.actionBlack : YibuqueColor.cardWhite)
-                .borderRadius(YibuqueRadius.full)
-                .border({ width: 1, color: option.value === this.category ? YibuqueColor.actionBlack : YibuqueColor.borderLight })
-                .onClick(() => {
-                  this.category = option.value;
-                })
-            }, (option: ClothingCategoryOption) => option.value)
-          }
-
-          TextInput({ text: this.note, placeholder: '备注' })
-            .height(56)
-            .fontSize(16)
-            .fontColor(YibuqueColor.textPrimary)
-            .placeholderColor(YibuqueColor.textTertiary)
-            .backgroundColor(YibuqueColor.cardSoftGray)
-            .borderRadius(YibuqueRadius.lg)
-            .onChange((value: string) => {
-              this.note = value;
-            })
-        }
-        .width('100%')
-        .padding(YibuqueSpacing.lg)
-        .borderRadius(YibuqueRadius.xxl)
-        .backgroundColor(YibuqueColor.cardWhite)
-        .shadow(YibuqueShadow.card)
-        .alignItems(HorizontalAlign.Start)
-
-        Column({ space: YibuqueSpacing.md }) {
-          Column({ space: YibuqueSpacing.xs }) {
-            Text('购买信息')
-              .fontSize(18)
-              .fontWeight(FontWeight.Bold)
-              .fontColor(YibuqueColor.textPrimary)
-
-            Text('可选，方便以后回想在哪里买。')
-              .fontSize(13)
-              .fontColor(YibuqueColor.textSecondary)
-          }
-          .width('100%')
-          .alignItems(HorizontalAlign.Start)
-
-          TextInput({ text: this.storeName, placeholder: '购买门店' })
-            .height(50)
-            .fontSize(15)
-            .fontColor(YibuqueColor.textPrimary)
-            .placeholderColor(YibuqueColor.textTertiary)
-            .backgroundColor(YibuqueColor.cardSoftGray)
-            .borderRadius(YibuqueRadius.lg)
-            .onChange((value: string) => {
-              this.storeName = value;
-            })
-
-          TextInput({ text: this.price, placeholder: '价格' })
-            .height(50)
-            .fontSize(15)
-            .fontColor(YibuqueColor.textPrimary)
-            .placeholderColor(YibuqueColor.textTertiary)
-            .type(InputType.Number)
-            .backgroundColor(YibuqueColor.cardSoftGray)
-            .borderRadius(YibuqueRadius.lg)
-            .onChange((value: string) => {
-              this.price = value;
-            })
-
-          Row() {
-            Column({ space: 2 }) {
-              Text('购买日期')
-                .fontSize(12)
-                .fontColor(YibuqueColor.textSecondary)
-
-              Text(this.purchaseDate.length > 0 ? this.purchaseDate : '选择购买日期')
-                .fontSize(15)
-                .fontColor(this.purchaseDate.length > 0 ? YibuqueColor.textPrimary : YibuqueColor.textTertiary)
-            }
+      Row({ space: 12 }) {
+        ForEach(this.visibleCategoryOptions(), (option: ClothingCategoryOption) => {
+          Button(option.label)
+            .height(42)
             .layoutWeight(1)
-            .alignItems(HorizontalAlign.Start)
+            .fontSize(14)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(option.value === this.category ? YibuqueColor.textInverse : YibuqueColor.textSecondary)
+            .backgroundColor(option.value === this.category ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
+            .borderRadius(YibuqueRadius.md)
+            .onClick(() => {
+              this.category = option.value;
+            })
+        }, (option: ClothingCategoryOption) => option.value)
+      }
+      .width('100%')
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+  }
 
-            if (this.purchaseDate.length > 0) {
-              Button('清除日期')
-                .height(34)
-                .fontSize(12)
-                .fontColor(YibuqueColor.textSecondary)
-                .backgroundColor(YibuqueColor.cardWhite)
-                .borderRadius(YibuqueRadius.full)
-                .border({ width: 1, color: YibuqueColor.borderLight })
-                .onClick(() => {
-                  this.purchaseDate = '';
-                })
-            }
-          }
-          .width('100%')
-          .height(58)
-          .padding({ left: 16, right: 12 })
-          .backgroundColor(YibuqueColor.cardSoftGray)
-          .borderRadius(YibuqueRadius.lg)
-          .alignItems(VerticalAlign.Center)
+  @Builder
+  NoteSection() {
+    Column({ space: 14 }) {
+      Text('备注')
+        .fontSize(16)
+        .fontWeight(FontWeight.Regular)
+        .fontColor(YibuqueColor.textPrimary)
+
+      TextArea({ text: this.note, placeholder: '输入关于这件衣服的描述...' })
+        .width('100%')
+        .height(120)
+        .padding({ left: 16, right: 16, top: 14, bottom: 14 })
+        .fontSize(15)
+        .fontColor(YibuqueColor.textPrimary)
+        .placeholderColor(YibuqueColor.textTertiary)
+        .backgroundColor(YibuqueColor.cardSoftGray)
+        .borderRadius(YibuqueRadius.lg)
+        .onChange((value: string) => {
+          this.note = value;
+        })
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  PurchaseSection() {
+    Column({ space: 16 }) {
+      Column({ space: 4 }) {
+        Text('购买信息')
+          .fontSize(16)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textPrimary)
+
+        Text('可选，方便以后回想在哪里买。')
+          .fontSize(13)
+          .fontColor(YibuqueColor.textSecondary)
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Start)
+
+      Row({ space: 14 }) {
+        SymbolGlyph($r('sys.symbol.store_fill'))
+          .fontSize(20)
+          .fontColor([YibuqueColor.textSecondary])
+
+        TextInput({ text: this.storeName, placeholder: '购买门店' })
+          .layoutWeight(1)
+          .height('100%')
+          .padding(0)
+          .fontSize(15)
+          .fontColor(YibuqueColor.textPrimary)
+          .placeholderColor(YibuqueColor.textPrimary)
+          .backgroundColor('#00FFFFFF')
+          .onChange((value: string) => {
+            this.storeName = value;
+          })
+      }
+      .width('100%')
+      .height(52)
+      .padding({ left: 18, right: 18 })
+      .backgroundColor(YibuqueColor.cardSoftGray)
+      .borderRadius(YibuqueRadius.lg)
+      .alignItems(VerticalAlign.Center)
+
+      Row({ space: 14 }) {
+        SymbolGlyph($r('sys.symbol.creditcard'))
+          .fontSize(20)
+          .fontColor([YibuqueColor.textSecondary])
+
+        TextInput({ text: this.price, placeholder: '价格' })
+          .layoutWeight(1)
+          .height('100%')
+          .padding(0)
+          .fontSize(15)
+          .fontColor(YibuqueColor.textPrimary)
+          .placeholderColor(YibuqueColor.textPrimary)
+          .type(InputType.Number)
+          .backgroundColor('#00FFFFFF')
+          .onChange((value: string) => {
+            this.price = value;
+          })
+      }
+      .width('100%')
+      .height(52)
+      .padding({ left: 18, right: 18 })
+      .backgroundColor(YibuqueColor.cardSoftGray)
+      .borderRadius(YibuqueRadius.lg)
+      .alignItems(VerticalAlign.Center)
+
+      Row({ space: 14 }) {
+        SymbolGlyph($r('sys.symbol.calendar'))
+          .fontSize(20)
+          .fontColor([YibuqueColor.textSecondary])
           .onClick(() => {
             this.openPurchaseDatePicker();
           })
 
-          TextInput({ text: this.purchaseNote, placeholder: '购买备注' })
-            .height(56)
+        Column({ space: 2 }) {
+          Text('购买日期')
+            .fontSize(12)
+            .fontColor(YibuqueColor.textSecondary)
+
+          Text(this.purchaseDate.length > 0 ? this.purchaseDate : '选择购买日期')
             .fontSize(15)
-            .fontColor(YibuqueColor.textPrimary)
-            .placeholderColor(YibuqueColor.textTertiary)
-            .backgroundColor(YibuqueColor.cardSoftGray)
-            .borderRadius(YibuqueRadius.lg)
-            .onChange((value: string) => {
-              this.purchaseNote = value;
+            .fontColor(this.purchaseDate.length > 0 ? YibuqueColor.textPrimary : YibuqueColor.textPrimary)
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
+        .onClick(() => {
+          this.openPurchaseDatePicker();
+        })
+
+        if (this.purchaseDate.length > 0) {
+          Stack({ alignContent: Alignment.Center }) {
+            SymbolGlyph($r('sys.symbol.xmark'))
+              .fontSize(16)
+              .fontColor([YibuqueColor.textSecondary])
+          }
+          .width(36)
+          .height(36)
+          .accessibilityText('清除日期')
+          .onClick(() => {
+            this.purchaseDate = '';
+          })
+        } else {
+          SymbolGlyph($r('sys.symbol.chevron_down'))
+            .fontSize(17)
+            .fontColor([YibuqueColor.textSecondary])
+            .onClick(() => {
+              this.openPurchaseDatePicker();
             })
         }
-        .width('100%')
-        .padding(YibuqueSpacing.lg)
-        .borderRadius(YibuqueRadius.xxl)
-        .backgroundColor(YibuqueColor.cardWhite)
-        .shadow(YibuqueShadow.card)
-        .alignItems(HorizontalAlign.Start)
+      }
+      .width('100%')
+      .height(66)
+      .padding({ left: 18, right: 18 })
+      .backgroundColor(YibuqueColor.cardSoftGray)
+      .borderRadius(YibuqueRadius.lg)
+      .alignItems(VerticalAlign.Center)
 
-        if (this.errorMessage.length > 0) {
-          Text(this.errorMessage)
-            .fontSize(13)
-            .fontColor('#EF4444')
-        }
+      Row({ space: 14 }) {
+        SymbolGlyph($r('sys.symbol.list_bullet'))
+          .fontSize(20)
+          .fontColor([YibuqueColor.textSecondary])
 
-        Button(this.isSaving ? '保存中...' : (this.hasSelectedPhoto() ? '保存衣服' : '先添加照片'))
-          .height(56)
-          .width('100%')
-          .fontSize(17)
-          .fontWeight(FontWeight.Bold)
-          .fontColor(YibuqueColor.textInverse)
-          .backgroundColor(this.canSave() ? YibuqueColor.actionBlack : YibuqueColor.textDisabled)
-          .borderRadius(YibuqueRadius.full)
-          .enabled(this.canSave())
-          .onClick(() => {
-            this.saveClothing();
+        TextInput({ text: this.purchaseNote, placeholder: '购买备注' })
+          .layoutWeight(1)
+          .height('100%')
+          .padding(0)
+          .fontSize(15)
+          .fontColor(YibuqueColor.textPrimary)
+          .placeholderColor(YibuqueColor.textPrimary)
+          .backgroundColor('#00FFFFFF')
+          .onChange((value: string) => {
+            this.purchaseNote = value;
           })
       }
       .width('100%')
-      .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.xxl, bottom: YibuqueSpacing.xxl })
-      .alignItems(HorizontalAlign.Start)
+      .height(52)
+      .padding({ left: 18, right: 18 })
+      .backgroundColor(YibuqueColor.cardSoftGray)
+      .borderRadius(YibuqueRadius.lg)
+      .alignItems(VerticalAlign.Center)
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  SaveAction() {
+    Column() {
+      Button(this.isSaving ? '保存中...' : (this.hasSelectedPhoto() ? '保存衣物' : '先选择照片'))
+        .width('100%')
+        .height(52)
+        .fontSize(17)
+        .fontWeight(FontWeight.Regular)
+        .fontColor(YibuqueColor.textInverse)
+        .backgroundColor(this.canSave() ? YibuqueColor.actionBlack : YibuqueColor.textDisabled)
+        .borderRadius(YibuqueRadius.full)
+        .enabled(this.canSave())
+        .shadow(YibuqueShadow.soft)
+        .onClick(() => {
+          this.saveClothing();
+        })
+    }
+    .width('100%')
+    .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: 16, bottom: 32 })
+    .backgroundColor(YibuqueColor.cardWhite)
+  }
+
+  build() {
+    Column() {
+      SecondaryPageHeader({
+        title: this.initialItem === undefined ? '添加衣物' : '编辑衣物',
+        backAccessibilityText: '返回衣柜',
+        onBack: () => {
+          this.onCancel();
+        }
+      })
+
+      Scroll() {
+        Column({ space: 28 }) {
+          this.PhotoHero()
+          this.ItemDetailCard()
+          this.CategorySection()
+          this.NoteSection()
+          this.PurchaseSection()
+
+          if (this.errorMessage.length > 0) {
+            Text(this.errorMessage)
+              .fontSize(13)
+              .fontColor('#EF4444')
+          }
+        }
+        .width('100%')
+        .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: 20, bottom: 32 })
+        .alignItems(HorizontalAlign.Start)
+      }
+      .width('100%')
+      .layoutWeight(1)
+      .scrollBar(BarState.Off)
+
+      this.SaveAction()
     }
     .width('100%')
     .height('100%')
