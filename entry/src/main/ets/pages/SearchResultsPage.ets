@@ -1,29 +1,78 @@
-import { EmptyState } from '../components/EmptyState';
-import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { SearchRepository } from '../data/repositories/SearchRepository';
+import { ClothingCategory } from '../domain/clothing/ClothingCategory';
+import { ClothingItem } from '../domain/clothing/ClothingModels';
+import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { SearchEntityType, SearchResult } from '../domain/search/SearchModels';
-import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
+
+interface SearchVisualResult {
+  entityType: SearchEntityType;
+  entityId: string;
+  title: string;
+  subtitle: string;
+  photoUri: string;
+}
+
+interface SearchScopeOption {
+  key: string;
+  label: string;
+}
+
+const SEARCH_SCOPES: SearchScopeOption[] = [
+  { key: 'all', label: '全部' },
+  { key: 'clothes', label: '衣物' },
+  { key: 'shops', label: '逛店' },
+  { key: 'outfits', label: '套装' },
+  { key: 'profile', label: '我的' }
+];
+
+const DEFAULT_HISTORY_TERMS: string[] = ['白衬衫', '静安嘉里 COS', '通勤套装', '好走路'];
+const SEARCH_SUGGESTIONS: string[] = ['连衣裙尺码', '周末快闪店', '黑白针织', '拍照录入', '回购提醒', '小众买手店'];
 
 function entityTypeLabel(entityType: SearchEntityType): string {
   if (entityType === SearchEntityType.Clothing) {
     return '衣物';
   }
-
   if (entityType === SearchEntityType.Outfit) {
-    return '美搭';
+    return '套装';
   }
-
   if (entityType === SearchEntityType.StoreVisit) {
-    return '逛店记录';
+    return '逛店';
   }
-
   if (entityType === SearchEntityType.Store) {
     return '店铺';
   }
-
+  if (entityType === SearchEntityType.WearLog || entityType === SearchEntityType.Wishlist) {
+    return '我的';
+  }
   return '';
+}
+
+function firstUsablePhoto(photoUris: string[]): string {
+  for (const photoUri of photoUris) {
+    if (photoUri.length > 0 && !photoUri.startsWith('debug://')) {
+      return photoUri;
+    }
+  }
+  return '';
+}
+
+function clothingCategoryLabel(category: ClothingCategory): string {
+  if (category === ClothingCategory.Pants) {
+    return '裤子';
+  }
+  if (category === ClothingCategory.Shorts) {
+    return '短裤';
+  }
+  if (category === ClothingCategory.LongSkirt) {
+    return '长裙';
+  }
+  if (category === ClothingCategory.HalfSkirt) {
+    return '半裙';
+  }
+  return '上衣';
 }
 
 @Component
@@ -33,91 +82,628 @@ export struct SearchResultsPage {
   clothingRepository?: ClothingRepository = undefined;
   outfitRepository?: OutfitRepository = undefined;
   onClose: () => void = () => {};
+  onOpenClothingResult: (id: string) => void = (_id: string) => {};
+  onOpenOutfitResult: (id: string) => void = (_id: string) => {};
+  onOpenStoreResult: (entityType: SearchEntityType, id: string, title: string) => void =
+    (_entityType: SearchEntityType, _id: string, _title: string) => {};
+  onOpenProfileResult: (entityType: SearchEntityType, id: string) => void =
+    (_entityType: SearchEntityType, _id: string) => {};
+  onOpenCameraSearch: () => void = () => {};
 
+  @State private searchText: string = '';
+  @State private activeQuery: string = '';
+  @State private selectedScope: string = 'all';
+  @State private historyTerms: string[] = [...DEFAULT_HISTORY_TERMS];
   @State private searchResults: SearchResult[] = [];
+  @State private visualResults: SearchVisualResult[] = [];
   @State private isSearching: boolean = false;
   @State private errorMessage: string = '';
+  @State private inputErrorMessage: string = '';
+  private searchRequestVersion: number = 0;
 
   aboutToAppear(): void {
-    this.performSearch();
+    this.searchText = this.query;
+    this.activeQuery = this.query.trim();
+    if (this.activeQuery.length > 0) {
+      this.performSearch(this.activeQuery);
+    }
   }
 
-  private async performSearch(): Promise<void> {
-    if (this.searchRepository === undefined || this.query.trim().length === 0) {
+  private async performSearch(searchQuery: string): Promise<void> {
+    if (this.searchRepository === undefined || searchQuery.trim().length === 0) {
       this.searchResults = [];
+      this.visualResults = [];
       return;
     }
 
+    const requestVersion = ++this.searchRequestVersion;
     this.isSearching = true;
     this.errorMessage = '';
 
     try {
-      const results = await this.searchRepository.search(this.query, 30);
-      this.searchResults = results.filter((result: SearchResult) => entityTypeLabel(result.entityType).length > 0);
+      const results = await this.searchRepository.search(searchQuery, 100);
+      const supportedResults = results.filter((result: SearchResult) => entityTypeLabel(result.entityType).length > 0);
+      const clothingItems = await this.loadClothingItems();
+      const outfits = await this.loadOutfits();
+      if (requestVersion !== this.searchRequestVersion) {
+        return;
+      }
+      this.searchResults = supportedResults;
+      this.visualResults = this.buildVisualResults(supportedResults, clothingItems, outfits);
     } catch (error) {
+      if (requestVersion !== this.searchRequestVersion) {
+        return;
+      }
       this.errorMessage = error instanceof Error ? error.message : '搜索失败';
+      this.visualResults = [];
     } finally {
-      this.isSearching = false;
+      if (requestVersion === this.searchRequestVersion) {
+        this.isSearching = false;
+      }
+    }
+  }
+
+  private async loadClothingItems(): Promise<ClothingItem[]> {
+    if (this.clothingRepository === undefined) {
+      return [];
+    }
+
+    try {
+      return await this.clothingRepository.listClothing();
+    } catch (_error) {
+      return [];
+    }
+  }
+
+  private async loadOutfits(): Promise<OutfitTemplate[]> {
+    if (this.outfitRepository === undefined) {
+      return [];
+    }
+
+    try {
+      return await this.outfitRepository.listOutfits();
+    } catch (_error) {
+      return [];
+    }
+  }
+
+  private buildVisualResults(
+    results: SearchResult[],
+    clothingItems: ClothingItem[],
+    outfits: OutfitTemplate[]
+  ): SearchVisualResult[] {
+    const nextResults: SearchVisualResult[] = [];
+
+    for (const result of results) {
+      let title = result.title;
+      let subtitle = entityTypeLabel(result.entityType);
+      let photoUri = '';
+
+      if (result.entityType === SearchEntityType.Clothing) {
+        for (const item of clothingItems) {
+          if (item.id === result.entityId) {
+            const category = clothingCategoryLabel(item.category);
+            const autoNamePattern = new RegExp(`^${category} \\d{2}-\\d{2} \\d{2}:\\d{2}$`);
+            const note = item.note?.trim() ?? '';
+            title = autoNamePattern.test(item.name) ? category : item.name;
+            subtitle = note.length > 0 ? `${category} · ${note}` : category;
+            photoUri = firstUsablePhoto(item.photoUris);
+            break;
+          }
+        }
+      } else if (result.entityType === SearchEntityType.Outfit) {
+        for (const outfit of outfits) {
+          if (outfit.id === result.entityId) {
+            const note = outfit.note?.trim() ?? '';
+            subtitle = note.length > 0
+              ? `${outfit.clothingItemIds.length} 件单品 · ${note}`
+              : `${outfit.clothingItemIds.length} 件单品`;
+            photoUri = firstUsablePhoto(outfit.photoUris);
+            break;
+          }
+        }
+      }
+
+      nextResults.push({
+        entityType: result.entityType,
+        entityId: result.entityId,
+        title,
+        subtitle,
+        photoUri
+      });
+    }
+
+    return nextResults;
+  }
+
+  private submitSearch(term: string = ''): void {
+    if (term.length > 0) {
+      this.searchText = term;
+    }
+
+    const nextQuery = this.searchText.trim();
+    if (nextQuery.length === 0) {
+      this.inputErrorMessage = '先输入衣物、商场或套装关键词';
+      return;
+    }
+
+    this.activeQuery = nextQuery;
+    this.errorMessage = '';
+    this.inputErrorMessage = '';
+    const nextHistory: string[] = [nextQuery];
+    for (const historyTerm of this.historyTerms) {
+      if (historyTerm !== nextQuery) {
+        nextHistory.push(historyTerm);
+      }
+    }
+    this.historyTerms = nextHistory.slice(0, 8);
+    this.performSearch(nextQuery);
+  }
+
+  private clearSearch(): void {
+    this.searchRequestVersion += 1;
+    this.searchText = '';
+    this.activeQuery = '';
+    this.searchResults = [];
+    this.visualResults = [];
+    this.errorMessage = '';
+    this.inputErrorMessage = '';
+  }
+
+  private clearHistory(): void {
+    this.historyTerms = [];
+  }
+
+  private resultMatchesScope(result: SearchVisualResult): boolean {
+    if (this.selectedScope === 'all') {
+      return true;
+    }
+    if (this.selectedScope === 'clothes') {
+      return result.entityType === SearchEntityType.Clothing;
+    }
+    if (this.selectedScope === 'shops') {
+      return result.entityType === SearchEntityType.Store || result.entityType === SearchEntityType.StoreVisit;
+    }
+    if (this.selectedScope === 'outfits') {
+      return result.entityType === SearchEntityType.Outfit;
+    }
+    if (this.selectedScope === 'profile') {
+      return result.entityType === SearchEntityType.WearLog || result.entityType === SearchEntityType.Wishlist;
+    }
+    return false;
+  }
+
+  private filteredVisualResults(): SearchVisualResult[] {
+    return this.visualResults.filter((result: SearchVisualResult) => this.resultMatchesScope(result));
+  }
+
+  private openResult(result: SearchVisualResult): void {
+    if (result.entityType === SearchEntityType.Clothing) {
+      this.onOpenClothingResult(result.entityId);
+    } else if (result.entityType === SearchEntityType.Outfit) {
+      this.onOpenOutfitResult(result.entityId);
+    } else if (result.entityType === SearchEntityType.Store || result.entityType === SearchEntityType.StoreVisit) {
+      this.onOpenStoreResult(result.entityType, result.entityId, result.title);
+    } else {
+      this.onOpenProfileResult(result.entityType, result.entityId);
     }
   }
 
   build() {
     Column() {
-      SecondaryPageHeader({
-        title: '搜索',
-        backAccessibilityText: '关闭搜索',
-        onBack: () => {
-          this.onClose();
-        }
-      })
+      this.SearchHeader()
 
-      Column({ space: YibuqueSpacing.lg }) {
-        Text(`正在找「${this.query}」`)
-          .fontSize(14)
-          .fontColor(YibuqueColor.textSecondary)
-
-        if (this.isSearching) {
-          Text('搜索中...')
-            .fontSize(14)
-            .fontColor(YibuqueColor.textSecondary)
-        } else if (this.errorMessage.length > 0) {
-          Text(this.errorMessage)
-            .fontSize(14)
-            .fontColor('#EF4444')
-        } else if (this.searchResults.length === 0) {
-          EmptyState({
-            title: '没有搜索结果',
-            description: '换个关键词试试衣物、美搭、逛店记录或店铺。'
-          })
-        } else {
-          ForEach(this.searchResults, (result: SearchResult) => {
-            Column({ space: 4 }) {
-              Text(result.title)
-                .fontSize(16)
-                .fontWeight(FontWeight.Regular)
-                .fontColor(YibuqueColor.textPrimary)
-
-              Text(entityTypeLabel(result.entityType))
-                .fontSize(12)
-                .fontWeight(FontWeight.Regular)
-                .fontColor(YibuqueColor.textSecondary)
-            }
-            .width('100%')
-            .padding(YibuqueSpacing.md)
-            .borderRadius(YibuqueRadius.xl)
-            .backgroundColor(YibuqueColor.cardWhite)
-            .border({ width: 1, color: YibuqueColor.borderLight })
-            .alignItems(HorizontalAlign.Start)
-          }, (result: SearchResult) => `${result.entityType}:${result.entityId}`)
-        }
+      if (this.activeQuery.length === 0) {
+        this.IdlePanel()
+      } else if (this.isSearching) {
+        this.LoadingList()
+      } else if (this.errorMessage.length > 0) {
+        this.ErrorPanel()
+      } else {
+        this.ResultsPanel()
       }
-      .width('100%')
-      .layoutWeight(1)
-      .padding(YibuqueSpacing.pageX)
-      .alignItems(HorizontalAlign.Start)
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(YibuqueColor.bgBlueGray)
+    .backgroundColor(YibuqueColor.bgDefault)
+  }
+
+  @Builder
+  SearchHeader() {
+    Column({ space: 10 }) {
+      Row({ space: 10 }) {
+        Stack({ alignContent: Alignment.Center }) {
+          SymbolGlyph($r('sys.symbol.arrow_left'))
+            .fontSize(22)
+            .fontColor([YibuqueColor.textPrimary])
+        }
+        .width(34)
+        .height(48)
+        .accessibilityText('返回上一页')
+        .onClick(() => {
+          this.onClose();
+        })
+
+        Row({ space: 4 }) {
+          TextInput({ text: this.searchText, placeholder: '搜索衣服、商场、套装' })
+            .layoutWeight(1)
+            .height(46)
+            .padding({ left: 14, right: 4 })
+            .fontSize(16)
+            .fontColor(YibuqueColor.textPrimary)
+            .placeholderColor(YibuqueColor.textTertiary)
+            .backgroundColor('#00FFFFFF')
+            .enterKeyType(EnterKeyType.Search)
+            .onChange((value: string) => {
+              this.searchText = value;
+              if (value.trim().length === 0) {
+                this.clearSearch();
+              }
+            })
+            .onSubmit(() => {
+              this.submitSearch();
+            })
+
+          if (this.searchText.length > 0) {
+            Stack({ alignContent: Alignment.Center }) {
+              SymbolGlyph($r('sys.symbol.xmark'))
+                .fontSize(15)
+                .fontColor([YibuqueColor.textSecondary])
+            }
+            .width(34)
+            .height(44)
+            .accessibilityText('清空搜索')
+            .onClick(() => {
+              this.clearSearch();
+            })
+          }
+
+          Stack({ alignContent: Alignment.Center }) {
+            SymbolGlyph($r('sys.symbol.camera_fill'))
+              .fontSize(19)
+              .fontColor([YibuqueColor.textSecondary])
+          }
+          .width(34)
+          .height(44)
+          .accessibilityText('拍照搜索')
+          .onClick(() => {
+            this.onOpenCameraSearch();
+          })
+        }
+        .layoutWeight(1)
+        .height(48)
+        .backgroundColor(YibuqueColor.cardSoftGray)
+        .borderRadius(YibuqueRadius.md)
+        .border({ width: 1, color: YibuqueColor.borderLight })
+
+        Text('搜索')
+          .width(36)
+          .height(44)
+          .fontSize(15)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textPrimary)
+          .textAlign(TextAlign.Center)
+          .onClick(() => {
+            this.submitSearch();
+          })
+      }
+      .width('100%')
+      .alignItems(VerticalAlign.Center)
+
+      this.SearchTabs()
+
+      if (this.inputErrorMessage.length > 0) {
+        Text(this.inputErrorMessage)
+          .width('100%')
+          .fontSize(12)
+          .fontColor('#BA1A1A')
+      }
+    }
+    .width('100%')
+    .padding({ left: 20, right: 20, top: 4, bottom: 12 })
+    .backgroundColor('#F2FBF9F9')
+  }
+
+  @Builder
+  SearchTabs() {
+    Scroll() {
+      Row({ space: 22 }) {
+        ForEach(SEARCH_SCOPES, (scope: SearchScopeOption) => {
+          Column({ space: 5 }) {
+            Text(scope.label)
+              .fontSize(16)
+              .fontWeight(FontWeight.Regular)
+              .fontColor(this.selectedScope === scope.key ? YibuqueColor.textPrimary : YibuqueColor.textSecondary)
+
+            Row()
+              .width('100%')
+              .height(3)
+              .backgroundColor(this.selectedScope === scope.key ? YibuqueColor.actionBlack : '#00FFFFFF')
+              .borderRadius(YibuqueRadius.full)
+          }
+          .width(48)
+          .height(36)
+          .justifyContent(FlexAlign.End)
+          .onClick(() => {
+            this.selectedScope = scope.key;
+          })
+        }, (scope: SearchScopeOption) => scope.key)
+      }
+    }
+    .width('100%')
+    .height(36)
+    .scrollable(ScrollDirection.Horizontal)
+    .scrollBar(BarState.Off)
+  }
+
+  @Builder
+  IdlePanel() {
+    Column({ space: 28 }) {
+      Column({ space: 12 }) {
+        Row() {
+          Text('历史记录')
+            .layoutWeight(1)
+            .fontSize(20)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textPrimary)
+
+          Stack({ alignContent: Alignment.Center }) {
+            SymbolGlyph($r('sys.symbol.trash'))
+              .fontSize(20)
+              .fontColor([YibuqueColor.textSecondary])
+        }
+          .width(34)
+          .height(34)
+          .accessibilityText('清空历史记录')
+          .onClick(() => {
+            this.clearHistory();
+          })
+        }
+        .width('100%')
+
+        if (this.historyTerms.length > 0) {
+          Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+            ForEach(this.historyTerms, (term: string) => {
+              this.SearchChip(term, false)
+            }, (term: string) => term)
+          }
+          .width('100%')
+        }
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Start)
+
+      Column({ space: 12 }) {
+        Text('猜你想搜')
+          .width('100%')
+          .fontSize(20)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textPrimary)
+
+        Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+          ForEach(SEARCH_SUGGESTIONS, (term: string) => {
+            this.SearchChip(term, true)
+          }, (term: string) => term)
+        }
+        .width('100%')
+      }
+      .width('100%')
+      .alignItems(HorizontalAlign.Start)
+    }
+    .width('100%')
+    .layoutWeight(1)
+    .padding({ left: 20, right: 20, top: 14, bottom: 36 })
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  SearchChip(term: string, suggested: boolean) {
+    Text(term)
+      .height(40)
+      .padding({ left: 15, right: 15 })
+      .margin({ right: 10, bottom: 10 })
+      .fontSize(14)
+      .fontColor(YibuqueColor.textPrimary)
+      .textAlign(TextAlign.Center)
+      .backgroundColor(suggested ? YibuqueColor.cardSoftGray : YibuqueColor.bgDefault)
+      .borderRadius(YibuqueRadius.full)
+      .border({ width: suggested ? 0 : 1, color: YibuqueColor.borderLight })
+      .onClick(() => {
+        this.submitSearch(term);
+      })
+  }
+
+  @Builder
+  ResultsPanel() {
+    if (this.filteredVisualResults().length === 0) {
+      Column({ space: 10 }) {
+        Text(`没有找到「${this.activeQuery}」`)
+          .width('100%')
+          .fontSize(18)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textPrimary)
+
+        Text('换个关键词，或用拍照录入把这件单品加入衣柜。')
+          .width('100%')
+          .fontSize(13)
+          .fontColor(YibuqueColor.textSecondary)
+
+        Button('拍照录入')
+          .height(38)
+          .fontSize(13)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textInverse)
+          .backgroundColor(YibuqueColor.actionBlack)
+          .borderRadius(YibuqueRadius.full)
+          .onClick(() => {
+            this.onOpenCameraSearch();
+          })
+      }
+      .width('100%')
+      .layoutWeight(1)
+      .padding({ left: 20, right: 20, top: 28 })
+      .alignItems(HorizontalAlign.Start)
+    } else {
+      List() {
+        ForEach(this.filteredVisualResults(), (result: SearchVisualResult, index: number) => {
+          ListItem() {
+            this.ResultCard(result, index)
+          }
+          .margin({ bottom: 10 })
+        }, (result: SearchVisualResult) => `${result.entityType}:${result.entityId}`)
+      }
+      .width('100%')
+      .layoutWeight(1)
+      .padding({ left: 20, right: 20, top: 14, bottom: 24 })
+      .scrollBar(BarState.Off)
+    }
+  }
+
+  @Builder
+  ResultCard(result: SearchVisualResult, _index: number) {
+    Row({ space: 12 }) {
+      this.ResultThumbnail(result)
+
+      Column({ space: 4 }) {
+        Text(result.title)
+          .width('100%')
+          .fontSize(15)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textPrimary)
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+        Text(result.subtitle)
+          .width('100%')
+          .fontSize(12)
+          .fontColor(YibuqueColor.textSecondary)
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
+
+      Text(entityTypeLabel(result.entityType))
+        .height(30)
+        .padding({ left: 10, right: 10 })
+        .fontSize(12)
+        .fontWeight(FontWeight.Regular)
+        .fontColor(YibuqueColor.brandCyan)
+        .textAlign(TextAlign.Center)
+        .backgroundColor(YibuqueColor.cardBlue)
+        .borderRadius(YibuqueRadius.full)
+    }
+    .width('100%')
+    .height(76)
+    .padding(10)
+    .backgroundColor(YibuqueColor.cardSoftGray)
+    .borderRadius(YibuqueRadius.md)
+    .border({ width: 1, color: YibuqueColor.borderLight })
+    .alignItems(VerticalAlign.Center)
+    .onClick(() => {
+      this.openResult(result);
+    })
+  }
+
+  @Builder
+  ResultThumbnail(result: SearchVisualResult) {
+    Stack({ alignContent: Alignment.Center }) {
+      if (result.photoUri.length > 0) {
+        Image(result.photoUri)
+          .width('100%')
+          .height('100%')
+          .objectFit(ImageFit.Cover)
+      } else if (result.entityType === SearchEntityType.Clothing) {
+        SymbolGlyph($r('sys.symbol.shirt'))
+          .fontSize(24)
+          .fontColor([YibuqueColor.brandCyan])
+      } else if (result.entityType === SearchEntityType.Outfit) {
+        SymbolGlyph($r('sys.symbol.hanger_and_towels'))
+          .fontSize(24)
+          .fontColor([YibuqueColor.brandCyan])
+      } else if (result.entityType === SearchEntityType.WearLog || result.entityType === SearchEntityType.Wishlist) {
+        SymbolGlyph($r('sys.symbol.person'))
+          .fontSize(24)
+          .fontColor([YibuqueColor.brandCyan])
+      } else {
+        SymbolGlyph($r('sys.symbol.store_fill'))
+          .fontSize(24)
+          .fontColor([YibuqueColor.brandCyan])
+      }
+    }
+    .width(54)
+    .height(54)
+    .backgroundColor(YibuqueColor.cardWhite)
+    .borderRadius(5)
+    .border({ width: 1, color: YibuqueColor.borderLight })
+    .clip(true)
+  }
+
+  @Builder
+  LoadingList() {
+    List() {
+      ForEach([0, 1, 2, 3], (skeletonIndex: number) => {
+        ListItem() {
+          Row({ space: 12 }) {
+            Row()
+              .width(54)
+              .height(54)
+              .backgroundColor(YibuqueColor.borderLight)
+              .borderRadius(5)
+
+            Column({ space: 8 }) {
+              Row()
+                .width('72%')
+                .height(14)
+                .backgroundColor(YibuqueColor.borderLight)
+                .borderRadius(4)
+              Row()
+                .width('46%')
+                .height(11)
+                .backgroundColor(YibuqueColor.borderLight)
+                .borderRadius(4)
+            }
+            .layoutWeight(1)
+            .alignItems(HorizontalAlign.Start)
+          }
+          .width('100%')
+          .height(76)
+          .padding(10)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.md)
+          .accessibilityText(`搜索结果加载占位 ${skeletonIndex + 1}`)
+        }
+        .margin({ bottom: 10 })
+      }, (skeletonIndex: number) => `${skeletonIndex}`)
+    }
+    .width('100%')
+    .layoutWeight(1)
+    .padding({ left: 20, right: 20, top: 14, bottom: 24 })
+    .scrollBar(BarState.Off)
+  }
+
+  @Builder
+  ErrorPanel() {
+    Column({ space: 12 }) {
+      Text(this.errorMessage)
+        .width('100%')
+        .fontSize(14)
+        .fontColor('#BA1A1A')
+
+      Button('重试')
+        .height(38)
+        .fontSize(13)
+        .fontWeight(FontWeight.Regular)
+        .fontColor(YibuqueColor.textInverse)
+        .backgroundColor(YibuqueColor.actionBlack)
+        .borderRadius(YibuqueRadius.full)
+        .onClick(() => {
+          this.performSearch(this.activeQuery);
+        })
+    }
+    .width('100%')
+    .layoutWeight(1)
+    .padding({ left: 20, right: 20, top: 28 })
+    .alignItems(HorizontalAlign.Start)
   }
 }

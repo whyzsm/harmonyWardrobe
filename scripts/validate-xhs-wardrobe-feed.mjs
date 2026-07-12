@@ -41,7 +41,6 @@ for (const forbidden of [
   'wardrobeCardOffset',
   'wardrobeDemoIndexes',
   'WardrobeDemoResultCard',
-  'this.onOpenCapture()',
   'sys.symbol.list_bullet',
   'sys.symbol.figure_figure_dress'
 ]) {

@@ -36,6 +36,7 @@ const RECORD_WEAR_ACCESSIBILITY_TEXT = '记录一次穿着';
 
 @Component
 export struct OutfitsPage {
+  @Prop initialOutfitId: string = '';
   outfitRepository?: OutfitRepository = undefined;
   clothingRepository?: ClothingRepository = undefined;
   wearLogRepository?: WearLogRepository = undefined;
@@ -72,6 +73,14 @@ export struct OutfitsPage {
       this.outfits = await this.outfitRepository.listOutfits();
       if (this.clothingRepository !== undefined) {
         this.clothingItems = await this.clothingRepository.listClothing();
+      }
+      if (this.initialOutfitId.length > 0) {
+        for (const outfit of this.outfits) {
+          if (outfit.id === this.initialOutfitId) {
+            this.onEditOutfit(outfit);
+            break;
+          }
+        }
       }
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '加载套装失败';

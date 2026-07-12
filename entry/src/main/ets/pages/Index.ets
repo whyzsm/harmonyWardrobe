@@ -3,6 +3,7 @@ import { BottomNavigationBar } from '../components/BottomNavigationBar';
 import { QuickCaptureSheet } from '../components/QuickCaptureSheet';
 import { WardrobeRuntime } from '../app/WardrobeRuntime';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
+import { SearchEntityType } from '../domain/search/SearchModels';
 import { StoreVisit } from '../domain/store/StoreModels';
 import { PhotoSource } from '../media/PhotoModels';
 import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
@@ -30,6 +31,9 @@ struct Index {
   @State private captureCapturedAt: string = '';
   @State private captureClothingItems: ClothingItem[] = [];
   @State private initialWardrobeTab: string = '衣裤';
+  @State private initialOutfitId: string = '';
+  @State private initialStoreVisitId: string = '';
+  @State private initialStoreQuery: string = '';
   @State private isCapturing: boolean = false;
   private runtime?: WardrobeRuntime = undefined;
 
@@ -251,16 +255,40 @@ struct Index {
               photoPickerAdapter: this.runtime.photoPickerAdapter,
               photoStorage: this.runtime.photoStorage,
               initialWardrobeTab: this.initialWardrobeTab,
+              onOpenCapture: () => {
+                this.startCameraCapture();
+              },
               onClothingEditorVisibilityChange: (visible: boolean) => {
                 this.showClothingEditor = visible;
               },
               onNestedPageVisibilityChange: (visible: boolean) => {
                 this.showNestedPage = visible;
+              },
+              onOpenSearchTarget: (entityType: SearchEntityType, id: string, title: string) => {
+                this.showNestedPage = false;
+                if (entityType === SearchEntityType.Outfit) {
+                  this.initialOutfitId = id;
+                  this.initialStoreVisitId = '';
+                  this.initialStoreQuery = '';
+                  this.selectedMainTab = 'outfit';
+                } else if (entityType === SearchEntityType.Store || entityType === SearchEntityType.StoreVisit) {
+                  this.initialOutfitId = '';
+                  this.initialStoreVisitId = entityType === SearchEntityType.StoreVisit ? id : '';
+                  this.initialStoreQuery = entityType === SearchEntityType.Store ? title : '';
+                  this.selectedMainTab = 'store';
+                } else {
+                  this.initialOutfitId = '';
+                  this.initialStoreVisitId = '';
+                  this.initialStoreQuery = '';
+                  this.selectedMainTab = 'profile';
+                }
               }
             })
               .layoutWeight(1)
           } else if (this.selectedMainTab === 'store') {
             StoreVisitPage({
+              initialVisitId: this.initialStoreVisitId,
+              initialSearchQuery: this.initialStoreQuery,
               storeRepository: this.runtime.storeRepository,
               photoPickerAdapter: this.runtime.photoPickerAdapter,
               photoStorage: this.runtime.photoStorage,
@@ -271,6 +299,7 @@ struct Index {
               .layoutWeight(1)
           } else if (this.selectedMainTab === 'outfit') {
             OutfitsPage({
+              initialOutfitId: this.initialOutfitId,
               outfitRepository: this.runtime.outfitRepository,
               clothingRepository: this.runtime.clothingRepository,
               wearLogRepository: this.runtime.wearLogRepository,
@@ -324,6 +353,9 @@ struct Index {
             selected: this.showCaptureEditor ? 'capture' : this.selectedMainTab,
             onSelectWardrobe: () => {
               this.closeCaptureEditor();
+              this.initialOutfitId = '';
+              this.initialStoreVisitId = '';
+              this.initialStoreQuery = '';
               this.selectedMainTab = 'wardrobe';
               this.initialWardrobeTab = '衣裤';
               this.showQuickActions = false;
@@ -334,10 +366,13 @@ struct Index {
               this.quickActionErrorMessage = '';
             },
             onSelectStore: () => {
+              this.initialStoreVisitId = '';
+              this.initialStoreQuery = '';
               this.openStoreVisitList();
             },
             onSelectOutfit: () => {
               this.closeCaptureEditor();
+              this.initialOutfitId = '';
               this.selectedMainTab = 'outfit';
               this.showQuickActions = false;
               this.quickActionErrorMessage = '';

@@ -6,6 +6,7 @@ import { MonthCalendar } from '../components/MonthCalendar';
 import { ClothingCategory } from '../domain/clothing/ClothingCategory';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { OutfitTemplate } from '../domain/outfit/OutfitModels';
+import { SearchEntityType } from '../domain/search/SearchModels';
 import { WearLog } from '../domain/wearLog/WearLogModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
@@ -51,9 +52,12 @@ export struct WardrobePage {
   searchRepository?: SearchRepository = undefined;
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
+  onOpenCapture: () => void = () => {};
   onDetailModeChange: (showDetailTopBar: boolean) => void = () => {};
   onClothingEditorVisibilityChange: (visible: boolean) => void = () => {};
   onNestedPageVisibilityChange: (visible: boolean) => void = () => {};
+  onOpenSearchTarget: (entityType: SearchEntityType, id: string, title: string) => void =
+    (_entityType: SearchEntityType, _id: string, _title: string) => {};
   @Prop initialWardrobeTab: string = '衣裤';
 
   @State private selectedWardrobeTab: string = '衣裤';
@@ -461,8 +465,8 @@ export struct WardrobePage {
 
   private openUnifiedSearch(query: string): void {
     this.unifiedSearchQuery = query;
-    this.showUnifiedSearch = query.trim().length > 0;
-    this.onNestedPageVisibilityChange(this.showUnifiedSearch);
+    this.showUnifiedSearch = true;
+    this.onNestedPageVisibilityChange(true);
   }
 
   private retry(): void {
@@ -471,6 +475,25 @@ export struct WardrobePage {
 
   private openSearch(): void {
     this.openUnifiedSearch(this.searchQuery);
+  }
+
+  private async openClothingSearchResult(id: string): Promise<void> {
+    let targetItem: ClothingItem | undefined = undefined;
+    for (const item of this.clothingItems) {
+      if (item.id === id) {
+        targetItem = item;
+        break;
+      }
+    }
+
+    if (targetItem === undefined && this.clothingRepository !== undefined) {
+      targetItem = await this.clothingRepository.getClothingById(id);
+    }
+
+    if (targetItem !== undefined) {
+      this.showUnifiedSearch = false;
+      this.openClothingDetail(targetItem);
+    }
   }
 
   private wardrobeSummaryText(): string {
@@ -553,6 +576,24 @@ export struct WardrobePage {
         query: this.unifiedSearchQuery,
         searchRepository: this.searchRepository,
         clothingRepository: this.clothingRepository,
+        outfitRepository: this.outfitRepository,
+        onOpenClothingResult: (id: string) => {
+          this.openClothingSearchResult(id);
+        },
+        onOpenOutfitResult: (_id: string) => {
+          this.onOpenSearchTarget(SearchEntityType.Outfit, _id, '');
+        },
+        onOpenStoreResult: (entityType: SearchEntityType, id: string, title: string) => {
+          this.onOpenSearchTarget(entityType, id, title);
+        },
+        onOpenProfileResult: (entityType: SearchEntityType, id: string) => {
+          this.onOpenSearchTarget(entityType, id, '');
+        },
+        onOpenCameraSearch: () => {
+          this.showUnifiedSearch = false;
+          this.onNestedPageVisibilityChange(false);
+          this.onOpenCapture();
+        },
         onClose: () => {
           this.showUnifiedSearch = false;
           this.onNestedPageVisibilityChange(false);
@@ -682,6 +723,10 @@ export struct WardrobePage {
       }
       .width(22)
       .height(46)
+      .accessibilityText('执行搜索')
+      .onClick(() => {
+        this.openSearch();
+      })
 
       TextInput({ text: this.searchQuery, placeholder: '搜索衣服、裤子、裙子' })
         .height(46)
@@ -693,6 +738,9 @@ export struct WardrobePage {
         .enterKeyType(EnterKeyType.Search)
         .onChange((value: string) => {
           this.searchQuery = value;
+        })
+        .onClick(() => {
+          this.openSearch();
         })
         .onSubmit(() => {
           this.openSearch();

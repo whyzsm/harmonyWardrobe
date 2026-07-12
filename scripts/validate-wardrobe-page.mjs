@@ -134,7 +134,7 @@ for (const oldWaterfall of ['WardrobeTwoColumnWaterfall', 'WardrobeWaterfallColu
   }
 }
 
-for (const fakeCard of ['shouldShowWardrobeDemoCards', 'wardrobeDemoIndexes', 'WardrobeDemoResultCard', 'this.onOpenCapture()']) {
+for (const fakeCard of ['shouldShowWardrobeDemoCards', 'wardrobeDemoIndexes', 'WardrobeDemoResultCard']) {
   if (text.includes(fakeCard)) {
     throw new Error(`WardrobePage should only render persisted clothing cards, not ${fakeCard}`);
   }

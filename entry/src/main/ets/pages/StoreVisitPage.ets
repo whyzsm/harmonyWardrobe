@@ -29,6 +29,8 @@ const ACCENT_SOFT = YibuqueColor.cardBlue;
 
 @Component
 export struct StoreVisitPage {
+  @Prop initialVisitId: string = '';
+  @Prop initialSearchQuery: string = '';
   storeRepository?: StoreRepository = undefined;
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
@@ -55,6 +57,17 @@ export struct StoreVisitPage {
     this.errorMessage = '';
     try {
       this.visits = await this.storeRepository.listStoreVisits();
+      if (this.initialSearchQuery.length > 0) {
+        this.searchQuery = this.initialSearchQuery;
+      }
+      if (this.initialVisitId.length > 0) {
+        for (const visit of this.visits) {
+          if (visit.id === this.initialVisitId) {
+            this.openVisitEditor(visit);
+            break;
+          }
+        }
+      }
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '加载逛店失败';
     } finally {

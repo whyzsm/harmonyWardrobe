@@ -5,7 +5,6 @@ const pageFiles = [
   'entry/src/main/ets/pages/ClothingDetailPage.ets',
   'entry/src/main/ets/pages/ClothingEditPage.ets',
   'entry/src/main/ets/pages/OutfitEditPage.ets',
-  'entry/src/main/ets/pages/SearchResultsPage.ets',
   'entry/src/main/ets/pages/StoreVisitEditPage.ets',
   'entry/src/main/ets/pages/WearLogEditPage.ets',
   'entry/src/main/ets/pages/WishlistEditPage.ets'
@@ -135,6 +134,9 @@ for (const file of pageFiles) {
     assertPinnedRoot(blockAfter(source, 'build()').body, file, 'SecondaryPageHeader({');
   }
 }
+
+const searchPage = fs.readFileSync('entry/src/main/ets/pages/SearchResultsPage.ets', 'utf8');
+assertPinnedRoot(blockAfter(searchPage, 'build()').body, 'SearchResultsPage', 'this.SearchHeader()');
 
 const detailPage = fs.readFileSync('entry/src/main/ets/pages/ClothingDetailPage.ets', 'utf8');
 const detailBuild = blockAfter(detailPage, 'build()').body;
