@@ -14,7 +14,7 @@ const STORE_VISIT_STATUS_FILTERS: StoreVisitStatusFilter[] = [
   { label: '全部', value: 'all' },
   { label: '去过', value: 'visited' },
   { label: '想去', value: 'wantToVisit' },
-  { label: '同步', value: 'sync' }
+  { label: '刷新', value: 'refresh' }
 ];
 
 const PAGE_BACKGROUND = YibuqueColor.bgDefault;
@@ -144,7 +144,7 @@ export struct StoreVisitPage {
   }
 
   private selectStatus(filter: StoreVisitStatusFilter): void {
-    if (filter.value === 'sync') {
+    if (filter.value === 'refresh') {
       this.loadStoreVisits();
       return;
     }

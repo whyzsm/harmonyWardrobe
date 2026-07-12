@@ -30,9 +30,9 @@ for (const needle of [
   '新增逛店',
   '拍照录入',
   '套装清单',
-  '导出清单',
   'ReminderSection',
-  '本地照片保护',
+  '本地与隐私',
+  '本地照片与记录',
   'ProfileRepository',
   'getProfile',
   'saveProfile',
@@ -69,7 +69,9 @@ for (const forbidden of [
   "Text('8')",
   '2,050',
   '3,200',
-  '64%'
+  '64%',
+  '导出清单',
+  '备份衣柜数据'
 ]) {
   if (page.includes(forbidden)) {
     throw new Error(`ProfilePage must not include ${forbidden}`);

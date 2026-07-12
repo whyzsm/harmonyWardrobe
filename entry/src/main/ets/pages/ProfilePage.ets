@@ -108,9 +108,9 @@ export struct ProfilePage {
   @State private casualSelected: boolean = true;
   @State private datingSelected: boolean = false;
   @State private walkingSelected: boolean = true;
-  @State private repurchaseReminderEnabled: boolean = true;
-  @State private localPhotoProtectionEnabled: boolean = true;
   @State private privacyModeEnabled: boolean = false;
+  @State private frequentDistricts: string[] = [];
+  @State private monthlyBudget: number = -1;
   @State private measurementSummary: string = '填写身形信息后可用于试穿推荐';
   @State private localSummary: string = '衣柜照片、套装和逛店记录都保存在本机。';
   @State private wardrobePhotoUris: string[] = [];
@@ -147,6 +147,14 @@ export struct ProfilePage {
     this.heightCm = displayOptionalNumber(profile.heightCm);
     this.weightKg = displayOptionalNumber(profile.weightKg);
     this.waistCm = displayOptionalNumber(profile.waistCm);
+    this.fittingPreferenceEnabled = profile.fittingPreferenceEnabled;
+    this.commuteSelected = profile.styleTags.includes('通勤');
+    this.casualSelected = profile.styleTags.includes('休闲');
+    this.datingSelected = profile.styleTags.includes('约会');
+    this.walkingSelected = profile.styleTags.includes('好走路');
+    this.frequentDistricts = profile.frequentDistricts;
+    this.monthlyBudget = profile.monthlyBudget ?? -1;
+    this.privacyModeEnabled = profile.privacyModeEnabled;
     this.measurementSummary = describeMeasurements(profile);
     this.localSummary = describeLocalState(profile);
   }
@@ -208,6 +216,11 @@ export struct ProfilePage {
         heightCm: parseOptionalNumber(this.heightCm),
         weightKg: parseOptionalNumber(this.weightKg),
         waistCm: parseOptionalNumber(this.waistCm)
+        , fittingPreferenceEnabled: this.fittingPreferenceEnabled,
+        styleTags: this.selectedStyleTags(),
+        frequentDistricts: this.frequentDistricts,
+        monthlyBudget: this.monthlyBudget >= 0 ? this.monthlyBudget : undefined,
+        privacyModeEnabled: this.privacyModeEnabled
       });
       this.applyProfile(savedProfile);
       this.savedMessage = '已保存个人信息';
@@ -263,6 +276,35 @@ export struct ProfilePage {
   private showNotice(message: string): void {
     this.errorMessage = '';
     this.savedMessage = message;
+  }
+
+  private selectedStyleTags(): string[] {
+    const tags: string[] = [];
+    if (this.commuteSelected) tags.push('通勤');
+    if (this.casualSelected) tags.push('休闲');
+    if (this.datingSelected) tags.push('约会');
+    if (this.walkingSelected) tags.push('好走路');
+    return tags;
+  }
+
+  private async persistPreferences(message: string): Promise<void> {
+    if (this.profileRepository === undefined) return;
+    try {
+      const saved = await this.profileRepository.saveProfile({
+        heightCm: parseOptionalNumber(this.heightCm),
+        weightKg: parseOptionalNumber(this.weightKg),
+        waistCm: parseOptionalNumber(this.waistCm),
+        fittingPreferenceEnabled: this.fittingPreferenceEnabled,
+        styleTags: this.selectedStyleTags(),
+        frequentDistricts: this.frequentDistricts,
+        monthlyBudget: this.monthlyBudget >= 0 ? this.monthlyBudget : undefined,
+        privacyModeEnabled: this.privacyModeEnabled
+      });
+      this.applyProfile(saved);
+      this.showNotice(message);
+    } catch (error) {
+      this.errorMessage = error instanceof Error ? error.message : '保存个人偏好失败';
+    }
   }
 
   private hasSearchResult(): boolean {
@@ -424,18 +466,19 @@ export struct ProfilePage {
   @Builder
   ProfileStats() {
     Row({ space: 8 }) {
-      this.StatItem(`${this.wardrobeItemCount}`, '件单品')
-      this.StatItem(`${this.storeVisitCount}`, '次逛店')
-      this.StatItem(`${this.outfitCount}`, '套搭配')
+      this.StatItem('clothing', '件单品')
+      this.StatItem('store', '次逛店')
+      this.StatItem('outfit', '套搭配')
     }
     .width('100%')
     .margin({ top: 10, bottom: 14 })
   }
 
   @Builder
-  StatItem(value: string, label: string) {
+  StatItem(type: string, label: string) {
     Column({ space: 2 }) {
-      Text(value)
+      Text(type === 'clothing' ? `${this.wardrobeItemCount}` :
+        type === 'store' ? `${this.storeVisitCount}` : `${this.outfitCount}`)
         .width('100%')
         .fontSize(18)
         .lineHeight(20)
@@ -520,7 +563,7 @@ export struct ProfilePage {
         Divider().strokeWidth(1).color(PROFILE_BORDER_SOFT)
         this.PreferenceRow('试穿偏好', '宽松 · 好走路 · 低维护', 'preference')
         Divider().strokeWidth(1).color(PROFILE_BORDER_SOFT)
-        this.PreferenceRow('常逛商圈', '尚未设置常逛商场', 'shops')
+        this.PreferenceRow('常逛商圈', this.frequentDistricts.length > 0 ? this.frequentDistricts.join(' · ') : '尚未设置', 'shops')
         this.StyleTags()
       }
       .width('100%')
@@ -596,8 +639,13 @@ export struct ProfilePage {
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
 
+      if (action === 'shops') {
+        Text(this.frequentDistricts.length > 0 ? `${this.frequentDistricts.length} 个` : '未设置')
+          .fontSize(12)
+          .fontColor(PROFILE_MUTED)
+      } else {
       Button(action === 'size' ? (this.isLoading ? '加载中' : '编辑') :
-        action === 'preference' ? (this.fittingPreferenceEnabled ? '已启用' : '未启用') : '管理')
+        (this.fittingPreferenceEnabled ? '已启用' : '未启用'))
         .height(38)
         .padding({ left: 13, right: 13 })
         .fontSize(12)
@@ -615,11 +663,10 @@ export struct ProfilePage {
             this.openMeasurementEditor();
           } else if (action === 'preference') {
             this.fittingPreferenceEnabled = !this.fittingPreferenceEnabled;
-            this.showNotice('试穿偏好已更新。');
-          } else {
-            this.showNotice('常逛商场设置尚未接入。');
+            this.persistPreferences('试穿偏好已保存。');
           }
         })
+      }
     }
     .width('100%')
     .height(64)
@@ -661,6 +708,7 @@ export struct ProfilePage {
         } else {
           this.walkingSelected = !this.walkingSelected;
         }
+        this.persistPreferences('风格偏好已保存。');
       })
   }
 
@@ -677,7 +725,7 @@ export struct ProfilePage {
   @Builder
   BudgetSection() {
     Column() {
-      this.SectionHeading('预算提醒', '未设置')
+      this.SectionHeading('预算提醒', this.monthlyBudget >= 0 ? `¥${this.monthlyBudget}` : '未设置')
 
       Column({ space: 12 }) {
         Row({ space: 12 }) {
@@ -697,7 +745,7 @@ export struct ProfilePage {
           .layoutWeight(1)
           .alignItems(HorizontalAlign.Start)
 
-          Text('--')
+          Text(this.monthlyBudget >= 0 ? `¥${this.monthlyBudget}` : '--')
             .fontSize(20)
             .lineHeight(22)
             .fontWeight(FontWeight.Regular)
@@ -717,18 +765,6 @@ export struct ProfilePage {
             .layoutWeight(1)
             .fontSize(12)
             .fontColor(PROFILE_MUTED)
-          Button('调整')
-            .height(38)
-            .padding({ left: 13, right: 13 })
-            .fontSize(12)
-            .fontWeight(FontWeight.Regular)
-            .fontColor(PROFILE_TEXT)
-            .backgroundColor(PROFILE_SURFACE)
-            .borderRadius(999)
-            .border({ width: 1, color: PROFILE_BORDER })
-            .onClick(() => {
-              this.showNotice('预算设置尚未接入。');
-            })
         }
         .width('100%')
         .alignItems(VerticalAlign.Center)
@@ -754,14 +790,12 @@ export struct ProfilePage {
         GridItem() { this.ToolCard('新增逛店', '记店铺和试穿', 'store') }
         GridItem() { this.ToolCard('拍照录入', '补衣物照片', 'capture') }
         GridItem() { this.ToolCard('套装清单', '按场景查看', 'outfit') }
-        GridItem() { this.ToolCard('导出清单', '备份衣柜数据', 'export') }
       }
       .width('100%')
-      .height(194)
-      .columnsTemplate('1fr 1fr')
-      .rowsTemplate('1fr 1fr')
+      .height(92)
+      .columnsTemplate('1fr 1fr 1fr')
+      .rowsTemplate('1fr')
       .columnsGap(10)
-      .rowsGap(10)
     }
     .width('100%')
     .margin({ top: 14 })
@@ -776,10 +810,8 @@ export struct ProfilePage {
           SymbolGlyph($r('sys.symbol.store_fill')).fontSize(19).fontColor([PROFILE_ACCENT])
         } else if (action === 'capture') {
           SymbolGlyph($r('sys.symbol.camera_fill')).fontSize(19).fontColor([PROFILE_ACCENT])
-        } else if (action === 'outfit') {
-          SymbolGlyph($r('sys.symbol.hanger_and_towels')).fontSize(19).fontColor([PROFILE_ACCENT])
         } else {
-          SymbolGlyph($r('sys.symbol.list_bullet')).fontSize(19).fontColor([PROFILE_ACCENT])
+          SymbolGlyph($r('sys.symbol.hanger_and_towels')).fontSize(19).fontColor([PROFILE_ACCENT])
         }
       }
       .width(38)
@@ -817,10 +849,8 @@ export struct ProfilePage {
         this.onOpenStoreEditor();
       } else if (action === 'capture') {
         this.onOpenCapture();
-      } else if (action === 'outfit') {
-        this.onOpenOutfits();
       } else {
-        this.showNotice('导出清单尚未接入。');
+        this.onOpenOutfits();
       }
     })
   }
@@ -828,12 +858,10 @@ export struct ProfilePage {
   @Builder
   ReminderSection() {
     Column() {
-      this.SectionHeading('同步与提醒', '本地草稿正常')
+      this.SectionHeading('本地与隐私', '本地保存正常')
 
       Column() {
-        this.ToggleRow('回购提醒', '加入回购 7 天后提醒再试一次。', this.repurchaseReminderEnabled, 'repurchase')
-        Divider().strokeWidth(1).color(PROFILE_BORDER_SOFT)
-        this.ToggleRow('本地照片保护', this.localSummary, this.localPhotoProtectionEnabled, 'local')
+        this.LocalStateRow()
         Divider().strokeWidth(1).color(PROFILE_BORDER_SOFT)
         this.ToggleRow('隐私模式', '隐藏价格和商场位置，适合给朋友看衣柜。', this.privacyModeEnabled, 'privacy')
       }
@@ -889,18 +917,27 @@ export struct ProfilePage {
       .backgroundColor(enabled ? PROFILE_ACCENT : PROFILE_BORDER)
       .borderRadius(999)
       .onClick(() => {
-        if (action === 'repurchase') {
-          this.repurchaseReminderEnabled = !this.repurchaseReminderEnabled;
-        } else if (action === 'local') {
-          this.localPhotoProtectionEnabled = !this.localPhotoProtectionEnabled;
-        } else {
+        if (action === 'privacy') {
           this.privacyModeEnabled = !this.privacyModeEnabled;
+          this.persistPreferences('隐私模式已保存。');
         }
       })
     }
     .width('100%')
     .height(74)
     .alignItems(VerticalAlign.Center)
+  }
+
+  @Builder
+  LocalStateRow() {
+    Column({ space: 3 }) {
+      Text('本地照片与记录').width('100%').fontSize(14).fontColor(PROFILE_TEXT)
+      Text(this.localSummary).width('100%').fontSize(12).lineHeight(16).fontColor(PROFILE_MUTED)
+    }
+    .width('100%')
+    .height(74)
+    .justifyContent(FlexAlign.Center)
+    .alignItems(HorizontalAlign.Start)
   }
 
   @Builder

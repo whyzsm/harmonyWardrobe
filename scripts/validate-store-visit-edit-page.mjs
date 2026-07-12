@@ -55,8 +55,6 @@ for (const needle of [
   '想回看',
   '需比价',
   '已购买',
-  '保存并拍照',
-  'captureAndSaveStoreVisit',
   'captureStorePhoto',
   '.aspectRatio(530 / 386)',
   "SymbolGlyph($r('sys.symbol.shirt'))",
@@ -72,8 +70,14 @@ for (const needle of [
   }
 }
 
-if (!/ActionRow\(\)[\s\S]*?保存并拍照[\s\S]*?保存记录[\s\S]*?padding\(\{ left: 20, right: 20, top: 20, bottom: 16 \}\)[\s\S]*?offsetY: -6/.test(text)) {
-  throw new Error(`${file} must use the redesigned fixed dual-action area`);
+for (const forbidden of ['保存并拍照', 'captureAndSaveStoreVisit']) {
+  if (text.includes(forbidden)) {
+    throw new Error(`${file} must not include ${forbidden}`);
+  }
+}
+
+if (!/ActionRow\(\)[\s\S]*?保存记录[\s\S]*?width\('100%'\)[\s\S]*?padding\(\{ left: 20, right: 20, top: 20, bottom: 16 \}\)[\s\S]*?offsetY: -6/.test(text)) {
+  throw new Error(`${file} must use the fixed single-save action area`);
 }
 
 if (!/validateForm\(\)\s*:\s*boolean\s*{[\s\S]*?storeName\.trim\(\)\.length\s*>\s*0[\s\S]*?districtOrAddress\.trim\(\)\.length\s*>\s*0/.test(text)) {
@@ -89,13 +93,6 @@ if (!captureBody.includes('captureFromCamera()') || !captureBody.includes('copyS
   !captureBody.includes('localUris.length === 0') || captureBody.includes('[source.uri]') ||
   captureBody.includes('pickFromGallery')) {
   throw new Error(`${file} camera action must capture and persist a camera photo`);
-}
-
-const captureAndSaveBody = blockAfter(text, 'private async captureAndSaveStoreVisit()').body;
-if (!captureAndSaveBody.includes('captureFromCamera()') ||
-  !captureAndSaveBody.includes('copySourcesToLocalUris([source])') ||
-  !captureAndSaveBody.includes('localUris.length === 0') || captureAndSaveBody.includes('[source.uri]')) {
-  throw new Error(`${file} save-and-capture action must persist only copied local photo URIs`);
 }
 
 const cameraActionBody = blockAfter(text, '\n  CameraAction()').body;

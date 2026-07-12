@@ -6,6 +6,7 @@ import { v1InitialSchema } from '../data/migrations/V1InitialSchema';
 import { v2ClothingPurchaseColumns } from '../data/migrations/V2ClothingPurchaseColumns';
 import { v3StoreVisitSchema } from '../data/migrations/V3StoreVisitSchema';
 import { v4StoreVisitDetails } from '../data/migrations/V4StoreVisitDetails';
+import { v5ProfilePreferences } from '../data/migrations/V5ProfilePreferences';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { ProfileRepository } from '../data/repositories/ProfileRepository';
@@ -148,7 +149,8 @@ export class WardrobeRuntime {
       v1InitialSchema,
       v2ClothingPurchaseColumns,
       v3StoreVisitSchema,
-      v4StoreVisitDetails
+      v4StoreVisitDetails,
+      v5ProfilePreferences
     ]);
     await migrationRunner.runMigrations();
     await WardrobeRuntime.ensureBaseSchema(database);
@@ -177,5 +179,6 @@ export class WardrobeRuntime {
     await v2ClothingPurchaseColumns.up(database);
     await v3StoreVisitSchema.up(database);
     await v4StoreVisitDetails.up(database);
+    await v5ProfilePreferences.up(database);
   }
 }

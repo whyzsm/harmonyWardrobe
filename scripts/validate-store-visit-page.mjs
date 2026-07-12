@@ -17,7 +17,7 @@ for (const needle of [
   "{ label: '全部'",
   "{ label: '去过'",
   "{ label: '想去'",
-  "{ label: '同步'",
+  "{ label: '刷新'",
   '今天路线：',
   '家去过',
   '家想去',

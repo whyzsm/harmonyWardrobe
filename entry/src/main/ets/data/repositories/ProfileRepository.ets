@@ -13,6 +13,11 @@ const SELECT_PROFILE_SQL = `
     COALESCE(height_cm, -1) AS height_cm,
     COALESCE(weight_kg, -1) AS weight_kg,
     COALESCE(waist_cm, -1) AS waist_cm,
+    fitting_preference_enabled,
+    style_tags,
+    frequent_districts,
+    COALESCE(monthly_budget, -1) AS monthly_budget,
+    privacy_mode_enabled,
     updated_at
   FROM user_profile
   WHERE id = ?
@@ -24,15 +29,34 @@ const UPSERT_PROFILE_SQL = `
     height_cm,
     weight_kg,
     waist_cm,
+    fitting_preference_enabled,
+    style_tags,
+    frequent_districts,
+    monthly_budget,
+    privacy_mode_enabled,
     updated_at
   )
-  VALUES (?, ?, ?, ?, ?)
+  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 `;
 
 export interface SaveUserProfileInput {
   heightCm?: number;
   weightKg?: number;
   waistCm?: number;
+  fittingPreferenceEnabled?: boolean;
+  styleTags?: string[];
+  frequentDistricts?: string[];
+  monthlyBudget?: number;
+  privacyModeEnabled?: boolean;
+}
+
+function decodeStrings(value: string): string[] {
+  try {
+    const decoded = JSON.parse(value) as string[];
+    return decoded.filter((item: string) => item.trim().length > 0);
+  } catch (_error) {
+    return [];
+  }
 }
 
 function normalizeMeasurement(value?: number): number | undefined {
@@ -64,6 +88,10 @@ export class ProfileRepository {
     try {
       if (!resultSet.goToFirstRow()) {
         return {
+          fittingPreferenceEnabled: true,
+          styleTags: ['通勤', '休闲', '好走路'],
+          frequentDistricts: [],
+          privacyModeEnabled: false,
           updatedAt: ''
         };
       }
@@ -79,6 +107,11 @@ export class ProfileRepository {
       heightCm: normalizeMeasurement(input.heightCm),
       weightKg: normalizeMeasurement(input.weightKg),
       waistCm: normalizeMeasurement(input.waistCm),
+      fittingPreferenceEnabled: input.fittingPreferenceEnabled ?? true,
+      styleTags: input.styleTags ?? ['通勤', '休闲', '好走路'],
+      frequentDistricts: input.frequentDistricts ?? [],
+      monthlyBudget: normalizeMeasurement(input.monthlyBudget),
+      privacyModeEnabled: input.privacyModeEnabled ?? false,
       updatedAt: toIsoDateTime(new Date())
     };
 
@@ -92,6 +125,11 @@ export class ProfileRepository {
       nullableMeasurement(profile.heightCm),
       nullableMeasurement(profile.weightKg),
       nullableMeasurement(profile.waistCm),
+      profile.fittingPreferenceEnabled ? 1 : 0,
+      JSON.stringify(profile.styleTags),
+      JSON.stringify(profile.frequentDistricts),
+      nullableMeasurement(profile.monthlyBudget),
+      profile.privacyModeEnabled ? 1 : 0,
       profile.updatedAt
     ];
   }
@@ -101,6 +139,11 @@ export class ProfileRepository {
       heightCm: optionalMeasurement(resultSet.getNumber('height_cm')),
       weightKg: optionalMeasurement(resultSet.getNumber('weight_kg')),
       waistCm: optionalMeasurement(resultSet.getNumber('waist_cm')),
+      fittingPreferenceEnabled: resultSet.getNumber('fitting_preference_enabled') === 1,
+      styleTags: decodeStrings(resultSet.getString('style_tags')),
+      frequentDistricts: decodeStrings(resultSet.getString('frequent_districts')),
+      monthlyBudget: optionalMeasurement(resultSet.getNumber('monthly_budget')),
+      privacyModeEnabled: resultSet.getNumber('privacy_mode_enabled') === 1,
       updatedAt: resultSet.getString('updated_at')
     };
   }

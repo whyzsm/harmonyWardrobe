@@ -177,43 +177,6 @@ export struct StoreVisitEditPage {
     }
   }
 
-  private async captureAndSaveStoreVisit(): Promise<void> {
-    if (this.photoPickerAdapter === undefined || this.storeRepository === undefined ||
-      this.isSaving || !this.validateForm()) {
-      return;
-    }
-
-    this.isSaving = true;
-    this.errorMessage = '';
-    try {
-      const source = await this.photoPickerAdapter.captureFromCamera();
-      const localUris = await this.copySourcesToLocalUris([source]);
-      if (localUris.length === 0) {
-        throw new Error('照片保存服务不可用，请稍后重试');
-      }
-      this.photoUris = this.photoUris.concat(localUris);
-
-      const savedVisit = this.initialVisit === undefined
-        ? await this.storeRepository.createStoreVisitWithOptionalStore({
-          storeName: this.storeName.trim(),
-          storeNameSnapshot: this.storeName.trim(),
-          districtOrAddress: this.districtOrAddress.trim(),
-          visitDate: this.visitDate,
-          photoUris: this.photoUris,
-          status: this.selectedStatus,
-          focusTags: this.selectedTags,
-          note: optionalText(this.note)
-        })
-        : await this.storeRepository.updateStoreVisit(this.updateInput(this.initialVisit.id, this.initialVisit.storeId));
-
-      this.onSave(savedVisit);
-    } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '拍照并保存失败，请重试';
-    } finally {
-      this.isSaving = false;
-    }
-  }
-
   build() {
     Stack({ alignContent: Alignment.Bottom }) {
       Column() {
@@ -573,24 +536,10 @@ export struct StoreVisitEditPage {
 
   @Builder
   ActionRow() {
-    Row({ space: 16 }) {
-      Button(this.isSaving ? '处理中…' : '保存并拍照')
-        .height(56)
-        .layoutWeight(1)
-        .fontSize(14)
-        .fontWeight(FontWeight.Regular)
-        .fontColor('#1B1C1C')
-        .backgroundColor('#EFeded')
-        .borderRadius(28)
-        .border({ width: 1, color: '#C4C7C7' })
-        .enabled(this.canSave())
-        .onClick(() => {
-          this.captureAndSaveStoreVisit();
-        })
-
+    Row() {
       Button(this.isSaving ? '保存中…' : '保存记录')
         .height(56)
-        .layoutWeight(1.5)
+        .width('100%')
         .fontSize(14)
         .fontWeight(FontWeight.Regular)
         .fontColor('#FFFFFF')
