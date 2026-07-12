@@ -29,8 +29,6 @@ const CAPTURE_MUTED: string = '#6E6E73';
 const CAPTURE_META: string = '#86868B';
 const CAPTURE_BORDER: string = '#D2D2D7';
 const CAPTURE_BORDER_SOFT: string = '#E8E8ED';
-const CAPTURE_ACCENT: string = '#0071E3';
-const CAPTURE_ACCENT_SOFT: string = '#EAF3FE';
 
 function optionalText(value: string): string | undefined {
   const trimmed = value.trim();
@@ -379,27 +377,27 @@ export struct CaptureEditPage {
             if (mode === '单品') {
               SymbolGlyph($r('sys.symbol.shirt'))
                 .fontSize(17)
-                .fontColor([this.captureMode === mode ? CAPTURE_ACCENT : CAPTURE_MUTED])
+                .fontColor([this.captureMode === mode ? '#FFFFFF' : CAPTURE_MUTED])
             } else if (mode === '试穿') {
               SymbolGlyph($r('sys.symbol.hanger_and_towels'))
                 .fontSize(17)
-                .fontColor([this.captureMode === mode ? CAPTURE_ACCENT : CAPTURE_MUTED])
+                .fontColor([this.captureMode === mode ? '#FFFFFF' : CAPTURE_MUTED])
             } else {
               SymbolGlyph($r('sys.symbol.bag'))
                 .fontSize(17)
-                .fontColor([this.captureMode === mode ? CAPTURE_ACCENT : CAPTURE_MUTED])
+                .fontColor([this.captureMode === mode ? '#FFFFFF' : CAPTURE_MUTED])
             }
 
             Text(mode)
               .fontSize(12)
               .fontWeight(this.captureMode === mode ? FontWeight.Regular : FontWeight.Regular)
-              .fontColor(this.captureMode === mode ? CAPTURE_ACCENT : CAPTURE_MUTED)
+              .fontColor(this.captureMode === mode ? '#FFFFFF' : CAPTURE_MUTED)
           }
           .height(44)
           .padding({ left: 13, right: 15 })
-          .backgroundColor(this.captureMode === mode ? CAPTURE_ACCENT_SOFT : CAPTURE_SURFACE)
+          .backgroundColor(this.captureMode === mode ? CAPTURE_TEXT : CAPTURE_SURFACE)
           .borderRadius(22)
-          .border({ width: 1, color: this.captureMode === mode ? '#A8C9ED' : CAPTURE_BORDER })
+          .border({ width: 1, color: this.captureMode === mode ? CAPTURE_TEXT : CAPTURE_BORDER })
           .onClick(() => {
             this.selectMode(mode);
           })
@@ -465,11 +463,11 @@ export struct CaptureEditPage {
             .height(46)
             .fontSize(13)
             .fontWeight(this.category === option.value ? FontWeight.Regular : FontWeight.Regular)
-            .fontColor(this.category === option.value ? CAPTURE_ACCENT : CAPTURE_MUTED)
+            .fontColor(this.category === option.value ? '#FFFFFF' : CAPTURE_MUTED)
             .textAlign(TextAlign.Center)
-            .backgroundColor(this.category === option.value ? CAPTURE_ACCENT_SOFT : CAPTURE_SURFACE)
+            .backgroundColor(this.category === option.value ? CAPTURE_TEXT : CAPTURE_SURFACE)
             .borderRadius(12)
-            .border({ width: 1, color: this.category === option.value ? '#A8C9ED' : CAPTURE_BORDER })
+            .border({ width: 1, color: this.category === option.value ? CAPTURE_TEXT : CAPTURE_BORDER })
             .onClick(() => {
               this.category = option.value;
             })
@@ -594,7 +592,7 @@ export struct CaptureEditPage {
       Row({ space: 8 }) {
         Checkbox()
           .select(this.syncWearLog)
-          .selectedColor(CAPTURE_ACCENT)
+          .selectedColor(CAPTURE_TEXT)
           .onChange((checked: boolean) => {
             this.syncWearLog = checked;
           })

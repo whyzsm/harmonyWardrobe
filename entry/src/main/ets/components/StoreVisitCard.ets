@@ -23,7 +23,7 @@ export struct StoreVisitCard {
           .width('100%')
           .height(150)
           .objectFit(ImageFit.Cover)
-          .borderRadius(5)
+          .borderRadius(18)
       } else {
         Column() {
           SymbolGlyph($r('sys.symbol.store_fill'))
@@ -35,7 +35,7 @@ export struct StoreVisitCard {
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
         .backgroundColor(YibuqueColor.cardMint)
-        .borderRadius(5)
+        .borderRadius(18)
       }
 
       Text(this.visit.storeNameSnapshot)

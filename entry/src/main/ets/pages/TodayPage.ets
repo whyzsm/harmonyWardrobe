@@ -198,14 +198,14 @@ export struct TodayPage {
       Text(title)
         .fontSize(16)
         .fontWeight(this.selectedHomeTabIndex === index ? FontWeight.Regular : FontWeight.Regular)
-        .fontColor(this.selectedHomeTabIndex === index ? AppTheme.color.primary : AppTheme.color.textMuted)
+        .fontColor(this.selectedHomeTabIndex === index ? AppTheme.color.text : AppTheme.color.textMuted)
         .lineHeight(22)
         .margin({ top: 14, bottom: 6 })
 
       Divider()
         .width(36)
         .strokeWidth(3)
-        .color(AppTheme.color.primary)
+        .color(AppTheme.color.text)
         .opacity(this.selectedHomeTabIndex === index ? 1 : 0)
     }
     .height(52)

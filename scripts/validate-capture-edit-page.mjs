@@ -66,11 +66,19 @@ for (const needle of [
   'createStoreVisit',
   'createStoreVisitWithOptionalStore',
   'createWearLog',
-  'CAPTURE_ACCENT',
+  'CAPTURE_TEXT',
+  ".fontColor(this.captureMode === mode ? '#FFFFFF' : CAPTURE_MUTED)",
+  '.backgroundColor(this.captureMode === mode ? CAPTURE_TEXT : CAPTURE_SURFACE)',
+  ".fontColor(this.category === option.value ? '#FFFFFF' : CAPTURE_MUTED)",
+  '.backgroundColor(this.category === option.value ? CAPTURE_TEXT : CAPTURE_SURFACE)',
   'SecondaryPageHeader',
   'onCancel'
 ]) {
   mustInclude(text, needle);
+}
+
+for (const legacySelectionColor of ['#8ABBEA', '#82B3EA', '#A8C9ED', 'CAPTURE_ACCENT_SOFT']) {
+  mustNotInclude(text, legacySelectionColor);
 }
 
 mustMatch(text, /generated(?:Wardrobe|Clothing|Name)|wardrobeGeneratedName|generatedClothingName/, 'must generate a wardrobe/clothing fallback name');

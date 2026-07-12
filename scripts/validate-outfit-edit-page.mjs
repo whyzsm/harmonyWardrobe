@@ -89,7 +89,7 @@ for (const needle of [
   'clothingCategoryLabel',
   "borderRadius(5)",
   "SymbolGlyph($r('sys.symbol.checkmark_circle_fill'))",
-  'YibuqueColor.brandCyan'
+  'YibuqueColor.actionBlack'
 ]) {
   if (!picker.includes(needle)) {
     throw new Error(`ClothingPicker missing ${needle}`);

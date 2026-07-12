@@ -13,11 +13,11 @@ export struct CategoryTabs {
           Text(category)
             .fontSize(14)
             .fontWeight(FontWeight.Regular)
-            .fontColor(category === this.selected ? YibuqueColor.actionBlack : YibuqueColor.textTertiary)
+            .fontColor(category === this.selected ? YibuqueColor.textInverse : YibuqueColor.textTertiary)
             .padding({ left: YibuqueSpacing.md, right: YibuqueSpacing.md, top: YibuqueSpacing.sm, bottom: YibuqueSpacing.sm })
-            .backgroundColor(YibuqueColor.cardWhite)
+            .backgroundColor(category === this.selected ? YibuqueColor.actionBlack : YibuqueColor.cardWhite)
             .borderRadius(YibuqueRadius.full)
-            .border({ width: category === this.selected ? 2 : 1, color: category === this.selected ? YibuqueColor.actionBlack : YibuqueColor.borderLight })
+            .border({ width: 1, color: category === this.selected ? YibuqueColor.actionBlack : YibuqueColor.borderLight })
             .onClick(() => {
               this.onSelect(category);
             })

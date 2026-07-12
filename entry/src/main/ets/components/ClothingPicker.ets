@@ -45,7 +45,7 @@ export struct ClothingPicker {
           Text(`${this.selectedIds.length} 件已选`)
             .fontSize(12)
             .fontWeight(FontWeight.Regular)
-            .fontColor(YibuqueColor.brandCyan)
+            .fontColor(YibuqueColor.actionBlack)
         }
       }
       .width('100%')
@@ -96,7 +96,7 @@ export struct ClothingPicker {
               Stack({ alignContent: Alignment.Center }) {
                 SymbolGlyph($r('sys.symbol.checkmark_circle_fill'))
                   .fontSize(26)
-                  .fontColor([YibuqueColor.brandCyan])
+                  .fontColor([YibuqueColor.actionBlack])
               }
               .width(44)
               .height(44)
@@ -117,8 +117,8 @@ export struct ClothingPicker {
           .padding(8)
           .alignItems(VerticalAlign.Center)
           .borderRadius(YibuqueRadius.lg)
-          .backgroundColor(this.isSelected(item.id) ? YibuqueColor.cardBlue : YibuqueColor.cardSoftGray)
-          .border({ width: this.isSelected(item.id) ? 2 : 1, color: this.isSelected(item.id) ? YibuqueColor.borderStrong : YibuqueColor.borderLight })
+          .backgroundColor(this.isSelected(item.id) ? YibuqueColor.cardWhite : YibuqueColor.cardSoftGray)
+          .border({ width: this.isSelected(item.id) ? 2 : 1, color: this.isSelected(item.id) ? YibuqueColor.actionBlack : YibuqueColor.borderLight })
           .accessibilityText(`${item.name}，${clothingCategoryLabel(item.category)}，${this.isSelected(item.id) ? '已选择' : '未选择'}`)
           .onClick(() => {
             this.onToggle(item.id);

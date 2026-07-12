@@ -21,7 +21,7 @@ for (const needle of [
   'FlowItem()',
   ".columnsTemplate('1fr 1fr')",
   '.columnsGap(16)',
-  '.rowsGap(20)',
+  '.rowsGap(15)',
   'visibleOutfits'
 ]) {
   if (!wardrobe.includes(needle)) {

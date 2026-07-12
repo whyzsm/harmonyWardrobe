@@ -428,15 +428,15 @@ export struct OutfitsPage {
             Text(filter.label)
               .fontSize(12)
               .fontWeight(this.selectedFilterLabel === filter.label ? FontWeight.Regular : FontWeight.Regular)
-              .fontColor(this.selectedFilterLabel === filter.label ? ACCENT : TEXT_MUTED)
+              .fontColor(this.selectedFilterLabel === filter.label ? PAGE_BG : TEXT_MUTED)
           }
           .height(44)
           .padding({ left: 12, right: 15 })
           .justifyContent(FlexAlign.Center)
           .alignItems(VerticalAlign.Center)
-          .backgroundColor(this.selectedFilterLabel === filter.label ? ACCENT_SOFT : SURFACE_WARM)
+          .backgroundColor(this.selectedFilterLabel === filter.label ? TEXT_PRIMARY : SURFACE_WARM)
           .borderRadius(22)
-          .border({ width: 1, color: this.selectedFilterLabel === filter.label ? '#8ABBEA' : BORDER })
+          .border({ width: 1, color: this.selectedFilterLabel === filter.label ? TEXT_PRIMARY : BORDER })
           .onClick(() => {
             this.selectedFilterLabel = filter.label;
           })
@@ -459,19 +459,19 @@ export struct OutfitsPage {
     if (label === '全部') {
       SymbolGlyph($r('sys.symbol.hanger_and_towels'))
         .fontSize(17)
-        .fontColor([this.selectedFilterLabel === label ? ACCENT : TEXT_MUTED])
+        .fontColor([this.selectedFilterLabel === label ? PAGE_BG : TEXT_MUTED])
     } else if (label === '逛街') {
       SymbolGlyph($r('sys.symbol.bag'))
         .fontSize(17)
-        .fontColor([this.selectedFilterLabel === label ? ACCENT : TEXT_MUTED])
+        .fontColor([this.selectedFilterLabel === label ? PAGE_BG : TEXT_MUTED])
     } else if (label === '周末') {
       SymbolGlyph($r('sys.symbol.shirt'))
         .fontSize(17)
-        .fontColor([this.selectedFilterLabel === label ? ACCENT : TEXT_MUTED])
+        .fontColor([this.selectedFilterLabel === label ? PAGE_BG : TEXT_MUTED])
     } else {
       SymbolGlyph($r('sys.symbol.clothing'))
         .fontSize(17)
-        .fontColor([this.selectedFilterLabel === label ? ACCENT : TEXT_MUTED])
+        .fontColor([this.selectedFilterLabel === label ? PAGE_BG : TEXT_MUTED])
     }
   }
 

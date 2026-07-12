@@ -94,19 +94,15 @@ for (const file of mainPageFiles) {
 }
 
 const designPageFiles = [
-  ['entry/src/main/ets/pages/ProfilePage.ets', 'PROFILE_ACCENT'],
-  ['entry/src/main/ets/pages/OutfitsPage.ets', 'ACCENT'],
-  ['entry/src/main/ets/pages/CaptureEditPage.ets', 'CAPTURE_ACCENT'],
-  ['entry/src/main/ets/pages/StoreVisitPage.ets', 'ACCENT']
+  ['entry/src/main/ets/pages/ProfilePage.ets', 'PROFILE_ACCENT', "'#0071E3'"],
+  ['entry/src/main/ets/pages/OutfitsPage.ets', 'ACCENT', "'#0071E3'"],
+  ['entry/src/main/ets/pages/CaptureEditPage.ets', 'CAPTURE_TEXT', "'#1D1D1F'"],
+  ['entry/src/main/ets/pages/StoreVisitPage.ets', 'ACCENT', 'YibuqueColor.brandCyan']
 ];
 
-for (const [file, accentToken] of designPageFiles) {
+for (const [file, accentToken, expectedColor] of designPageFiles) {
   const source = fs.readFileSync(file, 'utf8');
-  if (file.endsWith('/StoreVisitPage.ets')) {
-    requireIncludes(source, 'YibuqueColor.brandCyan', `${file} design accent`);
-  } else {
-    requireIncludes(source, "'#0071E3'", `${file} design accent`);
-  }
+  requireIncludes(source, expectedColor, `${file} design color`);
   requireIncludes(source, accentToken, `${file} design token usage`);
   forbidIncludes(source, "'#0F172A'", `${file} old black primary action`);
   forbidIncludes(source, "'#F8FAFC'", `${file} old background`);

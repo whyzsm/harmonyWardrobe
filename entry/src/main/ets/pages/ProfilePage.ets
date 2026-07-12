@@ -13,7 +13,6 @@ const PROFILE_BORDER = '#D2D2D7';
 const PROFILE_BORDER_SOFT = '#E8E8ED';
 const PROFILE_ACCENT = '#0071E3';
 const PROFILE_ACCENT_SOFT = '#EAF4FF';
-const PROFILE_ACCENT_BORDER = '#8CB4EC';
 const PROFILE_DANGER = '#DC2626';
 
 function parseOptionalNumber(value: string): number | undefined {
@@ -650,12 +649,12 @@ export struct ProfilePage {
         .padding({ left: 13, right: 13 })
         .fontSize(12)
         .fontWeight(FontWeight.Regular)
-        .fontColor(action === 'preference' && this.fittingPreferenceEnabled ? PROFILE_ACCENT : PROFILE_TEXT)
-        .backgroundColor(action === 'preference' && this.fittingPreferenceEnabled ? PROFILE_ACCENT_SOFT : PROFILE_SURFACE)
+        .fontColor(action === 'preference' && this.fittingPreferenceEnabled ? PROFILE_BACKGROUND : PROFILE_TEXT)
+        .backgroundColor(action === 'preference' && this.fittingPreferenceEnabled ? PROFILE_TEXT : PROFILE_SURFACE)
         .borderRadius(999)
         .border({
           width: 1,
-          color: action === 'preference' && this.fittingPreferenceEnabled ? PROFILE_ACCENT_BORDER : PROFILE_BORDER
+          color: action === 'preference' && this.fittingPreferenceEnabled ? PROFILE_TEXT : PROFILE_BORDER
         })
         .enabled(action !== 'size' || !this.isLoading)
         .onClick(() => {
@@ -693,11 +692,11 @@ export struct ProfilePage {
       .margin({ right: 8, bottom: 8 })
       .fontSize(12)
       .fontWeight(FontWeight.Regular)
-      .fontColor(selected ? PROFILE_ACCENT : PROFILE_MUTED)
+      .fontColor(selected ? PROFILE_BACKGROUND : PROFILE_MUTED)
       .textAlign(TextAlign.Center)
-      .backgroundColor(selected ? PROFILE_ACCENT_SOFT : PROFILE_SURFACE)
+      .backgroundColor(selected ? PROFILE_TEXT : PROFILE_SURFACE)
       .borderRadius(999)
-      .border({ width: 1, color: selected ? PROFILE_ACCENT_BORDER : PROFILE_BORDER })
+      .border({ width: 1, color: selected ? PROFILE_TEXT : PROFILE_BORDER })
       .onClick(() => {
         if (key === 'commute') {
           this.commuteSelected = !this.commuteSelected;
@@ -784,18 +783,19 @@ export struct ProfilePage {
   @Builder
   ToolSection() {
     Column() {
-      this.SectionHeading('常用工具', '快速处理记录')
+      this.SectionHeading('今天常用', '3 个入口')
 
       Grid() {
-        GridItem() { this.ToolCard('新增逛店', '记店铺和试穿', 'store') }
-        GridItem() { this.ToolCard('拍照录入', '补衣物照片', 'capture') }
-        GridItem() { this.ToolCard('套装清单', '按场景查看', 'outfit') }
+        GridItem() { this.ToolCard('新增逛店', '记录店铺、试穿和价格', 'store') }
+        GridItem() { this.ToolCard('拍照录入', '把衣物照片补进衣柜', 'capture') }
+        GridItem() { this.ToolCard('套装清单', '按通勤、约会、好走路', 'outfit') }
       }
       .width('100%')
-      .height(92)
-      .columnsTemplate('1fr 1fr 1fr')
-      .rowsTemplate('1fr')
+      .height(218)
+      .columnsTemplate('1fr 1fr')
+      .rowsTemplate('1fr 1fr')
       .columnsGap(10)
+      .rowsGap(10)
     }
     .width('100%')
     .margin({ top: 14 })
@@ -807,16 +807,22 @@ export struct ProfilePage {
     Column() {
       Stack({ alignContent: Alignment.Center }) {
         if (action === 'store') {
-          SymbolGlyph($r('sys.symbol.store_fill')).fontSize(19).fontColor([PROFILE_ACCENT])
+          SymbolGlyph($r('sys.symbol.plus'))
+            .fontSize(22)
+            .fontColor(['#FFFFFF'])
         } else if (action === 'capture') {
-          SymbolGlyph($r('sys.symbol.camera_fill')).fontSize(19).fontColor([PROFILE_ACCENT])
+          SymbolGlyph($r('sys.symbol.camera_fill'))
+            .fontSize(20)
+            .fontColor(['#FFFFFF'])
         } else {
-          SymbolGlyph($r('sys.symbol.hanger_and_towels')).fontSize(19).fontColor([PROFILE_ACCENT])
+          SymbolGlyph($r('sys.symbol.bag'))
+            .fontSize(20)
+            .fontColor([PROFILE_ACCENT])
         }
       }
-      .width(38)
-      .height(38)
-      .backgroundColor(PROFILE_ACCENT_SOFT)
+      .width(40)
+      .height(40)
+      .backgroundColor(action === 'outfit' ? PROFILE_ACCENT_SOFT : '#3A3A3C')
       .borderRadius(14)
 
       Blank()
@@ -827,23 +833,25 @@ export struct ProfilePage {
           .fontSize(14)
           .lineHeight(17)
           .fontWeight(FontWeight.Regular)
-          .fontColor(PROFILE_TEXT)
+          .fontColor(action === 'outfit' ? PROFILE_TEXT : '#FFFFFF')
         Text(subtitle)
           .width('100%')
-          .fontSize(11)
+          .fontSize(action === 'outfit' ? 9 : 11)
           .lineHeight(14)
-          .fontColor(PROFILE_MUTED)
+          .fontColor(action === 'outfit' ? PROFILE_MUTED : '#B8B8BD')
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
       }
       .width('100%')
       .alignItems(HorizontalAlign.Start)
     }
     .width('100%')
     .height('100%')
-    .padding(13)
+    .padding(14)
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor(PROFILE_SURFACE)
+    .backgroundColor(action === 'outfit' ? PROFILE_SURFACE : '#1C1C1E')
     .borderRadius(18)
-    .border({ width: 1, color: PROFILE_BORDER_SOFT })
+    .border({ width: action === 'outfit' ? 1 : 0, color: PROFILE_BORDER_SOFT })
     .onClick(() => {
       if (action === 'store') {
         this.onOpenStoreEditor();
@@ -914,7 +922,7 @@ export struct ProfilePage {
       .width(52)
       .height(32)
       .padding(3)
-      .backgroundColor(enabled ? PROFILE_ACCENT : PROFILE_BORDER)
+      .backgroundColor(enabled ? PROFILE_TEXT : PROFILE_BORDER)
       .borderRadius(999)
       .onClick(() => {
         if (action === 'privacy') {

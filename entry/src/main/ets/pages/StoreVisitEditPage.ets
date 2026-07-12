@@ -486,14 +486,14 @@ export struct StoreVisitEditPage {
                 Text(tag)
                   .fontSize(14)
                   .fontWeight(FontWeight.Regular)
-                  .fontColor('#1B1C1C')
+                  .fontColor(this.selectedTags.includes(tag) ? '#FFFFFF' : '#1B1C1C')
               }
               .width('100%')
               .height(52)
               .justifyContent(FlexAlign.Center)
-              .backgroundColor(this.selectedTags.includes(tag) ? '#EFeded' : '#00FFFFFF')
+              .backgroundColor(this.selectedTags.includes(tag) ? '#000000' : '#00FFFFFF')
               .borderRadius(24)
-              .border({ width: 1, color: this.selectedTags.includes(tag) ? '#747878' : '#C4C7C7' })
+              .border({ width: 1, color: this.selectedTags.includes(tag) ? '#000000' : '#C4C7C7' })
               .onClick(() => {
                 this.toggleFocusTag(tag);
               })
@@ -518,19 +518,19 @@ export struct StoreVisitEditPage {
     if (tag === '试穿') {
       SymbolGlyph($r('sys.symbol.shirt'))
         .fontSize(18)
-        .fontColor(['#000000'])
+        .fontColor([this.selectedTags.includes(tag) ? '#FFFFFF' : '#000000'])
     } else if (tag === '想回看') {
       SymbolGlyph($r('sys.symbol.eye'))
         .fontSize(18)
-        .fontColor(['#000000'])
+        .fontColor([this.selectedTags.includes(tag) ? '#FFFFFF' : '#000000'])
     } else if (tag === '需比价') {
       SymbolGlyph($r('sys.symbol.creditcard'))
         .fontSize(18)
-        .fontColor(['#000000'])
+        .fontColor([this.selectedTags.includes(tag) ? '#FFFFFF' : '#000000'])
     } else {
       SymbolGlyph($r('sys.symbol.bag'))
         .fontSize(18)
-        .fontColor(['#000000'])
+        .fontColor([this.selectedTags.includes(tag) ? '#FFFFFF' : '#000000'])
     }
   }
 

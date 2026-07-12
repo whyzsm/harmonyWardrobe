@@ -36,7 +36,7 @@ for (const needle of [
   'StoreVisitWaterFlow',
   '暂无照片',
   "columnsTemplate('1fr 1fr')",
-  "borderRadius(5)",
+  "borderRadius(18)",
   'wardrobe_look_shirt'
 ]) {
   if (!page.includes(needle)) {

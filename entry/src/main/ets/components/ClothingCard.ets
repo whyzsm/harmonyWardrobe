@@ -23,7 +23,7 @@ export struct ClothingCard {
           .width('100%')
           .aspectRatio(1)
           .objectFit(ImageFit.Cover)
-          .borderRadius(5)
+          .borderRadius(18)
       } else {
         Column() {
           SymbolGlyph($r('sys.symbol.shirt'))
@@ -34,7 +34,7 @@ export struct ClothingCard {
         .aspectRatio(1)
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .borderRadius(5)
+        .borderRadius(18)
         .backgroundColor(YibuqueColor.cardMint)
       }
 

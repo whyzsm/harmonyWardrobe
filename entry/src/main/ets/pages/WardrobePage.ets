@@ -37,8 +37,6 @@ const OPEN_DESIGN_BLACK = '#242021';
 const OPEN_DESIGN_SURFACE = '#FFFFFF';
 const OPEN_DESIGN_MUTED = '#717177';
 const OPEN_DESIGN_BORDER = '#D9D9DE';
-const SCREENSHOT_BLUE = '#3174D3';
-const SCREENSHOT_BLUE_BG = '#EDF4FF';
 const SCREENSHOT_NAV_GRAY = '#74747A';
 
 const DEMO_TITLES: string[] = ['牛仔短外套', '白毛衣牛仔裤', '衣架上的上衣', '极简灯下裙'];
@@ -926,15 +924,15 @@ export struct WardrobePage {
             Text(category)
               .fontSize(13)
               .fontWeight(this.selectedCategoryLabel === category ? FontWeight.Regular : FontWeight.Regular)
-              .fontColor(this.selectedCategoryLabel === category ? SCREENSHOT_BLUE : '#626267')
+              .fontColor(this.selectedCategoryLabel === category ? YibuqueColor.textInverse : '#626267')
           }
           .width(76)
           .height(42)
           .justifyContent(FlexAlign.Center)
           .alignItems(VerticalAlign.Center)
-          .backgroundColor(this.selectedCategoryLabel === category ? SCREENSHOT_BLUE_BG : OPEN_DESIGN_SURFACE)
+          .backgroundColor(this.selectedCategoryLabel === category ? OPEN_DESIGN_BLACK : OPEN_DESIGN_SURFACE)
           .borderRadius(YibuqueRadius.full)
-          .border({ width: 1, color: this.selectedCategoryLabel === category ? '#8CB4EC' : OPEN_DESIGN_BORDER })
+          .border({ width: 1, color: this.selectedCategoryLabel === category ? OPEN_DESIGN_BLACK : OPEN_DESIGN_BORDER })
           .onClick(() => {
             this.selectedCategoryLabel = category;
           })
@@ -954,27 +952,27 @@ export struct WardrobePage {
     if (category === '全部') {
       SymbolGlyph($r('sys.symbol.square_grid_2x2'))
         .fontSize(14)
-        .fontColor([this.selectedCategoryLabel === category ? SCREENSHOT_BLUE : SCREENSHOT_NAV_GRAY])
+        .fontColor([this.selectedCategoryLabel === category ? YibuqueColor.textInverse : SCREENSHOT_NAV_GRAY])
     } else if (category === '上衣') {
       SymbolGlyph($r('sys.symbol.shirt'))
         .fontSize(14)
-        .fontColor([this.selectedCategoryLabel === category ? SCREENSHOT_BLUE : SCREENSHOT_NAV_GRAY])
+        .fontColor([this.selectedCategoryLabel === category ? YibuqueColor.textInverse : SCREENSHOT_NAV_GRAY])
     } else if (category === '裤装') {
       SymbolGlyph($r('sys.symbol.clothing'))
         .fontSize(14)
-        .fontColor([this.selectedCategoryLabel === category ? SCREENSHOT_BLUE : SCREENSHOT_NAV_GRAY])
+        .fontColor([this.selectedCategoryLabel === category ? YibuqueColor.textInverse : SCREENSHOT_NAV_GRAY])
     } else if (category === '裙装') {
       SymbolGlyph($r('sys.symbol.hanger_and_towels'))
         .fontSize(14)
-        .fontColor([this.selectedCategoryLabel === category ? SCREENSHOT_BLUE : SCREENSHOT_NAV_GRAY])
+        .fontColor([this.selectedCategoryLabel === category ? YibuqueColor.textInverse : SCREENSHOT_NAV_GRAY])
     } else if (category === '包袋') {
       SymbolGlyph($r('sys.symbol.bag'))
         .fontSize(14)
-        .fontColor([this.selectedCategoryLabel === category ? SCREENSHOT_BLUE : SCREENSHOT_NAV_GRAY])
+        .fontColor([this.selectedCategoryLabel === category ? YibuqueColor.textInverse : SCREENSHOT_NAV_GRAY])
     } else {
       SymbolGlyph($r('sys.symbol.arrow_left_arrow_right'))
         .fontSize(14)
-        .fontColor([this.selectedCategoryLabel === category ? SCREENSHOT_BLUE : SCREENSHOT_NAV_GRAY])
+        .fontColor([this.selectedCategoryLabel === category ? YibuqueColor.textInverse : SCREENSHOT_NAV_GRAY])
     }
   }
 
@@ -990,7 +988,7 @@ export struct WardrobePage {
     }
     .columnsTemplate('1fr 1fr')
     .columnsGap(16)
-    .rowsGap(20)
+    .rowsGap(15)
     .padding({ top: 4, bottom: 92 })
     .width('100%')
     .height('100%')
@@ -1007,13 +1005,13 @@ export struct WardrobePage {
             .width('100%')
             .aspectRatio(this.wardrobeCardAspectRatio(index))
             .objectFit(ImageFit.Cover)
-            .borderRadius(5)
+            .borderRadius(18)
         } else {
           Image(this.firstPhotoUri(item))
             .width('100%')
             .aspectRatio(this.wardrobeCardAspectRatio(index))
             .objectFit(ImageFit.Cover)
-            .borderRadius(5)
+            .borderRadius(18)
         }
 
         Row() {
@@ -1104,7 +1102,7 @@ export struct WardrobePage {
           .width('100%')
           .height(150)
           .objectFit(ImageFit.Cover)
-          .borderRadius(24)
+          .borderRadius(5)
       } else {
         Column() {
           SymbolGlyph($r('sys.symbol.hanger_and_towels'))
@@ -1116,7 +1114,7 @@ export struct WardrobePage {
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
         .backgroundColor(YibuqueColor.cardMint)
-        .borderRadius(24)
+        .borderRadius(5)
       }
 
       Text(outfit.title)
