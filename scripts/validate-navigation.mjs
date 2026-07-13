@@ -34,9 +34,15 @@ for (const label of ['衣柜', '逛店', '套装', '我的']) {
   }
 }
 
-for (const action of ['拍一张', '从相册选择', '新增逛店']) {
+for (const action of ['衣柜', '逛店', '套装']) {
   if (!sheet.includes(action)) {
     throw new Error(`QuickCaptureSheet missing ${action}`);
+  }
+}
+
+for (const callback of ['onOpenWardrobe', 'onOpenStoreVisit', 'onOpenOutfit']) {
+  if (!sheet.includes(callback)) {
+    throw new Error(`QuickCaptureSheet missing ${callback}`);
   }
 }
 
@@ -88,8 +94,8 @@ if (!selectStoreBody.includes('this.openStoreVisitList();') || selectStoreBody.i
 }
 
 const openStoreVisitBody = flatCallbackBody(index, 'onOpenStoreVisit');
-if (!openStoreVisitBody.includes('this.openQuickStoreEditor();') || openStoreVisitBody.includes('this.openStoreVisitList();')) {
-  throw new Error('Quick capture store action must open the new store visit editor');
+if (!openStoreVisitBody.includes('this.openStoreVisitList();') || openStoreVisitBody.includes('this.openQuickStoreEditor();')) {
+  throw new Error('Quick shortcut store action must open the store visit list');
 }
 
 for (const needle of [

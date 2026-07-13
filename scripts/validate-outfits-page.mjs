@@ -41,4 +41,18 @@ if (!/WeatherCard\(\)[\s\S]*?Row\(\)\s*\{[\s\S]*?Row\(\{ space: 12 \}\)[\s\S]*?\
   throw new Error('OutfitsPage weather card must align to the waterfall grid horizontal padding');
 }
 
+if (!/else if \(this\.outfits\.length === 0\) \{[\s\S]*?\.justifyContent\(FlexAlign\.Start\)/.test(text)) {
+  throw new Error('OutfitsPage empty state must align below the weather card instead of centering vertically');
+}
+
+const emptyStateBuilder = text.match(/OutfitEmptyState\(title: string, description: string\) \{([\s\S]*?)\n  \}\n\n  @Builder\n  FilterStrip/)?.[1] ?? '';
+
+if (!/\.backgroundColor\(SURFACE_WARM\)[\s\S]*?\.borderRadius\(10\)/.test(emptyStateBuilder)) {
+  throw new Error('OutfitsPage empty panel must use the compact wardrobe-empty-state surface');
+}
+
+if (/\.border\(\{ width: 1, color: BORDER \}\)/.test(emptyStateBuilder)) {
+  throw new Error('OutfitsPage empty panel must not use the outlined card treatment');
+}
+
 console.log('PASS');

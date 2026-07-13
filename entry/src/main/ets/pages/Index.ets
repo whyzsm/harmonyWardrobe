@@ -388,14 +388,22 @@ struct Index {
 
         if (this.showQuickActions) {
           QuickCaptureSheet({
-            onCapturePhoto: () => {
-              this.startCameraCapture();
-            },
-            onPickPhoto: () => {
-              this.startGalleryCapture();
+            onOpenWardrobe: () => {
+              this.closeCaptureEditor();
+              this.selectedMainTab = 'wardrobe';
+              this.initialWardrobeTab = '衣裤';
+              this.showQuickActions = false;
+              this.quickActionErrorMessage = '';
             },
             onOpenStoreVisit: () => {
-              this.openQuickStoreEditor();
+              this.openStoreVisitList();
+            },
+            onOpenOutfit: () => {
+              this.closeCaptureEditor();
+              this.initialOutfitId = '';
+              this.selectedMainTab = 'outfit';
+              this.showQuickActions = false;
+              this.quickActionErrorMessage = '';
             },
             onCancel: () => {
               this.showQuickActions = false;

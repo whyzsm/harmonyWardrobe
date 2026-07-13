@@ -348,7 +348,7 @@ export struct OutfitsPage {
           .width('100%')
           .layoutWeight(1)
           .padding({ left: 20, right: 20 })
-          .justifyContent(FlexAlign.Center)
+          .justifyContent(FlexAlign.Start)
         } else if (this.filterOutfits().length === 0) {
           Column({ space: 14 }) {
             this.OutfitEmptyState('暂时没有这类套装', '换一个场景看看，或先创建一套新的搭配。')
@@ -410,11 +410,12 @@ export struct OutfitsPage {
         .textAlign(TextAlign.Center)
     }
     .width('100%')
-    .padding(18)
+    .height(168)
+    .padding({ left: 18, right: 18 })
+    .justifyContent(FlexAlign.Center)
     .alignItems(HorizontalAlign.Center)
     .backgroundColor(SURFACE_WARM)
-    .borderRadius(18)
-    .border({ width: 1, color: BORDER })
+    .borderRadius(10)
   }
 
   @Builder

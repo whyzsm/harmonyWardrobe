@@ -12,9 +12,9 @@ const SHEET_ACCENT_SOFT: string = '#EAF3FE';
 
 @Component
 export struct QuickCaptureSheet {
-  onCapturePhoto: () => void = () => {};
-  onPickPhoto: () => void = () => {};
+  onOpenWardrobe: () => void = () => {};
   onOpenStoreVisit: () => void = () => {};
+  onOpenOutfit: () => void = () => {};
   onCancel: () => void = () => {};
   @State private sheetTranslateY: number = 300;
   @State private backgroundOpacity: number = 0;
@@ -57,16 +57,16 @@ export struct QuickCaptureSheet {
         .height(44)
         .alignItems(VerticalAlign.Center)
 
-        this.ActionCard('拍一张', '打开相机，录入新衣物', 'camera', () => {
-          this.onCapturePhoto();
+        this.ActionCard('衣柜', '查看和整理我的衣物', 'wardrobe', () => {
+          this.onOpenWardrobe();
         })
 
-        this.ActionCard('从相册选择', '选择已有照片再补充类型', 'photo', () => {
-          this.onPickPhoto();
-        })
-
-        this.ActionCard('新增逛店', '记录店铺、试穿和回看理由', 'store', () => {
+        this.ActionCard('逛店', '查看店铺和试穿记录', 'store', () => {
           this.onOpenStoreVisit();
+        })
+
+        this.ActionCard('套装', '查看和创建穿搭组合', 'outfit', () => {
+          this.onOpenOutfit();
         })
       }
       .width('100%')
@@ -95,7 +95,7 @@ export struct QuickCaptureSheet {
 
   @Builder
   ActionCard(title: string, description: string, variant: string, action: () => void) {
-    if (variant === 'camera') {
+    if (variant === 'wardrobe') {
       this.ActionCardContent(title, description, variant, true, action)
     } else {
       this.ActionCardContent(title, description, variant, false, action)
@@ -104,8 +104,8 @@ export struct QuickCaptureSheet {
 
   @Builder
   ActionIcon(variant: string) {
-    if (variant === 'camera') {
-      SymbolGlyph($r('sys.symbol.camera_fill'))
+    if (variant === 'wardrobe') {
+      SymbolGlyph($r('sys.symbol.shirt'))
         .fontSize(20)
         .fontColor([YibuqueColor.textInverse])
     } else if (variant === 'store') {
@@ -113,7 +113,7 @@ export struct QuickCaptureSheet {
         .fontSize(20)
         .fontColor([SHEET_ACCENT])
     } else {
-      SymbolGlyph($r('sys.symbol.picture'))
+      SymbolGlyph($r('sys.symbol.hanger_and_towels'))
         .fontSize(20)
         .fontColor([SHEET_ACCENT])
     }

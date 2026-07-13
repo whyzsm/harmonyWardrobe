@@ -50,7 +50,7 @@ for (const needle of ['StoreVisitPage({', 'storeRepository: this.runtime.storeRe
   }
 }
 
-for (const needle of ['新增逛店', 'onOpenStoreVisit']) {
+for (const needle of ['逛店', 'onOpenStoreVisit']) {
   if (!quickSheet.includes(needle)) {
     throw new Error(`QuickCaptureSheet missing store visit quick action ${needle}`);
   }

@@ -74,7 +74,7 @@ for (const needle of ['衣柜', '逛店', '套装', '我的', "SymbolGlyph($r('s
   mustInclude(nav, navPath, needle);
 }
 
-for (const needle of ['快捷录入', '拍一张', '从相册选择', "SymbolGlyph($r('sys.symbol.camera_fill'))", "SymbolGlyph($r('sys.symbol.picture'))", '#1C1C1E', '#0071E3', '78']) {
+for (const needle of ['快捷录入', '衣柜', '逛店', '套装', "SymbolGlyph($r('sys.symbol.shirt'))", "SymbolGlyph($r('sys.symbol.store_fill'))", "SymbolGlyph($r('sys.symbol.hanger_and_towels'))", '#1C1C1E', '#0071E3', '78']) {
   mustInclude(quickSheet, quickSheetPath, needle);
 }
 
