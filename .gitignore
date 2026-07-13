@@ -10,6 +10,7 @@ entry/build/
 # Other files and folders
 .settings/
 .idea/
+.workbuddy/
 .appanalyzer/
 
 # Executables
