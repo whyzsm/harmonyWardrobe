@@ -8,11 +8,8 @@ for (const needle of [
   'onChange',
   'ForEach',
   'WardrobeSearchHeader',
-  'designDemoResource',
   'displayItemMeta',
-  'designDemoMeta',
-  'DEMO_META',
-  'wardrobe_demo_1',
+  '暂无照片',
   'OPEN_DESIGN_BLACK',
   'OPEN_DESIGN_SURFACE',
   'OPEN_DESIGN_BORDER',
@@ -55,8 +52,8 @@ for (const needle of [
   "SymbolGlyph($r('sys.symbol.hanger_and_towels'))",
   "SymbolGlyph($r('sys.symbol.bag'))",
   "SymbolGlyph($r('sys.symbol.arrow_left_arrow_right'))",
-  'Text(this.displayItemTitle(item, index))',
-  'Text(this.displayItemMeta(item, index))',
+  'Text(this.displayItemTitle(item))',
+  'Text(this.displayItemMeta(item))',
   'CardCategoryIcon(item.category)',
   'CardCategoryIcon(category: ClothingCategory)',
   '.fontSize(14)',
@@ -150,16 +147,22 @@ for (const fakeCard of ['shouldShowWardrobeDemoCards', 'wardrobeDemoIndexes', 'W
   }
 }
 
-if (!/displayItemTitle\(item: ClothingItem, index: number\)[\s\S]*?autoNamePattern[\s\S]*?autoNamePattern\.test\(item\.name\)[\s\S]*?categoryLabel/.test(text)) {
+if (!/displayItemTitle\(item: ClothingItem\)[\s\S]*?autoNamePattern[\s\S]*?autoNamePattern\.test\(item\.name\)[\s\S]*?categoryLabel/.test(text)) {
   throw new Error('Wardrobe card title must hide timestamps from generated clothing names');
 }
 
-if (!/displayItemMeta\(item: ClothingItem, index: number\)[\s\S]*?item\.note[\s\S]*?displayItemTitle\(item, index\) === categoryLabel \? '' : categoryLabel/.test(text)) {
+if (!/displayItemMeta\(item: ClothingItem\)[\s\S]*?item\.note[\s\S]*?displayItemTitle\(item\) === categoryLabel \? '' : categoryLabel/.test(text)) {
   throw new Error('Wardrobe card meta must prefer notes and avoid repeating an auto-generated category title');
 }
 
-if (!/WardrobeSearchResultCard\(item: ClothingItem, index: number\)[\s\S]*?CardCategoryIcon\(item\.category\)[\s\S]*?Row\(\{ space: 8 \}\)[\s\S]*?Text\(this\.displayItemTitle\(item, index\)\)[\s\S]*?\.layoutWeight\(1\)[\s\S]*?Text\(this\.displayItemMeta\(item, index\)\)[\s\S]*?\.maxLines\(1\)/.test(text)) {
+if (!/WardrobeSearchResultCard\(item: ClothingItem, index: number\)[\s\S]*?CardCategoryIcon\(item\.category\)[\s\S]*?Row\(\{ space: 8 \}\)[\s\S]*?Text\(this\.displayItemTitle\(item\)\)[\s\S]*?\.layoutWeight\(1\)[\s\S]*?Text\(this\.displayItemMeta\(item\)\)[\s\S]*?\.maxLines\(1\)/.test(text)) {
   throw new Error('Wardrobe card should render title and secondary text in one compact row');
+}
+
+for (const forbidden of ['wardrobe_demo_', 'designDemoResource', 'DEMO_META', 'debug://']) {
+  if (text.includes(forbidden)) {
+    throw new Error(`WardrobePage must not include test data fallback ${forbidden}`);
+  }
 }
 
 for (const wrongCategoryIcon of ["sys.symbol.list_bullet", "sys.symbol.figure_figure_dress"]) {

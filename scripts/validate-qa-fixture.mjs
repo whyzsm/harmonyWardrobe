@@ -3,19 +3,83 @@ import fs from 'node:fs';
 const seedPath = 'entry/src/main/ets/data/debug/SeedData.ets';
 const qaPath = 'docs/qa/manual-test-script.md';
 
-const seed = fs.readFileSync(seedPath, 'utf8');
-for (const needle of [
-  'seedClothing',
-  'seedOutfits',
-  'seedWearLogs',
-  'seedWishlist',
-  'ClothingRepository',
-  'OutfitRepository',
-  'WearLogRepository',
-  'WishlistRepository'
+function sourceFiles(directory) {
+  const files = [];
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const path = `${directory}/${entry.name}`;
+    if (entry.isDirectory()) {
+      files.push(...sourceFiles(path));
+    } else if (entry.name.endsWith('.ets')) {
+      files.push(path);
+    }
+  }
+  return files;
+}
+
+if (fs.existsSync(seedPath)) {
+  throw new Error('Production source must not include debug seed data');
+}
+
+const productionSources = sourceFiles('entry/src/main/ets')
+  .map((path) => fs.readFileSync(path, 'utf8'))
+  .join('\n');
+
+for (const forbidden of [
+  'debug://',
+  'offline seed',
+  'designDemoResource',
+  'designLookResource',
+  'designFallbackPhoto',
+  'DEFAULT_HISTORY_TERMS',
+  'wardrobe_demo_',
+  'wardrobe_look_',
+  'store_visit_cover',
+  "Text('22°')",
+  '亮色外套，适合周末出门。',
+  '牛仔短外套'
 ]) {
-  if (!seed.includes(needle)) {
-    throw new Error(`SeedData missing ${needle}`);
+  if (productionSources.includes(forbidden)) {
+    throw new Error(`Production source still contains test data marker: ${forbidden}`);
+  }
+}
+
+for (const asset of [
+  'store_visit_cover.png',
+  'wardrobe_demo_1.png',
+  'wardrobe_demo_2.png',
+  'wardrobe_demo_3.png',
+  'wardrobe_demo_4.png',
+  'wardrobe_look_bag.jpg',
+  'wardrobe_look_dress.jpg',
+  'wardrobe_look_pants.jpg',
+  'wardrobe_look_shirt.jpg'
+]) {
+  if (fs.existsSync(`entry/src/main/resources/base/media/${asset}`)) {
+    throw new Error(`Production media still contains test asset: ${asset}`);
+  }
+}
+
+const searchPage = fs.readFileSync('entry/src/main/ets/pages/SearchResultsPage.ets', 'utf8');
+if (!searchPage.includes('@State private historyTerms: string[] = []')) {
+  throw new Error('Search history must start empty instead of showing fabricated user history');
+}
+
+const profilePage = fs.readFileSync('entry/src/main/ets/pages/ProfilePage.ets', 'utf8');
+for (const neutralPreference of [
+  '@State private fittingPreferenceEnabled: boolean = false',
+  '@State private commuteSelected: boolean = false',
+  '@State private casualSelected: boolean = false',
+  '@State private walkingSelected: boolean = false'
+]) {
+  if (!profilePage.includes(neutralPreference)) {
+    throw new Error(`Profile page must start without fabricated preferences: ${neutralPreference}`);
+  }
+}
+
+const profileRepository = fs.readFileSync('entry/src/main/ets/data/repositories/ProfileRepository.ets', 'utf8');
+for (const neutralDefault of ['fittingPreferenceEnabled: false', 'styleTags: []']) {
+  if (!profileRepository.includes(neutralDefault)) {
+    throw new Error(`Profile repository must use neutral empty defaults: ${neutralDefault}`);
   }
 }
 

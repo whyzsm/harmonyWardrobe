@@ -37,7 +37,7 @@ for (const needle of [
   '暂无照片',
   "columnsTemplate('1fr 1fr')",
   "borderRadius(18)",
-  'wardrobe_look_shirt'
+  'this.coverPhotoUri(visit).length > 0'
 ]) {
   if (!page.includes(needle)) {
     throw new Error(`StoreVisitPage missing ${needle}`);
@@ -86,6 +86,12 @@ if (page.includes("Button('拍店铺')") || page.includes('点右上角')) {
 
 if (page.includes("Text('新增')") || page.includes('openNewVisitEditor')) {
   throw new Error('Store visit add entry must live in QuickCaptureSheet, not the store page header');
+}
+
+for (const forbidden of ['wardrobe_look_', 'designFallbackPhoto', 'debug://']) {
+  if (page.includes(forbidden)) {
+    throw new Error(`StoreVisitPage must not include test data fallback ${forbidden}`);
+  }
 }
 
 if (!/visitStatus\(visit: StoreVisit\)[\s\S]*?visit\.status !== undefined[\s\S]*?return visit\.status[\s\S]*?legacyWantToVisitRecord/.test(page)) {

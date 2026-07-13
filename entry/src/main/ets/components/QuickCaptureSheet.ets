@@ -7,8 +7,8 @@ const SHEET_BORDER: string = '#D2D2D7';
 const SHEET_SURFACE: string = '#FBFBFD';
 const SHEET_PRIMARY: string = '#1C1C1E';
 const SHEET_PRIMARY_ICON: string = '#3A3A3C';
-const SHEET_ACCENT: string = '#0071E3';
-const SHEET_ACCENT_SOFT: string = '#EAF3FE';
+const SHEET_ACCENT: string = '#1D1D1F';
+const SHEET_ACCENT_SOFT: string = '#F2F2F7';
 
 @Component
 export struct QuickCaptureSheet {

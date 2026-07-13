@@ -176,24 +176,6 @@ export struct StoreVisitPage {
     return visit.photoUris.length > 0 ? visit.photoUris[0] : '';
   }
 
-  private isDesignFallbackPhoto(visit: StoreVisit): boolean {
-    const photoUri = this.coverPhotoUri(visit);
-    return photoUri.startsWith('debug://');
-  }
-
-  private designFallbackPhoto(index: number): Resource {
-    if (index % 4 === 0) {
-      return $r('app.media.wardrobe_look_shirt');
-    }
-    if (index % 4 === 1) {
-      return $r('app.media.wardrobe_look_bag');
-    }
-    if (index % 4 === 2) {
-      return $r('app.media.wardrobe_look_pants');
-    }
-    return $r('app.media.wardrobe_look_dress');
-  }
-
   private cardAspectRatio(index: number): number {
     if (index % 4 === 0) {
       return 0.704;
@@ -449,13 +431,7 @@ export struct StoreVisitPage {
   StoreVisitResultCard(visit: StoreVisit, index: number) {
     Column({ space: 8 }) {
       Stack({ alignContent: Alignment.TopStart }) {
-        if (this.isDesignFallbackPhoto(visit)) {
-          Image(this.designFallbackPhoto(index))
-            .width('100%')
-            .aspectRatio(this.cardAspectRatio(index))
-            .objectFit(ImageFit.Cover)
-            .borderRadius(18)
-        } else if (this.coverPhotoUri(visit).length > 0) {
+        if (this.coverPhotoUri(visit).length > 0) {
           Image(this.coverPhotoUri(visit))
             .width('100%')
             .aspectRatio(this.cardAspectRatio(index))

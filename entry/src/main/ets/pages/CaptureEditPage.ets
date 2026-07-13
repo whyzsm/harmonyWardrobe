@@ -77,8 +77,8 @@ export struct CaptureEditPage {
 
   @State private captureMode: string = '单品';
   @State private captureType: string = '衣橱';
-  @State private note: string = '亮色外套，适合周末出门。';
-  @State private name: string = '牛仔短外套';
+  @State private note: string = '';
+  @State private name: string = '';
   @State private category: ClothingCategory = ClothingCategory.Top;
   @State private photoUris: string[] = [];
   @State private storeName: string = '';
@@ -418,9 +418,10 @@ export struct CaptureEditPage {
           .height('100%')
           .objectFit(ImageFit.Cover)
       } else {
-        SymbolGlyph($r('sys.symbol.camera_fill'))
-          .fontSize(36)
-          .fontColor([CAPTURE_META])
+        Image($r('app.media.default_fashion_cover'))
+          .width('100%')
+          .height('100%')
+          .objectFit(ImageFit.Cover)
       }
 
       Stack({ alignContent: Alignment.Center }) {

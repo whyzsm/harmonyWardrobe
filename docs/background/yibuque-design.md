@@ -6,9 +6,9 @@
 
 `Yibuque` is a local-first, image-first personal wardrobe and store-visit app. The primary flow starts from the bottom camera, continues with `拍一张` or `从相册选择`, and then classifies the photo as a wardrobe item, outfit, or store visit.
 
-视觉方向采用轻量白底、浅灰表面、黑色正文和克制蓝色强调。页面应以真实照片为主要内容，保持低文字密度、清晰层级和安静的工具感。
+视觉方向采用轻量白底、浅灰表面、黑色正文和黑色交互强调。页面应以真实照片为主要内容，保持低文字密度、清晰层级和安静的工具感。
 
-The visual direction uses white backgrounds, light-gray surfaces, black text, and restrained blue accents. Real photos remain the primary content, with low text density, clear hierarchy, and a quiet utility-oriented feel.
+The visual direction uses white backgrounds, light-gray surfaces, black text, and black interaction accents. Real photos remain the primary content, with low text density, clear hierarchy, and a quiet utility-oriented feel.
 
 禁止使用旧 Rose VI 的粉色背景、粉色主按钮、粉色阴影或粉色边框。禁止虚构网络同步、预算、商场或用户记录。
 
@@ -27,7 +27,7 @@ export const YibuqueColor = {
   bgBlueGray: '#FFFFFF',
   bgHeaderBlue: '#F5F5F7',
   cardWhite: '#FFFFFF',
-  cardBlue: '#EAF3FE',
+  cardBlue: '#F2F2F7',
   cardMint: '#F5F5F7',
   cardSoftGray: '#FBFBFD',
   textPrimary: '#1D1D1F',
@@ -36,19 +36,19 @@ export const YibuqueColor = {
   textDisabled: '#B8B8BD',
   textInverse: '#FFFFFF',
   actionBlack: '#1D1D1F',
-  brandCyan: '#0071E3',
+  brandCyan: '#1D1D1F',
   success: '#16A34A',
   successBg: '#ECFDF3',
   borderLight: '#E8E8ED',
   borderMedium: '#D2D2D7',
-  borderStrong: '#0071E3',
+  borderStrong: '#1D1D1F',
   overlayDark: '#7A1D1D1F'
 };
 ```
 
-`actionBlack` 是兼容名称，实际必须为接近黑色的主操作色；`brandCyan` 是兼容名称，实际映射到系统蓝色。
+`actionBlack` 是兼容名称，实际必须为接近黑色的主操作色；`brandCyan` 是兼容名称，当前同样映射为黑色交互色，不再显示蓝色。
 
-`actionBlack` is a compatibility name and must map to a near-black primary action. `brandCyan` is also a compatibility name and maps to the system blue accent.
+`actionBlack` is a compatibility name and must map to a near-black primary action. `brandCyan` is also a compatibility name and now maps to the same black interaction color instead of blue.
 
 ### 使用规则 / Usage Rules
 
@@ -56,10 +56,10 @@ export const YibuqueColor = {
 - Use `bgDefault` for page backgrounds and `bgGray` or `cardSoftGray` for secondary surfaces.
 - 主标题使用 `textPrimary`；说明和元信息使用 `textSecondary`、`textTertiary`。
 - Use `textPrimary` for headings and `textSecondary` or `textTertiary` for descriptions and metadata.
-- 主操作使用 `actionBlack`；当前选中态、链接和轻量反馈使用 `brandCyan`。
-- Use `actionBlack` for primary commands and `brandCyan` for selected states, links, and lightweight feedback.
-- 普通边框使用 `borderLight` 或 `borderMedium`；蓝色只用于明确选中状态。
-- Use `borderLight` or `borderMedium` for regular borders. Reserve blue borders for explicit selected states.
+- 主操作、当前选中态和链接统一使用 `actionBlack` 或映射为黑色的 `brandCyan`。
+- Use `actionBlack` or the black-mapped `brandCyan` for primary commands, selected states, and links.
+- 普通边框使用 `borderLight` 或 `borderMedium`；强选中边框使用黑色，不使用蓝色。
+- Use `borderLight` or `borderMedium` for regular borders. Strong selected borders use black, never blue.
 
 ## 字体与密度 / Typography And Density
 
@@ -98,20 +98,20 @@ Top navigation uses a white or translucent white background, a soft gray divider
 
 ### 底部导航 / Bottom Navigation
 
-底部导航为宽度 90% 的黑色半透明悬浮胶囊，包含衣柜、逛店、相机、套装、我的。中间相机保留现有彩色圆形图标，不显示“拍照”文字。
+底部导航为宽度 90% 的黑色半透明悬浮胶囊，包含衣柜、逛店、相机、套装、我的。中间相机保留现有彩色圆形图标，不显示“拍照”文字；它是本规范中唯一允许保留蓝色的操作入口。
 
-The bottom navigation is a 90%-wide translucent black floating capsule with wardrobe, store, camera, outfit, and profile entries. Keep the existing colored circular camera icon and do not show a `拍照` label.
+The bottom navigation is a 90%-wide translucent black floating capsule with wardrobe, store, camera, outfit, and profile entries. Keep the existing colored circular camera icon without a `拍照` label; it is the only action in this system allowed to retain blue.
 
 ### 快捷录入 / Quick Capture Sheet
 
-快捷录入弹层使用白色四角圆角面板、灰色遮罩和中性阴影。标题为“快捷录入”，右侧“取消”使用蓝色。
+快捷录入弹层使用白色四角圆角面板、灰色遮罩和中性阴影。标题为“快捷录入”，右侧“取消”使用黑色。
 
-The quick capture sheet uses a white fully-rounded panel, a gray scrim, and a neutral shadow. Its title is `快捷录入`, with a blue `取消` action.
+The quick capture sheet uses a white fully-rounded panel, a gray scrim, and a neutral shadow. Its title is `快捷录入`, with a black `取消` action.
 
 - “拍一张”：黑色主卡片、白色相机系统图标。
 - `拍一张`: black primary card with a white system camera icon.
-- “从相册选择”：浅灰卡片、灰色边框、浅蓝图标底。
-- `从相册选择`: light-gray card with a gray border and a light-blue icon surface.
+- “从相册选择”：浅灰卡片、灰色边框、中性灰图标底。
+- `从相册选择`: light-gray card with a gray border and a neutral-gray icon surface.
 
 ### 卡片与空态 / Cards And Empty States
 
@@ -119,9 +119,9 @@ The quick capture sheet uses a white fully-rounded panel, a gray scrim, and a ne
 
 Cards use white or `cardSoftGray` with soft gray borders. Prefer real images. Missing images use neutral placeholders, and design examples must never be presented as user data.
 
-空态必须说明下一步动作，CTA 使用黑色或蓝色，不使用粉色。
+空态必须说明下一步动作；需要 CTA 时使用黑色，不使用蓝色或粉色。
 
-Empty states must explain the next action. CTAs use black or blue, never pink.
+Empty states must explain the next action. When a CTA is needed, use black rather than blue or pink.
 
 ## 页面规则 / Page Rules
 
@@ -133,9 +133,9 @@ Keep search, categories, and the two-column waterfall. Real photos dominate, ima
 
 ### 套装 / Outfits
 
-使用场景筛选、天气提示和双列套装墙。每张套装卡可显示两张组合图片，标题与元信息保持紧凑。
+使用场景筛选、真实衣物数量引导和双列套装墙。每张套装卡可显示两张组合图片，标题与元信息保持紧凑。
 
-Use scene filters, a weather hint, and a two-column outfit wall. Each outfit card may show two combined photos with compact title and metadata.
+Use scene filters, real wardrobe-count guidance, and a two-column outfit wall. Each outfit card may show two combined photos with compact title and metadata.
 
 ### 拍照录入 / Capture
 
@@ -157,9 +157,9 @@ Use real wardrobe photos, real item counts, and local profile data. Show unset s
 
 ### 编辑与搜索页 / Editors And Search
 
-所有编辑页、搜索结果、日历、选择器和空态必须继承相同白灰蓝 token。保存按钮使用黑色，选中态使用蓝色，错误使用统一红色。
+所有编辑页、搜索结果、日历、选择器和空态必须继承相同白灰黑 token。保存按钮和选中态统一使用黑色，错误使用统一红色。
 
-All editors, search results, calendars, pickers, and empty states inherit the same white-gray-blue tokens. Save buttons use black, selected states use blue, and errors use one consistent red.
+All editors, search results, calendars, pickers, and empty states inherit the same white-gray-black tokens. Save buttons and selected states use black, while errors use one consistent red.
 
 ## 交互与数据真实性 / Interaction And Data Integrity
 

@@ -115,10 +115,10 @@ export interface AppThemeTokens {
 
 export const AppTheme: AppThemeTokens = {
   color: {
-    primary: '#0071E3',
-    primaryStrong: '#005EB8',
-    primaryPressed: '#004E9A',
-    primarySoft: '#EAF3FE',
+    primary: '#1D1D1F',
+    primaryStrong: '#000000',
+    primaryPressed: '#000000',
+    primarySoft: '#F2F2F7',
     surface: '#FFFFFF',
     surfaceRaised: '#FBFBFD',
     surfaceMuted: '#F5F5F7',
@@ -129,7 +129,7 @@ export const AppTheme: AppThemeTokens = {
     success: '#16A34A',
     warning: '#EAB308',
     danger: '#DC2626',
-    accent: '#0071E3',
+    accent: '#1D1D1F',
     disabled: '#B8B8BD'
   },
   radius: {
@@ -152,7 +152,7 @@ export const YibuqueColor: YibuqueColorTokens = {
   bgBlueGray: '#FFFFFF',
   bgHeaderBlue: '#F5F5F7',
   cardWhite: '#FFFFFF',
-  cardBlue: '#EAF3FE',
+  cardBlue: '#F2F2F7',
   cardMint: '#F5F5F7',
   cardSoftGray: '#FBFBFD',
   textPrimary: '#1D1D1F',
@@ -161,12 +161,12 @@ export const YibuqueColor: YibuqueColorTokens = {
   textDisabled: '#B8B8BD',
   textInverse: '#FFFFFF',
   actionBlack: '#1D1D1F',
-  brandCyan: '#0071E3',
+  brandCyan: '#1D1D1F',
   success: '#16A34A',
   successBg: '#ECFDF3',
   borderLight: '#E8E8ED',
   borderMedium: '#D2D2D7',
-  borderStrong: '#0071E3',
+  borderStrong: '#1D1D1F',
   overlayDark: '#7A1D1D1F'
 };
 

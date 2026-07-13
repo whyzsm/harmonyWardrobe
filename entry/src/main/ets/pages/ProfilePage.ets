@@ -11,8 +11,8 @@ const PROFILE_MUTED = '#6E6E73';
 const PROFILE_META = '#86868B';
 const PROFILE_BORDER = '#D2D2D7';
 const PROFILE_BORDER_SOFT = '#E8E8ED';
-const PROFILE_ACCENT = '#0071E3';
-const PROFILE_ACCENT_SOFT = '#EAF4FF';
+const PROFILE_ACCENT = '#1D1D1F';
+const PROFILE_ACCENT_SOFT = '#F2F2F7';
 const PROFILE_DANGER = '#DC2626';
 
 function parseOptionalNumber(value: string): number | undefined {
@@ -102,11 +102,11 @@ export struct ProfilePage {
   @State private savedMessage: string = '';
   @State private searchQuery: string = '';
   @State private isEditingMeasurements: boolean = false;
-  @State private fittingPreferenceEnabled: boolean = true;
-  @State private commuteSelected: boolean = true;
-  @State private casualSelected: boolean = true;
+  @State private fittingPreferenceEnabled: boolean = false;
+  @State private commuteSelected: boolean = false;
+  @State private casualSelected: boolean = false;
   @State private datingSelected: boolean = false;
-  @State private walkingSelected: boolean = true;
+  @State private walkingSelected: boolean = false;
   @State private privacyModeEnabled: boolean = false;
   @State private frequentDistricts: string[] = [];
   @State private monthlyBudget: number = -1;
@@ -168,7 +168,7 @@ export struct ProfilePage {
       const photoUris: string[] = [];
       for (const item of items) {
         for (const photoUri of item.photoUris) {
-          if (photoUris.length < 3 && !photoUri.startsWith('debug://')) {
+          if (photoUris.length < 3 && photoUri.length > 0) {
             photoUris.push(photoUri);
           }
         }
@@ -315,16 +315,6 @@ export struct ProfilePage {
     return '尺码 身高 体重 腰围 偏好 商场 商圈 风格 预算 回购 花费 提醒 工具 拍照 逛店 套装 导出 本地 隐私'.includes(query);
   }
 
-  private designLookResource(index: number): Resource {
-    if (index === 0) {
-      return $r('app.media.wardrobe_look_shirt');
-    }
-    if (index === 1) {
-      return $r('app.media.wardrobe_look_dress');
-    }
-    return $r('app.media.wardrobe_look_pants');
-  }
-
   build() {
     Stack({ alignContent: Alignment.Bottom }) {
       Scroll() {
@@ -455,10 +445,16 @@ export struct ProfilePage {
         .height('100%')
         .objectFit(ImageFit.Cover)
     } else {
-      Image(this.designLookResource(index))
+      Column() {
+        SymbolGlyph($r('sys.symbol.hanger_and_towels'))
+          .fontSize(index === 0 ? 34 : 24)
+          .fontColor(['#8E8E93'])
+      }
         .width('100%')
         .height('100%')
-        .objectFit(ImageFit.Cover)
+        .justifyContent(FlexAlign.Center)
+        .alignItems(HorizontalAlign.Center)
+        .backgroundColor(index === 0 ? '#E8E8ED' : '#F2F2F7')
     }
   }
 

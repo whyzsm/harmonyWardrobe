@@ -155,26 +155,19 @@ export struct OutfitEditPage {
           .height('100%')
           .objectFit(ImageFit.Cover)
       } else {
-        Column() {
-          SymbolGlyph($r('sys.symbol.picture'))
-            .fontSize(42)
-            .fontColor([YibuqueColor.textTertiary])
-        }
-        .width('100%')
-        .height('100%')
-        .justifyContent(FlexAlign.Center)
-        .alignItems(HorizontalAlign.Center)
+        Image($r('app.media.default_fashion_cover'))
+          .width('100%')
+          .height('100%')
+          .objectFit(ImageFit.Cover)
       }
 
-      if (this.hasSelectedPhoto()) {
-        Column()
-          .width('100%')
-          .height('60%')
-          .linearGradient({
-            angle: 180,
-            colors: [['#00000000', 0], ['#99000000', 1]]
-          })
-      }
+      Column()
+        .width('100%')
+        .height('60%')
+        .linearGradient({
+          angle: 180,
+          colors: [['#00000000', 0], ['#99000000', 1]]
+        })
 
       Column() {
         Row() {
@@ -191,12 +184,12 @@ export struct OutfitEditPage {
             .fontSize(20)
             .lineHeight(28)
             .fontWeight(FontWeight.Regular)
-            .fontColor(this.hasSelectedPhoto() ? '#FFFFFF' : YibuqueColor.textPrimary)
+            .fontColor('#FFFFFF')
 
           Text('整体、细节或上身效果都可以')
             .fontSize(14)
             .lineHeight(20)
-            .fontColor(this.hasSelectedPhoto() ? '#D9FFFFFF' : YibuqueColor.textSecondary)
+            .fontColor('#D9FFFFFF')
 
           this.GalleryAction()
         }

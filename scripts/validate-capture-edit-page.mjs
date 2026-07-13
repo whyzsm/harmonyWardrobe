@@ -94,6 +94,8 @@ mustMatch(text, /wearLogRepository\??:\s*WearLogRepository/, 'must expose WearLo
 for (const forbidden of [
   'AppTheme.color.primary',
   'wardrobe_look_',
+  "@State private note: string = '亮色外套，适合周末出门。'",
+  "@State private name: string = '牛仔短外套'",
   'findStoreByName(this.storeName)',
   'createStore({',
   'this.storeName.trim().length > 0 &&',
@@ -104,6 +106,13 @@ for (const forbidden of [
   'selectedClothingItemIds.length > 0 &&'
 ]) {
   mustNotInclude(text, forbidden);
+}
+
+for (const emptyDefault of [
+  "@State private note: string = ''",
+  "@State private name: string = ''"
+]) {
+  mustInclude(text, emptyDefault);
 }
 
 console.log('PASS');

@@ -28,7 +28,6 @@ const SEARCH_SCOPES: SearchScopeOption[] = [
   { key: 'profile', label: '我的' }
 ];
 
-const DEFAULT_HISTORY_TERMS: string[] = ['白衬衫', '静安嘉里 COS', '通勤套装', '好走路'];
 const SEARCH_SUGGESTIONS: string[] = ['连衣裙尺码', '周末快闪店', '黑白针织', '拍照录入', '回购提醒', '小众买手店'];
 
 function entityTypeLabel(entityType: SearchEntityType): string {
@@ -52,7 +51,7 @@ function entityTypeLabel(entityType: SearchEntityType): string {
 
 function firstUsablePhoto(photoUris: string[]): string {
   for (const photoUri of photoUris) {
-    if (photoUri.length > 0 && !photoUri.startsWith('debug://')) {
+    if (photoUri.length > 0) {
       return photoUri;
     }
   }
@@ -93,7 +92,7 @@ export struct SearchResultsPage {
   @State private searchText: string = '';
   @State private activeQuery: string = '';
   @State private selectedScope: string = 'all';
-  @State private historyTerms: string[] = [...DEFAULT_HISTORY_TERMS];
+  @State private historyTerms: string[] = [];
   @State private searchResults: SearchResult[] = [];
   @State private visualResults: SearchVisualResult[] = [];
   @State private isSearching: boolean = false;

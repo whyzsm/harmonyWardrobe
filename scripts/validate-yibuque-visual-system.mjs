@@ -54,11 +54,11 @@ for (const needle of [
   mustInclude(tokens, tokenPath, needle);
 }
 
-for (const needle of ['#0071E3', '#1D1D1F', '#F5F5F7', '#EAF3FE', '#FFFFFF']) {
+for (const needle of ['#1D1D1F', '#000000', '#F5F5F7', '#F2F2F7', '#FFFFFF']) {
   mustInclude(tokens, tokenPath, needle);
 }
 
-for (const needle of ['白灰蓝', 'white-gray-blue', '图片优先', 'image-first', '拍一张', '从相册选择']) {
+for (const needle of ['白灰黑', 'white-gray-black', '图片优先', 'image-first', '拍一张', '从相册选择']) {
   mustInclude(design, designPath, needle);
 }
 
@@ -74,7 +74,7 @@ for (const needle of ['衣柜', '逛店', '套装', '我的', "SymbolGlyph($r('s
   mustInclude(nav, navPath, needle);
 }
 
-for (const needle of ['快捷录入', '衣柜', '逛店', '套装', "SymbolGlyph($r('sys.symbol.shirt'))", "SymbolGlyph($r('sys.symbol.store_fill'))", "SymbolGlyph($r('sys.symbol.hanger_and_towels'))", '#1C1C1E', '#0071E3', '78']) {
+for (const needle of ['快捷录入', '衣柜', '逛店', '套装', "SymbolGlyph($r('sys.symbol.shirt'))", "SymbolGlyph($r('sys.symbol.store_fill'))", "SymbolGlyph($r('sys.symbol.hanger_and_towels'))", '#1C1C1E', '#1D1D1F', '78']) {
   mustInclude(quickSheet, quickSheetPath, needle);
 }
 
@@ -87,6 +87,28 @@ mustInclude(colors, colorPath, '#FFFFFF');
 for (const oldRoseColor of ['#B11B68', '#8E1454', '#7A1048', '#FCE3EF', '#FFF2F8', '#FBE1F0', '#F8D4EF', '#D83E8E']) {
   mustNotInclude(tokens, tokenPath, oldRoseColor);
   mustNotInclude(icon, iconPath, oldRoseColor);
+}
+
+const etsFiles = [];
+function collectEtsFiles(directory) {
+  for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+    const path = `${directory}/${entry.name}`;
+    if (entry.isDirectory()) {
+      collectEtsFiles(path);
+    } else if (entry.name.endsWith('.ets')) {
+      etsFiles.push(path);
+    }
+  }
+}
+collectEtsFiles('entry/src/main/ets');
+
+for (const forbiddenBlue of ['#0071E3', '#005EB8', '#004E9A', '#EAF3FE', '#EAF4FF', '#EDF6FF', '#4578FF', '#56D0FF']) {
+  for (const file of etsFiles) {
+    if (file === navPath) {
+      continue;
+    }
+    mustNotInclude(read(file), file, forbiddenBlue);
+  }
 }
 
 for (const forbidden of ['拍衣服', '拍搭配', '拍店铺']) {

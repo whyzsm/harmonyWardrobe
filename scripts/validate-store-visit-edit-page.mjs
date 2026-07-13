@@ -41,7 +41,7 @@ for (const needle of [
   'YibuqueColor',
   'YibuqueRadius',
   'SecondaryPageHeader',
-  'store_visit_cover',
+  'default_store_cover',
   '拍下这家店的第一眼',
   '选择照片',
   '店名 / 品牌',
@@ -73,6 +73,12 @@ for (const needle of [
 for (const forbidden of ['保存并拍照', 'captureAndSaveStoreVisit']) {
   if (text.includes(forbidden)) {
     throw new Error(`${file} must not include ${forbidden}`);
+  }
+}
+
+for (const forbidden of ['store_visit_cover', 'debug://']) {
+  if (text.includes(forbidden)) {
+    throw new Error(`${file} must not include test photo ${forbidden}`);
   }
 }
 

@@ -39,9 +39,6 @@ const OPEN_DESIGN_MUTED = '#717177';
 const OPEN_DESIGN_BORDER = '#D9D9DE';
 const SCREENSHOT_NAV_GRAY = '#74747A';
 
-const DEMO_TITLES: string[] = ['牛仔短外套', '白毛衣牛仔裤', '衣架上的上衣', '极简灯下裙'];
-const DEMO_META: string[] = ['亮色外套', '周末轻搭', '待回看', '极简陈列'];
-
 @Component
 export struct WardrobePage {
   clothingRepository?: ClothingRepository = undefined;
@@ -226,34 +223,6 @@ export struct WardrobePage {
     return 0.82;
   }
 
-  private isDesignFallbackPhoto(photoUri: string): boolean {
-    return photoUri.length === 0 || photoUri.startsWith('debug://');
-  }
-
-  private designDemoResource(index: number): Resource {
-    if (index % 4 === 0) {
-      return $r('app.media.wardrobe_demo_1');
-    }
-
-    if (index % 4 === 1) {
-      return $r('app.media.wardrobe_demo_2');
-    }
-
-    if (index % 4 === 2) {
-      return $r('app.media.wardrobe_demo_3');
-    }
-
-    return $r('app.media.wardrobe_demo_4');
-  }
-
-  private designDemoTitle(index: number): string {
-    return DEMO_TITLES[index % DEMO_TITLES.length];
-  }
-
-  private designDemoMeta(index: number): string {
-    return DEMO_META[index % DEMO_META.length];
-  }
-
   private categoryLabel(category: ClothingCategory): string {
     if (category === ClothingCategory.Pants) {
       return '裤子';
@@ -271,28 +240,20 @@ export struct WardrobePage {
     return '上衣';
   }
 
-  private displayItemTitle(item: ClothingItem, index: number): string {
-    if (this.isDesignFallbackPhoto(this.firstPhotoUri(item))) {
-      return this.designDemoTitle(index);
-    }
-
+  private displayItemTitle(item: ClothingItem): string {
     const categoryLabel = this.categoryLabel(item.category);
     const autoNamePattern = new RegExp(`^${categoryLabel} \\d{2}-\\d{2} \\d{2}:\\d{2}$`);
     return autoNamePattern.test(item.name) ? categoryLabel : item.name;
   }
 
-  private displayItemMeta(item: ClothingItem, index: number): string {
-    if (this.isDesignFallbackPhoto(this.firstPhotoUri(item))) {
-      return this.designDemoMeta(index);
-    }
-
+  private displayItemMeta(item: ClothingItem): string {
     const note = item.note?.trim() ?? '';
     if (note.length > 0) {
       return note;
     }
 
     const categoryLabel = this.categoryLabel(item.category);
-    return this.displayItemTitle(item, index) === categoryLabel ? '' : categoryLabel;
+    return this.displayItemTitle(item) === categoryLabel ? '' : categoryLabel;
   }
 
   private editingItem(): ClothingItem | undefined {
@@ -1000,11 +961,21 @@ export struct WardrobePage {
   WardrobeSearchResultCard(item: ClothingItem, index: number) {
     Column({ space: 6 }) {
       Stack({ alignContent: Alignment.TopStart }) {
-        if (this.isDesignFallbackPhoto(this.firstPhotoUri(item))) {
-          Image(this.designDemoResource(index))
+        if (this.firstPhotoUri(item).length === 0) {
+          Column({ space: 8 }) {
+            SymbolGlyph($r('sys.symbol.picture'))
+              .fontSize(34)
+              .fontColor([OPEN_DESIGN_MUTED])
+
+            Text('暂无照片')
+              .fontSize(12)
+              .fontColor(OPEN_DESIGN_MUTED)
+          }
             .width('100%')
             .aspectRatio(this.wardrobeCardAspectRatio(index))
-            .objectFit(ImageFit.Cover)
+            .justifyContent(FlexAlign.Center)
+            .alignItems(HorizontalAlign.Center)
+            .backgroundColor(YibuqueColor.cardSoftGray)
             .borderRadius(18)
         } else {
           Image(this.firstPhotoUri(item))
@@ -1020,7 +991,7 @@ export struct WardrobePage {
           Blank()
             .layoutWeight(1)
 
-          if (!this.isDesignFallbackPhoto(this.firstPhotoUri(item))) {
+          if (this.firstPhotoUri(item).length > 0) {
             this.CardHeart()
           }
         }
@@ -1031,7 +1002,7 @@ export struct WardrobePage {
       .width('100%')
 
       Row({ space: 8 }) {
-        Text(this.displayItemTitle(item, index))
+        Text(this.displayItemTitle(item))
           .layoutWeight(1)
           .fontSize(14)
           .fontWeight(FontWeight.Regular)
@@ -1040,7 +1011,7 @@ export struct WardrobePage {
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-        Text(this.displayItemMeta(item, index))
+        Text(this.displayItemMeta(item))
           .fontSize(12)
           .fontColor(OPEN_DESIGN_MUTED)
           .lineHeight(20)

@@ -28,8 +28,8 @@ const TEXT_MUTED = '#6E6E73';
 const TEXT_META = '#86868B';
 const BORDER = '#D2D2D7';
 const BORDER_SOFT = '#E8E8ED';
-const ACCENT = '#0071E3';
-const ACCENT_SOFT = '#EDF6FF';
+const ACCENT = '#1D1D1F';
+const ACCENT_SOFT = '#F2F2F7';
 const ERROR = '#DC2626';
 const ERROR_BG = '#FFF3F3';
 const RECORD_WEAR_ACCESSIBILITY_TEXT = '记录一次穿着';
@@ -122,43 +122,6 @@ export struct OutfitsPage {
     return outfit.photoUris.length > slot ? outfit.photoUris[slot] : '';
   }
 
-  private isDesignFallbackPhoto(photoUri: string): boolean {
-    return photoUri.length === 0 || photoUri.startsWith('debug://');
-  }
-
-  private designLookResource(index: number, slot: number): Resource {
-    const cardIndex = index % 4;
-    if (slot === 0) {
-      if (cardIndex === 0) {
-        return $r('app.media.wardrobe_look_shirt');
-      }
-
-      if (cardIndex === 1) {
-        return $r('app.media.wardrobe_look_dress');
-      }
-
-      if (cardIndex === 2) {
-        return $r('app.media.wardrobe_look_pants');
-      }
-
-      return $r('app.media.wardrobe_look_bag');
-    }
-
-    if (cardIndex === 0) {
-      return $r('app.media.wardrobe_look_dress');
-    }
-
-    if (cardIndex === 1) {
-      return $r('app.media.wardrobe_look_bag');
-    }
-
-    if (cardIndex === 2) {
-      return $r('app.media.wardrobe_look_shirt');
-    }
-
-    return $r('app.media.wardrobe_look_pants');
-  }
-
   private outfitStackAspectRatio(index: number): number {
     return index % 4 === 2 ? 1 / 1.18 : 1 / 1.48;
   }
@@ -202,12 +165,6 @@ export struct OutfitsPage {
     }
 
     return undefined;
-  }
-
-  private onCreateOutfit(): void {
-    this.selectedOutfitId = '';
-    this.showOutfitEditor = true;
-    this.onNestedPageVisibilityChange(true);
   }
 
   private onEditOutfit(outfit: OutfitTemplate): void {
@@ -291,7 +248,7 @@ export struct OutfitsPage {
     } else {
       Column({ space: 0 }) {
         this.FilterStrip()
-        this.WeatherCard()
+        this.OutfitGuideCard()
 
         if (this.loading) {
           Column({ space: 10 }) {
@@ -334,16 +291,6 @@ export struct OutfitsPage {
         } else if (this.outfits.length === 0) {
           Column({ space: 14 }) {
             this.OutfitEmptyState('还没有套装', '创建套装后会在这里显示，也可以从套装快速记录一次穿着。')
-
-            Button('创建套装')
-              .height(44)
-              .fontSize(14)
-              .fontColor(PAGE_BG)
-              .backgroundColor(ACCENT)
-              .borderRadius(22)
-              .onClick(() => {
-                this.onCreateOutfit();
-              })
           }
           .width('100%')
           .layoutWeight(1)
@@ -477,17 +424,19 @@ export struct OutfitsPage {
   }
 
   @Builder
-  WeatherCard() {
+  OutfitGuideCard() {
     Row() {
       Row({ space: 12 }) {
         Column({ space: 2 }) {
-          Text('今天适合轻外套')
+          Text(this.clothingItems.length > 0 ? '从已有单品开始搭配' : '先添加衣物再创建套装')
             .fontSize(15)
             .fontWeight(FontWeight.Regular)
             .fontColor(TEXT_PRIMARY)
             .lineHeight(18)
 
-          Text('按已有单品组合，优先选好走路的搭配。')
+          Text(this.clothingItems.length > 0 ?
+            '选择衣橱里的真实单品，组合适合自己的穿搭。' :
+            '衣橱中有单品后，就可以在这里创建搭配。')
             .fontSize(12)
             .fontColor(TEXT_MUTED)
             .maxLines(2)
@@ -496,7 +445,7 @@ export struct OutfitsPage {
         .layoutWeight(1)
         .alignItems(HorizontalAlign.Start)
 
-        Text('22°')
+        Text(`${this.clothingItems.length} 件`)
           .height(36)
           .padding({ left: 12, right: 12 })
           .fontSize(12)
@@ -521,8 +470,8 @@ export struct OutfitsPage {
   OutfitWallCard(outfit: OutfitTemplate, index: number) {
     Column({ space: 8 }) {
       Column({ space: 6 }) {
-        this.OutfitPhoto(outfit, index, 0, 1.18)
-        this.OutfitPhoto(outfit, index, 1, 0.92)
+        this.OutfitPhoto(outfit, 0, 1.18)
+        this.OutfitPhoto(outfit, 1, 0.92)
       }
       .width('100%')
       .aspectRatio(this.outfitStackAspectRatio(index))
@@ -562,12 +511,22 @@ export struct OutfitsPage {
   }
 
   @Builder
-  OutfitPhoto(outfit: OutfitTemplate, index: number, slot: number, weight: number) {
-    if (this.isDesignFallbackPhoto(this.photoUriAt(outfit, slot))) {
-      Image(this.designLookResource(index, slot))
+  OutfitPhoto(outfit: OutfitTemplate, slot: number, weight: number) {
+    if (this.photoUriAt(outfit, slot).length === 0) {
+      Column({ space: 5 }) {
+        SymbolGlyph($r('sys.symbol.picture'))
+          .fontSize(24)
+          .fontColor([TEXT_MUTED])
+
+        Text('暂无照片')
+          .fontSize(10)
+          .fontColor(TEXT_META)
+      }
         .width('100%')
         .layoutWeight(weight)
-        .objectFit(ImageFit.Cover)
+        .justifyContent(FlexAlign.Center)
+        .alignItems(HorizontalAlign.Center)
+        .backgroundColor(SURFACE_WARM)
         .borderRadius(5)
         .border({ width: 1, color: BORDER_SOFT })
     } else {

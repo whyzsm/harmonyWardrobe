@@ -8,8 +8,8 @@ interface ProfileColumnPatch {
 }
 
 const PROFILE_COLUMNS: ProfileColumnPatch[] = [
-  { name: 'fitting_preference_enabled', sql: 'ALTER TABLE user_profile ADD COLUMN fitting_preference_enabled INTEGER NOT NULL DEFAULT 1' },
-  { name: 'style_tags', sql: 'ALTER TABLE user_profile ADD COLUMN style_tags TEXT NOT NULL DEFAULT \'["通勤","休闲","好走路"]\'' },
+  { name: 'fitting_preference_enabled', sql: 'ALTER TABLE user_profile ADD COLUMN fitting_preference_enabled INTEGER NOT NULL DEFAULT 0' },
+  { name: 'style_tags', sql: 'ALTER TABLE user_profile ADD COLUMN style_tags TEXT NOT NULL DEFAULT \'[]\'' },
   { name: 'frequent_districts', sql: 'ALTER TABLE user_profile ADD COLUMN frequent_districts TEXT NOT NULL DEFAULT \'[]\'' },
   { name: 'monthly_budget', sql: 'ALTER TABLE user_profile ADD COLUMN monthly_budget REAL' },
   { name: 'privacy_mode_enabled', sql: 'ALTER TABLE user_profile ADD COLUMN privacy_mode_enabled INTEGER NOT NULL DEFAULT 0' }

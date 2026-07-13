@@ -88,8 +88,8 @@ export class ProfileRepository {
     try {
       if (!resultSet.goToFirstRow()) {
         return {
-          fittingPreferenceEnabled: true,
-          styleTags: ['通勤', '休闲', '好走路'],
+          fittingPreferenceEnabled: false,
+          styleTags: [],
           frequentDistricts: [],
           privacyModeEnabled: false,
           updatedAt: ''
@@ -107,8 +107,8 @@ export class ProfileRepository {
       heightCm: normalizeMeasurement(input.heightCm),
       weightKg: normalizeMeasurement(input.weightKg),
       waistCm: normalizeMeasurement(input.waistCm),
-      fittingPreferenceEnabled: input.fittingPreferenceEnabled ?? true,
-      styleTags: input.styleTags ?? ['通勤', '休闲', '好走路'],
+      fittingPreferenceEnabled: input.fittingPreferenceEnabled ?? false,
+      styleTags: input.styleTags ?? [],
       frequentDistricts: input.frequentDistricts ?? [],
       monthlyBudget: normalizeMeasurement(input.monthlyBudget),
       privacyModeEnabled: input.privacyModeEnabled ?? false,

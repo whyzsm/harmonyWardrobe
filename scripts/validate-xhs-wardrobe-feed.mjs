@@ -13,7 +13,7 @@ for (const needle of [
   '包袋',
   '待同步',
   'CategoryFilterIcon',
-  'designDemoResource',
+  '暂无照片',
   "sys.symbol.clothing",
   "sys.symbol.hanger_and_towels",
   'WardrobeWaterFlow',
@@ -46,6 +46,12 @@ for (const forbidden of [
 ]) {
   if (wardrobe.includes(forbidden)) {
     throw new Error(`WardrobePage still contains old wardrobe feed concept ${forbidden}`);
+  }
+}
+
+for (const forbidden of ['wardrobe_demo_', 'designDemoResource', 'debug://']) {
+  if (wardrobe.includes(forbidden)) {
+    throw new Error(`WardrobePage must not include test data fallback ${forbidden}`);
   }
 }
 

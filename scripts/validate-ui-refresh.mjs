@@ -20,14 +20,14 @@ function forbidIncludes(source, value, label) {
   }
 }
 
-requireIncludes(tokenSource, "primary: '#0071E3'", 'primary token');
-requireIncludes(tokenSource, "primaryPressed: '#004E9A'", 'primary pressed token');
-requireIncludes(tokenSource, "primarySoft: '#EAF3FE'", 'primary soft token');
+requireIncludes(tokenSource, "primary: '#1D1D1F'", 'primary token');
+requireIncludes(tokenSource, "primaryPressed: '#000000'", 'primary pressed token');
+requireIncludes(tokenSource, "primarySoft: '#F2F2F7'", 'primary soft token');
 requireIncludes(tokenSource, "surfaceMuted: '#F5F5F7'", 'app background token');
 requireIncludes(tokenSource, "success: '#16A34A'", 'success token');
 requireIncludes(tokenSource, "warning: '#EAB308'", 'warning token');
 requireIncludes(tokenSource, "danger: '#DC2626'", 'danger token');
-requireIncludes(tokenSource, "accent: '#0071E3'", 'fashion accent token');
+requireIncludes(tokenSource, "accent: '#1D1D1F'", 'fashion accent token');
 
 for (const oldRoseColor of ['#B11B68', '#8E1454', '#7A1048', '#FCE3EF', '#FFF2F8', '#FBE1F0', '#F8D4EF', '#D83E8E']) {
   forbidIncludes(tokenSource, oldRoseColor, 'legacy rose token');
@@ -94,8 +94,8 @@ for (const file of mainPageFiles) {
 }
 
 const designPageFiles = [
-  ['entry/src/main/ets/pages/ProfilePage.ets', 'PROFILE_ACCENT', "'#0071E3'"],
-  ['entry/src/main/ets/pages/OutfitsPage.ets', 'ACCENT', "'#0071E3'"],
+  ['entry/src/main/ets/pages/ProfilePage.ets', 'PROFILE_ACCENT', "'#1D1D1F'"],
+  ['entry/src/main/ets/pages/OutfitsPage.ets', 'ACCENT', "'#1D1D1F'"],
   ['entry/src/main/ets/pages/CaptureEditPage.ets', 'CAPTURE_TEXT', "'#1D1D1F'"],
   ['entry/src/main/ets/pages/StoreVisitPage.ets', 'ACCENT', 'YibuqueColor.brandCyan']
 ];

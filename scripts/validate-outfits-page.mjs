@@ -10,20 +10,18 @@ for (const needle of [
   "{ label: '逛街'",
   "{ label: '周末'",
   "{ label: '通勤'",
-  '今天适合轻外套',
-  "Text('22°')",
-  'WeatherCard',
+  '从已有单品开始搭配',
+  '先添加衣物再创建套装',
+  'OutfitGuideCard',
+  'this.clothingItems.length',
   '.padding({ left: 20, right: 20, bottom: 16 })',
-  '创建套装',
   '记录一次穿着',
   'filterOutfits',
-  'onCreateOutfit',
   'onRecordWear',
   'onNestedPageVisibilityChange',
   "columnsTemplate('1fr 1fr')",
   'OutfitWallCard',
-  'wardrobe_look_shirt',
-  'wardrobe_look_dress',
+  '暂无照片',
   "borderRadius(5)",
   '正在加载套装',
   '重试'
@@ -33,12 +31,20 @@ for (const needle of [
   }
 }
 
-if (/WeatherCard\(\)[\s\S]*?\.margin\(\{ left: 20, right: 20, bottom: 16 \}\)/.test(text)) {
-  throw new Error('OutfitsPage weather card must use container padding instead of overflowing full-width margins');
+if (/OutfitGuideCard\(\)[\s\S]*?\.margin\(\{ left: 20, right: 20, bottom: 16 \}\)/.test(text)) {
+  throw new Error('OutfitsPage guide card must use container padding instead of overflowing full-width margins');
 }
 
-if (!/WeatherCard\(\)[\s\S]*?Row\(\)\s*\{[\s\S]*?Row\(\{ space: 12 \}\)[\s\S]*?\.padding\(\{ left: 20, right: 20, bottom: 16 \}\)/.test(text)) {
-  throw new Error('OutfitsPage weather card must align to the waterfall grid horizontal padding');
+if (!/OutfitGuideCard\(\)[\s\S]*?Row\(\)\s*\{[\s\S]*?Row\(\{ space: 12 \}\)[\s\S]*?\.padding\(\{ left: 20, right: 20, bottom: 16 \}\)/.test(text)) {
+  throw new Error('OutfitsPage guide card must align to the waterfall grid horizontal padding');
+}
+
+if (/wardrobe_look_|debug:\/\/|Text\('22°'\)/.test(text)) {
+  throw new Error('OutfitsPage must not render sample outfits or hard-coded weather data');
+}
+
+if (/Button\('创建套装'\)/.test(text)) {
+  throw new Error('OutfitsPage empty state must not render a create-outfit button');
 }
 
 if (!/else if \(this\.outfits\.length === 0\) \{[\s\S]*?\.justifyContent\(FlexAlign\.Start\)/.test(text)) {

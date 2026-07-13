@@ -284,20 +284,10 @@ export struct ClothingEditPage {
           .height('100%')
           .objectFit(ImageFit.Cover)
       } else {
-        Column({ space: 10 }) {
-          SymbolGlyph($r('sys.symbol.picture'))
-            .fontSize(36)
-            .fontColor([YibuqueColor.textSecondary])
-
-          Text('选择一张衣物照片')
-            .fontSize(16)
-            .fontColor(YibuqueColor.textSecondary)
-        }
-        .width('100%')
-        .height('100%')
-        .justifyContent(FlexAlign.Center)
-        .alignItems(HorizontalAlign.Center)
-        .backgroundColor(YibuqueColor.cardSoftGray)
+        Image($r('app.media.default_fashion_cover'))
+          .width('100%')
+          .height('100%')
+          .objectFit(ImageFit.Cover)
       }
 
       Row({ space: 10 }) {

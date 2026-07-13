@@ -242,7 +242,7 @@ export struct StoreVisitEditPage {
   PhotoUploader() {
     Stack({ alignContent: Alignment.BottomStart }) {
       if (this.photoUris.length === 0) {
-        Image($r('app.media.store_visit_cover'))
+        Image($r('app.media.default_store_cover'))
           .width('100%')
           .height('100%')
           .objectFit(ImageFit.Cover)
