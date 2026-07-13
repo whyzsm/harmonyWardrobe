@@ -611,8 +611,9 @@ export struct WardrobePage {
           .height(190)
           .justifyContent(FlexAlign.Center)
           .alignItems(HorizontalAlign.Center)
-          .backgroundColor(YibuqueColor.cardMint)
-          .borderRadius(8)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(18)
+          .border({ width: 1, color: YibuqueColor.borderMedium })
 
           Text('点底部相机，选择照片后归类为衣橱')
             .fontSize(15)

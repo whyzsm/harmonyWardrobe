@@ -362,7 +362,8 @@ export struct OutfitsPage {
     .justifyContent(FlexAlign.Center)
     .alignItems(HorizontalAlign.Center)
     .backgroundColor(SURFACE_WARM)
-    .borderRadius(10)
+    .borderRadius(18)
+    .border({ width: 1, color: BORDER })
   }
 
   @Builder

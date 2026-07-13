@@ -53,12 +53,8 @@ if (!/else if \(this\.outfits\.length === 0\) \{[\s\S]*?\.justifyContent\(FlexAl
 
 const emptyStateBuilder = text.match(/OutfitEmptyState\(title: string, description: string\) \{([\s\S]*?)\n  \}\n\n  @Builder\n  FilterStrip/)?.[1] ?? '';
 
-if (!/\.backgroundColor\(SURFACE_WARM\)[\s\S]*?\.borderRadius\(10\)/.test(emptyStateBuilder)) {
-  throw new Error('OutfitsPage empty panel must use the compact wardrobe-empty-state surface');
-}
-
-if (/\.border\(\{ width: 1, color: BORDER \}\)/.test(emptyStateBuilder)) {
-  throw new Error('OutfitsPage empty panel must not use the outlined card treatment');
+if (!/\.backgroundColor\(SURFACE_WARM\)[\s\S]*?\.borderRadius\(18\)[\s\S]*?\.border\(\{ width: 1, color: BORDER \}\)/.test(emptyStateBuilder)) {
+  throw new Error('OutfitsPage empty panel must match the store-visit empty-state surface');
 }
 
 console.log('PASS');

@@ -95,6 +95,10 @@ if (!/this\.selectedWardrobeTab === '美搭'[\s\S]*?Grid\(\)/.test(text)) {
   throw new Error('WardrobePage outfit tab should render a beauty-match grid');
 }
 
+if (!/Text\('先放入第一件衣服'\)[\s\S]*?\.backgroundColor\(YibuqueColor\.cardSoftGray\)[\s\S]*?\.borderRadius\(18\)[\s\S]*?\.border\(\{ width: 1, color: YibuqueColor\.borderMedium \}\)/.test(text)) {
+  throw new Error('WardrobePage empty panel must match the store-visit empty-state surface');
+}
+
 if (!/WardrobeSearchTabs\(\)[\s\S]*?Scroll\(\)[\s\S]*?Row\(\{ space: 10 \}\)[\s\S]*?ForEach\(this\.categoryLabels\(\)/.test(text)) {
   throw new Error('Wardrobe search tabs must be wrapped in a horizontal Scroll');
 }
