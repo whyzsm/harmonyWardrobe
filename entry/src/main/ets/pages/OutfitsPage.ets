@@ -290,7 +290,10 @@ export struct OutfitsPage {
           .justifyContent(FlexAlign.Center)
         } else if (this.outfits.length === 0) {
           Column({ space: 14 }) {
-            this.OutfitEmptyState('还没有套装', '创建套装后会在这里显示，也可以从套装快速记录一次穿着。')
+            this.OutfitEmptyState('还没有套装',
+              '拍照或从相册选图后，按分类收进套装。',
+              '点底部相机，选择照片后归类为套装',
+              '套装会按图片组合流排在这里。')
           }
           .width('100%')
           .layoutWeight(1)
@@ -298,7 +301,10 @@ export struct OutfitsPage {
           .justifyContent(FlexAlign.Start)
         } else if (this.filterOutfits().length === 0) {
           Column({ space: 14 }) {
-            this.OutfitEmptyState('暂时没有这类套装', '换一个场景看看，或先创建一套新的搭配。')
+            this.OutfitEmptyState('暂时没有这类套装',
+              '当前场景下还没有匹配的套装。',
+              '换一个场景看看，或查看全部套装',
+              '已有套装会继续按图片组合流排在这里。')
 
             Button('查看全部')
               .height(44)
@@ -338,32 +344,51 @@ export struct OutfitsPage {
   }
 
   @Builder
-  OutfitEmptyState(title: string, description: string) {
-    Column({ space: 8 }) {
-      SymbolGlyph($r('sys.symbol.hanger_and_towels'))
-        .fontSize(32)
-        .fontColor([TEXT_PRIMARY])
+  OutfitEmptyState(title: string, description: string, guideTitle: string, guideDescription: string) {
+    Column({ space: 10 }) {
+      Column({ space: 8 }) {
+        SymbolGlyph($r('sys.symbol.hanger_and_towels'))
+          .fontSize(36)
+          .fontColor([TEXT_PRIMARY])
 
-      Text(title)
-        .fontSize(14)
+        Text(title)
+          .fontSize(16)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(TEXT_PRIMARY)
+          .textAlign(TextAlign.Center)
+
+        Text(description)
+          .fontSize(13)
+          .lineHeight(19)
+          .fontColor(TEXT_MUTED)
+          .textAlign(TextAlign.Center)
+      }
+      .width('100%')
+      .height(190)
+      .padding({ left: 18, right: 18 })
+      .justifyContent(FlexAlign.Center)
+      .alignItems(HorizontalAlign.Center)
+      .backgroundColor(SURFACE_WARM)
+      .borderRadius(18)
+      .border({ width: 1, color: BORDER })
+
+      Text(guideTitle)
+        .fontSize(15)
         .fontWeight(FontWeight.Regular)
         .fontColor(TEXT_PRIMARY)
         .textAlign(TextAlign.Center)
 
-      Text(description)
+      Text(guideDescription)
         .fontSize(12)
         .lineHeight(18)
         .fontColor(TEXT_MUTED)
         .textAlign(TextAlign.Center)
     }
     .width('100%')
-    .height(168)
-    .padding({ left: 18, right: 18 })
-    .justifyContent(FlexAlign.Center)
+    .padding(8)
     .alignItems(HorizontalAlign.Center)
-    .backgroundColor(SURFACE_WARM)
+    .backgroundColor(PAGE_BG)
     .borderRadius(18)
-    .border({ width: 1, color: BORDER })
   }
 
   @Builder

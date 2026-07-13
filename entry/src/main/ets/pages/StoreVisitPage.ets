@@ -557,33 +557,47 @@ export struct StoreVisitPage {
 
   @Builder
   EmptyState() {
-    Column({ space: 8 }) {
-      SymbolGlyph($r('sys.symbol.store_fill'))
-        .fontSize(32)
-        .fontColor([TEXT_PRIMARY])
-      Text(this.isSearching() ? '没有找到相关逛店记录' : this.visits.length === 0 ? '还没有逛店记录' : '这个状态下还没有逛店记录')
-        .fontSize(14)
+    Column({ space: 10 }) {
+      Column({ space: 8 }) {
+        SymbolGlyph($r('sys.symbol.store_fill'))
+          .fontSize(36)
+          .fontColor([TEXT_PRIMARY])
+        Text(this.isSearching() ? '没有找到相关逛店记录' : this.visits.length === 0 ? '还没有逛店记录' : '这个状态下还没有逛店记录')
+          .fontSize(16)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(TEXT_PRIMARY)
+          .textAlign(TextAlign.Center)
+        Text(this.isSearching() ? '可以换个商场、品牌或试穿关键词。' : this.visits.length === 0 ? '拍照或从相册选图后，按状态收进逛店。' : '当前状态下没有匹配记录。')
+          .fontSize(13)
+          .lineHeight(19)
+          .fontColor(TEXT_MUTED)
+          .textAlign(TextAlign.Center)
+      }
+      .width('100%')
+      .height(190)
+      .padding({ left: 18, right: 18 })
+      .justifyContent(FlexAlign.Center)
+      .alignItems(HorizontalAlign.Center)
+      .backgroundColor(SURFACE_WARM)
+      .borderRadius(18)
+      .border({ width: 1, color: BORDER })
+
+      Text(this.isSearching() ? '换个关键词，看看其它逛店记录' : this.visits.length === 0 ? '点底部相机，打开快捷录入里的新增逛店。' : '切换状态，看看其他逛店记录。')
+        .fontSize(15)
         .fontWeight(FontWeight.Regular)
         .fontColor(TEXT_PRIMARY)
-      Text(this.isSearching() ? '可以换个商场、品牌或试穿关键词。' : this.visits.length === 0 ? '点底部相机，打开快捷录入里的新增逛店。' : '切换状态，看看其他逛店记录。')
+        .textAlign(TextAlign.Center)
+
+      Text(this.isSearching() ? '也可以清空搜索回到全部逛店。' : this.visits.length === 0 ? '逛店会按图片记录流排在这里。' : '已有逛店记录会按图片墙排在这里。')
         .fontSize(12)
+        .lineHeight(18)
         .fontColor(TEXT_MUTED)
         .textAlign(TextAlign.Center)
-      if (this.visits.length === 0 && !this.isSearching()) {
-        Text('也可以选择照片后归类为店铺')
-          .fontSize(12)
-          .fontColor(TEXT_META)
-        Text('底部相机会把照片保存到这里')
-          .fontSize(12)
-          .fontColor(TEXT_META)
-      }
     }
     .width('100%')
-    .padding(18)
-    .justifyContent(FlexAlign.Center)
+    .padding(8)
     .alignItems(HorizontalAlign.Center)
-    .backgroundColor(SURFACE_WARM)
+    .backgroundColor(PAGE_BACKGROUND)
     .borderRadius(18)
-    .border({ width: 1, color: BORDER })
   }
 }

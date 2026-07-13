@@ -24,7 +24,10 @@ for (const needle of [
   '暂无照片',
   "borderRadius(5)",
   '正在加载套装',
-  '重试'
+  '重试',
+  '拍照或从相册选图后，按分类收进套装。',
+  '点底部相机，选择照片后归类为套装',
+  '套装会按图片组合流排在这里。'
 ]) {
   if (!text.includes(needle)) {
     throw new Error(`OutfitsPage missing ${needle}`);
@@ -51,10 +54,10 @@ if (!/else if \(this\.outfits\.length === 0\) \{[\s\S]*?\.justifyContent\(FlexAl
   throw new Error('OutfitsPage empty state must align below the weather card instead of centering vertically');
 }
 
-const emptyStateBuilder = text.match(/OutfitEmptyState\(title: string, description: string\) \{([\s\S]*?)\n  \}\n\n  @Builder\n  FilterStrip/)?.[1] ?? '';
+const emptyStateBuilder = text.match(/OutfitEmptyState\(title: string, description: string, guideTitle: string, guideDescription: string\) \{([\s\S]*?)\n  \}\n\n  @Builder\n  FilterStrip/)?.[1] ?? '';
 
-if (!/\.backgroundColor\(SURFACE_WARM\)[\s\S]*?\.borderRadius\(18\)[\s\S]*?\.border\(\{ width: 1, color: BORDER \}\)/.test(emptyStateBuilder)) {
-  throw new Error('OutfitsPage empty panel must match the store-visit empty-state surface');
+if (!/Column\(\{ space: 10 \}\)[\s\S]*?Column\(\{ space: 8 \}\)[\s\S]*?\.fontSize\(36\)[\s\S]*?\.height\(190\)[\s\S]*?\.backgroundColor\(SURFACE_WARM\)[\s\S]*?\.borderRadius\(18\)[\s\S]*?\.border\(\{ width: 1, color: BORDER \}\)[\s\S]*?Text\(guideTitle\)[\s\S]*?\.fontSize\(15\)[\s\S]*?Text\(guideDescription\)[\s\S]*?\.fontSize\(12\)[\s\S]*?\.backgroundColor\(PAGE_BG\)/.test(emptyStateBuilder)) {
+  throw new Error('OutfitsPage empty state must match the wardrobe empty layout');
 }
 
 console.log('PASS');
