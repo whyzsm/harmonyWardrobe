@@ -11,6 +11,7 @@ import { WearLog } from '../domain/wearLog/WearLogModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
 import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
+import { ArrayDataSource } from '../utils/ArrayDataSource';
 import { monthKey, toIsoDate } from '../utils/date';
 import { ClothingDetailPage } from './ClothingDetailPage';
 import { ClothingEditPage } from './ClothingEditPage';
@@ -51,6 +52,7 @@ export struct WardrobePage {
   @State private searchQuery: string = '';
   @State private selectedCategoryLabel: string = '全部';
   @State private clothingItems: ClothingItem[] = [];
+  @State private clothingDataSource: ArrayDataSource<ClothingItem> = new ArrayDataSource<ClothingItem>();
   @State private outfits: OutfitTemplate[] = [];
   @State private showEditor: boolean = false;
   @State private showClothingDetail: boolean = false;
@@ -94,6 +96,7 @@ export struct WardrobePage {
 
     try {
       this.clothingItems = await this.clothingRepository.listClothing();
+      this.refreshClothingDataSource();
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '加载衣橱失败';
     } finally {
@@ -181,6 +184,10 @@ export struct WardrobePage {
 
   private visibleClothingItems(): ClothingItem[] {
     return this.filterClothingItems();
+  }
+
+  private refreshClothingDataSource(): void {
+    this.clothingDataSource.setData(this.filterClothingItems());
   }
 
   private visibleOutfits(): OutfitTemplate[] {
@@ -356,6 +363,17 @@ export struct WardrobePage {
     this.onNestedPageVisibilityChange(false);
   }
 
+  private async deleteWearLog(wearLog: WearLog): Promise<void> {
+    if (this.wearLogRepository === undefined) {
+      throw new Error('穿着记录仓库不可用，请稍后重试');
+    }
+
+    await this.wearLogRepository.deleteWearLog(wearLog.id);
+    this.selectedDateLogs = this.selectedDateLogs.filter((existingLog: WearLog) => existingLog.id !== wearLog.id);
+    this.closeWearLogEditor();
+    await this.loadCalendar();
+  }
+
   private editingWearLog(): WearLog | undefined {
     if (this.editingWearLogId.length === 0) {
       return undefined;
@@ -392,6 +410,7 @@ export struct WardrobePage {
     }
 
     this.clothingItems = nextItems;
+    this.refreshClothingDataSource();
   }
 
   private async deleteClothingItem(item: ClothingItem): Promise<void> {
@@ -401,6 +420,7 @@ export struct WardrobePage {
 
     await this.clothingRepository.deleteClothing(item.id);
     this.clothingItems = this.clothingItems.filter((existingItem: ClothingItem) => existingItem.id !== item.id);
+    this.refreshClothingDataSource();
     this.closeClothingDetail();
   }
 
@@ -422,6 +442,16 @@ export struct WardrobePage {
     }
 
     this.outfits = nextOutfits;
+  }
+
+  private async deleteOutfit(outfit: OutfitTemplate): Promise<void> {
+    if (this.outfitRepository === undefined) {
+      throw new Error('美搭仓库不可用，请稍后重试');
+    }
+
+    await this.outfitRepository.deleteOutfit(outfit.id);
+    this.outfits = this.outfits.filter((existingOutfit: OutfitTemplate) => existingOutfit.id !== outfit.id);
+    this.closeOutfitEditor();
   }
 
   private openUnifiedSearch(query: string): void {
@@ -516,6 +546,9 @@ export struct WardrobePage {
           this.closeOutfitEditor();
           this.selectedWardrobeTab = '美搭';
         },
+        onDelete: async (outfit: OutfitTemplate): Promise<void> => {
+          await this.deleteOutfit(outfit);
+        },
         onCancel: () => {
           this.closeOutfitEditor();
         }
@@ -530,6 +563,9 @@ export struct WardrobePage {
         onSave: (_wearLog: WearLog) => {
           this.closeWearLogEditor();
           this.loadCalendar();
+        },
+        onDelete: async (wearLog: WearLog): Promise<void> => {
+          await this.deleteWearLog(wearLog);
         },
         onCancel: () => {
           this.closeWearLogEditor();
@@ -692,7 +728,7 @@ export struct WardrobePage {
           .fontSize(18)
           .fontColor([YibuqueColor.textSecondary])
       }
-      .width(22)
+      .width(44)
       .height(46)
       .accessibilityText('执行搜索')
       .onClick(() => {
@@ -709,6 +745,7 @@ export struct WardrobePage {
         .enterKeyType(EnterKeyType.Search)
         .onChange((value: string) => {
           this.searchQuery = value;
+          this.refreshClothingDataSource();
         })
         .onClick(() => {
           this.openSearch();
@@ -900,7 +937,7 @@ export struct WardrobePage {
               .fontColor(this.selectedCategoryLabel === category ? YibuqueColor.textInverse : '#626267')
           }
           .width(76)
-          .height(42)
+          .constraintSize({ minHeight: 44 })
           .justifyContent(FlexAlign.Center)
           .alignItems(VerticalAlign.Center)
           .backgroundColor(this.selectedCategoryLabel === category ? YibuqueColor.actionBlack : YibuqueColor.cardWhite)
@@ -908,6 +945,7 @@ export struct WardrobePage {
           .border({ width: 1, color: this.selectedCategoryLabel === category ? YibuqueColor.actionBlack : YibuqueColor.borderMedium })
           .onClick(() => {
             this.selectedCategoryLabel = category;
+            this.refreshClothingDataSource();
           })
         }, (category: string) => category)
       }
@@ -948,7 +986,7 @@ export struct WardrobePage {
   @Builder
   WardrobeWaterFlow() {
     WaterFlow() {
-      ForEach(this.visibleClothingItems(), (item: ClothingItem, index: number) => {
+      LazyForEach(this.clothingDataSource, (item: ClothingItem, index: number) => {
         FlowItem() {
           this.WardrobeSearchResultCard(item, index)
         }
@@ -999,9 +1037,6 @@ export struct WardrobePage {
           Blank()
             .layoutWeight(1)
 
-          if (this.firstPhotoUri(item).length > 0) {
-            this.CardHeart()
-          }
         }
         .width('100%')
         .padding({ left: 8, right: 8, top: 8 })
@@ -1057,20 +1092,6 @@ export struct WardrobePage {
     .backgroundColor('#E6FFFFFF')
     .borderRadius(14)
     .shadow({ radius: 8, color: '#16000000', offsetX: 0, offsetY: 3 })
-  }
-
-  @Builder
-  CardHeart() {
-    Stack({ alignContent: Alignment.Center }) {
-      SymbolGlyph($r('sys.symbol.heart'))
-        .fontSize(14)
-        .fontColor([YibuqueColor.textPrimary])
-    }
-    .width(30)
-    .height(30)
-    .backgroundColor('#F5FFFFFF')
-    .borderRadius(15)
-    .shadow({ radius: 10, color: '#1A000000', offsetX: 0, offsetY: 4 })
   }
 
   @Builder

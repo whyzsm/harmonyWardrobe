@@ -28,6 +28,7 @@ export struct WearLogEditPage {
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
   onSave: (wearLog: WearLog) => void = () => {};
+  onDelete: (wearLog: WearLog) => Promise<void> = async (_wearLog: WearLog): Promise<void> => {};
   onCancel: () => void = () => {};
 
   @State private outfitTemplateId: string = '';
@@ -36,6 +37,7 @@ export struct WearLogEditPage {
   @State private placeText: string = '';
   @State private note: string = '';
   @State private isSaving: boolean = false;
+  @State private isDeleting: boolean = false;
   @State private errorMessage: string = '';
 
   aboutToAppear(): void {
@@ -52,7 +54,7 @@ export struct WearLogEditPage {
   }
 
   private canSave(): boolean {
-    return !this.isSaving && this.wornDate.trim().length > 0 &&
+    return !this.isSaving && !this.isDeleting && this.wornDate.trim().length > 0 &&
       (this.photoUris.length > 0 || this.note.trim().length > 0);
   }
 
@@ -129,6 +131,46 @@ export struct WearLogEditPage {
     }
   }
 
+  private confirmDeleteWearLog(): void {
+    const wearLog = this.initialWearLog;
+    if (wearLog === undefined || this.isSaving || this.isDeleting) {
+      return;
+    }
+
+    AlertDialog.show({
+      title: '删除穿着记录',
+      message: '确定要删除这条穿着记录吗？照片也会一并移除。',
+      primaryButton: {
+        value: '取消',
+        action: () => {}
+      },
+      secondaryButton: {
+        value: '删除',
+        fontColor: YibuqueColor.danger,
+        action: () => {
+          this.deleteWearLog();
+        }
+      }
+    });
+  }
+
+  private async deleteWearLog(): Promise<void> {
+    const wearLog = this.initialWearLog;
+    if (wearLog === undefined || this.isDeleting) {
+      return;
+    }
+
+    this.isDeleting = true;
+    this.errorMessage = '';
+    try {
+      await this.onDelete(wearLog);
+    } catch (error) {
+      this.errorMessage = error instanceof Error ? error.message : '删除穿着记录失败';
+    } finally {
+      this.isDeleting = false;
+    }
+  }
+
   build() {
     Column() {
       SecondaryPageHeader({
@@ -148,6 +190,10 @@ export struct WearLogEditPage {
             this.outfitTemplateId = id;
           }
         })
+
+        Text('穿搭日期')
+          .fontSize(13)
+          .fontColor(YibuqueColor.textSecondary)
 
         TextInput({ text: this.wornDate, placeholder: '穿搭日期 YYYY-MM-DD' })
           .height(44)
@@ -186,6 +232,10 @@ export struct WearLogEditPage {
         }
         .width('100%')
 
+        Text('地点')
+          .fontSize(13)
+          .fontColor(YibuqueColor.textSecondary)
+
         TextInput({ text: this.placeText, placeholder: '地点' })
           .height(44)
           .fontSize(15)
@@ -196,6 +246,10 @@ export struct WearLogEditPage {
           .onChange((value: string) => {
             this.placeText = value;
           })
+
+        Text('小记')
+          .fontSize(13)
+          .fontColor(YibuqueColor.textSecondary)
 
         TextArea({ text: this.note, placeholder: '小记' })
           .height(96)
@@ -215,11 +269,43 @@ export struct WearLogEditPage {
             .fontColor(YibuqueColor.danger)
         }
 
-        Button(this.isSaving ? '保存中...' : '保存记录')
+        if (this.initialWearLog !== undefined) {
+          Button() {
+            if (this.isDeleting) {
+              LoadingProgress()
+                .width(20)
+                .height(20)
+                .color(YibuqueColor.textInverse)
+            } else {
+              Text('删除记录')
+                .fontSize(15)
+                .fontColor(YibuqueColor.textInverse)
+            }
+          }
+            .height(44)
+            .width('100%')
+            .backgroundColor(YibuqueColor.danger)
+            .borderRadius(YibuqueRadius.full)
+            .enabled(!this.isSaving && !this.isDeleting)
+            .onClick(() => {
+              this.confirmDeleteWearLog();
+            })
+        }
+
+        Button() {
+          if (this.isSaving) {
+            LoadingProgress()
+              .width(20)
+              .height(20)
+              .color(YibuqueColor.textInverse)
+          } else {
+            Text('保存记录')
+              .fontSize(15)
+              .fontColor(YibuqueColor.textInverse)
+          }
+        }
           .height(44)
           .width('100%')
-          .fontSize(15)
-          .fontColor(YibuqueColor.textInverse)
           .backgroundColor(this.canSave() ? YibuqueColor.actionBlack : YibuqueColor.textDisabled)
           .borderRadius(YibuqueRadius.full)
           .enabled(this.canSave())

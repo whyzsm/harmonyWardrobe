@@ -358,7 +358,7 @@ export struct SearchResultsPage {
                 .fontSize(15)
                 .fontColor([YibuqueColor.textSecondary])
             }
-            .width(34)
+            .width(44)
             .height(44)
             .accessibilityText('清空搜索')
             .onClick(() => {
@@ -371,7 +371,7 @@ export struct SearchResultsPage {
               .fontSize(19)
               .fontColor([YibuqueColor.textSecondary])
           }
-          .width(34)
+          .width(44)
           .height(44)
           .accessibilityText('拍照搜索')
           .onClick(() => {
@@ -430,7 +430,7 @@ export struct SearchResultsPage {
               .borderRadius(YibuqueRadius.full)
           }
           .width(48)
-          .height(36)
+          .constraintSize({ minHeight: 44 })
           .justifyContent(FlexAlign.End)
           .onClick(() => {
             this.selectedScope = scope.key;
@@ -439,7 +439,7 @@ export struct SearchResultsPage {
       }
     }
     .width('100%')
-    .height(36)
+    .constraintSize({ minHeight: 44 })
     .scrollable(ScrollDirection.Horizontal)
     .scrollBar(BarState.Off)
   }
@@ -507,7 +507,7 @@ export struct SearchResultsPage {
   @Builder
   SearchChip(term: string, suggested: boolean) {
     Text(term)
-      .height(40)
+      .constraintSize({ minHeight: 44 })
       .padding({ left: 15, right: 15 })
       .margin({ right: 10, bottom: 10 })
       .fontSize(14)

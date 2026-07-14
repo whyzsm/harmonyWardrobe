@@ -23,6 +23,7 @@ export struct WishlistEditPage {
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
   onSave: (item: WishlistItem) => void = () => {};
+  onDelete: (item: WishlistItem) => Promise<void> = async (_item: WishlistItem): Promise<void> => {};
   onCancel: () => void = () => {};
 
   @State private title: string = '';
@@ -31,6 +32,7 @@ export struct WishlistEditPage {
   @State private price: string = '';
   @State private note: string = '';
   @State private isSaving: boolean = false;
+  @State private isDeleting: boolean = false;
   @State private errorMessage: string = '';
 
   aboutToAppear(): void {
@@ -46,7 +48,7 @@ export struct WishlistEditPage {
   }
 
   private canSave(): boolean {
-    return !this.isSaving && this.title.trim().length > 0;
+    return !this.isSaving && !this.isDeleting && this.title.trim().length > 0;
   }
 
   private wishlistPrice(): number | undefined {
@@ -132,6 +134,46 @@ export struct WishlistEditPage {
     }
   }
 
+  private confirmDeleteWishlistItem(): void {
+    const item = this.initialItem;
+    if (item === undefined || this.isSaving || this.isDeleting) {
+      return;
+    }
+
+    AlertDialog.show({
+      title: '删除心愿',
+      message: '确定要删除这条心愿吗？照片也会一并移除。',
+      primaryButton: {
+        value: '取消',
+        action: () => {}
+      },
+      secondaryButton: {
+        value: '删除',
+        fontColor: AppTheme.color.danger,
+        action: () => {
+          this.deleteWishlistItem();
+        }
+      }
+    });
+  }
+
+  private async deleteWishlistItem(): Promise<void> {
+    const item = this.initialItem;
+    if (item === undefined || this.isDeleting) {
+      return;
+    }
+
+    this.isDeleting = true;
+    this.errorMessage = '';
+    try {
+      await this.onDelete(item);
+    } catch (error) {
+      this.errorMessage = error instanceof Error ? error.message : '删除心愿失败';
+    } finally {
+      this.isDeleting = false;
+    }
+  }
+
   build() {
     Column() {
       SecondaryPageHeader({
@@ -148,7 +190,7 @@ export struct WishlistEditPage {
 
         Row({ space: 10 }) {
           Button('从相册选择')
-            .height(40)
+            .height(44)
             .fontSize(14)
             .backgroundColor(AppTheme.color.primary)
             .fontColor(AppTheme.color.surface)
@@ -158,7 +200,7 @@ export struct WishlistEditPage {
             })
 
           Button('拍照')
-            .height(40)
+            .height(44)
             .fontSize(14)
             .backgroundColor(AppTheme.color.surface)
             .fontColor(AppTheme.color.primary)
@@ -170,7 +212,11 @@ export struct WishlistEditPage {
         }
         .width('100%')
 
-        TextInput({ text: this.title, placeholder: 'title / 心仪单品' })
+        Text('商品名称')
+          .fontSize(13)
+          .fontColor(AppTheme.color.textMuted)
+
+        TextInput({ text: this.title, placeholder: '输入心仪单品名称' })
           .height(44)
           .fontSize(15)
           .backgroundColor(AppTheme.color.surface)
@@ -180,7 +226,11 @@ export struct WishlistEditPage {
             this.title = value;
           })
 
-        TextInput({ text: this.storeName, placeholder: 'storeName / 门店' })
+        Text('门店')
+          .fontSize(13)
+          .fontColor(AppTheme.color.textMuted)
+
+        TextInput({ text: this.storeName, placeholder: '输入门店或品牌' })
           .height(44)
           .fontSize(15)
           .backgroundColor(AppTheme.color.surface)
@@ -190,7 +240,11 @@ export struct WishlistEditPage {
             this.storeName = value;
           })
 
-        TextInput({ text: this.price, placeholder: 'price / 价格' })
+        Text('期望价格')
+          .fontSize(13)
+          .fontColor(AppTheme.color.textMuted)
+
+        TextInput({ text: this.price, placeholder: '输入价格' })
           .height(44)
           .fontSize(15)
           .type(InputType.Number)
@@ -201,7 +255,11 @@ export struct WishlistEditPage {
             this.price = value;
           })
 
-        TextInput({ text: this.note, placeholder: 'note / 备注' })
+        Text('备注')
+          .fontSize(13)
+          .fontColor(AppTheme.color.textMuted)
+
+        TextInput({ text: this.note, placeholder: '记录尺码、试穿感受或购买理由' })
           .height(44)
           .fontSize(15)
           .backgroundColor(AppTheme.color.surface)
@@ -217,11 +275,43 @@ export struct WishlistEditPage {
             .fontColor(AppTheme.color.danger)
         }
 
-        Button(this.isSaving ? '保存中...' : '保存心愿')
+        if (this.initialItem !== undefined) {
+          Button() {
+            if (this.isDeleting) {
+              LoadingProgress()
+                .width(20)
+                .height(20)
+                .color(AppTheme.color.surface)
+            } else {
+              Text('删除心愿')
+                .fontSize(15)
+                .fontColor(AppTheme.color.surface)
+            }
+          }
+            .height(44)
+            .width('100%')
+            .backgroundColor(AppTheme.color.danger)
+            .borderRadius(8)
+            .enabled(!this.isSaving && !this.isDeleting)
+            .onClick(() => {
+              this.confirmDeleteWishlistItem();
+            })
+        }
+
+        Button() {
+          if (this.isSaving) {
+            LoadingProgress()
+              .width(20)
+              .height(20)
+              .color(AppTheme.color.surface)
+          } else {
+            Text('保存心愿')
+              .fontSize(15)
+              .fontColor(AppTheme.color.surface)
+          }
+        }
           .height(44)
           .width('100%')
-          .fontSize(15)
-          .fontColor(AppTheme.color.surface)
           .backgroundColor(this.canSave() ? AppTheme.color.primary : AppTheme.color.disabled)
           .borderRadius(8)
           .enabled(this.canSave())

@@ -62,7 +62,7 @@ for (const needle of [
   '.borderRadius(12)',
   'Row({ space: 10 })',
   '.width(76)',
-  '.height(42)',
+  '.constraintSize({ minHeight: 44 })',
   '点底部相机，选择照片后归类为衣橱',
   '点底部相机，选择照片后归类为美搭',
   ".height('100%')",
@@ -78,8 +78,8 @@ if (!/this\.selectedWardrobeTab === '衣裤'[\s\S]*?this\.WardrobeWaterFlow\(\)/
   throw new Error('WardrobePage clothing tab should use the native WaterFlow layout');
 }
 
-if (!/WardrobeWaterFlow\(\)[\s\S]*?WaterFlow\(\)[\s\S]*?ForEach\(this\.visibleClothingItems\(\)[\s\S]*?FlowItem\(\)[\s\S]*?this\.WardrobeSearchResultCard\(item, index\)/.test(text)) {
-  throw new Error('Wardrobe waterfall should render clothing cards as native FlowItems');
+if (!/WardrobeWaterFlow\(\)[\s\S]*?WaterFlow\(\)[\s\S]*?LazyForEach\(this\.clothingDataSource[\s\S]*?FlowItem\(\)[\s\S]*?this\.WardrobeSearchResultCard\(item, index\)/.test(text)) {
+  throw new Error('Wardrobe waterfall should render clothing cards as lazy native FlowItems');
 }
 
 if (!/initialWardrobeTab[\s\S]*?selectedWardrobeTab\s*=\s*this\.initialWardrobeTab/.test(text)) {

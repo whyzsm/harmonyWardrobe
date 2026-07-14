@@ -50,7 +50,7 @@ for (const needle of [
   '体重',
   '腰围',
   'isSaving',
-  '保存中...',
+  'LoadingProgress()',
   'hasInvalidMeasurements',
   'measurementError',
   '请输入数字',

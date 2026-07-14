@@ -56,8 +56,8 @@ for (const needle of [
   }
 }
 
-if (!/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?return\s+!this\.isSaving\s*&&\s*this\.photoUris\.length\s*>\s*0/.test(editPage)) {
-  throw new Error('OutfitEditPage save gate must only require at least one photo');
+if (!/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?return\s+!this\.isSaving\s*&&\s*!this\.isDeleting\s*&&\s*this\.photoUris\.length\s*>\s*0/.test(editPage)) {
+  throw new Error('OutfitEditPage save gate must require at least one photo and block concurrent deletes');
 }
 
 if (!/this\.clothingItemIds\s*=\s*\[\s*\.\.\.this\.initialOutfit\.clothingItemIds\s*\]/.test(editPage)) {

@@ -3,6 +3,7 @@ import { StoreVisit, StoreVisitStatus } from '../domain/store/StoreModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
 import { YibuqueColor } from '../theme/Tokens';
+import { ArrayDataSource } from '../utils/ArrayDataSource';
 import { StoreVisitEditPage } from './StoreVisitEditPage';
 
 interface StoreVisitStatusFilter {
@@ -14,7 +15,7 @@ const STORE_VISIT_STATUS_FILTERS: StoreVisitStatusFilter[] = [
   { label: '全部', value: 'all' },
   { label: '去过', value: 'visited' },
   { label: '想去', value: 'wantToVisit' },
-  { label: '刷新', value: 'refresh' }
+  { label: '本地重读', value: 'refresh' }
 ];
 
 const PAGE_BACKGROUND = YibuqueColor.bgDefault;
@@ -37,6 +38,7 @@ export struct StoreVisitPage {
   onEditorVisibilityChange: (visible: boolean) => void = () => {};
 
   @State private visits: StoreVisit[] = [];
+  @State private storeVisitDataSource: ArrayDataSource<StoreVisit> = new ArrayDataSource<StoreVisit>();
   @State private searchQuery: string = '';
   @State private selectedStatus: string = 'all';
   @State private showEditor: boolean = false;
@@ -57,8 +59,10 @@ export struct StoreVisitPage {
     this.errorMessage = '';
     try {
       this.visits = await this.storeRepository.listStoreVisits();
+      this.refreshStoreVisitDataSource();
       if (this.initialSearchQuery.length > 0) {
         this.searchQuery = this.initialSearchQuery;
+        this.refreshStoreVisitDataSource();
       }
       if (this.initialVisitId.length > 0) {
         for (const visit of this.visits) {
@@ -122,6 +126,10 @@ export struct StoreVisitPage {
     });
   }
 
+  private refreshStoreVisitDataSource(): void {
+    this.storeVisitDataSource.setData(this.filterStoreVisits());
+  }
+
   private editingVisit(): StoreVisit | undefined {
     for (const visit of this.visits) {
       if (visit.id === this.editingVisitId) {
@@ -149,6 +157,7 @@ export struct StoreVisitPage {
       return;
     }
     this.selectedStatus = filter.value;
+    this.refreshStoreVisitDataSource();
   }
 
   private isSearching(): boolean {
@@ -170,6 +179,18 @@ export struct StoreVisitPage {
       nextVisits.unshift(savedVisit);
     }
     this.visits = nextVisits;
+    this.refreshStoreVisitDataSource();
+  }
+
+  private async deleteStoreVisit(visit: StoreVisit): Promise<void> {
+    if (this.storeRepository === undefined) {
+      throw new Error('逛店仓库不可用，请稍后重试');
+    }
+
+    await this.storeRepository.deleteStoreVisit(visit.id);
+    this.visits = this.visits.filter((existingVisit: StoreVisit) => existingVisit.id !== visit.id);
+    this.refreshStoreVisitDataSource();
+    this.closeEditor();
   }
 
   private coverPhotoUri(visit: StoreVisit): string {
@@ -245,6 +266,9 @@ export struct StoreVisitPage {
           this.upsertVisit(visit);
           this.closeEditor();
         },
+        onDelete: async (visit: StoreVisit): Promise<void> => {
+          await this.deleteStoreVisit(visit);
+        },
         onCancel: () => {
           this.closeEditor();
         }
@@ -295,6 +319,7 @@ export struct StoreVisitPage {
             .enterKeyType(EnterKeyType.Search)
             .onChange((value: string) => {
               this.searchQuery = value;
+              this.refreshStoreVisitDataSource();
             })
         }
         .height(48)
@@ -410,7 +435,7 @@ export struct StoreVisitPage {
   @Builder
   StoreVisitWaterFlow() {
     WaterFlow() {
-      ForEach(this.filterStoreVisits(), (visit: StoreVisit, index: number) => {
+      LazyForEach(this.storeVisitDataSource, (visit: StoreVisit, index: number) => {
         FlowItem() {
           this.StoreVisitResultCard(visit, index)
         }
@@ -503,6 +528,11 @@ export struct StoreVisitPage {
   @Builder
   LoadingState() {
     Column({ space: 8 }) {
+      LoadingProgress()
+        .width(22)
+        .height(22)
+        .color(TEXT_PRIMARY)
+
       Text('正在加载逛店记录...')
         .fontSize(14)
         .fontWeight(FontWeight.Regular)
@@ -529,7 +559,7 @@ export struct StoreVisitPage {
           .fontColor(TEXT_PRIMARY)
         Text(this.errorMessage)
           .fontSize(12)
-          .fontColor('#DC2626')
+          .fontColor(YibuqueColor.danger)
           .maxLines(2)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
       }

@@ -515,8 +515,8 @@ export struct ClothingEditPage {
               .fontSize(16)
               .fontColor([YibuqueColor.textSecondary])
           }
-          .width(36)
-          .height(36)
+          .width(44)
+          .height(44)
           .accessibilityText('清除日期')
           .onClick(() => {
             this.purchaseDate = '';
@@ -568,12 +568,21 @@ export struct ClothingEditPage {
   @Builder
   SaveAction() {
     Column() {
-      Button(this.isSaving ? '保存中...' : (this.hasSelectedPhoto() ? '保存衣物' : '先选择照片'))
+      Button() {
+        if (this.isSaving) {
+          LoadingProgress()
+            .width(20)
+            .height(20)
+            .color(YibuqueColor.textInverse)
+        } else {
+          Text(this.hasSelectedPhoto() ? '保存衣物' : '先选择照片')
+            .fontSize(17)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textInverse)
+        }
+      }
         .width('100%')
         .height(52)
-        .fontSize(17)
-        .fontWeight(FontWeight.Regular)
-        .fontColor(YibuqueColor.textInverse)
         .backgroundColor(this.canSave() ? YibuqueColor.actionBlack : YibuqueColor.textDisabled)
         .borderRadius(YibuqueRadius.full)
         .enabled(this.canSave())

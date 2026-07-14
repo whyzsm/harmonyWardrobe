@@ -17,7 +17,7 @@ for (const needle of [
   "{ label: '全部'",
   "{ label: '去过'",
   "{ label: '想去'",
-  "{ label: '刷新'",
+  "{ label: '本地重读'",
   '今天路线：',
   '家去过',
   '家想去',
@@ -50,9 +50,9 @@ for (const needle of ['StoreVisitPage({', 'storeRepository: this.runtime.storeRe
   }
 }
 
-for (const needle of ['逛店', 'onOpenStoreVisit']) {
+for (const needle of ['拍一张', '从相册选择', 'onTakePhoto', 'onPickGallery']) {
   if (!quickSheet.includes(needle)) {
-    throw new Error(`QuickCaptureSheet missing store visit quick action ${needle}`);
+    throw new Error(`QuickCaptureSheet missing photo-first quick action ${needle}`);
   }
 }
 
@@ -85,7 +85,7 @@ if (page.includes("Button('拍店铺')") || page.includes('点右上角')) {
 }
 
 if (page.includes("Text('新增')") || page.includes('openNewVisitEditor')) {
-  throw new Error('Store visit add entry must live in QuickCaptureSheet, not the store page header');
+  throw new Error('Store visit add entry must stay photo-first, not the store page header');
 }
 
 if (!/EmptyState\(\) \{[\s\S]*?Column\(\{ space: 10 \}\)[\s\S]*?Column\(\{ space: 8 \}\)[\s\S]*?\.fontSize\(36\)[\s\S]*?\.height\(190\)[\s\S]*?\.backgroundColor\(SURFACE_WARM\)[\s\S]*?\.borderRadius\(18\)[\s\S]*?\.border\(\{ width: 1, color: BORDER \}\)[\s\S]*?点底部相机，打开快捷录入里的新增逛店。[\s\S]*?\.fontSize\(15\)[\s\S]*?逛店会按图片记录流排在这里。[\s\S]*?\.fontSize\(12\)[\s\S]*?\.backgroundColor\(PAGE_BACKGROUND\)/.test(page)) {

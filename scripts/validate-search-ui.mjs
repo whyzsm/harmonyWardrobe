@@ -66,7 +66,7 @@ for (const needle of [
   'List()',
   'ListItem()',
   '.width(48)',
-  '.height(36)'
+  '.constraintSize({ minHeight: 44 })'
 ]) {
   if (!resultPage.includes(needle)) {
     throw new Error(`SearchResultsPage missing ${needle}`);

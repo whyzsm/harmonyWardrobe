@@ -33,6 +33,7 @@ export struct OutfitEditPage {
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
   onSave: (outfit: OutfitTemplate) => void = () => {};
+  onDelete: (outfit: OutfitTemplate) => Promise<void> = async (_outfit: OutfitTemplate): Promise<void> => {};
   onCancel: () => void = () => {};
 
   @State private title: string = '';
@@ -40,6 +41,7 @@ export struct OutfitEditPage {
   @State private photoUris: string[] = [];
   @State private note: string = '';
   @State private isSaving: boolean = false;
+  @State private isDeleting: boolean = false;
   @State private errorMessage: string = '';
 
   aboutToAppear(): void {
@@ -54,7 +56,7 @@ export struct OutfitEditPage {
   }
 
   private canSave(): boolean {
-    return !this.isSaving && this.photoUris.length > 0;
+    return !this.isSaving && !this.isDeleting && this.photoUris.length > 0;
   }
 
   private hasSelectedPhoto(): boolean {
@@ -143,6 +145,46 @@ export struct OutfitEditPage {
       this.errorMessage = error instanceof Error ? error.message : '保存美搭失败';
     } finally {
       this.isSaving = false;
+    }
+  }
+
+  private confirmDeleteOutfit(): void {
+    const outfit = this.initialOutfit;
+    if (outfit === undefined || this.isSaving || this.isDeleting) {
+      return;
+    }
+
+    AlertDialog.show({
+      title: '删除美搭',
+      message: '确定要删除这套美搭吗？照片也会一并移除。',
+      primaryButton: {
+        value: '取消',
+        action: () => {}
+      },
+      secondaryButton: {
+        value: '删除',
+        fontColor: YibuqueColor.danger,
+        action: () => {
+          this.deleteOutfit();
+        }
+      }
+    });
+  }
+
+  private async deleteOutfit(): Promise<void> {
+    const outfit = this.initialOutfit;
+    if (outfit === undefined || this.isDeleting) {
+      return;
+    }
+
+    this.isDeleting = true;
+    this.errorMessage = '';
+    try {
+      await this.onDelete(outfit);
+    } catch (error) {
+      this.errorMessage = error instanceof Error ? error.message : '删除美搭失败';
+    } finally {
+      this.isDeleting = false;
     }
   }
 
@@ -311,12 +353,44 @@ export struct OutfitEditPage {
             .fontColor(YibuqueColor.danger)
         }
 
-        Button(this.isSaving ? '保存中...' : (this.hasSelectedPhoto() ? '保存美搭' : '先添加照片'))
+        if (this.initialOutfit !== undefined) {
+          Button() {
+            if (this.isDeleting) {
+              LoadingProgress()
+                .width(20)
+                .height(20)
+                .color(YibuqueColor.textInverse)
+            } else {
+              Text('删除美搭')
+                .fontSize(15)
+                .fontColor(YibuqueColor.textInverse)
+            }
+          }
+            .height(46)
+            .width('100%')
+            .backgroundColor(YibuqueColor.danger)
+            .borderRadius(YibuqueRadius.full)
+            .enabled(!this.isSaving && !this.isDeleting)
+            .onClick(() => {
+              this.confirmDeleteOutfit();
+            })
+        }
+
+        Button() {
+          if (this.isSaving) {
+            LoadingProgress()
+              .width(20)
+              .height(20)
+              .color(YibuqueColor.textInverse)
+          } else {
+            Text(this.hasSelectedPhoto() ? '保存美搭' : '先添加照片')
+              .fontSize(17)
+              .fontWeight(FontWeight.Regular)
+              .fontColor(YibuqueColor.textInverse)
+          }
+        }
           .height(56)
           .width('100%')
-          .fontSize(17)
-          .fontWeight(FontWeight.Regular)
-          .fontColor(YibuqueColor.textInverse)
           .backgroundColor(this.canSave() ? YibuqueColor.actionBlack : YibuqueColor.textDisabled)
           .borderRadius(YibuqueRadius.full)
           .enabled(this.canSave())

@@ -112,6 +112,16 @@ export struct ShoppingPage {
     this.wishlistItems = nextItems;
   }
 
+  private async deleteWishlistItem(item: WishlistItem): Promise<void> {
+    if (this.wishlistRepository === undefined) {
+      throw new Error('心愿仓库不可用，请稍后重试');
+    }
+
+    await this.wishlistRepository.deleteWishlistItem(item.id);
+    this.wishlistItems = this.wishlistItems.filter((existingItem: WishlistItem) => existingItem.id !== item.id);
+    this.closeEditor();
+  }
+
   private closeEditor(): void {
     this.showEditor = false;
     this.selectedWishlistItemId = '';
@@ -136,6 +146,9 @@ export struct ShoppingPage {
         onSave: (item: WishlistItem) => {
           this.upsertWishlistItem(item);
           this.closeEditor();
+        },
+        onDelete: async (item: WishlistItem): Promise<void> => {
+          await this.deleteWishlistItem(item);
         },
         onCancel: () => {
           this.closeEditor();

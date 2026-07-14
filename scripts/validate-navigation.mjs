@@ -34,13 +34,13 @@ for (const label of ['衣柜', '逛店', '套装', '我的']) {
   }
 }
 
-for (const action of ['衣柜', '逛店', '套装']) {
+for (const action of ['拍一张', '从相册选择']) {
   if (!sheet.includes(action)) {
     throw new Error(`QuickCaptureSheet missing ${action}`);
   }
 }
 
-for (const callback of ['onOpenWardrobe', 'onOpenStoreVisit', 'onOpenOutfit']) {
+for (const callback of ['onTakePhoto', 'onPickGallery']) {
   if (!sheet.includes(callback)) {
     throw new Error(`QuickCaptureSheet missing ${callback}`);
   }
@@ -93,9 +93,8 @@ if (!selectStoreBody.includes('this.openStoreVisitList();') || selectStoreBody.i
   throw new Error('Bottom store navigation must open the store visit list');
 }
 
-const openStoreVisitBody = flatCallbackBody(index, 'onOpenStoreVisit');
-if (!openStoreVisitBody.includes('this.openStoreVisitList();') || openStoreVisitBody.includes('this.openQuickStoreEditor();')) {
-  throw new Error('Quick shortcut store action must open the store visit list');
+if (!/QuickCaptureSheet\(\{[\s\S]*?onTakePhoto:\s*\(\) => \{[\s\S]*?this\.startCameraCapture\(\);[\s\S]*?onPickGallery:\s*\(\) => \{[\s\S]*?this\.startGalleryCapture\(\);/.test(index)) {
+  throw new Error('Quick shortcut actions must open camera capture and gallery capture');
 }
 
 for (const needle of [
@@ -107,7 +106,7 @@ for (const needle of [
   'onEditorVisibilityChange',
   'onClothingEditorVisibilityChange',
   'onNestedPageVisibilityChange',
-  'if (!this.showCaptureEditor && !this.showStoreEditor && !this.showQuickStoreEditor && !this.showClothingEditor && !this.showNestedPage && !this.showWishlistPage)',
+  'if (!this.showCaptureEditor && !this.showStoreEditor && !this.showQuickStoreEditor && !this.showClothingEditor && !this.showNestedPage && !this.showQuickActions && !this.showWishlistPage)',
   'BottomNavigationBar({'
 ]) {
   if (!index.includes(needle)) {

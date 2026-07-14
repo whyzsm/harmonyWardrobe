@@ -6,6 +6,8 @@ import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { WearLog } from '../domain/wearLog/WearLogModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
+import { YibuqueColor } from '../theme/Tokens';
+import { ArrayDataSource } from '../utils/ArrayDataSource';
 import { OutfitEditPage } from './OutfitEditPage';
 import { WearLogEditPage } from './WearLogEditPage';
 
@@ -30,8 +32,8 @@ const BORDER = '#D2D2D7';
 const BORDER_SOFT = '#E8E8ED';
 const ACCENT = '#1D1D1F';
 const ACCENT_SOFT = '#F2F2F7';
-const ERROR = '#DC2626';
-const ERROR_BG = '#FFF3F3';
+const ERROR = YibuqueColor.danger;
+const ERROR_BG = YibuqueColor.cardSoftGray;
 const RECORD_WEAR_ACCESSIBILITY_TEXT = '记录一次穿着';
 
 @Component
@@ -46,6 +48,7 @@ export struct OutfitsPage {
 
   @State private selectedFilterLabel: string = '全部';
   @State private outfits: OutfitTemplate[] = [];
+  @State private outfitDataSource: ArrayDataSource<OutfitTemplate> = new ArrayDataSource<OutfitTemplate>();
   @State private clothingItems: ClothingItem[] = [];
   @State private selectedOutfitId: string = '';
   @State private showOutfitEditor: boolean = false;
@@ -71,6 +74,7 @@ export struct OutfitsPage {
 
     try {
       this.outfits = await this.outfitRepository.listOutfits();
+      this.refreshOutfitDataSource();
       if (this.clothingRepository !== undefined) {
         this.clothingItems = await this.clothingRepository.listClothing();
       }
@@ -116,6 +120,10 @@ export struct OutfitsPage {
 
       return false;
     });
+  }
+
+  private refreshOutfitDataSource(): void {
+    this.outfitDataSource.setData(this.filterOutfits());
   }
 
   private photoUriAt(outfit: OutfitTemplate, slot: number): string {
@@ -197,6 +205,18 @@ export struct OutfitsPage {
     }
 
     this.outfits = nextOutfits;
+    this.refreshOutfitDataSource();
+  }
+
+  private async deleteOutfit(outfit: OutfitTemplate): Promise<void> {
+    if (this.outfitRepository === undefined) {
+      throw new Error('美搭仓库不可用，请稍后重试');
+    }
+
+    await this.outfitRepository.deleteOutfit(outfit.id);
+    this.outfits = this.outfits.filter((existingOutfit: OutfitTemplate) => existingOutfit.id !== outfit.id);
+    this.refreshOutfitDataSource();
+    this.closeOutfitEditor();
   }
 
   private closeOutfitEditor(): void {
@@ -227,6 +247,9 @@ export struct OutfitsPage {
           this.upsertOutfit(outfit);
           this.closeOutfitEditor();
         },
+        onDelete: async (outfit: OutfitTemplate): Promise<void> => {
+          await this.deleteOutfit(outfit);
+        },
         onCancel: () => {
           this.closeOutfitEditor();
         }
@@ -252,6 +275,11 @@ export struct OutfitsPage {
 
         if (this.loading) {
           Column({ space: 10 }) {
+            LoadingProgress()
+              .width(22)
+              .height(22)
+              .color(TEXT_PRIMARY)
+
             Text('正在加载套装...')
               .fontSize(14)
               .fontColor(TEXT_MUTED)
@@ -314,6 +342,7 @@ export struct OutfitsPage {
               .borderRadius(22)
               .onClick(() => {
                 this.selectedFilterLabel = '全部';
+                this.refreshOutfitDataSource();
               })
           }
           .width('100%')
@@ -322,7 +351,7 @@ export struct OutfitsPage {
           .justifyContent(FlexAlign.Center)
         } else {
           Grid() {
-            ForEach(this.filterOutfits(), (outfit: OutfitTemplate, index: number) => {
+            LazyForEach(this.outfitDataSource, (outfit: OutfitTemplate, index: number) => {
               GridItem() {
                 this.OutfitWallCard(outfit, index)
               }
@@ -413,6 +442,7 @@ export struct OutfitsPage {
           .border({ width: 1, color: this.selectedFilterLabel === filter.label ? TEXT_PRIMARY : BORDER })
           .onClick(() => {
             this.selectedFilterLabel = filter.label;
+            this.refreshOutfitDataSource();
           })
         }, (filter: OutfitSceneFilter) => filter.label)
 
@@ -530,6 +560,7 @@ export struct OutfitsPage {
           })
       }
       .width('100%')
+      .constraintSize({ minHeight: 44 })
       .alignItems(VerticalAlign.Center)
     }
     .width('100%')

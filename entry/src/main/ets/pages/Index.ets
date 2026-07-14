@@ -376,7 +376,7 @@ struct Index {
         .height('100%')
         .backgroundColor('#FFFFFF')
 
-        if (!this.showCaptureEditor && !this.showStoreEditor && !this.showQuickStoreEditor && !this.showClothingEditor && !this.showNestedPage && !this.showWishlistPage) {
+        if (!this.showCaptureEditor && !this.showStoreEditor && !this.showQuickStoreEditor && !this.showClothingEditor && !this.showNestedPage && !this.showQuickActions && !this.showWishlistPage) {
           BottomNavigationBar({
             selected: this.showCaptureEditor ? 'capture' : this.selectedMainTab,
             onSelectWardrobe: () => {
@@ -420,22 +420,11 @@ struct Index {
 
         if (this.showQuickActions) {
           QuickCaptureSheet({
-            onOpenWardrobe: () => {
-              this.closeCaptureEditor();
-              this.selectedMainTab = 'wardrobe';
-              this.initialWardrobeTab = '衣裤';
-              this.showQuickActions = false;
-              this.quickActionErrorMessage = '';
+            onTakePhoto: () => {
+              this.startCameraCapture();
             },
-            onOpenStoreVisit: () => {
-              this.openStoreVisitList();
-            },
-            onOpenOutfit: () => {
-              this.closeCaptureEditor();
-              this.initialOutfitId = '';
-              this.selectedMainTab = 'outfit';
-              this.showQuickActions = false;
-              this.quickActionErrorMessage = '';
+            onPickGallery: () => {
+              this.startGalleryCapture();
             },
             onCancel: () => {
               this.showQuickActions = false;

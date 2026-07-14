@@ -316,12 +316,21 @@ export struct CaptureEditPage {
               this.choosePhotos();
             })
 
-          Button(this.saveButtonLabel())
+          Button() {
+            if (this.isSaving) {
+              LoadingProgress()
+                .width(18)
+                .height(18)
+                .color('#FFFFFF')
+            } else {
+              Text(this.saveButtonLabel())
+                .fontSize(13)
+                .fontWeight(FontWeight.Regular)
+                .fontColor('#FFFFFF')
+            }
+          }
             .layoutWeight(1)
             .height(44)
-            .fontSize(13)
-            .fontWeight(FontWeight.Regular)
-            .fontColor('#FFFFFF')
             .backgroundColor(this.canSave() ? CAPTURE_TEXT : CAPTURE_META)
             .borderRadius(22)
             .enabled(this.canSave())

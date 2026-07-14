@@ -58,7 +58,7 @@ mustNotInclude(nav, navPath, "Text('+')");
 mustNotInclude(nav, navPath, "Text('拍照')");
 mustMatch(nav, navPath, /SymbolGlyph\(\$r\('sys\.symbol\.camera_fill'\)\)|相机|拍照|PhotoIcon|CameraButton/, 'must render a camera/photo center action');
 
-for (const needle of ['衣柜', '逛店', '套装', 'onOpenWardrobe', 'onOpenStoreVisit', 'onOpenOutfit']) {
+for (const needle of ['拍一张', '从相册选择', 'onTakePhoto', 'onPickGallery']) {
   mustInclude(quickSheet, quickSheetPath, needle);
 }
 

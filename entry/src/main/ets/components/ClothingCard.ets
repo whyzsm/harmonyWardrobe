@@ -10,10 +10,13 @@ export struct ClothingCard {
   onClick: () => void = () => {};
 
   aboutToAppear() {
-    setTimeout(() => {
+    animateTo({
+      duration: 260,
+      curve: Curve.Smooth
+    }, () => {
       this.cardOpacity = 1;
       this.cardScale = 1;
-    }, 50);
+    });
   }
 
   build() {
@@ -23,7 +26,7 @@ export struct ClothingCard {
           .width('100%')
           .aspectRatio(1)
           .objectFit(ImageFit.Cover)
-          .borderRadius(18)
+          .borderRadius(YibuqueRadius.xs)
       } else {
         Column() {
           SymbolGlyph($r('sys.symbol.shirt'))
@@ -34,7 +37,7 @@ export struct ClothingCard {
         .aspectRatio(1)
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .borderRadius(18)
+        .borderRadius(YibuqueRadius.xs)
         .backgroundColor(YibuqueColor.cardMint)
       }
 

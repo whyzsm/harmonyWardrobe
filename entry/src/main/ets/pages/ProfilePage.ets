@@ -288,7 +288,8 @@ export struct ProfilePage {
   }
 
   private async persistPreferences(message: string): Promise<void> {
-    if (this.profileRepository === undefined) return;
+    if (this.profileRepository === undefined || this.isSaving) return;
+    this.isSaving = true;
     try {
       const saved = await this.profileRepository.saveProfile({
         heightCm: parseOptionalNumber(this.heightCm),
@@ -304,6 +305,8 @@ export struct ProfilePage {
       this.showNotice(message);
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '保存个人偏好失败';
+    } finally {
+      this.isSaving = false;
     }
   }
 
@@ -684,7 +687,7 @@ export struct ProfilePage {
   @Builder
   StyleTag(label: string, selected: boolean, key: string) {
     Text(label)
-      .height(32)
+      .constraintSize({ minHeight: 44 })
       .padding({ left: 12, right: 12 })
       .margin({ right: 8, bottom: 8 })
       .fontSize(12)
@@ -1018,12 +1021,21 @@ export struct ProfilePage {
             this.cancelMeasurementEditor();
           })
 
-        Button(this.isSaving ? '保存中...' : '保存')
+        Button() {
+          if (this.isSaving) {
+            LoadingProgress()
+              .width(18)
+              .height(18)
+              .color(PROFILE_BACKGROUND)
+          } else {
+            Text('保存')
+              .fontSize(13)
+              .fontWeight(FontWeight.Regular)
+              .fontColor(PROFILE_BACKGROUND)
+          }
+        }
           .height(44)
           .layoutWeight(1)
-          .fontSize(13)
-          .fontWeight(FontWeight.Regular)
-          .fontColor(PROFILE_BACKGROUND)
           .backgroundColor(this.hasInvalidMeasurements() ? PROFILE_META : PROFILE_TEXT)
           .borderRadius(999)
           .enabled(!this.isSaving && !this.hasInvalidMeasurements())

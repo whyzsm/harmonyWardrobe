@@ -11,7 +11,7 @@ const pageStateExpectations = [
   },
   {
     page: 'ProfilePage',
-    needles: ['isLoading', 'errorMessage', '保存中...', 'saveProfile', '已保存个人信息', '请输入数字']
+    needles: ['isLoading', 'errorMessage', 'LoadingProgress()', 'saveProfile', '已保存个人信息', '请输入数字']
   }
 ];
 
