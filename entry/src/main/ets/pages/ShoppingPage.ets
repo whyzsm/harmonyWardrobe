@@ -145,7 +145,11 @@ export struct ShoppingPage {
       SearchResultsPage({
         query: this.unifiedSearchQuery,
         searchRepository: this.searchRepository,
-        wishlistRepository: this.wishlistRepository,
+        onOpenWishlistResult: (id: string) => {
+          this.selectedWishlistItemId = id;
+          this.showUnifiedSearch = false;
+          this.showEditor = true;
+        },
         onClose: () => {
           this.showUnifiedSearch = false;
         }

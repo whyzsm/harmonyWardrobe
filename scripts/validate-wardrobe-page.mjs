@@ -10,10 +10,9 @@ for (const needle of [
   'WardrobeSearchHeader',
   'displayItemMeta',
   '暂无照片',
-  'OPEN_DESIGN_BLACK',
-  'OPEN_DESIGN_SURFACE',
-  'OPEN_DESIGN_BORDER',
   'YibuqueColor.textInverse',
+  'YibuqueColor.actionBlack',
+  'YibuqueColor.borderMedium',
   'WardrobeSearchTabs',
   'CategoryFilterIcon',
   'WardrobeSearchResultCard',
@@ -44,14 +43,10 @@ for (const needle of [
   "'上衣'",
   "'裤装'",
   "'裙装'",
-  "'包袋'",
-  "'待同步'",
   "SymbolGlyph($r('sys.symbol.square_grid_2x2'))",
   "SymbolGlyph($r('sys.symbol.shirt'))",
   "SymbolGlyph($r('sys.symbol.clothing'))",
   "SymbolGlyph($r('sys.symbol.hanger_and_towels'))",
-  "SymbolGlyph($r('sys.symbol.bag'))",
-  "SymbolGlyph($r('sys.symbol.arrow_left_arrow_right'))",
   'Text(this.displayItemTitle(item))',
   'Text(this.displayItemMeta(item))',
   'CardCategoryIcon(item.category)',
@@ -103,11 +98,27 @@ if (!/WardrobeSearchTabs\(\)[\s\S]*?Scroll\(\)[\s\S]*?Row\(\{ space: 10 \}\)[\s\
   throw new Error('Wardrobe search tabs must be wrapped in a horizontal Scroll');
 }
 
-if (!/selectedCategoryLabel === category \? YibuqueColor\.textInverse[\s\S]*?selectedCategoryLabel === category \? OPEN_DESIGN_BLACK[\s\S]*?selectedCategoryLabel === category \? OPEN_DESIGN_BLACK/.test(text)) {
-  throw new Error('Wardrobe category selection must use the black background and white foreground from the reference design');
+if (!/selectedCategoryLabel === category \? YibuqueColor\.textInverse[\s\S]*?selectedCategoryLabel === category \? YibuqueColor\.actionBlack[\s\S]*?selectedCategoryLabel === category \? YibuqueColor\.actionBlack/.test(text)) {
+  throw new Error('Wardrobe category selection must use tokenized black background and white foreground');
 }
 
-for (const forbidden of ['SearchBar', 'CategoryTabs', 'ClothingCard', '添加衣服', "Text('衣橱')", "Text('search')", "Text('搜索')", "'loading /", "'error /", "Button('retry')", '`NO. ${index + 1}`']) {
+for (const forbidden of [
+  'SearchBar',
+  'CategoryTabs',
+  'ClothingCard',
+  '添加衣服',
+  "Text('衣橱')",
+  "Text('search')",
+  "Text('搜索')",
+  "'loading /",
+  "'error /",
+  "Button('retry')",
+  '`NO. ${index + 1}`',
+  'OPEN_DESIGN_',
+  'SCREENSHOT_NAV_GRAY',
+  "'包袋'",
+  "'待同步'"
+]) {
   if (text.includes(forbidden)) {
     throw new Error(`WardrobePage should follow the search result layout and omit ${forbidden}`);
   }

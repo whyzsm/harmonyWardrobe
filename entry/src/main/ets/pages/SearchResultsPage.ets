@@ -43,8 +43,11 @@ function entityTypeLabel(entityType: SearchEntityType): string {
   if (entityType === SearchEntityType.Store) {
     return '店铺';
   }
-  if (entityType === SearchEntityType.WearLog || entityType === SearchEntityType.Wishlist) {
-    return '我的';
+  if (entityType === SearchEntityType.WearLog) {
+    return '穿着';
+  }
+  if (entityType === SearchEntityType.Wishlist) {
+    return '心愿';
   }
   return '';
 }
@@ -85,6 +88,8 @@ export struct SearchResultsPage {
   onOpenOutfitResult: (id: string) => void = (_id: string) => {};
   onOpenStoreResult: (entityType: SearchEntityType, id: string, title: string) => void =
     (_entityType: SearchEntityType, _id: string, _title: string) => {};
+  onOpenWishlistResult: (id: string) => void = (_id: string) => {};
+  onOpenWearLogResult: (id: string) => void = (_id: string) => {};
   onOpenProfileResult: (entityType: SearchEntityType, id: string) => void =
     (_entityType: SearchEntityType, _id: string) => {};
   onOpenCameraSearch: () => void = () => {};
@@ -283,6 +288,10 @@ export struct SearchResultsPage {
       this.onOpenOutfitResult(result.entityId);
     } else if (result.entityType === SearchEntityType.Store || result.entityType === SearchEntityType.StoreVisit) {
       this.onOpenStoreResult(result.entityType, result.entityId, result.title);
+    } else if (result.entityType === SearchEntityType.Wishlist) {
+      this.onOpenWishlistResult(result.entityId);
+    } else if (result.entityType === SearchEntityType.WearLog) {
+      this.onOpenWearLogResult(result.entityId);
     } else {
       this.onOpenProfileResult(result.entityType, result.entityId);
     }
@@ -395,7 +404,7 @@ export struct SearchResultsPage {
         Text(this.inputErrorMessage)
           .width('100%')
           .fontSize(12)
-          .fontColor('#BA1A1A')
+          .fontColor(YibuqueColor.danger)
       }
     }
     .width('100%')
@@ -687,7 +696,7 @@ export struct SearchResultsPage {
       Text(this.errorMessage)
         .width('100%')
         .fontSize(14)
-        .fontColor('#BA1A1A')
+        .fontColor(YibuqueColor.danger)
 
       Button('重试')
         .height(38)

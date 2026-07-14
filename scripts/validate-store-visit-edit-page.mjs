@@ -39,8 +39,10 @@ for (const needle of [
   '保存记录',
   'storeNameSnapshot',
   'YibuqueColor',
+  'YibuqueColor.danger',
   'YibuqueRadius',
   'SecondaryPageHeader',
+  'isChoosingPhotos',
   'default_store_cover',
   '拍下这家店的第一眼',
   '选择照片',
@@ -100,18 +102,32 @@ if (!captureBody.includes('captureFromCamera()') || !captureBody.includes('copyS
   captureBody.includes('pickFromGallery')) {
   throw new Error(`${file} camera action must capture and persist a camera photo`);
 }
+if (!/this\.photoPickerAdapter === undefined \|\| this\.isSaving \|\| this\.isChoosingPhotos/.test(captureBody) ||
+  !/this\.isChoosingPhotos\s*=\s*true[\s\S]*?finally\s*{[\s\S]*?this\.isChoosingPhotos\s*=\s*false/.test(captureBody)) {
+  throw new Error(`${file} camera action must guard and reset isChoosingPhotos`);
+}
+
+const galleryBody = blockAfter(text, 'private async pickGalleryPhotos()').body;
+if (!/this\.photoPickerAdapter === undefined \|\| this\.isSaving \|\| this\.isChoosingPhotos/.test(galleryBody) ||
+  !/this\.isChoosingPhotos\s*=\s*true[\s\S]*?finally\s*{[\s\S]*?this\.isChoosingPhotos\s*=\s*false/.test(galleryBody)) {
+  throw new Error(`${file} gallery action must guard and reset isChoosingPhotos`);
+}
 
 const cameraActionBody = blockAfter(text, '\n  CameraAction()').body;
 if (!cameraActionBody.includes("SymbolGlyph($r('sys.symbol.camera_fill'))") ||
   !cameraActionBody.includes(".accessibilityText('拍照')") ||
-  !cameraActionBody.includes('this.captureStorePhoto();') || cameraActionBody.includes('pickGalleryPhotos')) {
+  !cameraActionBody.includes('this.captureStorePhoto();') ||
+  !cameraActionBody.includes('.enabled(!this.isSaving && !this.isChoosingPhotos)') ||
+  cameraActionBody.includes('pickGalleryPhotos')) {
   throw new Error(`${file} camera icon must exclusively invoke captureStorePhoto`);
 }
 
 const galleryActionBody = blockAfter(text, '\n  GalleryAction()').body;
 if (!galleryActionBody.includes("SymbolGlyph($r('sys.symbol.picture'))") ||
   !galleryActionBody.includes(".accessibilityText('选择照片')") ||
-  !galleryActionBody.includes('this.pickGalleryPhotos();') || galleryActionBody.includes('captureStorePhoto')) {
+  !galleryActionBody.includes('this.pickGalleryPhotos();') ||
+  !galleryActionBody.includes('.enabled(!this.isSaving && !this.isChoosingPhotos)') ||
+  galleryActionBody.includes('captureStorePhoto')) {
   throw new Error(`${file} gallery action must exclusively invoke pickGalleryPhotos`);
 }
 
@@ -153,6 +169,12 @@ for (const forbidden of [
 ]) {
   if (text.includes(forbidden)) {
     throw new Error(`${file} must not include ${forbidden}`);
+  }
+}
+
+for (const forbidden of ['#FFF7F7', '#F3B8B8', '#FFF0F0', '#F5F3F3', '#FBF9F9', '#BA1A1A', '#DC2626']) {
+  if (text.includes(forbidden)) {
+    throw new Error(`${file} must use Yibuque tokens instead of hard-coded error/warm-gray color ${forbidden}`);
   }
 }
 

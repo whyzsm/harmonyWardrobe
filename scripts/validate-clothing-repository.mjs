@@ -63,6 +63,7 @@ for (const needle of [
   'MigrationSqlValue',
   'SearchRepository',
   'SearchIndexMode',
+  'PhotoStorage',
   'buildClothingSearchDocument',
   'buildOutfitSearchDocument',
   'SearchEntityType',
@@ -94,8 +95,9 @@ for (const method of ['createClothing', 'updateClothing', 'deleteClothing']) {
 }
 
 assertMatches(source, /INSERT\s+INTO\s+clothing_items/i, 'createClothing must insert clothing_items');
-assertMatches(source, /constructor\s*\(\s*database:\s*MigrationDatabase\s*,\s*searchIndexMode:\s*SearchIndexMode\s*\)/, 'constructor must accept the shared database and search index mode');
+assertMatches(source, /constructor\s*\(\s*database:\s*MigrationDatabase\s*,\s*searchIndexMode:\s*SearchIndexMode\s*,\s*photoStorage\?:\s*PhotoStorage\s*\)/, 'constructor must accept the shared database, search index mode, and optional photo storage');
 assertMatches(source, /new\s+SearchRepository\s*\(\s*database\s*,\s*searchIndexMode\s*\)/, 'ClothingRepository must build SearchRepository from the same database');
+assertMatches(source, /new\s+DeleteCleanupService\s*\([\s\S]*photoStorage\s*\)/, 'ClothingRepository must pass PhotoStorage to DeleteCleanupService');
 assertMatches(source, /UPDATE\s+clothing_items/i, 'updateClothing must update clothing_items');
 assertMatches(source, /DELETE\s+FROM\s+clothing_items/i, 'deleteClothing must delete clothing_items');
 assertMatches(source, /INSERT\s+INTO\s+clothing_photos/i, 'repository must insert clothing_photos');
@@ -142,6 +144,6 @@ assertOrdered(
 
 assert.equal(source.includes('@ohos.net'), false, 'ClothingRepository must stay local-only');
 assert.equal(source.includes('fetch('), false, 'ClothingRepository must not use fetch');
-assert.equal(source.includes('PhotoStorage'), false, 'ClothingRepository must not copy photo files');
+assert.equal(/photoStorage\.(copy|save|persist|import|write|ensure)/.test(source), false, 'ClothingRepository must not copy photo files directly');
 
 console.log('PASS');

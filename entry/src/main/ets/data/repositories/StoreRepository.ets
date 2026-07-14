@@ -6,6 +6,7 @@ import {
 import { DeleteCleanupService } from './DeleteCleanupService';
 import { SearchRepository } from './SearchRepository';
 import { SearchIndexMode } from '../searchIndex/SearchCapability';
+import { PhotoStorage } from '../../media/PhotoStorage';
 import { buildStoreSearchDocument, buildStoreVisitSearchDocument } from '../../domain/search/SearchDocumentBuilder';
 import { SearchEntityType } from '../../domain/search/SearchModels';
 import { Store, StoreVisit, StoreVisitStatus } from '../../domain/store/StoreModels';
@@ -34,6 +35,9 @@ const UPDATE_STORE_SQL = `
     updated_at = ?
   WHERE id = ?
 `;
+
+const DELETE_STORE_SQL = 'DELETE FROM stores WHERE id = ?';
+const DETACH_STORE_VISITS_SQL = 'UPDATE store_visits SET store_id = NULL WHERE store_id = ?';
 
 const INSERT_STORE_PHOTO_SQL = `
   INSERT INTO store_photos (
@@ -299,11 +303,13 @@ export class StoreRepository {
   private readonly database: MigrationDatabase;
   private readonly searchRepository: SearchRepository;
   private readonly deleteCleanupService: DeleteCleanupService;
+  private readonly photoStorage?: PhotoStorage;
 
-  constructor(database: MigrationDatabase, searchIndexMode: SearchIndexMode) {
+  constructor(database: MigrationDatabase, searchIndexMode: SearchIndexMode, photoStorage?: PhotoStorage) {
     this.database = database;
+    this.photoStorage = photoStorage;
     this.searchRepository = new SearchRepository(database, searchIndexMode);
-    this.deleteCleanupService = new DeleteCleanupService(database, this.searchRepository);
+    this.deleteCleanupService = this.createDeleteCleanupService();
   }
 
   async createStore(input: CreateStoreInput): Promise<Store> {
@@ -349,6 +355,15 @@ export class StoreRepository {
 
   async getStoreById(id: string): Promise<Store | undefined> {
     return this.getStoreByIdInTransaction(id);
+  }
+
+  async deleteStore(id: string): Promise<void> {
+    await this.database.transaction(async () => {
+      await this.deleteCleanupService.deleteObjectPhotos('store_photos', 'store_id', id);
+      await this.database.executeSql(DETACH_STORE_VISITS_SQL, [id]);
+      await this.database.executeSql(DELETE_STORE_SQL, [id]);
+      await this.searchRepository.deleteDocumentInTransaction(SearchEntityType.Store, id);
+    });
   }
 
   async createStoreVisit(input: CreateStoreVisitInput): Promise<StoreVisit> {
@@ -447,6 +462,10 @@ export class StoreRepository {
 
   async findStoreByName(name: string): Promise<Store | undefined> {
     return this.findStoreByNameInTransaction(name);
+  }
+
+  private createDeleteCleanupService(): DeleteCleanupService {
+    return new DeleteCleanupService(this.database, this.searchRepository, this.photoStorage);
   }
 
   private async createStoreInTransaction(input: CreateStoreInput): Promise<Store> {

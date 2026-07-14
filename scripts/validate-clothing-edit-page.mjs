@@ -55,6 +55,7 @@ for (const needle of [
   'purchaseDate',
   'note',
   'isSaving',
+  'isChoosingPhotos',
   'canSave',
   'saveClothing',
   'generatedName',
@@ -70,6 +71,7 @@ for (const needle of [
   'YibuqueRadius',
   'YibuqueShadow',
   'YibuqueColor.actionBlack',
+  'YibuqueColor.danger',
   '选择照片',
   '项目详情',
   '已选：',
@@ -98,7 +100,8 @@ for (const layoutNeedle of [
   "$r('sys.symbol.calendar')",
   "$r('sys.symbol.list_bullet')",
   'this.SaveAction()',
-  'bottom: 32'
+  'bottom: 32',
+  '.enabled(!this.isSaving && !this.isChoosingPhotos)'
 ]) {
   if (!editPage.includes(layoutNeedle)) {
     throw new Error(`ClothingEditPage screenshot structure missing ${layoutNeedle}`);
@@ -139,7 +142,9 @@ for (const forbidden of [
   'storeName / 门店',
   'price / 价格',
   'purchase note / 购买备注',
-  'AppTheme.color.primary'
+  'AppTheme.color.primary',
+  'fallbackUris',
+  'PhotoPickerAdapter.copy failed'
 ]) {
   if (editPage.includes(forbidden)) {
     throw new Error(`ClothingEditPage must not include ${forbidden}`);
@@ -162,12 +167,21 @@ if (!/name:\s*this\.normalizedName\(\)/.test(editPage)) {
   throw new Error('ClothingEditPage must save a normalized/generated name');
 }
 
-if (!/fallbackUris\s*=\s*sources\.map[\s\S]*?this\.photoUris\s*=\s*fallbackUris[\s\S]*?try\s*{[\s\S]*?copySourcesToLocalUris\(sources\)/.test(editPage)) {
-  throw new Error('ClothingEditPage must keep selected gallery URIs before attempting local copy');
+const pickGalleryPhotosBody = bracedBlock(editPage, 'private async pickGalleryPhotos()').body;
+if (!/this\.photoPickerAdapter === undefined \|\| this\.isSaving \|\| this\.isChoosingPhotos/.test(pickGalleryPhotosBody)) {
+  throw new Error('ClothingEditPage gallery pick must guard photo picker, save, and active picking state');
 }
 
-if (!/catch\s*\(\s*copyError\s*\)[\s\S]*?PhotoPickerAdapter\.copy failed/.test(editPage)) {
-  throw new Error('ClothingEditPage must not clear selected photos when local copy fails');
+if (!/this\.isChoosingPhotos\s*=\s*true[\s\S]*?finally\s*{[\s\S]*?this\.isChoosingPhotos\s*=\s*false/.test(pickGalleryPhotosBody)) {
+  throw new Error('ClothingEditPage gallery pick must reset isChoosingPhotos in finally');
+}
+
+if (!/const localUris = await this\.copySourcesToLocalUris\(sources\)[\s\S]*?if \(localUris\.length > 0\)[\s\S]*?this\.photoUris = localUris[\s\S]*?this\.previewPhotoUri = localUris\[0\][\s\S]*?else[\s\S]*?照片复制失败，请重试[\s\S]*?this\.photoUris = \[\][\s\S]*?this\.previewPhotoUri = ''/.test(pickGalleryPhotosBody)) {
+  throw new Error('ClothingEditPage must only keep successful local photo URIs and clear failed copies');
+}
+
+if (!/catch\s*\(\s*copyError\s*\)[\s\S]*?照片保存失败[\s\S]*?this\.photoUris = \[\][\s\S]*?this\.previewPhotoUri = ''/.test(pickGalleryPhotosBody)) {
+  throw new Error('ClothingEditPage copy failure must clear photos and show a visible error');
 }
 
 for (const needle of [

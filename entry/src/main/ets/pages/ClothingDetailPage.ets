@@ -65,7 +65,11 @@ export struct ClothingDetailPage {
   @Prop item?: ClothingItem = undefined;
   onBack: () => void = () => {};
   onEdit: (item: ClothingItem) => void = () => {};
+  onDelete: (item: ClothingItem) => Promise<void> = async (_item: ClothingItem): Promise<void> => {};
   @State private showPhotoPreview: boolean = false;
+  @State private showDeleteConfirm: boolean = false;
+  @State private isDeleting: boolean = false;
+  @State private deleteErrorMessage: string = '';
   @State private selectedPhotoIndex: number = 0;
 
   private photoUris(): string[] {
@@ -153,6 +157,53 @@ export struct ClothingDetailPage {
 
   private closePhotoPreview(): void {
     this.showPhotoPreview = false;
+  }
+
+  private confirmDelete(): void {
+    const item = this.item;
+    if (item === undefined || this.isDeleting) {
+      return;
+    }
+
+    this.showDeleteConfirm = true;
+    AlertDialog.show({
+      title: '删除衣物',
+      message: '确定要删除这件衣物吗？照片也会一并移除。',
+      primaryButton: {
+        value: '取消',
+        action: () => {
+          this.showDeleteConfirm = false;
+        }
+      },
+      secondaryButton: {
+        value: '删除',
+        fontColor: YibuqueColor.danger,
+        action: () => {
+          this.deleteCurrentItem();
+        }
+      },
+      cancel: () => {
+        this.showDeleteConfirm = false;
+      }
+    });
+  }
+
+  private async deleteCurrentItem(): Promise<void> {
+    const item = this.item;
+    if (item === undefined || this.isDeleting) {
+      return;
+    }
+
+    this.isDeleting = true;
+    this.deleteErrorMessage = '';
+    try {
+      await this.onDelete(item);
+      this.showDeleteConfirm = false;
+    } catch (error) {
+      this.deleteErrorMessage = error instanceof Error ? error.message : '删除衣物失败';
+    } finally {
+      this.isDeleting = false;
+    }
   }
 
   @Builder
@@ -431,6 +482,42 @@ export struct ClothingDetailPage {
     .alignItems(HorizontalAlign.Start)
   }
 
+  @Builder
+  DeleteAction() {
+    Column({ space: YibuqueSpacing.sm }) {
+      Button() {
+        if (this.isDeleting) {
+          LoadingProgress()
+            .width(18)
+            .height(18)
+            .color(YibuqueColor.textInverse)
+        } else {
+          Text('删除衣物')
+            .fontSize(15)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textInverse)
+        }
+      }
+      .width('100%')
+      .height(46)
+      .enabled(!this.isDeleting && !this.showDeleteConfirm)
+      .backgroundColor(YibuqueColor.danger)
+      .borderRadius(YibuqueRadius.full)
+      .onClick(() => {
+        this.confirmDelete();
+      })
+
+      if (this.deleteErrorMessage.length > 0) {
+        Text(this.deleteErrorMessage)
+          .width('100%')
+          .fontSize(13)
+          .fontColor(YibuqueColor.danger)
+          .textAlign(TextAlign.Center)
+      }
+    }
+    .width('100%')
+  }
+
   build() {
     if (this.item === undefined) {
       Column() {
@@ -484,6 +571,7 @@ export struct ClothingDetailPage {
               this.SummaryCard()
               this.PurchaseCard()
               this.RecordCard()
+              this.DeleteAction()
             }
             .width('100%')
             .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.sm, bottom: YibuqueSpacing.section })

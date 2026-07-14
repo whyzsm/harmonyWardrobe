@@ -62,7 +62,7 @@ export struct BottomNavigationBar {
       colors: [['#F37A59', 0], ['#4578FF', 0.55], ['#56D0FF', 1]]
     })
     .borderRadius(YibuqueRadius.full)
-    .shadow({ radius: 18, color: '#735A7CFF', offsetX: 0, offsetY: 0 })
+    .shadow({ radius: 18, color: '#26000000', offsetX: 0, offsetY: 0 })
   }
 
   @Builder

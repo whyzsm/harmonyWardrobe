@@ -35,6 +35,7 @@ export interface YibuqueColorTokens {
   brandCyan: string;
   success: string;
   successBg: string;
+  danger: string;
   borderLight: string;
   borderMedium: string;
   borderStrong: string;
@@ -164,6 +165,7 @@ export const YibuqueColor: YibuqueColorTokens = {
   brandCyan: '#1D1D1F',
   success: '#16A34A',
   successBg: '#ECFDF3',
+  danger: '#DC2626',
   borderLight: '#E8E8ED',
   borderMedium: '#D2D2D7',
   borderStrong: '#1D1D1F',

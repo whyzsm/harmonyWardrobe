@@ -103,10 +103,11 @@ for (const needle of [
   '@State private showQuickStoreEditor: boolean = false',
   '@State private showClothingEditor: boolean = false',
   '@State private showNestedPage: boolean = false',
+  '@State private showWishlistPage: boolean = false',
   'onEditorVisibilityChange',
   'onClothingEditorVisibilityChange',
   'onNestedPageVisibilityChange',
-  'if (!this.showCaptureEditor && !this.showStoreEditor && !this.showQuickStoreEditor && !this.showClothingEditor && !this.showNestedPage)',
+  'if (!this.showCaptureEditor && !this.showStoreEditor && !this.showQuickStoreEditor && !this.showClothingEditor && !this.showNestedPage && !this.showWishlistPage)',
   'BottomNavigationBar({'
 ]) {
   if (!index.includes(needle)) {
@@ -155,7 +156,6 @@ for (const forbidden of [
 for (const forbidden of [
   'TodayPage({',
   'CalendarPage({',
-  'ShoppingPage({',
   "BottomTabItem(0, '首页')",
   "BottomTabItem(2, '日历')",
   "BottomTabItem(3, '逛街')",

@@ -13,6 +13,7 @@ import { ProfilePage } from './ProfilePage';
 import { StoreVisitEditPage } from './StoreVisitEditPage';
 import { StoreVisitPage } from './StoreVisitPage';
 import { WardrobePage } from './WardrobePage';
+import { ShoppingPage } from './ShoppingPage';
 
 @Entry
 @Component
@@ -26,6 +27,7 @@ struct Index {
   @State private showQuickStoreEditor: boolean = false;
   @State private showClothingEditor: boolean = false;
   @State private showNestedPage: boolean = false;
+  @State private showWishlistPage: boolean = false;
   @State private quickActionErrorMessage: string = '';
   @State private capturePhotoUris: string[] = [];
   @State private captureCapturedAt: string = '';
@@ -179,7 +181,7 @@ struct Index {
         if (this.errorMessage.length > 0) {
           Text(this.errorMessage)
             .fontSize(14)
-            .fontColor('#EF4444')
+            .fontColor(YibuqueColor.danger)
 
           Button('重试')
             .height(44)
@@ -216,6 +218,14 @@ struct Index {
               onCancel: () => {
                 this.closeQuickStoreEditor();
               }
+            })
+              .layoutWeight(1)
+          } else if (this.showWishlistPage) {
+            ShoppingPage({
+              wishlistRepository: this.runtime.wishlistRepository,
+              searchRepository: this.runtime.searchRepository,
+              photoPickerAdapter: this.runtime.photoPickerAdapter,
+              photoStorage: this.runtime.photoStorage
             })
               .layoutWeight(1)
           } else if (this.showCaptureEditor) {
@@ -276,6 +286,19 @@ struct Index {
                   this.initialStoreVisitId = entityType === SearchEntityType.StoreVisit ? id : '';
                   this.initialStoreQuery = entityType === SearchEntityType.Store ? title : '';
                   this.selectedMainTab = 'store';
+                } else if (entityType === SearchEntityType.Wishlist) {
+                  this.initialOutfitId = '';
+                  this.initialStoreVisitId = '';
+                  this.initialStoreQuery = '';
+                  this.selectedMainTab = 'profile';
+                  this.showWishlistPage = true;
+                } else if (entityType === SearchEntityType.WearLog) {
+                  this.initialOutfitId = '';
+                  this.initialStoreVisitId = '';
+                  this.initialStoreQuery = '';
+                  this.showWishlistPage = false;
+                  this.initialWardrobeTab = '日历';
+                  this.selectedMainTab = 'wardrobe';
                 } else {
                   this.initialOutfitId = '';
                   this.initialStoreVisitId = '';
@@ -328,6 +351,11 @@ struct Index {
                 this.showQuickActions = false;
                 this.quickActionErrorMessage = '';
               },
+              onOpenWishlist: () => {
+                this.showWishlistPage = true;
+                this.showQuickActions = false;
+                this.quickActionErrorMessage = '';
+              },
               onNestedPageVisibilityChange: (visible: boolean) => {
                 this.showNestedPage = visible;
               }
@@ -340,7 +368,7 @@ struct Index {
               .width('100%')
               .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: 8, bottom: 8 })
               .fontSize(13)
-              .fontColor('#EF4444')
+              .fontColor(YibuqueColor.danger)
               .backgroundColor(YibuqueColor.cardWhite)
           }
         }
@@ -348,11 +376,12 @@ struct Index {
         .height('100%')
         .backgroundColor('#FFFFFF')
 
-        if (!this.showCaptureEditor && !this.showStoreEditor && !this.showQuickStoreEditor && !this.showClothingEditor && !this.showNestedPage) {
+        if (!this.showCaptureEditor && !this.showStoreEditor && !this.showQuickStoreEditor && !this.showClothingEditor && !this.showNestedPage && !this.showWishlistPage) {
           BottomNavigationBar({
             selected: this.showCaptureEditor ? 'capture' : this.selectedMainTab,
             onSelectWardrobe: () => {
               this.closeCaptureEditor();
+              this.showWishlistPage = false;
               this.initialOutfitId = '';
               this.initialStoreVisitId = '';
               this.initialStoreQuery = '';
@@ -366,12 +395,14 @@ struct Index {
               this.quickActionErrorMessage = '';
             },
             onSelectStore: () => {
+              this.showWishlistPage = false;
               this.initialStoreVisitId = '';
               this.initialStoreQuery = '';
               this.openStoreVisitList();
             },
             onSelectOutfit: () => {
               this.closeCaptureEditor();
+              this.showWishlistPage = false;
               this.initialOutfitId = '';
               this.selectedMainTab = 'outfit';
               this.showQuickActions = false;
@@ -379,6 +410,7 @@ struct Index {
             },
             onOpenProfile: () => {
               this.closeCaptureEditor();
+              this.showWishlistPage = false;
               this.selectedMainTab = 'profile';
               this.showQuickActions = false;
               this.quickActionErrorMessage = '';

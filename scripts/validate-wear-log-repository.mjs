@@ -65,6 +65,7 @@ for (const needle of [
   'MigrationSqlValue',
   'SearchRepository',
   'SearchIndexMode',
+  'PhotoStorage',
   'buildWearLogSearchDocument',
   'SearchEntityType',
   'WearLog',
@@ -77,6 +78,7 @@ for (const needle of [
   'updateWearLog',
   'deleteWearLog',
   'getWearLogById',
+  'listWearLogs',
   'listWearLogsByDate',
   'listWearLogDatesForMonth',
   'encodeClothingItemIdsSnapshot',
@@ -93,8 +95,9 @@ for (const method of ['createWearLog', 'updateWearLog', 'deleteWearLog']) {
   );
 }
 
-assertMatches(source, /constructor\s*\(\s*database:\s*MigrationDatabase\s*,\s*searchIndexMode:\s*SearchIndexMode\s*\)/, 'constructor must accept the shared database and search index mode');
+assertMatches(source, /constructor\s*\(\s*database:\s*MigrationDatabase\s*,\s*searchIndexMode:\s*SearchIndexMode\s*,\s*photoStorage\?:\s*PhotoStorage\s*\)/, 'constructor must accept the shared database, search index mode, and optional photo storage');
 assertMatches(source, /new\s+SearchRepository\s*\(\s*database\s*,\s*searchIndexMode\s*\)/, 'WearLogRepository must build SearchRepository from the same database');
+assertMatches(source, /new\s+DeleteCleanupService\s*\([\s\S]*photoStorage\s*\)/, 'WearLogRepository must pass PhotoStorage to DeleteCleanupService');
 assertMatches(source, /INSERT\s+INTO\s+wear_logs/i, 'createWearLog must insert wear_logs');
 assertMatches(source, /UPDATE\s+wear_logs/i, 'updateWearLog must update wear_logs');
 assertMatches(source, /export\s+interface\s+CreateWearLogInput\s*{[\s\S]*?outfitTemplateId\?:\s*string/, 'CreateWearLogInput should allow an optional outfitTemplateId');
@@ -113,6 +116,7 @@ assertMatches(source, /JSON\.parse/, 'clothing item snapshot must be decoded as 
 assertMatches(source, /Array\.isArray/, 'snapshot decode must validate JSON arrays');
 assertMatches(source, /typeof\s+id\s+===\s+['"`]string['"`]/, 'snapshot decode must validate JSON string elements');
 assertMatches(source, /worn_date\s*=\s*\?/i, 'listWearLogsByDate must filter by worn_date');
+assertMatches(source, /listWearLogs\s*\([^)]*\)\s*:\s*Promise<WearLog\[\]>/, 'listWearLogs must expose all logs for startup search index rebuild');
 assertMatches(source, /worn_date\s+>=\s+\?\s+AND\s+worn_date\s+<\s+\?/i, 'listWearLogDatesForMonth must use a bounded date range');
 assertMatches(source, /\^\(\\d\{4\}\)-\(\\d\{2\}\)\$|\\d\{4\}.*\\d\{2\}/, 'listWearLogDatesForMonth must validate YYYY-MM input');
 assertMatches(source, /range\s+===\s+undefined[\s\S]*return\s+\[\]/, 'listWearLogDatesForMonth must reject invalid months');
@@ -132,7 +136,7 @@ assertOrdered(
 
 assert.equal(source.includes('@ohos.net'), false, 'WearLogRepository must stay local-only');
 assert.equal(source.includes('fetch('), false, 'WearLogRepository must not use fetch');
-assert.equal(source.includes('PhotoStorage'), false, 'WearLogRepository must not copy photo files');
+assert.equal(/photoStorage\.(copy|save|persist|import|write|ensure)/.test(source), false, 'WearLogRepository must not copy photo files directly');
 assert.equal(source.includes('BLOB'), false, 'WearLogRepository must not store image blobs');
 
 const outfitRepository = readRequired(outfitRepositoryPath);

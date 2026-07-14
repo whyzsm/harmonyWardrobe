@@ -64,6 +64,7 @@ for (const needle of [
   'MigrationSqlValue',
   'SearchRepository',
   'SearchIndexMode',
+  'PhotoStorage',
   'buildWishlistSearchDocument',
   'SearchEntityType',
   'WishlistItem',
@@ -90,8 +91,9 @@ for (const method of ['createWishlistItem', 'updateWishlistItem', 'deleteWishlis
   );
 }
 
-assertMatches(source, /constructor\s*\(\s*database:\s*MigrationDatabase\s*,\s*searchIndexMode:\s*SearchIndexMode\s*\)/, 'constructor must accept the shared database and search index mode');
+assertMatches(source, /constructor\s*\(\s*database:\s*MigrationDatabase\s*,\s*searchIndexMode:\s*SearchIndexMode\s*,\s*photoStorage\?:\s*PhotoStorage\s*\)/, 'constructor must accept the shared database, search index mode, and optional photo storage');
 assertMatches(source, /new\s+SearchRepository\s*\(\s*database\s*,\s*searchIndexMode\s*\)/, 'WishlistRepository must build SearchRepository from the same database');
+assertMatches(source, /new\s+DeleteCleanupService\s*\([\s\S]*photoStorage\s*\)/, 'WishlistRepository must pass PhotoStorage to DeleteCleanupService');
 assertMatches(source, /INSERT\s+INTO\s+wishlist_items/i, 'createWishlistItem must insert wishlist_items');
 assertMatches(source, /UPDATE\s+wishlist_items/i, 'updateWishlistItem must update wishlist_items');
 assertMatches(source, /DELETE\s+FROM\s+wishlist_items/i, 'deleteWishlistItem must delete wishlist_items');
@@ -130,7 +132,7 @@ assertOrdered(
 
 assert.equal(source.includes('@ohos.net'), false, 'WishlistRepository must stay local-only');
 assert.equal(source.includes('fetch('), false, 'WishlistRepository must not use fetch');
-assert.equal(source.includes('PhotoStorage'), false, 'WishlistRepository must not copy photo files');
+assert.equal(/photoStorage\.(copy|save|persist|import|write|ensure)/.test(source), false, 'WishlistRepository must not copy photo files directly');
 assert.equal(source.includes('BLOB'), false, 'WishlistRepository must not store image blobs');
 
 const model = readRequired(modelPath);

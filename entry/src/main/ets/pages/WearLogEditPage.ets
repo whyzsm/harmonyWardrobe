@@ -212,7 +212,7 @@ export struct WearLogEditPage {
         if (this.errorMessage.length > 0) {
           Text(this.errorMessage)
             .fontSize(13)
-            .fontColor('#EF4444')
+            .fontColor(YibuqueColor.danger)
         }
 
         Button(this.isSaving ? '保存中...' : '保存记录')

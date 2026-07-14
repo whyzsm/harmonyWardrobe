@@ -28,16 +28,8 @@ const WARDROBE_CATEGORY_FILTERS: WardrobeCategoryFilter[] = [
   { label: '全部' },
   { label: '上衣', category: ClothingCategory.Top },
   { label: '裤装', categories: [ClothingCategory.Pants, ClothingCategory.Shorts] },
-  { label: '裙装', categories: [ClothingCategory.LongSkirt, ClothingCategory.HalfSkirt] },
-  { label: '包袋', categories: [] },
-  { label: '待同步', categories: [] }
+  { label: '裙装', categories: [ClothingCategory.LongSkirt, ClothingCategory.HalfSkirt] }
 ];
-
-const OPEN_DESIGN_BLACK = '#242021';
-const OPEN_DESIGN_SURFACE = '#FFFFFF';
-const OPEN_DESIGN_MUTED = '#717177';
-const OPEN_DESIGN_BORDER = '#D9D9DE';
-const SCREENSHOT_NAV_GRAY = '#74747A';
 
 @Component
 export struct WardrobePage {
@@ -402,6 +394,16 @@ export struct WardrobePage {
     this.clothingItems = nextItems;
   }
 
+  private async deleteClothingItem(item: ClothingItem): Promise<void> {
+    if (this.clothingRepository === undefined) {
+      throw new Error('衣物仓库不可用，请稍后重试');
+    }
+
+    await this.clothingRepository.deleteClothing(item.id);
+    this.clothingItems = this.clothingItems.filter((existingItem: ClothingItem) => existingItem.id !== item.id);
+    this.closeClothingDetail();
+  }
+
   private upsertOutfit(savedOutfit: OutfitTemplate): void {
     const nextOutfits: OutfitTemplate[] = [];
     let replaced = false;
@@ -497,6 +499,9 @@ export struct WardrobePage {
         },
         onEdit: (item: ClothingItem) => {
           this.editFromDetail(item);
+        },
+        onDelete: async (item: ClothingItem): Promise<void> => {
+          await this.deleteClothingItem(item);
         }
       })
     } else if (this.showOutfitEditor) {
@@ -545,6 +550,12 @@ export struct WardrobePage {
         onOpenStoreResult: (entityType: SearchEntityType, id: string, title: string) => {
           this.onOpenSearchTarget(entityType, id, title);
         },
+        onOpenWishlistResult: (id: string) => {
+          this.onOpenSearchTarget(SearchEntityType.Wishlist, id, '');
+        },
+        onOpenWearLogResult: (id: string) => {
+          this.onOpenSearchTarget(SearchEntityType.WearLog, id, '');
+        },
         onOpenProfileResult: (entityType: SearchEntityType, id: string) => {
           this.onOpenSearchTarget(entityType, id, '');
         },
@@ -572,7 +583,7 @@ export struct WardrobePage {
         Row({ space: 8 }) {
           Text(this.errorMessage)
             .fontSize(14)
-            .fontColor('#EF4444')
+            .fontColor(YibuqueColor.danger)
             .layoutWeight(1)
 
           Button('重试')
@@ -669,7 +680,7 @@ export struct WardrobePage {
     .height('100%')
     .padding({ left: 20, right: 20, top: 14, bottom: 0 })
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor(OPEN_DESIGN_SURFACE)
+    .backgroundColor(YibuqueColor.cardWhite)
     }
   }
 
@@ -679,7 +690,7 @@ export struct WardrobePage {
       Stack({ alignContent: Alignment.Center }) {
         SymbolGlyph($r('sys.symbol.magnifyingglass'))
           .fontSize(18)
-          .fontColor([OPEN_DESIGN_MUTED])
+          .fontColor([YibuqueColor.textSecondary])
       }
       .width(22)
       .height(46)
@@ -692,7 +703,7 @@ export struct WardrobePage {
         .height(46)
         .layoutWeight(1)
         .fontSize(14)
-        .fontColor(OPEN_DESIGN_BLACK)
+        .fontColor(YibuqueColor.textPrimary)
         .placeholderColor('#96969C')
         .backgroundColor(Color.Transparent)
         .enterKeyType(EnterKeyType.Search)
@@ -710,9 +721,9 @@ export struct WardrobePage {
     .height(48)
     .padding({ left: 16, right: 14 })
     .alignItems(VerticalAlign.Center)
-    .backgroundColor(OPEN_DESIGN_SURFACE)
+    .backgroundColor(YibuqueColor.cardWhite)
     .borderRadius(12)
-    .border({ width: 1, color: OPEN_DESIGN_BORDER })
+    .border({ width: 1, color: YibuqueColor.borderMedium })
   }
 
   @Builder
@@ -724,11 +735,11 @@ export struct WardrobePage {
           .padding({ left: 22, right: 22 })
           .fontSize(15)
           .fontWeight(this.isWardrobePrimaryTabSelected(tab) ? FontWeight.Regular : FontWeight.Regular)
-          .fontColor(this.isWardrobePrimaryTabSelected(tab) ? YibuqueColor.textInverse : OPEN_DESIGN_BLACK)
+          .fontColor(this.isWardrobePrimaryTabSelected(tab) ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
           .textAlign(TextAlign.Center)
-          .backgroundColor(this.isWardrobePrimaryTabSelected(tab) ? OPEN_DESIGN_BLACK : OPEN_DESIGN_SURFACE)
+          .backgroundColor(this.isWardrobePrimaryTabSelected(tab) ? YibuqueColor.actionBlack : YibuqueColor.cardWhite)
           .borderRadius(YibuqueRadius.full)
-          .border({ width: 1, color: this.isWardrobePrimaryTabSelected(tab) ? OPEN_DESIGN_BLACK : OPEN_DESIGN_BORDER })
+          .border({ width: 1, color: this.isWardrobePrimaryTabSelected(tab) ? YibuqueColor.actionBlack : YibuqueColor.borderMedium })
           .onClick(() => {
             this.selectedWardrobeTab = tab === '衣橱' ? '衣裤' : tab;
             if (tab === '日历') {
@@ -892,9 +903,9 @@ export struct WardrobePage {
           .height(42)
           .justifyContent(FlexAlign.Center)
           .alignItems(VerticalAlign.Center)
-          .backgroundColor(this.selectedCategoryLabel === category ? OPEN_DESIGN_BLACK : OPEN_DESIGN_SURFACE)
+          .backgroundColor(this.selectedCategoryLabel === category ? YibuqueColor.actionBlack : YibuqueColor.cardWhite)
           .borderRadius(YibuqueRadius.full)
-          .border({ width: 1, color: this.selectedCategoryLabel === category ? OPEN_DESIGN_BLACK : OPEN_DESIGN_BORDER })
+          .border({ width: 1, color: this.selectedCategoryLabel === category ? YibuqueColor.actionBlack : YibuqueColor.borderMedium })
           .onClick(() => {
             this.selectedCategoryLabel = category;
           })
@@ -914,27 +925,23 @@ export struct WardrobePage {
     if (category === '全部') {
       SymbolGlyph($r('sys.symbol.square_grid_2x2'))
         .fontSize(14)
-        .fontColor([this.selectedCategoryLabel === category ? YibuqueColor.textInverse : SCREENSHOT_NAV_GRAY])
+        .fontColor([this.selectedCategoryLabel === category ? YibuqueColor.textInverse : YibuqueColor.textTertiary])
     } else if (category === '上衣') {
       SymbolGlyph($r('sys.symbol.shirt'))
         .fontSize(14)
-        .fontColor([this.selectedCategoryLabel === category ? YibuqueColor.textInverse : SCREENSHOT_NAV_GRAY])
+        .fontColor([this.selectedCategoryLabel === category ? YibuqueColor.textInverse : YibuqueColor.textTertiary])
     } else if (category === '裤装') {
       SymbolGlyph($r('sys.symbol.clothing'))
         .fontSize(14)
-        .fontColor([this.selectedCategoryLabel === category ? YibuqueColor.textInverse : SCREENSHOT_NAV_GRAY])
+        .fontColor([this.selectedCategoryLabel === category ? YibuqueColor.textInverse : YibuqueColor.textTertiary])
     } else if (category === '裙装') {
       SymbolGlyph($r('sys.symbol.hanger_and_towels'))
         .fontSize(14)
-        .fontColor([this.selectedCategoryLabel === category ? YibuqueColor.textInverse : SCREENSHOT_NAV_GRAY])
-    } else if (category === '包袋') {
-      SymbolGlyph($r('sys.symbol.bag'))
-        .fontSize(14)
-        .fontColor([this.selectedCategoryLabel === category ? YibuqueColor.textInverse : SCREENSHOT_NAV_GRAY])
+        .fontColor([this.selectedCategoryLabel === category ? YibuqueColor.textInverse : YibuqueColor.textTertiary])
     } else {
       SymbolGlyph($r('sys.symbol.arrow_left_arrow_right'))
         .fontSize(14)
-        .fontColor([this.selectedCategoryLabel === category ? YibuqueColor.textInverse : SCREENSHOT_NAV_GRAY])
+        .fontColor([this.selectedCategoryLabel === category ? YibuqueColor.textInverse : YibuqueColor.textTertiary])
     }
   }
 
@@ -966,11 +973,11 @@ export struct WardrobePage {
           Column({ space: 8 }) {
             SymbolGlyph($r('sys.symbol.picture'))
               .fontSize(34)
-              .fontColor([OPEN_DESIGN_MUTED])
+              .fontColor([YibuqueColor.textSecondary])
 
             Text('暂无照片')
               .fontSize(12)
-              .fontColor(OPEN_DESIGN_MUTED)
+              .fontColor(YibuqueColor.textSecondary)
           }
             .width('100%')
             .aspectRatio(this.wardrobeCardAspectRatio(index))
@@ -1007,14 +1014,14 @@ export struct WardrobePage {
           .layoutWeight(1)
           .fontSize(14)
           .fontWeight(FontWeight.Regular)
-          .fontColor(OPEN_DESIGN_BLACK)
+          .fontColor(YibuqueColor.textPrimary)
           .lineHeight(20)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
         Text(this.displayItemMeta(item))
           .fontSize(12)
-          .fontColor(OPEN_DESIGN_MUTED)
+          .fontColor(YibuqueColor.textSecondary)
           .lineHeight(20)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -1034,15 +1041,15 @@ export struct WardrobePage {
       if (category === ClothingCategory.Top) {
         SymbolGlyph($r('sys.symbol.shirt'))
           .fontSize(14)
-          .fontColor([OPEN_DESIGN_BLACK])
+          .fontColor([YibuqueColor.textPrimary])
       } else if (category === ClothingCategory.Pants || category === ClothingCategory.Shorts) {
         SymbolGlyph($r('sys.symbol.clothing'))
           .fontSize(14)
-          .fontColor([OPEN_DESIGN_BLACK])
+          .fontColor([YibuqueColor.textPrimary])
       } else {
         SymbolGlyph($r('sys.symbol.hanger_and_towels'))
           .fontSize(14)
-          .fontColor([OPEN_DESIGN_BLACK])
+          .fontColor([YibuqueColor.textPrimary])
       }
     }
     .width(28)
@@ -1057,7 +1064,7 @@ export struct WardrobePage {
     Stack({ alignContent: Alignment.Center }) {
       SymbolGlyph($r('sys.symbol.heart'))
         .fontSize(14)
-        .fontColor([OPEN_DESIGN_BLACK])
+        .fontColor([YibuqueColor.textPrimary])
     }
     .width(30)
     .height(30)

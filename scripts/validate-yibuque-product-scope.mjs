@@ -32,7 +32,9 @@ const nav = read(navPath);
 for (const needle of [
   '衣不缺',
   'BottomNavigationBar',
-  'QuickCaptureSheet'
+  'QuickCaptureSheet',
+  'ShoppingPage',
+  'showWishlistPage'
 ]) {
   mustInclude(index, indexPath, needle);
 }
@@ -57,11 +59,8 @@ for (const forbidden of [
   "BottomTabItem(0, '首页')",
   "BottomTabItem(2, '日历')",
   "BottomTabItem(3, '逛街')",
-  'ShoppingPage({',
   'CalendarPage({',
   'TodayPage({',
-  'WishlistRepository',
-  '心愿单',
   '点赞',
   '收藏',
   '评论',

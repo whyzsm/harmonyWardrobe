@@ -45,6 +45,7 @@ export struct StoreVisitEditPage {
   @State private note: string = '';
   @State private photoUris: string[] = [];
   @State private isSaving: boolean = false;
+  @State private isChoosingPhotos: boolean = false;
   @State private submitted: boolean = false;
   @State private errorMessage: string = '';
 
@@ -80,7 +81,7 @@ export struct StoreVisitEditPage {
   }
 
   private canSave(): boolean {
-    return !this.isSaving;
+    return !this.isSaving && !this.isChoosingPhotos;
   }
 
   private async copySourcesToLocalUris(sources: PhotoSource[]): Promise<string[]> {
@@ -97,23 +98,33 @@ export struct StoreVisitEditPage {
   }
 
   private async pickGalleryPhotos(): Promise<void> {
-    if (this.photoPickerAdapter === undefined || this.isSaving) {
+    if (this.photoPickerAdapter === undefined || this.isSaving || this.isChoosingPhotos) {
       return;
     }
 
+    this.isChoosingPhotos = true;
+    this.errorMessage = '';
     try {
       const sources = await this.photoPickerAdapter.pickFromGallery({ maxSelectNumber: 6 });
-      this.photoUris = this.photoUris.concat(await this.copySourcesToLocalUris(sources));
+      const localUris = await this.copySourcesToLocalUris(sources);
+      if (sources.length > 0 && localUris.length === 0) {
+        throw new Error('照片保存服务不可用，请稍后重试');
+      }
+      this.photoUris = this.photoUris.concat(localUris);
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '选择照片失败，请重试';
+    } finally {
+      this.isChoosingPhotos = false;
     }
   }
 
   private async captureStorePhoto(): Promise<void> {
-    if (this.photoPickerAdapter === undefined || this.isSaving) {
+    if (this.photoPickerAdapter === undefined || this.isSaving || this.isChoosingPhotos) {
       return;
     }
 
+    this.isChoosingPhotos = true;
+    this.errorMessage = '';
     try {
       const source = await this.photoPickerAdapter.captureFromCamera();
       const localUris = await this.copySourcesToLocalUris([source]);
@@ -123,6 +134,8 @@ export struct StoreVisitEditPage {
       this.photoUris = this.photoUris.concat(localUris);
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '拍照失败，请重试';
+    } finally {
+      this.isChoosingPhotos = false;
     }
   }
 
@@ -149,7 +162,7 @@ export struct StoreVisitEditPage {
   }
 
   private async saveStoreVisit(): Promise<void> {
-    if (this.storeRepository === undefined || this.isSaving || !this.validateForm()) {
+    if (this.storeRepository === undefined || this.isSaving || this.isChoosingPhotos || !this.validateForm()) {
       return;
     }
 
@@ -197,7 +210,7 @@ export struct StoreVisitEditPage {
                 Text('还有信息没填完')
                   .fontSize(13)
                   .fontWeight(FontWeight.Regular)
-                  .fontColor('#DC2626')
+                  .fontColor(YibuqueColor.danger)
                 Text('先补上店名和商圈，再保存这条逛店记录。')
                   .fontSize(12)
                   .fontColor(YibuqueColor.textPrimary)
@@ -205,9 +218,9 @@ export struct StoreVisitEditPage {
               .width('100%')
               .padding({ left: 13, right: 13, top: 12, bottom: 12 })
               .alignItems(HorizontalAlign.Start)
-              .backgroundColor('#FFF7F7')
+              .backgroundColor(YibuqueColor.bgGray)
               .borderRadius(YibuqueRadius.md)
-              .border({ width: 1, color: '#F3B8B8' })
+              .border({ width: 1, color: YibuqueColor.danger })
             }
 
             this.BasicInfoCard()
@@ -217,7 +230,7 @@ export struct StoreVisitEditPage {
               Text(this.errorMessage)
                 .width('100%')
                 .fontSize(12)
-                .fontColor('#DC2626')
+                .fontColor(YibuqueColor.danger)
             }
           }
           .width('100%')
@@ -235,7 +248,7 @@ export struct StoreVisitEditPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor('#FBF9F9')
+    .backgroundColor(YibuqueColor.bgDefault)
   }
 
   @Builder
@@ -304,9 +317,9 @@ export struct StoreVisitEditPage {
     }
     .width('100%')
     .aspectRatio(530 / 386)
-    .backgroundColor('#E4E2E2')
+    .backgroundColor(YibuqueColor.bgGray)
     .borderRadius(24)
-    .border({ width: 1, color: '#4DC4C7C7' })
+    .border({ width: 1, color: YibuqueColor.borderLight })
     .clip(true)
     .accessibilityText(this.photoUris.length > 0 ? `已选择 ${this.photoUris.length} 张店铺照片` : '添加店铺照片')
   }
@@ -323,6 +336,7 @@ export struct StoreVisitEditPage {
     .backgroundColor('#F2FFFFFF')
     .borderRadius(24)
     .accessibilityText('拍照')
+    .enabled(!this.isSaving && !this.isChoosingPhotos)
     .onClick(() => {
       this.captureStorePhoto();
     })
@@ -334,7 +348,7 @@ export struct StoreVisitEditPage {
       SymbolGlyph($r('sys.symbol.picture'))
         .fontSize(18)
         .fontColor(['#000000'])
-      Text(this.photoUris.length > 1 ? `已选择 ${this.photoUris.length} 张` : '选择照片')
+      Text(this.isChoosingPhotos ? '选择中...' : (this.photoUris.length > 1 ? `已选择 ${this.photoUris.length} 张` : '选择照片'))
         .fontSize(14)
         .fontWeight(FontWeight.Regular)
         .fontColor('#000000')
@@ -345,6 +359,7 @@ export struct StoreVisitEditPage {
     .backgroundColor('#FFFFFF')
     .borderRadius(24)
     .accessibilityText('选择照片')
+    .enabled(!this.isSaving && !this.isChoosingPhotos)
     .onClick(() => {
       this.pickGalleryPhotos();
     })
@@ -371,9 +386,9 @@ export struct StoreVisitEditPage {
           .fontSize(16)
           .fontColor('#1B1C1C')
           .placeholderColor('#C4C7C7')
-          .backgroundColor(this.isStoreNameInvalid() ? '#FFF0F0' : '#F5F3F3')
+          .backgroundColor(this.isStoreNameInvalid() ? YibuqueColor.bgGray : YibuqueColor.cardSoftGray)
           .borderRadius(24)
-          .border({ width: this.isStoreNameInvalid() ? 1 : 0, color: '#BA1A1A' })
+          .border({ width: this.isStoreNameInvalid() ? 1 : 0, color: YibuqueColor.danger })
           .onChange((value: string) => {
             this.storeName = value;
             if (this.submitted && value.trim().length > 0 && this.districtOrAddress.trim().length > 0) {
@@ -384,7 +399,7 @@ export struct StoreVisitEditPage {
         if (this.isStoreNameInvalid()) {
           Text('请输入这家店或品牌名称。')
             .fontSize(12)
-            .fontColor('#DC2626')
+            .fontColor(YibuqueColor.danger)
         }
       }
       .width('100%')
@@ -408,9 +423,9 @@ export struct StoreVisitEditPage {
           .fontSize(16)
           .fontColor('#1B1C1C')
           .placeholderColor('#C4C7C7')
-          .backgroundColor(this.isAddressInvalid() ? '#FFF0F0' : '#F5F3F3')
+          .backgroundColor(this.isAddressInvalid() ? YibuqueColor.bgGray : YibuqueColor.cardSoftGray)
           .borderRadius(24)
-          .border({ width: this.isAddressInvalid() ? 1 : 0, color: '#BA1A1A' })
+          .border({ width: this.isAddressInvalid() ? 1 : 0, color: YibuqueColor.danger })
           .onChange((value: string) => {
             this.districtOrAddress = value;
             if (this.submitted && value.trim().length > 0 && this.storeName.trim().length > 0) {
@@ -421,7 +436,7 @@ export struct StoreVisitEditPage {
         if (this.isAddressInvalid()) {
           Text('请输入商圈、商场或大概位置。')
             .fontSize(12)
-            .fontColor('#DC2626')
+            .fontColor(YibuqueColor.danger)
         }
       }
       .width('100%')
@@ -552,7 +567,7 @@ export struct StoreVisitEditPage {
     }
     .width('100%')
     .padding({ left: 20, right: 20, top: 20, bottom: 16 })
-    .backgroundColor('#F7FBF9F9')
+    .backgroundColor(YibuqueColor.cardWhite)
     .shadow({ radius: 24, color: '#12000000', offsetX: 0, offsetY: -6 })
   }
 }

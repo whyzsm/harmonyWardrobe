@@ -264,8 +264,9 @@ for (const repository of repositories) {
 
   assertNoUnsafeTypes(repository.file, source);
   assertMatches(source, new RegExp(`export\\s+class\\s+${repository.className}\\b`), `${repository.file} must export ${repository.className}`);
-  assertMatches(source, /constructor\s*\(\s*database:\s*MigrationDatabase\s*,\s*searchIndexMode:\s*SearchIndexMode\s*\)/, `${repository.file} must accept shared database and search index mode`);
+  assertMatches(source, /constructor\s*\(\s*database:\s*MigrationDatabase\s*,\s*searchIndexMode:\s*SearchIndexMode\s*,\s*photoStorage\?:\s*PhotoStorage\s*\)/, `${repository.file} must accept shared database, search index mode, and optional photo storage`);
   assertMatches(source, /new\s+SearchRepository\s*\(\s*database\s*,\s*searchIndexMode\s*\)/, `${repository.file} must construct SearchRepository from the same MigrationDatabase`);
+  assertMatches(source, /new\s+DeleteCleanupService\s*\([\s\S]*photoStorage\s*\)/, `${repository.file} must pass PhotoStorage to DeleteCleanupService`);
 
   for (const method of repository.createOrUpdateMethods) {
     const methodBody = extractMethodBody(source, method, repository.file);
@@ -313,7 +314,7 @@ for (const repository of repositories) {
   assert.equal(/\bfetch\s*\(/.test(stripCommentsAndStrings(source)), false, `${repository.file} must not use fetch`);
   assert.equal(source.includes('http://'), false, `${repository.file} must not hard-code http URLs`);
   assert.equal(source.includes('https://'), false, `${repository.file} must not hard-code https URLs`);
-  assert.equal(source.includes('PhotoStorage'), false, `${repository.file} must not copy photo files inside repositories`);
+  assert.equal(/photoStorage\.(copy|save|persist|import|write|ensure)/.test(source), false, `${repository.file} must not copy photo files directly`);
   assert.equal(source.includes('BLOB'), false, `${repository.file} must not store image blobs`);
 }
 

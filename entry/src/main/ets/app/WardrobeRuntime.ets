@@ -15,6 +15,17 @@ import { StoreRepository } from '../data/repositories/StoreRepository';
 import { WearLogRepository } from '../data/repositories/WearLogRepository';
 import { WishlistRepository } from '../data/repositories/WishlistRepository';
 import { detectSearchCapability, SearchIndexMode } from '../data/searchIndex/SearchCapability';
+import {
+  buildClothingSearchDocument,
+  buildOutfitSearchDocument,
+  buildStoreSearchDocument,
+  buildStoreVisitSearchDocument,
+  buildWearLogSearchDocument,
+  buildWishlistSearchDocument,
+  SearchDocument
+} from '../domain/search/SearchDocumentBuilder';
+import { ClothingItem } from '../domain/clothing/ClothingModels';
+import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { PhotoFileSystem } from '../media/PhotoModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
@@ -158,20 +169,99 @@ export class WardrobeRuntime {
     const searchCapability = await detectSearchCapability(database);
     const searchIndexMode = searchCapability.mode;
     const photoStorage = new PhotoStorage(context.filesDir, new HarmonyPhotoFileSystem());
+    const clothingRepository = new ClothingRepository(database, searchIndexMode, photoStorage);
+    const outfitRepository = new OutfitRepository(database, searchIndexMode, photoStorage);
+    const wearLogRepository = new WearLogRepository(database, searchIndexMode, photoStorage);
+    const wishlistRepository = new WishlistRepository(database, searchIndexMode, photoStorage);
+    const storeRepository = new StoreRepository(database, searchIndexMode, photoStorage);
+    const profileRepository = new ProfileRepository(database);
+    const searchRepository = new SearchRepository(database, searchIndexMode);
+
+    await WardrobeRuntime.rebuildSearchIndex(
+      searchRepository,
+      clothingRepository,
+      outfitRepository,
+      wearLogRepository,
+      wishlistRepository,
+      storeRepository
+    );
 
     return new WardrobeRuntime(
       database,
       searchIndexMode,
-      new ClothingRepository(database, searchIndexMode),
-      new OutfitRepository(database, searchIndexMode),
-      new WearLogRepository(database, searchIndexMode),
-      new WishlistRepository(database, searchIndexMode),
-      new StoreRepository(database, searchIndexMode),
-      new ProfileRepository(database),
-      new SearchRepository(database, searchIndexMode),
+      clothingRepository,
+      outfitRepository,
+      wearLogRepository,
+      wishlistRepository,
+      storeRepository,
+      profileRepository,
+      searchRepository,
       PhotoPickerAdapter.withHarmonyProviders(context),
       photoStorage
     );
+  }
+
+  private static async rebuildSearchIndex(
+    searchRepository: SearchRepository,
+    clothingRepository: ClothingRepository,
+    outfitRepository: OutfitRepository,
+    wearLogRepository: WearLogRepository,
+    wishlistRepository: WishlistRepository,
+    storeRepository: StoreRepository
+  ): Promise<void> {
+    const clothingItems = await clothingRepository.listClothing();
+    const outfits = await outfitRepository.listOutfits();
+    const wearLogs = await wearLogRepository.listWearLogs();
+    const wishlistItems = await wishlistRepository.listWishlistItems();
+    const stores = await storeRepository.listStores();
+    const storeVisits = await storeRepository.listStoreVisits();
+    const clothingNameById = WardrobeRuntime.buildClothingNameById(clothingItems);
+    const documents: SearchDocument[] = [];
+
+    for (const item of clothingItems) {
+      documents.push(buildClothingSearchDocument(item));
+    }
+
+    for (const outfit of outfits) {
+      documents.push(buildOutfitSearchDocument(outfit, WardrobeRuntime.clothingNamesForOutfit(outfit, clothingNameById)));
+    }
+
+    for (const wearLog of wearLogs) {
+      documents.push(buildWearLogSearchDocument(wearLog));
+    }
+
+    for (const item of wishlistItems) {
+      documents.push(buildWishlistSearchDocument(item));
+    }
+
+    for (const store of stores) {
+      documents.push(buildStoreSearchDocument(store));
+    }
+
+    for (const visit of storeVisits) {
+      documents.push(buildStoreVisitSearchDocument(visit));
+    }
+
+    await searchRepository.rebuildSearchIndex(documents);
+  }
+
+  private static buildClothingNameById(clothingItems: ClothingItem[]): Map<string, string> {
+    const clothingNameById = new Map<string, string>();
+    for (const item of clothingItems) {
+      clothingNameById.set(item.id, item.name);
+    }
+    return clothingNameById;
+  }
+
+  private static clothingNamesForOutfit(outfit: OutfitTemplate, clothingNameById: Map<string, string>): string[] {
+    const names: string[] = [];
+    for (const itemId of outfit.clothingItemIds) {
+      const name = clothingNameById.get(itemId);
+      if (name !== undefined) {
+        names.push(name);
+      }
+    }
+    return names;
   }
 
   private static async ensureBaseSchema(database: DatabaseProvider): Promise<void> {

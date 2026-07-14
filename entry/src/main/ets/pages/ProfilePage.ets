@@ -91,6 +91,7 @@ export struct ProfilePage {
   onOpenStoreEditor: () => void = () => {};
   onOpenCapture: () => void = () => {};
   onOpenOutfits: () => void = () => {};
+  onOpenWishlist: () => void = () => {};
   onNestedPageVisibilityChange: (visible: boolean) => void = (_visible: boolean) => {};
 
   @State private heightCm: string = '';
@@ -312,7 +313,7 @@ export struct ProfilePage {
       return true;
     }
 
-    return '尺码 身高 体重 腰围 偏好 商场 商圈 风格 预算 回购 花费 提醒 工具 拍照 逛店 套装 导出 本地 隐私'.includes(query);
+    return '尺码 身高 体重 腰围 偏好 商场 商圈 风格 预算 回购 花费 提醒 工具 拍照 逛店 套装 心愿 导出 本地 隐私'.includes(query);
   }
 
   build() {
@@ -785,6 +786,7 @@ export struct ProfilePage {
         GridItem() { this.ToolCard('新增逛店', '记录店铺、试穿和价格', 'store') }
         GridItem() { this.ToolCard('拍照录入', '把衣物照片补进衣柜', 'capture') }
         GridItem() { this.ToolCard('套装清单', '按通勤、约会、好走路', 'outfit') }
+        GridItem() { this.ToolCard('心愿清单', '记下想买的心仪好物', 'wishlist') }
       }
       .width('100%')
       .height(218)
@@ -810,6 +812,10 @@ export struct ProfilePage {
           SymbolGlyph($r('sys.symbol.camera_fill'))
             .fontSize(20)
             .fontColor(['#FFFFFF'])
+        } else if (action === 'wishlist') {
+          SymbolGlyph($r('sys.symbol.heart_fill'))
+            .fontSize(20)
+            .fontColor([PROFILE_ACCENT])
         } else {
           SymbolGlyph($r('sys.symbol.bag'))
             .fontSize(20)
@@ -818,7 +824,7 @@ export struct ProfilePage {
       }
       .width(40)
       .height(40)
-      .backgroundColor(action === 'outfit' ? PROFILE_ACCENT_SOFT : '#3A3A3C')
+      .backgroundColor((action === 'outfit' || action === 'wishlist') ? PROFILE_ACCENT_SOFT : '#3A3A3C')
       .borderRadius(14)
 
       Blank()
@@ -829,12 +835,12 @@ export struct ProfilePage {
           .fontSize(14)
           .lineHeight(17)
           .fontWeight(FontWeight.Regular)
-          .fontColor(action === 'outfit' ? PROFILE_TEXT : '#FFFFFF')
+          .fontColor((action === 'outfit' || action === 'wishlist') ? PROFILE_TEXT : '#FFFFFF')
         Text(subtitle)
           .width('100%')
-          .fontSize(action === 'outfit' ? 9 : 11)
+          .fontSize((action === 'outfit' || action === 'wishlist') ? 9 : 11)
           .lineHeight(14)
-          .fontColor(action === 'outfit' ? PROFILE_MUTED : '#B8B8BD')
+          .fontColor((action === 'outfit' || action === 'wishlist') ? PROFILE_MUTED : '#B8B8BD')
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
       }
@@ -845,14 +851,16 @@ export struct ProfilePage {
     .height('100%')
     .padding(14)
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor(action === 'outfit' ? PROFILE_SURFACE : '#1C1C1E')
+    .backgroundColor((action === 'outfit' || action === 'wishlist') ? PROFILE_SURFACE : '#1C1C1E')
     .borderRadius(18)
-    .border({ width: action === 'outfit' ? 1 : 0, color: PROFILE_BORDER_SOFT })
+    .border({ width: (action === 'outfit' || action === 'wishlist') ? 1 : 0, color: PROFILE_BORDER_SOFT })
     .onClick(() => {
       if (action === 'store') {
         this.onOpenStoreEditor();
       } else if (action === 'capture') {
         this.onOpenCapture();
+      } else if (action === 'wishlist') {
+        this.onOpenWishlist();
       } else {
         this.onOpenOutfits();
       }

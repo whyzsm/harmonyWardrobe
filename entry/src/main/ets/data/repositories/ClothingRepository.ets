@@ -6,6 +6,7 @@ import {
 import { DeleteCleanupService } from './DeleteCleanupService';
 import { SearchRepository } from './SearchRepository';
 import { SearchIndexMode } from '../searchIndex/SearchCapability';
+import { PhotoStorage } from '../../media/PhotoStorage';
 import { ClothingCategory } from '../../domain/clothing/ClothingCategory';
 import { ClothingItem, PurchaseInfo } from '../../domain/clothing/ClothingModels';
 import {
@@ -266,9 +267,11 @@ export class ClothingRepository {
   private readonly database: MigrationDatabase;
   private readonly searchRepository: SearchRepository;
   private readonly deleteCleanupService: DeleteCleanupService;
+  private readonly photoStorage?: PhotoStorage;
 
-  constructor(database: MigrationDatabase, searchIndexMode: SearchIndexMode) {
+  constructor(database: MigrationDatabase, searchIndexMode: SearchIndexMode, photoStorage?: PhotoStorage) {
     this.database = database;
+    this.photoStorage = photoStorage;
     this.searchRepository = new SearchRepository(database, searchIndexMode);
     this.deleteCleanupService = this.createDeleteCleanupService();
   }
@@ -380,7 +383,7 @@ export class ClothingRepository {
   }
 
   private createDeleteCleanupService(): DeleteCleanupService {
-    return new DeleteCleanupService(this.database, this.searchRepository);
+    return new DeleteCleanupService(this.database, this.searchRepository, this.photoStorage);
   }
 
   private clothingBindArgs(item: ClothingItem): MigrationSqlValue[] {

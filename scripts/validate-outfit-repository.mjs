@@ -63,6 +63,7 @@ for (const needle of [
   'MigrationSqlValue',
   'SearchRepository',
   'SearchIndexMode',
+  'PhotoStorage',
   'buildOutfitSearchDocument',
   'SearchEntityType',
   'OutfitTemplate',
@@ -91,8 +92,9 @@ for (const method of ['createOutfit', 'updateOutfit', 'deleteOutfit']) {
   );
 }
 
-assertMatches(source, /constructor\s*\(\s*database:\s*MigrationDatabase\s*,\s*searchIndexMode:\s*SearchIndexMode\s*\)/, 'constructor must accept the shared database and search index mode');
+assertMatches(source, /constructor\s*\(\s*database:\s*MigrationDatabase\s*,\s*searchIndexMode:\s*SearchIndexMode\s*,\s*photoStorage\?:\s*PhotoStorage\s*\)/, 'constructor must accept the shared database, search index mode, and optional photo storage');
 assertMatches(source, /new\s+SearchRepository\s*\(\s*database\s*,\s*searchIndexMode\s*\)/, 'OutfitRepository must build SearchRepository from the same database');
+assertMatches(source, /new\s+DeleteCleanupService\s*\([\s\S]*photoStorage\s*\)/, 'OutfitRepository must pass PhotoStorage to DeleteCleanupService');
 assertMatches(source, /INSERT\s+INTO\s+outfit_templates/i, 'createOutfit must insert outfit_templates');
 assertMatches(source, /UPDATE\s+outfit_templates/i, 'updateOutfit must update outfit_templates');
 assertMatches(source, /DELETE\s+FROM\s+outfit_templates/i, 'deleteOutfit must delete outfit_templates');
@@ -130,7 +132,7 @@ assertOrdered(
 
 assert.equal(source.includes('@ohos.net'), false, 'OutfitRepository must stay local-only');
 assert.equal(source.includes('fetch('), false, 'OutfitRepository must not use fetch');
-assert.equal(source.includes('PhotoStorage'), false, 'OutfitRepository must not copy photo files');
+assert.equal(/photoStorage\.(copy|save|persist|import|write|ensure)/.test(source), false, 'OutfitRepository must not copy photo files directly');
 assert.equal(source.includes('BLOB'), false, 'OutfitRepository must not store image blobs');
 
 console.log('PASS');

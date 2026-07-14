@@ -97,6 +97,7 @@ export struct ClothingEditPage {
   @State private purchaseDate: string = '';
   @State private purchaseNote: string = '';
   @State private isSaving: boolean = false;
+  @State private isChoosingPhotos: boolean = false;
   @State private errorMessage: string = '';
 
   aboutToAppear(): void {
@@ -116,7 +117,7 @@ export struct ClothingEditPage {
   }
 
   private canSave(): boolean {
-    return !this.isSaving && this.hasSelectedPhoto();
+    return !this.isSaving && !this.isChoosingPhotos && this.hasSelectedPhoto();
   }
 
   private hasSelectedPhoto(): boolean {
@@ -201,23 +202,19 @@ export struct ClothingEditPage {
   }
 
   private async pickGalleryPhotos(): Promise<void> {
-    if (this.photoPickerAdapter === undefined) {
-      this.errorMessage = '照片选择能力不可用';
+    if (this.photoPickerAdapter === undefined || this.isSaving || this.isChoosingPhotos) {
+      if (this.photoPickerAdapter === undefined) {
+        this.errorMessage = '照片选择能力不可用';
+      }
       return;
     }
 
+    this.isChoosingPhotos = true;
+    this.errorMessage = '';
     try {
-      this.errorMessage = '';
       const sources = await this.photoPickerAdapter.pickFromGallery({ maxSelectNumber: MAX_CLOTHING_PHOTOS });
       if (sources.length === 0) {
         return;
-      }
-
-      const fallbackUris = sources.map((source: PhotoSource): string => source.uri);
-      this.photoUris = fallbackUris;
-      this.previewPhotoUri = fallbackUris[0] ?? '';
-      if (this.name.trim().length === 0) {
-        this.name = this.generatedName();
       }
 
       try {
@@ -225,12 +222,24 @@ export struct ClothingEditPage {
         if (localUris.length > 0) {
           this.photoUris = localUris;
           this.previewPhotoUri = localUris[0];
+          if (this.name.trim().length === 0) {
+            this.name = this.generatedName();
+          }
+        } else {
+          this.errorMessage = '照片复制失败，请重试';
+          this.photoUris = [];
+          this.previewPhotoUri = '';
         }
       } catch (copyError) {
-        console.info(`PhotoPickerAdapter.copy failed: ${copyError instanceof Error ? copyError.message : 'unavailable error detail'}`);
+        const detail = copyError instanceof Error ? copyError.message : '未知错误';
+        this.errorMessage = `照片保存失败：${detail}`;
+        this.photoUris = [];
+        this.previewPhotoUri = '';
       }
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '选择照片失败';
+    } finally {
+      this.isChoosingPhotos = false;
     }
   }
 
@@ -295,7 +304,7 @@ export struct ClothingEditPage {
           .fontSize(18)
           .fontColor([YibuqueColor.textPrimary])
 
-        Text('选择照片')
+        Text(this.isChoosingPhotos ? '选择中...' : '选择照片')
           .fontSize(15)
           .fontWeight(FontWeight.Regular)
           .fontColor(YibuqueColor.textPrimary)
@@ -311,6 +320,7 @@ export struct ClothingEditPage {
     .aspectRatio(1)
     .borderRadius(YibuqueRadius.xxxl)
     .clip(true)
+    .enabled(!this.isSaving && !this.isChoosingPhotos)
     .accessibilityText('选择衣物照片')
     .onClick(() => {
       this.pickGalleryPhotos();
@@ -598,7 +608,7 @@ export struct ClothingEditPage {
           if (this.errorMessage.length > 0) {
             Text(this.errorMessage)
               .fontSize(13)
-              .fontColor('#EF4444')
+              .fontColor(YibuqueColor.danger)
           }
         }
         .width('100%')

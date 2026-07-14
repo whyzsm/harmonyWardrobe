@@ -20,6 +20,12 @@ function mustNotInclude(text, file, needle) {
   }
 }
 
+function mustMatch(text, file, pattern, message) {
+  if (!pattern.test(text)) {
+    throw new Error(`${file} ${message}`);
+  }
+}
+
 const runtimePath = 'entry/src/main/ets/app/WardrobeRuntime.ets';
 const indexPath = 'entry/src/main/ets/pages/Index.ets';
 const runtime = read(runtimePath);
@@ -51,6 +57,13 @@ for (const needle of [
   'new SearchRepository',
   'PhotoPickerAdapter.withHarmonyProviders',
   'new PhotoStorage',
+  'buildClothingSearchDocument',
+  'buildOutfitSearchDocument',
+  'buildStoreSearchDocument',
+  'buildStoreVisitSearchDocument',
+  'buildWearLogSearchDocument',
+  'buildWishlistSearchDocument',
+  'rebuildSearchIndex',
   'context.filesDir',
   'runMigrations()',
   'ensureBaseSchema',
@@ -60,6 +73,30 @@ for (const needle of [
 ]) {
   mustInclude(runtime, runtimePath, needle);
 }
+
+for (const [repositoryName, pattern] of [
+  ['ClothingRepository', /new\s+ClothingRepository\s*\(\s*database\s*,\s*searchIndexMode\s*,\s*photoStorage\s*\)/],
+  ['OutfitRepository', /new\s+OutfitRepository\s*\(\s*database\s*,\s*searchIndexMode\s*,\s*photoStorage\s*\)/],
+  ['WearLogRepository', /new\s+WearLogRepository\s*\(\s*database\s*,\s*searchIndexMode\s*,\s*photoStorage\s*\)/],
+  ['WishlistRepository', /new\s+WishlistRepository\s*\(\s*database\s*,\s*searchIndexMode\s*,\s*photoStorage\s*\)/],
+  ['StoreRepository', /new\s+StoreRepository\s*\(\s*database\s*,\s*searchIndexMode\s*,\s*photoStorage\s*\)/]
+]) {
+  mustMatch(runtime, runtimePath, pattern, `must pass PhotoStorage into ${repositoryName}`);
+}
+
+mustMatch(
+  runtime,
+  runtimePath,
+  /await\s+WardrobeRuntime\.rebuildSearchIndex\s*\(/,
+  'must explicitly rebuild the search index during startup'
+);
+mustMatch(
+  runtime,
+  runtimePath,
+  /searchRepository\.rebuildSearchIndex\s*\(\s*documents\s*\)/,
+  'must delegate startup search rebuild to SearchRepository.rebuildSearchIndex'
+);
+mustMatch(runtime, runtimePath, /wearLogRepository\.listWearLogs\s*\(\s*\)/, 'must include all wear logs in startup search rebuild');
 
 const copyFileStart = runtime.indexOf('async copyFile');
 const deleteFileStart = runtime.indexOf('async deleteFile');

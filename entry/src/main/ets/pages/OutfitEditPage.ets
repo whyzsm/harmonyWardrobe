@@ -308,7 +308,7 @@ export struct OutfitEditPage {
         if (this.errorMessage.length > 0) {
           Text(this.errorMessage)
             .fontSize(13)
-            .fontColor('#EF4444')
+            .fontColor(YibuqueColor.danger)
         }
 
         Button(this.isSaving ? '保存中...' : (this.hasSelectedPhoto() ? '保存美搭' : '先添加照片'))

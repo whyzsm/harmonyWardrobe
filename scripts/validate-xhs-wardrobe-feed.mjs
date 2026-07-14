@@ -10,8 +10,6 @@ for (const needle of [
   '上衣',
   '裤装',
   '裙装',
-  '包袋',
-  '待同步',
   'CategoryFilterIcon',
   '暂无照片',
   "sys.symbol.clothing",
@@ -42,7 +40,11 @@ for (const forbidden of [
   'wardrobeDemoIndexes',
   'WardrobeDemoResultCard',
   'sys.symbol.list_bullet',
-  'sys.symbol.figure_figure_dress'
+  'sys.symbol.figure_figure_dress',
+  "'包袋'",
+  "'待同步'",
+  'OPEN_DESIGN_',
+  'SCREENSHOT_NAV_GRAY'
 ]) {
   if (wardrobe.includes(forbidden)) {
     throw new Error(`WardrobePage still contains old wardrobe feed concept ${forbidden}`);
