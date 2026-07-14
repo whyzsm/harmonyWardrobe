@@ -35,10 +35,10 @@ function entityTypeLabel(entityType: SearchEntityType): string {
     return '衣物';
   }
   if (entityType === SearchEntityType.Outfit) {
-    return '套装';
+    return '美搭';
   }
   if (entityType === SearchEntityType.StoreVisit) {
-    return '逛店';
+    return '逛店记录';
   }
   if (entityType === SearchEntityType.Store) {
     return '店铺';

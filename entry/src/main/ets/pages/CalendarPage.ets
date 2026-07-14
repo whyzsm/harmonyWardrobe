@@ -153,19 +153,19 @@ export struct CalendarPage {
         .alignItems(VerticalAlign.Center)
 
         if (this.loading) {
-          Text('loading / 正在加载日历...')
+          Text('正在加载日历...')
             .fontSize(14)
             .fontColor(AppTheme.color.textMuted)
         }
 
         if (this.errorMessage.length > 0) {
           Row({ space: 8 }) {
-            Text(`error / ${this.errorMessage}`)
+            Text(this.errorMessage)
               .fontSize(14)
               .fontColor(AppTheme.color.danger)
               .layoutWeight(1)
 
-            Button('retry')
+            Button('重试')
               .height(34)
               .fontSize(13)
               .onClick(() => {

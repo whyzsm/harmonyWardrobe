@@ -127,9 +127,9 @@ Empty states must explain the next action. When a CTA is needed, use black rathe
 
 ### 衣柜 / Wardrobe
 
-保留搜索、分类和双列瀑布流。真实照片占主要面积，图片圆角为 5，收藏按钮保持轻量。
+保留搜索、分类和双列瀑布流。真实照片占主要面积，图片圆角为 5，衣物卡片不提供收藏按钮或社交动作。
 
-Keep search, categories, and the two-column waterfall. Real photos dominate, image radius is 5, and favorite controls remain lightweight.
+Keep search, categories, and the two-column waterfall. Real photos dominate, image radius is 5, and clothing cards do not provide favorite buttons or social actions.
 
 ### 套装 / Outfits
 

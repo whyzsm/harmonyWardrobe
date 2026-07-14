@@ -159,6 +159,14 @@ export struct StoreVisitPage {
     return this.searchQuery.trim().length > 0;
   }
 
+  private routeSummaryText(): string {
+    if (this.isSearching()) {
+      return `找到 ${this.filterStoreVisits().length} 条逛店记录`;
+    }
+
+    return `${this.routeVisitedCount()} 家去过，${this.routeWantToVisitCount()} 家想去。`;
+  }
+
   private upsertVisit(savedVisit: StoreVisit): void {
     const nextVisits: StoreVisit[] = [];
     let replaced = false;
@@ -397,7 +405,7 @@ export struct StoreVisitPage {
           .fontColor(TEXT_PRIMARY)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
-        Text(`${this.routeVisitedCount()} 家去过，${this.routeWantToVisitCount()} 家想去。`)
+        Text(this.routeSummaryText())
           .width('100%')
           .fontSize(12)
           .fontColor(TEXT_MUTED)
@@ -408,7 +416,7 @@ export struct StoreVisitPage {
       .alignItems(HorizontalAlign.Start)
 
       Stack({ alignContent: Alignment.Center }) {
-        Text(`${this.visits.length}`)
+        Text(`${this.isSearching() ? this.filterStoreVisits().length : this.visits.length}`)
           .fontSize(12)
           .fontWeight(FontWeight.Regular)
           .fontColor(ACCENT)

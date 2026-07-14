@@ -266,7 +266,7 @@ export struct CaptureEditPage {
     if (this.captureType === '店铺') {
       return '保存吊牌';
     }
-    return '存入衣柜';
+    return this.photoUris.length > 0 ? '保存衣服' : '先添加照片';
   }
 
   build() {
