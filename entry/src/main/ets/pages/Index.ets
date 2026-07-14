@@ -236,7 +236,6 @@ struct Index {
               clothingRepository: this.runtime.clothingRepository,
               outfitRepository: this.runtime.outfitRepository,
               storeRepository: this.runtime.storeRepository,
-              wearLogRepository: this.runtime.wearLogRepository,
               onChoosePhotos: async (): Promise<string[]> => {
                 return await this.pickCapturePhotos();
               },

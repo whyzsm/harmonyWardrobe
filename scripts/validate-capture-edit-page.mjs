@@ -34,7 +34,6 @@ for (const pattern of [
   /import\s*{[^}]*ClothingRepository[^}]*}\s*from\s*['"][^'"]*ClothingRepository['"]/s,
   /import\s*{[^}]*OutfitRepository[^}]*}\s*from\s*['"][^'"]*OutfitRepository['"]/s,
   /import\s*{[^}]*StoreRepository[^}]*}\s*from\s*['"][^'"]*StoreRepository['"]/s,
-  /import\s*{[^}]*WearLogRepository[^}]*}\s*from\s*['"][^'"]*WearLogRepository['"]/s,
   /import\s*{[^}]*ClothingPicker[^}]*}\s*from\s*['"][^'"]*ClothingPicker['"]/s
 ]) {
   mustMatch(text, pattern, 'must import repositories and shared components explicitly');
@@ -59,13 +58,11 @@ for (const needle of [
   'ClothingRepository',
   'OutfitRepository',
   'StoreRepository',
-  'WearLogRepository',
   'ClothingPicker',
   'createClothing',
   'createOutfit',
   'createStoreVisit',
   'createStoreVisitWithOptionalStore',
-  'createWearLog',
   'CAPTURE_TEXT',
   ".fontColor(this.captureMode === mode ? '#FFFFFF' : CAPTURE_MUTED)",
   '.backgroundColor(this.captureMode === mode ? CAPTURE_TEXT : CAPTURE_SURFACE)',
@@ -89,11 +86,14 @@ mustMatch(text, /this\.photoUris\s*=\s*\[\s*\.\.\.this\.initialPhotoUris\s*\]/, 
 mustMatch(text, /clothingRepository\??:\s*ClothingRepository/, 'must expose ClothingRepository dependency');
 mustMatch(text, /outfitRepository\??:\s*OutfitRepository/, 'must expose OutfitRepository dependency');
 mustMatch(text, /storeRepository\??:\s*StoreRepository/, 'must expose StoreRepository dependency');
-mustMatch(text, /wearLogRepository\??:\s*WearLogRepository/, 'must expose WearLogRepository dependency');
 
 for (const forbidden of [
   'AppTheme.color.primary',
   'wardrobe_look_',
+  'WearLogRepository',
+  'createWearLog',
+  'syncWearLog',
+  '同步到穿搭日历',
   "@State private note: string = '亮色外套，适合周末出门。'",
   "@State private name: string = '牛仔短外套'",
   'findStoreByName(this.storeName)',

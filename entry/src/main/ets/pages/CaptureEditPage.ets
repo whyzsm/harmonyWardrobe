@@ -2,13 +2,10 @@ import { ClothingPicker } from '../components/ClothingPicker';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { StoreRepository } from '../data/repositories/StoreRepository';
-import { WearLogRepository } from '../data/repositories/WearLogRepository';
 import { ClothingCategory } from '../domain/clothing/ClothingCategory';
 import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import { ClothingItem, PurchaseInfo } from '../domain/clothing/ClothingModels';
-import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { StoreVisit } from '../domain/store/StoreModels';
-import { WearLog } from '../domain/wearLog/WearLogModels';
 import { toIsoDate } from '../utils/date';
 
 interface CaptureCategoryOption {
@@ -70,7 +67,6 @@ export struct CaptureEditPage {
   clothingRepository?: ClothingRepository = undefined;
   outfitRepository?: OutfitRepository = undefined;
   storeRepository?: StoreRepository = undefined;
-  wearLogRepository?: WearLogRepository = undefined;
   onChoosePhotos: () => Promise<string[]> = async () => [];
   onSave: (target: string) => void = () => {};
   onCancel: () => void = () => {};
@@ -87,8 +83,6 @@ export struct CaptureEditPage {
   @State private purchaseNote: string = '';
   @State private outfitTitle: string = '';
   @State private selectedClothingItemIds: string[] = [];
-  @State private wearDate: string = '';
-  @State private syncWearLog: boolean = false;
   @State private districtOrAddress: string = '';
   @State private visitDate: string = '';
   @State private isSaving: boolean = false;
@@ -98,9 +92,6 @@ export struct CaptureEditPage {
   aboutToAppear(): void {
     if (this.photoUris.length === 0) {
       this.photoUris = [...this.initialPhotoUris];
-    }
-    if (this.wearDate.length === 0) {
-      this.wearDate = this.captureDate();
     }
     if (this.visitDate.length === 0) {
       this.visitDate = this.captureDate();
@@ -220,20 +211,12 @@ export struct CaptureEditPage {
     if (this.outfitRepository === undefined) {
       return;
     }
-    const outfit: OutfitTemplate = await this.outfitRepository.createOutfit({
+    await this.outfitRepository.createOutfit({
       title: this.normalizedOutfitTitle(),
       photoUris: this.photoUris,
       clothingItemIds: this.selectedClothingItemIds,
       note: optionalText(this.note)
     });
-    if (this.syncWearLog && this.wearLogRepository !== undefined) {
-      const _wearLog: WearLog = await this.wearLogRepository.createWearLog({
-        outfitTemplateId: outfit.id,
-        wornDate: optionalText(this.wearDate) ?? this.captureDate(),
-        photoUris: this.photoUris,
-        note: optionalText(this.note)
-      });
-    }
     this.onSave('美搭');
   }
 
@@ -598,20 +581,6 @@ export struct CaptureEditPage {
           this.toggleClothingItem(id);
         }
       })
-
-      Row({ space: 8 }) {
-        Checkbox()
-          .select(this.syncWearLog)
-          .selectedColor(CAPTURE_TEXT)
-          .onChange((checked: boolean) => {
-            this.syncWearLog = checked;
-          })
-
-        Text('同步到穿搭日历')
-          .fontSize(13)
-          .fontColor(CAPTURE_TEXT)
-      }
-      .width('100%')
     }
     .width('100%')
   }

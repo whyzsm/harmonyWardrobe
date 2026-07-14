@@ -14,8 +14,7 @@ interface StoreVisitStatusFilter {
 const STORE_VISIT_STATUS_FILTERS: StoreVisitStatusFilter[] = [
   { label: '全部', value: 'all' },
   { label: '去过', value: 'visited' },
-  { label: '想去', value: 'wantToVisit' },
-  { label: '本地重读', value: 'refresh' }
+  { label: '想去', value: 'wantToVisit' }
 ];
 
 const PAGE_BACKGROUND = YibuqueColor.bgDefault;
@@ -152,10 +151,6 @@ export struct StoreVisitPage {
   }
 
   private selectStatus(filter: StoreVisitStatusFilter): void {
-    if (filter.value === 'refresh') {
-      this.loadStoreVisits();
-      return;
-    }
     this.selectedStatus = filter.value;
     this.refreshStoreVisitDataSource();
   }
