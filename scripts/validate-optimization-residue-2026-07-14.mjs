@@ -45,14 +45,17 @@ const store = read(storePath);
 const profile = read(profilePath);
 const clothingEdit = read(clothingEditPath);
 
-for (const needle of ['拍一张', '从相册选择', 'onTakePhoto', 'onPickGallery']) {
+for (const needle of ['衣柜', '逛店', '穿搭', 'onOpenWardrobe', 'onOpenStoreVisit', 'onOpenOutfit']) {
   mustInclude(quickSheet, quickSheetPath, needle);
 }
-for (const forbidden of ['onOpenWardrobe', 'onOpenStoreVisit', 'onOpenOutfit']) {
+for (const needle of ['新增衣物', '新增逛店记录', '新增穿搭']) {
+  mustInclude(quickSheet, quickSheetPath, needle);
+}
+for (const forbidden of ['onTakePhoto', 'onPickGallery']) {
   mustNotInclude(quickSheet, quickSheetPath, forbidden);
 }
-mustMatch(index, indexPath, /QuickCaptureSheet\(\{[\s\S]*?onTakePhoto:\s*\(\) => \{[\s\S]*?this\.startCameraCapture\(\);[\s\S]*?onPickGallery:\s*\(\) => \{[\s\S]*?this\.startGalleryCapture\(\);/, 'must wire quick capture sheet to camera and gallery capture');
-mustInclude(index, indexPath, '!this.showQuickActions && !this.showWishlistPage');
+mustMatch(index, indexPath, /QuickCaptureSheet\(\{[\s\S]*?onOpenWardrobe:\s*\(\) => \{[\s\S]*?this\.openQuickClothingEditor\(\);[\s\S]*?onOpenStoreVisit:\s*\(\) => \{[\s\S]*?this\.openQuickStoreEditor\(\);[\s\S]*?onOpenOutfit:\s*\(\) => \{[\s\S]*?this\.openQuickOutfitEditor\(\);/, 'must wire quick capture sheet to the three create editors');
+mustInclude(index, indexPath, 'this.activeRoute.kind === AppRouteKind.Main && !this.featureNestedContentVisible');
 
 mustNotInclude(wardrobe, wardrobePath, 'CardHeart()');
 mustNotInclude(wardrobe, wardrobePath, "SymbolGlyph($r('sys.symbol.heart'))");

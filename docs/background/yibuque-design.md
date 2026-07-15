@@ -2,9 +2,9 @@
 
 ## 产品方向 / Product Direction
 
-`衣不缺` 是一款本地优先、图片优先的个人衣柜与逛店记录应用。核心流程是点击底部相机，选择“拍一张”或“从相册选择”，再把照片归类为衣柜、套装或逛店记录。
+`衣不缺` 是一款本地优先、图片优先的个人衣柜与逛店记录应用。核心流程是点击底部相机，从“衣柜 / 逛店 / 穿搭”中选择新增目标；直接进入对应新增页面后，仍可通过拍照或相册选择添加记录。
 
-`Yibuque` is a local-first, image-first personal wardrobe and store-visit app. The primary flow starts from the bottom camera, continues with `拍一张` or `从相册选择`, and then classifies the photo as a wardrobe item, outfit, or store visit.
+`Yibuque` is a local-first, image-first personal wardrobe and store-visit app. The primary flow starts from the bottom camera, opens a `衣柜 / 逛店 / 穿搭` create destination, and keeps camera or gallery capture available inside the relevant create page.
 
 视觉方向采用轻量白底、浅灰表面、黑色正文和黑色交互强调。页面应以真实照片为主要内容，保持低文字密度、清晰层级和安静的工具感。
 
@@ -108,10 +108,12 @@ The bottom navigation is a 90%-wide translucent black floating capsule with ward
 
 The quick capture sheet uses a white fully-rounded panel, a gray scrim, and a neutral shadow. Its title is `快捷录入`, with a black `取消` action.
 
-- “拍一张”：黑色主卡片、白色相机系统图标。
-- `拍一张`: black primary card with a white system camera icon.
-- “从相册选择”：浅灰卡片、灰色边框、中性灰图标底。
-- `从相册选择`: light-gray card with a gray border and a neutral-gray icon surface.
+- “衣柜”：黑色主卡片、白色衣物系统图标。
+- `衣柜`: black primary card with a white shirt system icon.
+- “逛店”：浅灰卡片、灰色边框、中性灰店铺图标。
+- `逛店`: light-gray card with a gray border and a neutral store icon.
+- “穿搭”：浅灰卡片、灰色边框、中性灰衣架图标。
+- `穿搭`: light-gray card with a gray border and a neutral hanger system icon.
 
 ### 卡片与空态 / Cards And Empty States
 

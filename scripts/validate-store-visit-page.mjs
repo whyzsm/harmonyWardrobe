@@ -53,13 +53,13 @@ for (const needle of ['StoreVisitPage({', 'storeRepository: this.runtime.storeRe
   }
 }
 
-for (const needle of ['拍一张', '从相册选择', 'onTakePhoto', 'onPickGallery']) {
+for (const needle of ['衣柜', '逛店', '穿搭', 'onOpenWardrobe', 'onOpenStoreVisit', 'onOpenOutfit']) {
   if (!quickSheet.includes(needle)) {
-    throw new Error(`QuickCaptureSheet missing photo-first quick action ${needle}`);
+    throw new Error(`QuickCaptureSheet missing category quick action ${needle}`);
   }
 }
 
-for (const needle of ['StoreVisitEditPage({', 'showQuickStoreEditor', 'openQuickStoreEditor']) {
+for (const needle of ['StoreVisitEditPage({', 'AppRouteKind.StoreEditor', 'openQuickStoreEditor']) {
   if (!index.includes(needle)) {
     throw new Error(`Index missing quick store editor flow ${needle}`);
   }

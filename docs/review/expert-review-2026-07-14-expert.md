@@ -6,6 +6,8 @@
 - **审查范围**：`entry/src/main/ets`（pages / components / domain / data / media / utils / theme）+ 设计规范 `docs/background/yibuque-design.md` + 主题 token `theme/Tokens.ets`
 - **日期**：2026-07-14
 
+> 状态：历史静态评审。后续提交已修复或改变部分结论，本文保留当时快照事实，不作为当前实现状态判断。
+
 ---
 
 ## 一、总览

@@ -2,8 +2,9 @@ import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 
 @Component
 export struct QuickCaptureSheet {
-  onTakePhoto: () => void = () => {};
-  onPickGallery: () => void = () => {};
+  onOpenWardrobe: () => void = () => {};
+  onOpenStoreVisit: () => void = () => {};
+  onOpenOutfit: () => void = () => {};
   onCancel: () => void = () => {};
   @State private sheetTranslateY: number = 300;
   @State private backgroundOpacity: number = 0;
@@ -68,12 +69,16 @@ export struct QuickCaptureSheet {
         .height(44)
         .alignItems(VerticalAlign.Center)
 
-        this.ActionCard('拍一张', '打开相机，拍完进入分类保存', 'camera', true, () => {
-          this.onTakePhoto();
+        this.ActionCard('衣柜', '新增衣物', 'wardrobe', true, () => {
+          this.onOpenWardrobe();
         })
 
-        this.ActionCard('从相册选择', '批量选择已有照片再归类', 'gallery', false, () => {
-          this.onPickGallery();
+        this.ActionCard('逛店', '新增逛店记录', 'store', false, () => {
+          this.onOpenStoreVisit();
+        })
+
+        this.ActionCard('穿搭', '新增穿搭', 'outfit', false, () => {
+          this.onOpenOutfit();
         })
       }
       .width('100%')
@@ -92,12 +97,16 @@ export struct QuickCaptureSheet {
 
   @Builder
   ActionIcon(variant: string, primary: boolean) {
-    if (variant === 'camera') {
-      SymbolGlyph($r('sys.symbol.camera_fill'))
+    if (variant === 'wardrobe') {
+      SymbolGlyph($r('sys.symbol.shirt'))
+        .fontSize(22)
+        .fontColor([primary ? YibuqueColor.textInverse : YibuqueColor.textPrimary])
+    } else if (variant === 'store') {
+      SymbolGlyph($r('sys.symbol.store_fill'))
         .fontSize(22)
         .fontColor([primary ? YibuqueColor.textInverse : YibuqueColor.textPrimary])
     } else {
-      SymbolGlyph($r('sys.symbol.picture'))
+      SymbolGlyph($r('sys.symbol.hanger_and_towels'))
         .fontSize(22)
         .fontColor([primary ? YibuqueColor.textInverse : YibuqueColor.textPrimary])
     }

@@ -79,7 +79,7 @@ if (repairCallIndex < 0 || indexLoopIndex < 0 || repairCallIndex > indexLoopInde
 }
 
 const v2File = 'entry/src/main/ets/data/migrations/V2ClothingPurchaseColumns.ets';
-const runtimeFile = 'entry/src/main/ets/app/WardrobeRuntime.ets';
+const runtimeFile = 'entry/src/main/ets/app/WardrobeRuntimeFactory.ets';
 if (!fs.existsSync(v2File)) {
   console.error(`${v2File} must exist to repair old installed databases missing purchase columns.`);
   process.exit(1);
@@ -113,8 +113,26 @@ if (/catch\s*\(\s*error\s*\)[\s\S]*?throw\s+error/.test(v2Text)) {
 }
 
 const runtimeText = fs.readFileSync(runtimeFile, 'utf8');
-if (!runtimeText.includes('v2ClothingPurchaseColumns') || !runtimeText.includes('v3StoreVisitSchema') || !runtimeText.includes('v4StoreVisitDetails')) {
-  console.error('WardrobeRuntime must run V1 through V4 migrations.');
+if (!runtimeText.includes('MigrationRunner') || !runtimeText.includes('runMigrations()')) {
+  console.error('WardrobeRuntimeFactory must execute MigrationRunner.');
+  process.exit(1);
+}
+
+for (const migration of [
+  'v1InitialSchema',
+  'v2ClothingPurchaseColumns',
+  'v3StoreVisitSchema',
+  'v4StoreVisitDetails',
+  'v5ProfilePreferences'
+]) {
+  if (!runtimeText.includes(migration)) {
+    console.error(`WardrobeRuntimeFactory must register ${migration}.`);
+    process.exit(1);
+  }
+}
+
+if (runtimeText.includes('ensureBaseSchema') || runtimeText.includes('.up(database)')) {
+  console.error('WardrobeRuntimeFactory must not duplicate registered migrations.');
   process.exit(1);
 }
 

@@ -58,7 +58,7 @@ for (const needle of ['#1D1D1F', '#000000', '#F5F5F7', '#F2F2F7', '#FFFFFF']) {
   mustInclude(tokens, tokenPath, needle);
 }
 
-for (const needle of ['白灰黑', 'white-gray-black', '图片优先', 'image-first', '拍一张', '从相册选择']) {
+for (const needle of ['白灰黑', 'white-gray-black', '图片优先', 'image-first', '衣柜', '逛店', '穿搭']) {
   mustInclude(design, designPath, needle);
 }
 
@@ -76,7 +76,7 @@ for (const needle of ['衣柜', '逛店', '套装', '我的', "SymbolGlyph($r('s
 mustInclude(nav, navPath, '#26000000');
 mustNotInclude(nav, navPath, '#735A7CFF');
 
-for (const needle of ['快捷录入', '拍一张', '从相册选择', 'onTakePhoto', 'onPickGallery', "SymbolGlyph($r('sys.symbol.camera_fill'))", "SymbolGlyph($r('sys.symbol.picture'))", 'YibuqueColor.actionBlack', 'YibuqueShadow.floating']) {
+for (const needle of ['快捷录入', '衣柜', '逛店', '穿搭', 'onOpenWardrobe', 'onOpenStoreVisit', 'onOpenOutfit', "SymbolGlyph($r('sys.symbol.shirt'))", "SymbolGlyph($r('sys.symbol.store_fill'))", "SymbolGlyph($r('sys.symbol.hanger_and_towels'))", 'YibuqueColor.actionBlack', 'YibuqueShadow.floating']) {
   mustInclude(quickSheet, quickSheetPath, needle);
 }
 

@@ -27,27 +27,53 @@ function mustMatch(text, file, pattern, message) {
 }
 
 const runtimePath = 'entry/src/main/ets/app/WardrobeRuntime.ets';
+const factoryPath = 'entry/src/main/ets/app/WardrobeRuntimeFactory.ets';
+const photoFileSystemPath = 'entry/src/main/ets/media/HarmonyPhotoFileSystem.ets';
+const searchBootstrapPath = 'entry/src/main/ets/data/searchIndex/SearchIndexBootstrap.ets';
 const indexPath = 'entry/src/main/ets/pages/Index.ets';
 const runtime = read(runtimePath);
+const factory = read(factoryPath);
+const photoFileSystem = read(photoFileSystemPath);
+const searchBootstrap = read(searchBootstrapPath);
 const index = read(indexPath);
 
 for (const needle of [
-  '@ohos.app.ability.common',
+  'WardrobeRuntimeFactory',
+  'WardrobeRuntimeFactory.create',
+  'new WardrobeRuntime('
+]) {
+  mustInclude(runtime, runtimePath, needle);
+}
+
+for (const needle of [
   '@kit.CoreFileKit',
-  'fileIo.mkdir',
-  'fileIo.copyFile',
-  'fileIo.open',
-  'fileIo.OpenMode.READ_ONLY',
-  'sourceFile.fd',
-  'fileIo.close',
-  'fileIo.unlink',
-  'PhotoFileSystem',
+  'fileIo',
+  'MigrationRunner',
+  'ensureBaseSchema',
+  'rebuildSearchIndex',
+  'new ClothingRepository',
+  'new OutfitRepository',
+  'new WearLogRepository',
+  'new WishlistRepository',
+  'new StoreRepository'
+]) {
+  mustNotInclude(runtime, runtimePath, needle);
+}
+
+for (const needle of [
+  '@ohos.app.ability.common',
   'DatabaseProvider',
   'MigrationRunner',
   'v1InitialSchema',
+  'v2ClothingPurchaseColumns',
   'v3StoreVisitSchema',
   'v4StoreVisitDetails',
+  'v5ProfilePreferences',
+  'runMigrations()',
   'detectSearchCapability',
+  'new HarmonyPhotoFileSystem',
+  'new PhotoStorage',
+  'context.filesDir',
   'new ClothingRepository',
   'new OutfitRepository',
   'new WearLogRepository',
@@ -56,22 +82,20 @@ for (const needle of [
   'new ProfileRepository',
   'new SearchRepository',
   'PhotoPickerAdapter.withHarmonyProviders',
-  'new PhotoStorage',
-  'buildClothingSearchDocument',
-  'buildOutfitSearchDocument',
-  'buildStoreSearchDocument',
-  'buildStoreVisitSearchDocument',
-  'buildWearLogSearchDocument',
-  'buildWishlistSearchDocument',
-  'rebuildSearchIndex',
-  'context.filesDir',
-  'runMigrations()',
+  'SearchIndexBootstrap.rebuild'
+]) {
+  mustInclude(factory, factoryPath, needle);
+}
+
+for (const needle of [
   'ensureBaseSchema',
   'v1InitialSchema.up(database)',
+  'v2ClothingPurchaseColumns.up(database)',
   'v3StoreVisitSchema.up(database)',
-  'v4StoreVisitDetails.up(database)'
+  'v4StoreVisitDetails.up(database)',
+  'v5ProfilePreferences.up(database)'
 ]) {
-  mustInclude(runtime, runtimePath, needle);
+  mustNotInclude(factory, factoryPath, needle);
 }
 
 for (const [repositoryName, pattern] of [
@@ -81,30 +105,45 @@ for (const [repositoryName, pattern] of [
   ['WishlistRepository', /new\s+WishlistRepository\s*\(\s*database\s*,\s*searchIndexMode\s*,\s*photoStorage\s*\)/],
   ['StoreRepository', /new\s+StoreRepository\s*\(\s*database\s*,\s*searchIndexMode\s*,\s*photoStorage\s*\)/]
 ]) {
-  mustMatch(runtime, runtimePath, pattern, `must pass PhotoStorage into ${repositoryName}`);
+  mustMatch(factory, factoryPath, pattern, `must pass PhotoStorage into ${repositoryName}`);
 }
 
 mustMatch(
-  runtime,
-  runtimePath,
-  /await\s+WardrobeRuntime\.rebuildSearchIndex\s*\(/,
+  factory,
+  factoryPath,
+  /await\s+SearchIndexBootstrap\.rebuild\s*\(/,
   'must explicitly rebuild the search index during startup'
 );
 mustMatch(
-  runtime,
-  runtimePath,
-  /searchRepository\.rebuildSearchIndex\s*\(\s*documents\s*\)/,
+  searchBootstrap,
+  searchBootstrapPath,
+  /dependencies\.searchRepository\.rebuildSearchIndex\s*\(\s*documents\s*\)/,
   'must delegate startup search rebuild to SearchRepository.rebuildSearchIndex'
 );
-mustMatch(runtime, runtimePath, /wearLogRepository\.listWearLogs\s*\(\s*\)/, 'must include all wear logs in startup search rebuild');
-
-const copyFileStart = runtime.indexOf('async copyFile');
-const deleteFileStart = runtime.indexOf('async deleteFile');
-if (copyFileStart < 0 || deleteFileStart < 0 || copyFileStart >= deleteFileStart) {
-  throw new Error(`${runtimePath} missing HarmonyPhotoFileSystem.copyFile`);
+for (const needle of [
+  'buildClothingSearchDocument',
+  'buildOutfitSearchDocument',
+  'buildWearLogSearchDocument',
+  'buildWishlistSearchDocument',
+  'buildStoreSearchDocument',
+  'buildStoreVisitSearchDocument',
+  'listClothing()',
+  'listOutfits()',
+  'listWearLogs()',
+  'listWishlistItems()',
+  'listStores()',
+  'listStoreVisits()'
+]) {
+  mustInclude(searchBootstrap, searchBootstrapPath, needle);
 }
 
-const copyFileBody = runtime.substring(copyFileStart, deleteFileStart);
+const copyFileStart = photoFileSystem.indexOf('async copyFile');
+const deleteFileStart = photoFileSystem.indexOf('async deleteFile');
+if (copyFileStart < 0 || deleteFileStart < 0 || copyFileStart >= deleteFileStart) {
+  throw new Error(`${photoFileSystemPath} missing HarmonyPhotoFileSystem.copyFile`);
+}
+
+const copyFileBody = photoFileSystem.substring(copyFileStart, deleteFileStart);
 for (const needle of [
   'try',
   'await fileIo.copyFile(sourceUri, destinationUri)',
@@ -115,7 +154,11 @@ for (const needle of [
   'const closeError = await this.closeFile(sourceFile)',
   'fallbackFailure.message'
 ]) {
-  mustInclude(copyFileBody, runtimePath, needle);
+  mustInclude(copyFileBody, photoFileSystemPath, needle);
+}
+
+for (const needle of ['PhotoFileSystem', 'ensureDirectory', 'copyFile', 'deleteFile', 'fileIo.mkdir', 'fileIo.unlink']) {
+  mustInclude(photoFileSystem, photoFileSystemPath, needle);
 }
 
 for (const needle of [
@@ -128,6 +171,9 @@ for (const needle of [
   ': unknown'
 ]) {
   mustNotInclude(runtime, runtimePath, needle);
+  mustNotInclude(factory, factoryPath, needle);
+  mustNotInclude(photoFileSystem, photoFileSystemPath, needle);
+  mustNotInclude(searchBootstrap, searchBootstrapPath, needle);
   mustNotInclude(index, indexPath, needle);
 }
 

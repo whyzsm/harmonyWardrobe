@@ -1,41 +1,40 @@
 import common from '@ohos.app.ability.common';
 import { BottomNavigationBar } from '../components/BottomNavigationBar';
 import { QuickCaptureSheet } from '../components/QuickCaptureSheet';
+import {
+  AppMainTab,
+  AppRoute,
+  AppRouteKind,
+  AppRouteParams,
+  createAppRoute,
+  createDefaultAppRouteParams,
+  createInitialAppRoute
+} from '../app/AppRoute';
 import { WardrobeRuntime } from '../app/WardrobeRuntime';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
+import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { SearchEntityType } from '../domain/search/SearchModels';
 import { StoreVisit } from '../domain/store/StoreModels';
 import { PhotoSource } from '../media/PhotoModels';
 import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
 import { CaptureEditPage } from './CaptureEditPage';
+import { ClothingEditPage } from './ClothingEditPage';
+import { OutfitEditPage } from './OutfitEditPage';
 import { OutfitsPage } from './OutfitsPage';
 import { ProfilePage } from './ProfilePage';
 import { StoreVisitEditPage } from './StoreVisitEditPage';
 import { StoreVisitPage } from './StoreVisitPage';
 import { WardrobePage } from './WardrobePage';
-import { ShoppingPage } from './ShoppingPage';
+import { WishlistPage } from './WishlistPage';
 
 @Entry
 @Component
 struct Index {
   @State private runtimeReady: boolean = false;
   @State private errorMessage: string = '';
-  @State private selectedMainTab: string = 'wardrobe';
-  @State private showQuickActions: boolean = false;
-  @State private showCaptureEditor: boolean = false;
-  @State private showStoreEditor: boolean = false;
-  @State private showQuickStoreEditor: boolean = false;
-  @State private showClothingEditor: boolean = false;
-  @State private showNestedPage: boolean = false;
-  @State private showWishlistPage: boolean = false;
+  @State private activeRoute: AppRoute = createInitialAppRoute();
+  @State private featureNestedContentVisible: boolean = false;
   @State private quickActionErrorMessage: string = '';
-  @State private capturePhotoUris: string[] = [];
-  @State private captureCapturedAt: string = '';
-  @State private captureClothingItems: ClothingItem[] = [];
-  @State private initialWardrobeTab: string = '衣裤';
-  @State private initialOutfitId: string = '';
-  @State private initialStoreVisitId: string = '';
-  @State private initialStoreQuery: string = '';
   @State private isCapturing: boolean = false;
   private runtime?: WardrobeRuntime = undefined;
 
@@ -64,6 +63,64 @@ struct Index {
     }
   }
 
+  private copyCurrentRouteParams(): AppRouteParams {
+    const params = this.activeRoute.params;
+    return {
+      wardrobeTab: params.wardrobeTab,
+      outfitId: params.outfitId,
+      storeVisitId: params.storeVisitId,
+      storeQuery: params.storeQuery,
+      wishlistItemId: params.wishlistItemId,
+      quickCaptureSourceRouteKind: params.quickCaptureSourceRouteKind,
+      capturePhotoUris: params.capturePhotoUris.slice(),
+      captureCapturedAt: params.captureCapturedAt,
+      captureClothingItems: params.captureClothingItems.slice(),
+      outfitClothingItems: params.outfitClothingItems.slice()
+    };
+  }
+
+  private showMainRoute(mainTab: AppMainTab, params: AppRouteParams): void {
+    this.activeRoute = createAppRoute(AppRouteKind.Main, mainTab, params);
+    this.featureNestedContentVisible = false;
+  }
+
+  private resetMainRoute(mainTab: AppMainTab): void {
+    this.showMainRoute(mainTab, createDefaultAppRouteParams());
+  }
+
+  private returnToCaptureSource(): void {
+    const params = this.copyCurrentRouteParams();
+    params.capturePhotoUris = [];
+    params.captureCapturedAt = '';
+    params.captureClothingItems = [];
+    if (params.quickCaptureSourceRouteKind === AppRouteKind.Wishlist) {
+      this.activeRoute = createAppRoute(AppRouteKind.Wishlist, AppMainTab.Profile, params);
+      this.featureNestedContentVisible = false;
+      return;
+    }
+
+    this.showMainRoute(this.activeRoute.mainTab, params);
+  }
+
+  private openQuickActions(): void {
+    const params = this.copyCurrentRouteParams();
+    params.quickCaptureSourceRouteKind = this.activeRoute.kind;
+    this.activeRoute = createAppRoute(
+      AppRouteKind.QuickCapture,
+      this.activeRoute.mainTab,
+      params
+    );
+    this.quickActionErrorMessage = '';
+  }
+
+  private openWishlistPage(itemId: string): void {
+    const params = createDefaultAppRouteParams();
+    params.wishlistItemId = itemId;
+    this.activeRoute = createAppRoute(AppRouteKind.Wishlist, AppMainTab.Profile, params);
+    this.featureNestedContentVisible = false;
+    this.quickActionErrorMessage = '';
+  }
+
   private async copySourcesToLocalUris(sources: PhotoSource[]): Promise<string[]> {
     if (this.runtime === undefined) {
       return [];
@@ -83,36 +140,83 @@ struct Index {
       return;
     }
 
-    this.captureClothingItems = await this.runtime.clothingRepository.listClothing();
-    this.capturePhotoUris = photoUris;
-    this.captureCapturedAt = new Date().toISOString();
-    this.showCaptureEditor = true;
+    const params = this.copyCurrentRouteParams();
+    params.captureClothingItems = await this.runtime.clothingRepository.listClothing();
+    params.capturePhotoUris = photoUris;
+    params.captureCapturedAt = new Date().toISOString();
+    this.activeRoute = createAppRoute(AppRouteKind.CaptureEditor, this.activeRoute.mainTab, params);
+    this.featureNestedContentVisible = false;
   }
 
   private closeCaptureEditor(): void {
-    this.showCaptureEditor = false;
-    this.capturePhotoUris = [];
-    this.captureCapturedAt = '';
-    this.captureClothingItems = [];
+    if (this.activeRoute.kind === AppRouteKind.CaptureEditor) {
+      this.returnToCaptureSource();
+    }
   }
 
   private openQuickStoreEditor(): void {
-    this.closeCaptureEditor();
-    this.selectedMainTab = 'store';
-    this.showQuickActions = false;
+    this.activeRoute = createAppRoute(
+      AppRouteKind.StoreEditor,
+      AppMainTab.Store,
+      createDefaultAppRouteParams()
+    );
+    this.featureNestedContentVisible = false;
     this.quickActionErrorMessage = '';
-    this.showQuickStoreEditor = true;
   }
 
   private closeQuickStoreEditor(): void {
-    this.showQuickStoreEditor = false;
+    this.resetMainRoute(AppMainTab.Store);
+  }
+
+  private openQuickClothingEditor(): void {
+    this.activeRoute = createAppRoute(
+      AppRouteKind.ClothingEditor,
+      AppMainTab.Wardrobe,
+      createDefaultAppRouteParams()
+    );
+    this.featureNestedContentVisible = false;
+    this.quickActionErrorMessage = '';
+  }
+
+  private closeQuickClothingEditor(): void {
+    this.resetMainRoute(AppMainTab.Wardrobe);
+    this.quickActionErrorMessage = '';
+  }
+
+  private async openQuickOutfitEditor(): Promise<void> {
+    if (this.runtime === undefined) {
+      return;
+    }
+
+    const params = createDefaultAppRouteParams();
+    this.quickActionErrorMessage = '';
+    try {
+      params.outfitClothingItems = await this.runtime.clothingRepository.listClothing();
+    } catch (error) {
+      this.quickActionErrorMessage = error instanceof Error ? error.message : '加载衣物失败';
+    }
+
+    this.activeRoute = createAppRoute(AppRouteKind.OutfitEditor, AppMainTab.Outfit, params);
+    this.featureNestedContentVisible = false;
+  }
+
+  private closeQuickOutfitEditor(): void {
+    this.resetMainRoute(AppMainTab.Outfit);
+    this.quickActionErrorMessage = '';
+  }
+
+  private async handleOutfitDelete(outfit: OutfitTemplate): Promise<void> {
+    const runtime = this.runtime;
+    if (runtime === undefined) {
+      return;
+    }
+
+    await runtime.outfitRepository.deleteOutfit(outfit.id);
+    this.closeQuickOutfitEditor();
   }
 
   private openStoreVisitList(): void {
-    this.closeCaptureEditor();
-    this.closeQuickStoreEditor();
-    this.selectedMainTab = 'store';
-    this.showQuickActions = false;
+    this.resetMainRoute(AppMainTab.Store);
     this.quickActionErrorMessage = '';
   }
 
@@ -122,7 +226,7 @@ struct Index {
     }
 
     this.isCapturing = true;
-    this.showQuickActions = false;
+    this.returnToCaptureSource();
     this.quickActionErrorMessage = '';
 
     try {
@@ -142,7 +246,7 @@ struct Index {
     }
 
     this.isCapturing = true;
-    this.showQuickActions = false;
+    this.returnToCaptureSource();
     this.quickActionErrorMessage = '';
 
     try {
@@ -206,33 +310,72 @@ struct Index {
     } else {
       Stack({ alignContent: Alignment.Bottom }) {
         Column() {
-          if (this.showQuickStoreEditor) {
+          if (this.activeRoute.kind === AppRouteKind.ClothingEditor) {
+            ClothingEditPage({
+              clothingRepository: this.runtime.clothingRepository,
+              photoPickerAdapter: this.runtime.photoPickerAdapter,
+              photoStorage: this.runtime.photoStorage,
+              onSave: (_item: ClothingItem) => {
+                this.closeQuickClothingEditor();
+              },
+              onCancel: () => {
+                this.closeQuickClothingEditor();
+              }
+            })
+              .layoutWeight(1)
+          } else if (this.activeRoute.kind === AppRouteKind.OutfitEditor) {
+            OutfitEditPage({
+              clothingItems: this.activeRoute.params.outfitClothingItems,
+              outfitRepository: this.runtime.outfitRepository,
+              photoPickerAdapter: this.runtime.photoPickerAdapter,
+              photoStorage: this.runtime.photoStorage,
+              onSave: (_outfit: OutfitTemplate) => {
+                this.closeQuickOutfitEditor();
+              },
+              onDelete: (outfit: OutfitTemplate): Promise<void> => {
+                return this.handleOutfitDelete(outfit);
+              },
+              onCancel: () => {
+                this.closeQuickOutfitEditor();
+              }
+            })
+              .layoutWeight(1)
+          } else if (this.activeRoute.kind === AppRouteKind.StoreEditor) {
             StoreVisitEditPage({
               storeRepository: this.runtime.storeRepository,
               photoPickerAdapter: this.runtime.photoPickerAdapter,
               photoStorage: this.runtime.photoStorage,
               onSave: (_visit: StoreVisit) => {
                 this.closeQuickStoreEditor();
-                this.selectedMainTab = 'store';
               },
               onCancel: () => {
                 this.closeQuickStoreEditor();
               }
             })
               .layoutWeight(1)
-          } else if (this.showWishlistPage) {
-            ShoppingPage({
+          } else if (this.activeRoute.kind === AppRouteKind.Wishlist) {
+            WishlistPage({
               wishlistRepository: this.runtime.wishlistRepository,
               searchRepository: this.runtime.searchRepository,
               photoPickerAdapter: this.runtime.photoPickerAdapter,
-              photoStorage: this.runtime.photoStorage
+              photoStorage: this.runtime.photoStorage,
+              initialWishlistItemId: this.activeRoute.params.wishlistItemId,
+              onClose: () => {
+                this.resetMainRoute(AppMainTab.Profile);
+              },
+              onBack: () => {
+                this.resetMainRoute(AppMainTab.Profile);
+              },
+              onOpenCapture: () => {
+                this.openQuickActions();
+              }
             })
               .layoutWeight(1)
-          } else if (this.showCaptureEditor) {
+          } else if (this.activeRoute.kind === AppRouteKind.CaptureEditor) {
             CaptureEditPage({
-              initialPhotoUris: this.capturePhotoUris,
-              capturedAt: this.captureCapturedAt,
-              clothingItems: this.captureClothingItems,
+              initialPhotoUris: this.activeRoute.params.capturePhotoUris,
+              capturedAt: this.activeRoute.params.captureCapturedAt,
+              clothingItems: this.activeRoute.params.captureClothingItems,
               clothingRepository: this.runtime.clothingRepository,
               outfitRepository: this.runtime.outfitRepository,
               storeRepository: this.runtime.storeRepository,
@@ -245,17 +388,16 @@ struct Index {
               onSave: (target: string) => {
                 this.closeCaptureEditor();
                 if (target === '店铺') {
-                  this.selectedMainTab = 'store';
+                  this.resetMainRoute(AppMainTab.Store);
                 } else if (target === '美搭') {
-                  this.selectedMainTab = 'outfit';
+                  this.resetMainRoute(AppMainTab.Outfit);
                 } else {
-                  this.initialWardrobeTab = '衣裤';
-                  this.selectedMainTab = 'wardrobe';
+                  this.resetMainRoute(AppMainTab.Wardrobe);
                 }
               }
             })
               .layoutWeight(1)
-          } else if (this.selectedMainTab === 'wardrobe') {
+          } else if (this.activeRoute.mainTab === AppMainTab.Wardrobe) {
             WardrobePage({
               clothingRepository: this.runtime.clothingRepository,
               outfitRepository: this.runtime.outfitRepository,
@@ -263,72 +405,60 @@ struct Index {
               searchRepository: this.runtime.searchRepository,
               photoPickerAdapter: this.runtime.photoPickerAdapter,
               photoStorage: this.runtime.photoStorage,
-              initialWardrobeTab: this.initialWardrobeTab,
+              initialWardrobeTab: this.activeRoute.params.wardrobeTab,
               onOpenCapture: () => {
                 this.startCameraCapture();
               },
               onClothingEditorVisibilityChange: (visible: boolean) => {
-                this.showClothingEditor = visible;
+                this.featureNestedContentVisible = visible;
               },
               onNestedPageVisibilityChange: (visible: boolean) => {
-                this.showNestedPage = visible;
+                this.featureNestedContentVisible = visible;
               },
               onOpenSearchTarget: (entityType: SearchEntityType, id: string, title: string) => {
-                this.showNestedPage = false;
                 if (entityType === SearchEntityType.Outfit) {
-                  this.initialOutfitId = id;
-                  this.initialStoreVisitId = '';
-                  this.initialStoreQuery = '';
-                  this.selectedMainTab = 'outfit';
+                  const params = createDefaultAppRouteParams();
+                  params.outfitId = id;
+                  this.showMainRoute(AppMainTab.Outfit, params);
                 } else if (entityType === SearchEntityType.Store || entityType === SearchEntityType.StoreVisit) {
-                  this.initialOutfitId = '';
-                  this.initialStoreVisitId = entityType === SearchEntityType.StoreVisit ? id : '';
-                  this.initialStoreQuery = entityType === SearchEntityType.Store ? title : '';
-                  this.selectedMainTab = 'store';
+                  const params = createDefaultAppRouteParams();
+                  params.storeVisitId = entityType === SearchEntityType.StoreVisit ? id : '';
+                  params.storeQuery = entityType === SearchEntityType.Store ? title : '';
+                  this.showMainRoute(AppMainTab.Store, params);
                 } else if (entityType === SearchEntityType.Wishlist) {
-                  this.initialOutfitId = '';
-                  this.initialStoreVisitId = '';
-                  this.initialStoreQuery = '';
-                  this.selectedMainTab = 'profile';
-                  this.showWishlistPage = true;
+                  this.openWishlistPage(id);
                 } else if (entityType === SearchEntityType.WearLog) {
-                  this.initialOutfitId = '';
-                  this.initialStoreVisitId = '';
-                  this.initialStoreQuery = '';
-                  this.showWishlistPage = false;
-                  this.initialWardrobeTab = '日历';
-                  this.selectedMainTab = 'wardrobe';
+                  const params = createDefaultAppRouteParams();
+                  params.wardrobeTab = '日历';
+                  this.showMainRoute(AppMainTab.Wardrobe, params);
                 } else {
-                  this.initialOutfitId = '';
-                  this.initialStoreVisitId = '';
-                  this.initialStoreQuery = '';
-                  this.selectedMainTab = 'profile';
+                  this.resetMainRoute(AppMainTab.Profile);
                 }
               }
             })
               .layoutWeight(1)
-          } else if (this.selectedMainTab === 'store') {
+          } else if (this.activeRoute.mainTab === AppMainTab.Store) {
             StoreVisitPage({
-              initialVisitId: this.initialStoreVisitId,
-              initialSearchQuery: this.initialStoreQuery,
+              initialVisitId: this.activeRoute.params.storeVisitId,
+              initialSearchQuery: this.activeRoute.params.storeQuery,
               storeRepository: this.runtime.storeRepository,
               photoPickerAdapter: this.runtime.photoPickerAdapter,
               photoStorage: this.runtime.photoStorage,
               onEditorVisibilityChange: (visible: boolean) => {
-                this.showStoreEditor = visible;
+                this.featureNestedContentVisible = visible;
               }
             })
               .layoutWeight(1)
-          } else if (this.selectedMainTab === 'outfit') {
+          } else if (this.activeRoute.mainTab === AppMainTab.Outfit) {
             OutfitsPage({
-              initialOutfitId: this.initialOutfitId,
+              initialOutfitId: this.activeRoute.params.outfitId,
               outfitRepository: this.runtime.outfitRepository,
               clothingRepository: this.runtime.clothingRepository,
               wearLogRepository: this.runtime.wearLogRepository,
               photoPickerAdapter: this.runtime.photoPickerAdapter,
               photoStorage: this.runtime.photoStorage,
               onNestedPageVisibilityChange: (visible: boolean) => {
-                this.showNestedPage = visible;
+                this.featureNestedContentVisible = visible;
               }
             })
               .layoutWeight(1)
@@ -342,21 +472,16 @@ struct Index {
                 this.openQuickStoreEditor();
               },
               onOpenCapture: () => {
-                this.showQuickActions = true;
-                this.quickActionErrorMessage = '';
+                this.openQuickActions();
               },
               onOpenOutfits: () => {
-                this.selectedMainTab = 'outfit';
-                this.showQuickActions = false;
-                this.quickActionErrorMessage = '';
+                this.resetMainRoute(AppMainTab.Outfit);
               },
               onOpenWishlist: () => {
-                this.showWishlistPage = true;
-                this.showQuickActions = false;
-                this.quickActionErrorMessage = '';
+                this.openWishlistPage('');
               },
               onNestedPageVisibilityChange: (visible: boolean) => {
-                this.showNestedPage = visible;
+                this.featureNestedContentVisible = visible;
               }
             })
               .layoutWeight(1)
@@ -375,58 +500,43 @@ struct Index {
         .height('100%')
         .backgroundColor('#FFFFFF')
 
-        if (!this.showCaptureEditor && !this.showStoreEditor && !this.showQuickStoreEditor && !this.showClothingEditor && !this.showNestedPage && !this.showQuickActions && !this.showWishlistPage) {
+        if (this.activeRoute.kind === AppRouteKind.Main && !this.featureNestedContentVisible) {
           BottomNavigationBar({
-            selected: this.showCaptureEditor ? 'capture' : this.selectedMainTab,
+            selected: this.activeRoute.mainTab,
             onSelectWardrobe: () => {
-              this.closeCaptureEditor();
-              this.showWishlistPage = false;
-              this.initialOutfitId = '';
-              this.initialStoreVisitId = '';
-              this.initialStoreQuery = '';
-              this.selectedMainTab = 'wardrobe';
-              this.initialWardrobeTab = '衣裤';
-              this.showQuickActions = false;
+              this.resetMainRoute(AppMainTab.Wardrobe);
               this.quickActionErrorMessage = '';
             },
             onOpenCapture: () => {
-              this.showQuickActions = true;
-              this.quickActionErrorMessage = '';
+              this.openQuickActions();
             },
             onSelectStore: () => {
-              this.showWishlistPage = false;
-              this.initialStoreVisitId = '';
-              this.initialStoreQuery = '';
               this.openStoreVisitList();
             },
             onSelectOutfit: () => {
-              this.closeCaptureEditor();
-              this.showWishlistPage = false;
-              this.initialOutfitId = '';
-              this.selectedMainTab = 'outfit';
-              this.showQuickActions = false;
+              this.resetMainRoute(AppMainTab.Outfit);
               this.quickActionErrorMessage = '';
             },
             onOpenProfile: () => {
-              this.closeCaptureEditor();
-              this.showWishlistPage = false;
-              this.selectedMainTab = 'profile';
-              this.showQuickActions = false;
+              this.resetMainRoute(AppMainTab.Profile);
               this.quickActionErrorMessage = '';
             }
           })
         }
 
-        if (this.showQuickActions) {
+        if (this.activeRoute.kind === AppRouteKind.QuickCapture) {
           QuickCaptureSheet({
-            onTakePhoto: () => {
-              this.startCameraCapture();
+            onOpenWardrobe: () => {
+              this.openQuickClothingEditor();
             },
-            onPickGallery: () => {
-              this.startGalleryCapture();
+            onOpenStoreVisit: () => {
+              this.openQuickStoreEditor();
+            },
+            onOpenOutfit: () => {
+              this.openQuickOutfitEditor();
             },
             onCancel: () => {
-              this.showQuickActions = false;
+              this.returnToCaptureSource();
             }
           })
         }

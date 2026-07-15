@@ -3,6 +3,7 @@ import { SearchBar } from '../components/SearchBar';
 import { WishlistCard } from '../components/WishlistCard';
 import { SearchRepository } from '../data/repositories/SearchRepository';
 import { WishlistRepository } from '../data/repositories/WishlistRepository';
+import { SearchEntityType } from '../domain/search/SearchModels';
 import { WishlistItem } from '../domain/wishlist/WishlistModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
@@ -19,11 +20,15 @@ function priceText(item: WishlistItem): string {
 }
 
 @Component
-export struct ShoppingPage {
+export struct WishlistPage {
   wishlistRepository?: WishlistRepository = undefined;
   searchRepository?: SearchRepository = undefined;
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
+  @Prop initialWishlistItemId: string = '';
+  onClose: () => void = () => {};
+  onBack: () => void = () => {};
+  onOpenCapture?: () => void = undefined;
 
   @State private searchQuery: string = '';
   @State private wishlistItems: WishlistItem[] = [];
@@ -48,6 +53,15 @@ export struct ShoppingPage {
 
     try {
       this.wishlistItems = await this.wishlistRepository.listWishlistItems();
+      if (this.initialWishlistItemId.length > 0) {
+        for (const item of this.wishlistItems) {
+          if (item.id === this.initialWishlistItemId) {
+            this.selectedWishlistItemId = item.id;
+            this.showEditor = true;
+            break;
+          }
+        }
+      }
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '加载心愿失败';
     } finally {
@@ -152,16 +166,26 @@ export struct ShoppingPage {
         },
         onCancel: () => {
           this.closeEditor();
+          if (this.initialWishlistItemId.length > 0) {
+            this.onBack();
+          }
         }
       })
     } else if (this.showUnifiedSearch) {
       SearchResultsPage({
         query: this.unifiedSearchQuery,
         searchRepository: this.searchRepository,
+        initialScope: SearchEntityType.Wishlist,
         onOpenWishlistResult: (id: string) => {
           this.selectedWishlistItemId = id;
           this.showUnifiedSearch = false;
           this.showEditor = true;
+        },
+        onOpenCameraSearch: () => {
+          this.showUnifiedSearch = false;
+          if (this.onOpenCapture !== undefined) {
+            this.onOpenCapture();
+          }
         },
         onClose: () => {
           this.showUnifiedSearch = false;
@@ -170,6 +194,18 @@ export struct ShoppingPage {
     } else {
       Column({ space: 16 }) {
       Row() {
+        Stack({ alignContent: Alignment.Center }) {
+          SymbolGlyph($r('sys.symbol.arrow_left'))
+            .fontSize(22)
+            .fontColor([AppTheme.color.text])
+        }
+        .width(44)
+        .height(44)
+        .accessibilityText('返回我的')
+        .onClick(() => {
+          this.onBack();
+        })
+
         Column({ space: 4 }) {
           Text('心仪单品')
             .fontSize(30)

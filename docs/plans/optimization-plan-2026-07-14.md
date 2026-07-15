@@ -2,6 +2,7 @@
 
 > 基于 2026-07-14 衣橱质量评审团三线并行评审报告，逐条验证关键代码后制定。
 > 每条改动均附文件路径与行号，可直接作为开发工单执行。
+> 状态：本计划记录 2026-07-14 的旧实现快照；导航状态和页面命名已由 `architecture-convergence-2026-07-15` 变更完成，旧代码片段仅供追溯，不应直接照抄。
 
 ---
 
@@ -111,7 +112,7 @@ return new DeleteCleanupService(this.database, this.searchRepository, this.photo
 - `WardrobePage.ets` — 衣物列表（长按菜单或卡片右上角）
 - 穿搭详情/列表（`OutfitPage` 或 `OutfitDetailPage`，如存在）
 - 穿着日志列表（`WearLogPage`，如存在）
-- 心愿单详情（`ShoppingPage.ets` 或 `WishlistEditPage.ets`，见 1.2）
+- 心愿单详情（`WishlistPage.ets` 或 `WishlistEditPage.ets`，见 1.2）
 - 逛店记录列表（`StoreVisitPage.ets`）
 
 **风险**：无。repository 的 delete 方法已实现，只是无 UI 调用。
@@ -140,7 +141,7 @@ onOpenSearchTarget(entityType, entityId) {
   if (entityType === SearchEntityType.Outfit) { ... }
   else if (entityType === SearchEntityType.StoreVisit) { ... }
   else if (entityType === SearchEntityType.Wishlist) {
-    this.showWishlistPage = true;
+    this.openWishlistPage(entityId);
     this.wishlistTargetId = entityId;
   }
   else if (entityType === SearchEntityType.WearLog) {
@@ -164,7 +165,7 @@ onOpenWearLogResult(entityId: string) { ... }
 
 在 `BottomNavigationBar.ets` 现有的「衣柜/逛店/相机/套装/我的」五个位置中，将「我的」内含心愿单子入口，或在 ProfilePage 内增加「心愿单」区块。
 
-**注意**：`ShoppingPage.ets` 当前已实现完整功能，`WishlistEditPage.ets` 亦然。接入即可用，改动量主要在 Index.ets 的导航状态管理（约 30-40 行）。
+**注意**：`WishlistPage.ets` 当前已实现完整功能，`WishlistEditPage.ets` 亦然。接入即可用，改动量主要在 Index.ets 的导航状态管理（约 30-40 行）。
 
 ---
 
@@ -383,15 +384,16 @@ if (searchIndexMode !== SearchIndexMode.None) {
 
 与 1.3 改动 B 同一组（`:36-40`）。
 
-**改动 C：QuickCaptureSheet 改为两动作录入面板**
+**改动 C：QuickCaptureSheet 恢复为三分类入口**
 
 **涉及文件**：`components/QuickCaptureSheet.ets`
 
-当前为「衣柜/逛店/套装」三导航入口，改为：
-1. 黑卡「拍一张」（白相机 SymbolGlyph）
-2. 浅灰卡「从相册选择」（灰边）
+恢复为：
+1. 黑卡「衣柜」（白衣物 SymbolGlyph）
+2. 浅灰卡「逛店」（灰边店铺 SymbolGlyph）
+3. 浅灰卡「穿搭」（灰边衣架 SymbolGlyph）
 
-标题「快捷录入」、取消按钮黑色，与设计规范对齐。
+点击后直接进入对应新增页面：衣柜进入新增衣物，逛店进入新增逛店记录，穿搭进入新增穿搭；拍照和相册选择继续由对应页面内的入口提供。标题「快捷录入」、取消按钮黑色，与设计规范对齐。
 
 **改动 D：图片圆角统一**
 
@@ -548,7 +550,7 @@ WaterFlow() {
 删除以下文件（全站 0 import）：
 - pages/TodayPage.ets          （如阶段一已删除）
 - pages/CalendarPage.ets
-- pages/ShoppingPage.ets       （如阶段一已接入则保留）
+- pages/WishlistPage.ets       （如阶段一已接入则保留）
 - pages/WishlistEditPage.ets   （如阶段一已接入则保留）
 - components/CategoryTabs.ets
 - components/OutfitCard.ets
@@ -556,7 +558,7 @@ WaterFlow() {
 - components/AppTopBar.ets
 ```
 
-如决定保留 ShoppingPage / WishlistEditPage（已接入导航），则仅清理其余真正无引用的文件。
+如决定保留 WishlistPage / WishlistEditPage（已接入导航），则仅清理其余真正无引用的文件。
 
 #### 3.2 点击区 ≥ 44×44
 
@@ -663,7 +665,7 @@ Day 5-6（阶段二续 + 阶段三）
 | 删除功能接入后媒体清理未充分测试 | 中 | 先在单件衣物上验证"删除 → photoStorage 确实删除了文件"，再扩展 |
 | 手机号 = 旧迁移链依赖 | 低 | 迁移链 V1-V5 经专家确认顺序正确、幂等，改动不碰迁移 |
 | LazyForEach 数据源生命周期 | 中 | 参考 HarmonyOS 官方 WaterFlow+LazyForEach 示例实现，避免内存泄漏 |
-| 心愿单接入后 ShoppingPage UI 与当前设计方向还有差距 | 低 | ShoppingPage 本身 UI 较简陋，建议在 P2 阶段一并打磨 |
+| 心愿单接入后 WishlistPage UI 与当前设计方向还有差距 | 低 | WishlistPage 本身 UI 较简陋，建议在 P2 阶段一并打磨 |
 
 ---
 

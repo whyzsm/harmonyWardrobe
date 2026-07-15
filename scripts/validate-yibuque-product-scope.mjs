@@ -33,8 +33,8 @@ for (const needle of [
   '衣不缺',
   'BottomNavigationBar',
   'QuickCaptureSheet',
-  'ShoppingPage',
-  'showWishlistPage'
+  'WishlistPage',
+  'AppRouteKind.Wishlist'
 ]) {
   mustInclude(index, indexPath, needle);
 }
@@ -47,7 +47,7 @@ for (const needle of ['衣柜', '逛店', '套装', '我的']) {
   mustInclude(nav, navPath, needle);
 }
 
-for (const needle of ['拍一张', '从相册选择']) {
+for (const needle of ['衣柜', '逛店', '穿搭', 'onOpenWardrobe', 'onOpenStoreVisit', 'onOpenOutfit']) {
   mustInclude(quickSheet, quickSheetPath, needle);
 }
 

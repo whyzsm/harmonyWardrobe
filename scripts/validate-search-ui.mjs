@@ -1,16 +1,18 @@
 import fs from 'node:fs';
 
 const resultPagePath = 'entry/src/main/ets/pages/SearchResultsPage.ets';
+const wishlistPagePath = 'entry/src/main/ets/pages/WishlistPage.ets';
 const wardrobePagePath = 'entry/src/main/ets/pages/WardrobePage.ets';
 const indexPagePath = 'entry/src/main/ets/pages/Index.ets';
 
-for (const file of [resultPagePath, wardrobePagePath, indexPagePath]) {
+for (const file of [resultPagePath, wishlistPagePath, wardrobePagePath, indexPagePath]) {
   if (!fs.existsSync(file)) {
     throw new Error(`${file} does not exist`);
   }
 }
 
 const resultPage = fs.readFileSync(resultPagePath, 'utf8');
+const wishlistPage = fs.readFileSync(wishlistPagePath, 'utf8');
 const wardrobePage = fs.readFileSync(wardrobePagePath, 'utf8');
 const indexPage = fs.readFileSync(indexPagePath, 'utf8');
 
@@ -50,6 +52,9 @@ for (const needle of [
   'inputErrorMessage',
   'SearchEntityType.WearLog',
   'SearchEntityType.Wishlist',
+  'initialScope',
+  'matchesInitialScope',
+  'availableScopes',
   'search(searchQuery, 100)',
   "placeholder: '搜索衣服、商场、套装'",
   "Text('搜索')",
@@ -113,6 +118,26 @@ if (!/selectedScope === 'profile'[\s\S]*?SearchEntityType\.WearLog[\s\S]*?Search
   throw new Error('SearchResultsPage profile scope must expose indexed personal results');
 }
 
+if (!/@Prop initialScope\?: SearchEntityType = undefined/.test(resultPage)) {
+  throw new Error('SearchResultsPage must support an optional initial search scope');
+}
+
+if (!/this\.selectedScope = this\.initialScope \?\? 'all'/.test(resultPage)) {
+  throw new Error('SearchResultsPage must preserve all-results behavior by default');
+}
+
+if (!/matchesInitialScope[\s\S]*?this\.initialScope === undefined[\s\S]*?entityType === this\.initialScope/.test(resultPage)) {
+  throw new Error('SearchResultsPage must filter constrained search results by entity type');
+}
+
+if (!/availableScopes[\s\S]*?this\.initialScope !== undefined[\s\S]*?entityTypeLabel\(this\.initialScope\)/.test(resultPage)) {
+  throw new Error('SearchResultsPage must expose only the constrained scope when provided');
+}
+
+if (!/SearchResultsPage\(\{[\s\S]*?initialScope: SearchEntityType\.Wishlist[\s\S]*?onOpenWishlistResult/.test(wishlistPage)) {
+  throw new Error('WishlistPage must constrain unified search to wishlist results');
+}
+
 for (const needle of [
   'SearchResultsPage',
   'openUnifiedSearch',
@@ -137,7 +162,7 @@ if (!/WardrobePage\(\{[\s\S]*?onOpenCapture: \(\) => \{[\s\S]*?this\.startCamera
   throw new Error('Index must connect search camera action directly to the camera flow');
 }
 
-if (!/SearchEntityType\.Store[\s\S]*?SearchEntityType\.StoreVisit[\s\S]*?selectedMainTab = 'store'[\s\S]*?selectedMainTab = 'profile'/.test(indexPage)) {
+if (!/SearchEntityType\.Store[\s\S]*?SearchEntityType\.StoreVisit[\s\S]*?AppMainTab\.Store[\s\S]*?AppMainTab\.Profile/.test(indexPage)) {
   throw new Error('Index must route store and personal search results to their target pages');
 }
 

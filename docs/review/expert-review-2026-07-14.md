@@ -5,6 +5,8 @@
 > 范围：`entry/src/main/ets` 全部 `.ets`（pages / components / domain / data / media / utils / theme）+ 设计规范 `docs/background/yibuque-design.md` + 主题 `theme/Tokens.ets`
 > 专家团：A=功能与流程、B=UI 与视觉、C=交互与动效
 
+> 状态：历史静态评审。后续提交已修复或改变部分结论，本文保留当时快照事实，不作为当前实现状态判断。
+
 ---
 
 ## 一、总览与健康度评分

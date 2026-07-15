@@ -80,6 +80,7 @@ function clothingCategoryLabel(category: ClothingCategory): string {
 @Component
 export struct SearchResultsPage {
   @Prop query: string = '';
+  @Prop initialScope?: SearchEntityType = undefined;
   searchRepository?: SearchRepository = undefined;
   clothingRepository?: ClothingRepository = undefined;
   outfitRepository?: OutfitRepository = undefined;
@@ -108,6 +109,7 @@ export struct SearchResultsPage {
   aboutToAppear(): void {
     this.searchText = this.query;
     this.activeQuery = this.query.trim();
+    this.selectedScope = this.initialScope ?? 'all';
     if (this.activeQuery.length > 0) {
       this.performSearch(this.activeQuery);
     }
@@ -126,7 +128,9 @@ export struct SearchResultsPage {
 
     try {
       const results = await this.searchRepository.search(searchQuery, 100);
-      const supportedResults = results.filter((result: SearchResult) => entityTypeLabel(result.entityType).length > 0);
+      const supportedResults = results.filter((result: SearchResult) => {
+        return entityTypeLabel(result.entityType).length > 0 && this.matchesInitialScope(result.entityType);
+      });
       const clothingItems = await this.loadClothingItems();
       const outfits = await this.loadOutfits();
       if (requestVersion !== this.searchRequestVersion) {
@@ -258,7 +262,21 @@ export struct SearchResultsPage {
     this.historyTerms = [];
   }
 
+  private matchesInitialScope(entityType: SearchEntityType): boolean {
+    return this.initialScope === undefined || entityType === this.initialScope;
+  }
+
+  private availableScopes(): SearchScopeOption[] {
+    if (this.initialScope !== undefined) {
+      return [{ key: this.initialScope, label: entityTypeLabel(this.initialScope) }];
+    }
+    return SEARCH_SCOPES;
+  }
+
   private resultMatchesScope(result: SearchVisualResult): boolean {
+    if (this.initialScope !== undefined) {
+      return result.entityType === this.initialScope;
+    }
     if (this.selectedScope === 'all') {
       return true;
     }
@@ -416,7 +434,7 @@ export struct SearchResultsPage {
   SearchTabs() {
     Scroll() {
       Row({ space: 22 }) {
-        ForEach(SEARCH_SCOPES, (scope: SearchScopeOption) => {
+        ForEach(this.availableScopes(), (scope: SearchScopeOption) => {
           Column({ space: 5 }) {
             Text(scope.label)
               .fontSize(16)

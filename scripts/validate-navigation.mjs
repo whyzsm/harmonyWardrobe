@@ -34,13 +34,19 @@ for (const label of ['衣柜', '逛店', '套装', '我的']) {
   }
 }
 
-for (const action of ['拍一张', '从相册选择']) {
+for (const action of ['衣柜', '逛店', '穿搭']) {
   if (!sheet.includes(action)) {
     throw new Error(`QuickCaptureSheet missing ${action}`);
   }
 }
 
-for (const callback of ['onTakePhoto', 'onPickGallery']) {
+for (const copy of ['新增衣物', '新增逛店记录', '新增穿搭']) {
+  if (!sheet.includes(copy)) {
+    throw new Error(`QuickCaptureSheet missing create copy ${copy}`);
+  }
+}
+
+for (const callback of ['onOpenWardrobe', 'onOpenStoreVisit', 'onOpenOutfit']) {
   if (!sheet.includes(callback)) {
     throw new Error(`QuickCaptureSheet missing ${callback}`);
   }
@@ -75,16 +81,16 @@ if (!nav.includes('onSelectOutfit') || !nav.includes('onOpenProfile')) {
 }
 
 for (const route of [
-  "this.selectedMainTab = 'store'",
-  "this.selectedMainTab = 'outfit'",
-  "this.selectedMainTab = 'profile'"
+  'this.resetMainRoute(AppMainTab.Store)',
+  'this.resetMainRoute(AppMainTab.Outfit)',
+  'this.resetMainRoute(AppMainTab.Profile)'
 ]) {
   if (!index.includes(route)) {
     throw new Error(`Index missing independent main-tab route ${route}`);
   }
 }
 
-if (!/private openStoreVisitList\(\): void \{[\s\S]*?this\.closeQuickStoreEditor\(\);[\s\S]*?this\.selectedMainTab = 'store';[\s\S]*?\}/.test(index)) {
+if (!/private openStoreVisitList\(\): void \{[\s\S]*?this\.resetMainRoute\(AppMainTab\.Store\);[\s\S]*?\}/.test(index)) {
   throw new Error('Store tab must close the quick store editor before opening the store visit list');
 }
 
@@ -93,24 +99,32 @@ if (!selectStoreBody.includes('this.openStoreVisitList();') || selectStoreBody.i
   throw new Error('Bottom store navigation must open the store visit list');
 }
 
-if (!/QuickCaptureSheet\(\{[\s\S]*?onTakePhoto:\s*\(\) => \{[\s\S]*?this\.startCameraCapture\(\);[\s\S]*?onPickGallery:\s*\(\) => \{[\s\S]*?this\.startGalleryCapture\(\);/.test(index)) {
-  throw new Error('Quick shortcut actions must open camera capture and gallery capture');
+if (!/QuickCaptureSheet\(\{[\s\S]*?onOpenWardrobe:\s*\(\) => \{[\s\S]*?this\.openQuickClothingEditor\(\);[\s\S]*?onOpenStoreVisit:\s*\(\) => \{[\s\S]*?this\.openQuickStoreEditor\(\);[\s\S]*?onOpenOutfit:\s*\(\) => \{[\s\S]*?this\.openQuickOutfitEditor\(\);/.test(index)) {
+  throw new Error('Quick shortcut actions must open the three create editors');
 }
 
 for (const needle of [
-  '@State private showStoreEditor: boolean = false',
-  '@State private showQuickStoreEditor: boolean = false',
-  '@State private showClothingEditor: boolean = false',
-  '@State private showNestedPage: boolean = false',
-  '@State private showWishlistPage: boolean = false',
+  '@State private activeRoute: AppRoute = createInitialAppRoute()',
+  'AppRouteKind.StoreEditor',
+  'AppRouteKind.ClothingEditor',
+  'AppRouteKind.OutfitEditor',
+  'AppRouteKind.Wishlist',
+  'AppRouteKind.CaptureEditor',
+  'featureNestedContentVisible',
   'onEditorVisibilityChange',
   'onClothingEditorVisibilityChange',
   'onNestedPageVisibilityChange',
-  'if (!this.showCaptureEditor && !this.showStoreEditor && !this.showQuickStoreEditor && !this.showClothingEditor && !this.showNestedPage && !this.showQuickActions && !this.showWishlistPage)',
+  'if (this.activeRoute.kind === AppRouteKind.Main && !this.featureNestedContentVisible)',
   'BottomNavigationBar({'
 ]) {
   if (!index.includes(needle)) {
     throw new Error(`Index missing store editor navigation visibility behavior: ${needle}`);
+  }
+}
+
+for (const editor of ['ClothingEditPage({', 'StoreVisitEditPage({', 'OutfitEditPage({']) {
+  if (!index.includes(editor)) {
+    throw new Error(`Index missing create editor ${editor}`);
   }
 }
 
@@ -130,7 +144,7 @@ for (const symbol of [
 }
 
 if (nav.includes('onOpenQuickActions')) {
-  throw new Error('BottomNavigationBar should use photo-first onOpenCapture');
+  throw new Error('BottomNavigationBar should use the shared onOpenCapture entry');
 }
 
 for (const legacyIcon of ["'⌂'", "'▤'", "'▢'", "'○'"]) {

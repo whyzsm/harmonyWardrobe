@@ -22,7 +22,7 @@ function requireNotIncludes(source, needle, label) {
 const tokens = readFile('entry/src/main/ets/theme/Tokens.ets');
 const searchResultsPage = readFile('entry/src/main/ets/pages/SearchResultsPage.ets');
 const indexPage = readFile('entry/src/main/ets/pages/Index.ets');
-const shoppingPage = readFile('entry/src/main/ets/pages/ShoppingPage.ets');
+const wishlistPage = readFile('entry/src/main/ets/pages/WishlistPage.ets');
 const clothingDetailPage = readFile('entry/src/main/ets/pages/ClothingDetailPage.ets');
 const wardrobePage = readFile('entry/src/main/ets/pages/WardrobePage.ets');
 
@@ -55,18 +55,18 @@ if (!/SearchEntityType\.WearLog[\s\S]*?this\.onOpenWearLogResult\(result\.entity
   throw new Error('SearchResultsPage must route wear-log results to the wear-log callback');
 }
 
-if (/SearchResultsPage\(\{[\s\S]*?wishlistRepository: this\.wishlistRepository/.test(shoppingPage)) {
-  throw new Error('ShoppingPage must not pass wishlistRepository to SearchResultsPage');
+if (/SearchResultsPage\(\{[\s\S]*?wishlistRepository: this\.wishlistRepository/.test(wishlistPage)) {
+  throw new Error('WishlistPage must not pass wishlistRepository to SearchResultsPage');
 }
 
 for (const needle of [
-  'showWishlistPage',
-  'ShoppingPage',
+  'AppRouteKind.Wishlist',
+  'WishlistPage',
   'SearchEntityType.Wishlist',
-  "this.showWishlistPage = true",
+  'this.openWishlistPage(id)',
   'SearchEntityType.WearLog',
-  "this.initialWardrobeTab = '日历'",
-  "this.selectedMainTab = 'wardrobe'"
+  "params.wardrobeTab = '日历'",
+  'AppMainTab.Wardrobe'
 ]) {
   requireIncludes(indexPage, needle, 'Index');
 }
