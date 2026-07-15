@@ -117,7 +117,11 @@ assertIncludes(deleteBody, 'this.deleteDocumentInTransaction', 'deleteDocument m
 assertMatches(upsertInTransactionBody, /this\.readDocumentRow/, 'upsertDocumentInTransaction must read existing documents');
 assertMatches(upsertInTransactionBody, /this\.insertDocument\s*\(\s*document\s*\)/, 'new search documents must use the database auto-increment insert');
 assertMatches(upsertInTransactionBody, /documentRowFromSearchDocument/, 'new search documents must build the saved row without re-querying inside the write transaction');
-assertMatches(repository, /last_insert_rowid\(\)/, 'new search documents must read the id allocated by SQLite');
+assertMatches(repository, /this\.database\.insert\s*\(\s*SEARCH_INDEX_DOCUMENTS_TABLE/, 'new search documents must use RdbStore.insert to receive the inserted row id');
+assertIncludes(repository, 'MigrationValuesBucket', 'SearchRepository must use the database values bucket for RdbStore.insert');
+if (repository.includes('last_insert_rowid()') || repository.includes('SELECT_INSERTED_DOCUMENT_ID_SQL')) {
+  throw new Error('Search document ids must come directly from the database insert result');
+}
 if (repository.includes('MAX(id)')) {
   throw new Error('Search document ids must not use MAX(id)+1 allocation');
 }

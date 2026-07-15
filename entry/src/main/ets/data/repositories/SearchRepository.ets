@@ -1,7 +1,8 @@
 import {
   MigrationDatabase,
   MigrationResultSet,
-  MigrationSqlValue
+  MigrationSqlValue,
+  MigrationValuesBucket
 } from '../migrations/Migration';
 import { SearchIndexMode } from '../searchIndex/SearchCapability';
 import { SearchDocument } from '../../domain/search/SearchDocumentBuilder';
@@ -10,6 +11,7 @@ import { buildSearchNgrams } from '../../utils/ngram';
 
 const DEFAULT_SEARCH_LIMIT = 20;
 const MAX_SEARCH_LIMIT = 100;
+const SEARCH_INDEX_DOCUMENTS_TABLE = 'search_index_documents';
 
 const SELECT_DOCUMENT_SQL = `
   SELECT
@@ -24,22 +26,6 @@ const SELECT_DOCUMENT_SQL = `
   FROM search_index_documents
   WHERE entity_type = ? AND entity_id = ?
 `;
-
-const INSERT_DOCUMENT_SQL = `
-  INSERT INTO search_index_documents (
-    entity_type,
-    entity_id,
-    title,
-    body,
-    category,
-    store_name,
-    ngrams
-  )
-  VALUES (?, ?, ?, ?, ?, ?, ?)
-`;
-
-const SELECT_LAST_INSERTED_DOCUMENT_ID_SQL =
-  'SELECT last_insert_rowid() AS id';
 
 const UPDATE_DOCUMENT_SQL = `
   UPDATE search_index_documents
@@ -118,16 +104,16 @@ interface SearchIndexDocumentRow {
   ngrams: string;
 }
 
-function documentBindArgs(document: SearchDocument): MigrationSqlValue[] {
-  return [
-    document.entityType,
-    document.entityId,
-    document.title,
-    document.body,
-    document.category ?? null,
-    document.storeName ?? null,
-    document.ngrams
-  ];
+function documentValues(document: SearchDocument): MigrationValuesBucket {
+  return {
+    entity_type: document.entityType,
+    entity_id: document.entityId,
+    title: document.title,
+    body: document.body,
+    category: document.category ?? null,
+    store_name: document.storeName ?? null,
+    ngrams: document.ngrams
+  };
 }
 
 function documentRowFromSearchDocument(id: number, document: SearchDocument): SearchIndexDocumentRow {
@@ -279,23 +265,12 @@ export class SearchRepository {
   }
 
   private async insertDocument(document: SearchDocument): Promise<number> {
-    await this.database.executeSql(INSERT_DOCUMENT_SQL, documentBindArgs(document));
-    const resultSet = await this.database.querySql(SELECT_LAST_INSERTED_DOCUMENT_ID_SQL);
-
-    try {
-      if (!resultSet.goToFirstRow()) {
-        throw new Error('Search document insert did not return an id.');
-      }
-
-      const documentId = resultSet.getNumber('id');
-      if (!Number.isSafeInteger(documentId) || documentId <= 0) {
-        throw new Error(`Invalid search document id: ${documentId}`);
-      }
-
-      return documentId;
-    } finally {
-      resultSet.close();
+    const documentId = await this.database.insert(SEARCH_INDEX_DOCUMENTS_TABLE, documentValues(document));
+    if (!Number.isSafeInteger(documentId) || documentId <= 0) {
+      throw new Error(`Invalid search document id returned by insert: ${documentId}`);
     }
+
+    return documentId;
   }
 
   private async updateDocument(document: SearchDocument): Promise<void> {
@@ -325,15 +300,6 @@ export class SearchRepository {
     } finally {
       resultSet.close();
     }
-  }
-
-  private async requireDocumentRow(entityType: SearchEntityType, entityId: string): Promise<SearchIndexDocumentRow> {
-    const document = await this.readDocumentRow(entityType, entityId);
-    if (document === undefined) {
-      throw new Error(`Search document not found: ${entityType}/${entityId}`);
-    }
-
-    return document;
   }
 
   private readDocumentRowFromResultSet(resultSet: MigrationResultSet): SearchIndexDocumentRow {

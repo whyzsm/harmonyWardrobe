@@ -1,4 +1,5 @@
 export type MigrationSqlValue = string | number | boolean | null;
+export type MigrationValuesBucket = Record<string, MigrationSqlValue>;
 
 export interface MigrationResultSet {
   goToFirstRow(): boolean;
@@ -10,6 +11,7 @@ export interface MigrationResultSet {
 
 export interface MigrationDatabase {
   executeSql(sql: string, bindArgs?: MigrationSqlValue[]): Promise<void>;
+  insert(table: string, values: MigrationValuesBucket): Promise<number>;
   querySql(sql: string, bindArgs?: MigrationSqlValue[]): Promise<MigrationResultSet>;
   transaction<T>(operation: () => Promise<T>): Promise<T>;
 }

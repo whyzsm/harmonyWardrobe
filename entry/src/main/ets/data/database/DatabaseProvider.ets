@@ -3,7 +3,8 @@ import common from '@ohos.app.ability.common';
 import {
   MigrationDatabase,
   MigrationResultSet,
-  MigrationSqlValue
+  MigrationSqlValue,
+  MigrationValuesBucket
 } from '../migrations/Migration';
 import { DatabaseError } from './DatabaseError';
 
@@ -85,6 +86,17 @@ export class DatabaseProvider implements MigrationDatabase {
     } catch (error) {
       const cause = error as Error;
       throw new DatabaseError(messageWithSql('Failed to execute database statement.', sql, cause), cause);
+    }
+  }
+
+  async insert(table: string, values: MigrationValuesBucket): Promise<number> {
+    const store = await this.getStore();
+
+    try {
+      return await store.insert(table, values);
+    } catch (error) {
+      const cause = error as Error;
+      throw new DatabaseError(messageWithCause(`Failed to insert row into ${table}.`, cause), cause);
     }
   }
 

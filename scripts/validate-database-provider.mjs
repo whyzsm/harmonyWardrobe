@@ -5,6 +5,7 @@ for (const needle of [
   'relationalStore',
   'getStore',
   'executeSql',
+  'insert',
   'transaction',
   'rollBack',
   'rollbackCause',
@@ -19,6 +20,7 @@ for (const needle of [
   'compactSql',
   'bindArgs.length === 0',
   'store.executeSql(sql)',
+  'store.insert(table, values)',
   'store.querySql(sql)'
 ]) {
   if (!text.includes(needle)) {
