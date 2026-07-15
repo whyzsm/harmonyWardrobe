@@ -93,7 +93,7 @@ export class DatabaseProvider implements MigrationDatabase {
     const store = await this.getStore();
 
     try {
-      return await store.insert(table, values);
+      return await store.insert(table, values as Object as relationalStore.ValuesBucket);
     } catch (error) {
       const cause = error as Error;
       throw new DatabaseError(messageWithCause(`Failed to insert row into ${table}.`, cause), cause);

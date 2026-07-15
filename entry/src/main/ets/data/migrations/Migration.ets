@@ -1,7 +1,13 @@
 export type MigrationSqlValue = string | number | boolean | null;
 
 export interface MigrationValuesBucket {
-  [key: string]: MigrationSqlValue;
+  entity_type: string;
+  entity_id: string;
+  title: string;
+  body: string;
+  category: string | null;
+  store_name: string | null;
+  ngrams: string;
 }
 
 export interface MigrationResultSet {

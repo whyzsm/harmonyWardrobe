@@ -20,7 +20,7 @@ for (const needle of [
   'compactSql',
   'bindArgs.length === 0',
   'store.executeSql(sql)',
-  'store.insert(table, values)',
+  'store.insert(table, values as Object as relationalStore.ValuesBucket)',
   'store.querySql(sql)'
 ]) {
   if (!text.includes(needle)) {
