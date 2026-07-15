@@ -10,6 +10,8 @@ const service = fs.readFileSync(servicePath, 'utf8');
 for (const needle of [
   'DeleteCleanupService',
   'deleteObjectPhotos',
+  'readObjectPhotoUris',
+  'cleanupReplacedPhotos',
   'deleteSearchDocument',
   'deleteLocalPhoto',
   'orphan',
@@ -25,12 +27,27 @@ for (const needle of [
   }
 }
 
+for (const needle of [
+  'clothing_photos',
+  'outfit_photos',
+  'wear_log_photos',
+  'wishlist_photos',
+  'store_photos',
+  'store_visit_photos',
+  'throwIfPhotoCleanupFailed',
+  'local_uri = ?'
+]) {
+  if (!service.includes(needle)) {
+    throw new Error(`DeleteCleanupService must protect shared photo references and report failures: ${needle}`);
+  }
+}
+
 for (const [path, needles] of [
-  ['entry/src/main/ets/data/repositories/ClothingRepository.ets', ['DeleteCleanupService', 'PhotoStorage', 'deleteObjectPhotos', 'deleteDocumentInTransaction', 'SearchEntityType.Clothing']],
-  ['entry/src/main/ets/data/repositories/OutfitRepository.ets', ['DeleteCleanupService', 'PhotoStorage', 'deleteObjectPhotos', 'deleteDocumentInTransaction', 'SearchEntityType.Outfit']],
-  ['entry/src/main/ets/data/repositories/WearLogRepository.ets', ['DeleteCleanupService', 'PhotoStorage', 'deleteObjectPhotos', 'deleteDocumentInTransaction', 'SearchEntityType.WearLog']],
-  ['entry/src/main/ets/data/repositories/WishlistRepository.ets', ['DeleteCleanupService', 'PhotoStorage', 'deleteObjectPhotos', 'deleteDocumentInTransaction', 'SearchEntityType.Wishlist']],
-  ['entry/src/main/ets/data/repositories/StoreRepository.ets', ['DeleteCleanupService', 'PhotoStorage', 'deleteObjectPhotos', 'deleteStore', 'deleteStoreVisit', 'deleteDocumentInTransaction', 'SearchEntityType.Store', 'SearchEntityType.StoreVisit']]
+  ['entry/src/main/ets/data/repositories/ClothingRepository.ets', ['DeleteCleanupService', 'PhotoStorage', 'deleteObjectPhotos', 'readObjectPhotoUris', 'cleanupReplacedPhotos', 'deleteDocumentInTransaction', 'SearchEntityType.Clothing']],
+  ['entry/src/main/ets/data/repositories/OutfitRepository.ets', ['DeleteCleanupService', 'PhotoStorage', 'deleteObjectPhotos', 'readObjectPhotoUris', 'cleanupReplacedPhotos', 'deleteDocumentInTransaction', 'SearchEntityType.Outfit']],
+  ['entry/src/main/ets/data/repositories/WearLogRepository.ets', ['DeleteCleanupService', 'PhotoStorage', 'deleteObjectPhotos', 'readObjectPhotoUris', 'cleanupReplacedPhotos', 'deleteDocumentInTransaction', 'SearchEntityType.WearLog']],
+  ['entry/src/main/ets/data/repositories/WishlistRepository.ets', ['DeleteCleanupService', 'PhotoStorage', 'deleteObjectPhotos', 'readObjectPhotoUris', 'cleanupReplacedPhotos', 'deleteDocumentInTransaction', 'SearchEntityType.Wishlist']],
+  ['entry/src/main/ets/data/repositories/StoreRepository.ets', ['DeleteCleanupService', 'PhotoStorage', 'deleteObjectPhotos', 'readObjectPhotoUris', 'cleanupReplacedPhotos', 'deleteStore', 'deleteStoreVisit', 'deleteDocumentInTransaction', 'SearchEntityType.Store', 'SearchEntityType.StoreVisit']]
 ]) {
   const source = fs.readFileSync(path, 'utf8');
   for (const needle of needles) {

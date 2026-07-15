@@ -306,7 +306,19 @@ export class WishlistRepository {
   }
 
   private async replacePhotoRows(wishlistId: string, photoUris: string[]): Promise<void> {
+    const existingPhotoUris = await this.deleteCleanupService.readObjectPhotoUris(
+      'wishlist_photos',
+      'wishlist_id',
+      wishlistId
+    );
     await this.database.executeSql(DELETE_WISHLIST_PHOTOS_SQL, [wishlistId]);
+    await this.deleteCleanupService.cleanupReplacedPhotos(
+      'wishlist_photos',
+      'wishlist_id',
+      wishlistId,
+      existingPhotoUris,
+      photoUris
+    );
 
     for (let index = 0; index < photoUris.length; index += 1) {
       await this.database.executeSql(INSERT_WISHLIST_PHOTO_SQL, [

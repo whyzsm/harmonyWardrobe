@@ -564,14 +564,38 @@ export class StoreRepository {
   }
 
   private async replaceStorePhotoRows(storeId: string, photoUris: string[]): Promise<void> {
+    const existingPhotoUris = await this.deleteCleanupService.readObjectPhotoUris(
+      'store_photos',
+      'store_id',
+      storeId
+    );
     await this.database.executeSql(DELETE_STORE_PHOTOS_SQL, [storeId]);
+    await this.deleteCleanupService.cleanupReplacedPhotos(
+      'store_photos',
+      'store_id',
+      storeId,
+      existingPhotoUris,
+      photoUris
+    );
     for (let index = 0; index < photoUris.length; index += 1) {
       await this.database.executeSql(INSERT_STORE_PHOTO_SQL, [createId('store_photo'), storeId, photoUris[index], index]);
     }
   }
 
   private async replaceStoreVisitPhotoRows(visitId: string, photoUris: string[]): Promise<void> {
+    const existingPhotoUris = await this.deleteCleanupService.readObjectPhotoUris(
+      'store_visit_photos',
+      'store_visit_id',
+      visitId
+    );
     await this.database.executeSql(DELETE_STORE_VISIT_PHOTOS_SQL, [visitId]);
+    await this.deleteCleanupService.cleanupReplacedPhotos(
+      'store_visit_photos',
+      'store_visit_id',
+      visitId,
+      existingPhotoUris,
+      photoUris
+    );
     for (let index = 0; index < photoUris.length; index += 1) {
       await this.database.executeSql(INSERT_STORE_VISIT_PHOTO_SQL, [createId('store_visit_photo'), visitId, photoUris[index], index]);
     }

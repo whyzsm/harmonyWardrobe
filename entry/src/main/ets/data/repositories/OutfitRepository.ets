@@ -387,7 +387,19 @@ export class OutfitRepository {
   }
 
   private async replacePhotoRows(outfitId: string, photoUris: string[]): Promise<void> {
+    const existingPhotoUris = await this.deleteCleanupService.readObjectPhotoUris(
+      'outfit_photos',
+      'outfit_id',
+      outfitId
+    );
     await this.database.executeSql(DELETE_OUTFIT_PHOTOS_SQL, [outfitId]);
+    await this.deleteCleanupService.cleanupReplacedPhotos(
+      'outfit_photos',
+      'outfit_id',
+      outfitId,
+      existingPhotoUris,
+      photoUris
+    );
 
     for (let index = 0; index < photoUris.length; index += 1) {
       await this.database.executeSql(INSERT_OUTFIT_PHOTO_SQL, [

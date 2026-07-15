@@ -27,7 +27,6 @@ const SELECT_DOCUMENT_SQL = `
 
 const INSERT_DOCUMENT_SQL = `
   INSERT INTO search_index_documents (
-    id,
     entity_type,
     entity_id,
     title,
@@ -36,8 +35,11 @@ const INSERT_DOCUMENT_SQL = `
     store_name,
     ngrams
   )
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
 `;
+
+const SELECT_LAST_INSERTED_DOCUMENT_ID_SQL =
+  'SELECT last_insert_rowid() AS id';
 
 const UPDATE_DOCUMENT_SQL = `
   UPDATE search_index_documents
@@ -168,7 +170,6 @@ function buildFtsQuery(tokens: string[]): string {
 export class SearchRepository {
   private readonly database: MigrationDatabase;
   private readonly mode: SearchIndexMode;
-  private lastAllocatedDocumentId: number = 0;
 
   constructor(database: MigrationDatabase, mode: SearchIndexMode) {
     this.database = database;
@@ -186,9 +187,8 @@ export class SearchRepository {
     let savedDocument: SearchIndexDocumentRow;
 
     if (existing === undefined) {
-      const documentId = await this.nextDocumentId();
+      const documentId = await this.insertDocument(document);
       savedDocument = documentRowFromSearchDocument(documentId, document);
-      await this.insertDocument(documentId, document);
     } else {
       savedDocument = {
         id: existing.id,
@@ -266,9 +266,8 @@ export class SearchRepository {
       await this.database.executeSql(DELETE_ALL_DOCUMENTS_SQL);
 
       for (const document of documents) {
-        const documentId = await this.nextDocumentId();
+        const documentId = await this.insertDocument(document);
         const savedDocument = documentRowFromSearchDocument(documentId, document);
-        await this.insertDocument(documentId, document);
 
         if (this.mode === 'fts5') {
           await this.insertFtsDocument(savedDocument);
@@ -279,8 +278,24 @@ export class SearchRepository {
     });
   }
 
-  private async insertDocument(id: number, document: SearchDocument): Promise<void> {
-    await this.database.executeSql(INSERT_DOCUMENT_SQL, [id, ...documentBindArgs(document)]);
+  private async insertDocument(document: SearchDocument): Promise<number> {
+    await this.database.executeSql(INSERT_DOCUMENT_SQL, documentBindArgs(document));
+    const resultSet = await this.database.querySql(SELECT_LAST_INSERTED_DOCUMENT_ID_SQL);
+
+    try {
+      if (!resultSet.goToFirstRow()) {
+        throw new Error('Search document insert did not return an id.');
+      }
+
+      const documentId = resultSet.getNumber('id');
+      if (!Number.isSafeInteger(documentId) || documentId <= 0) {
+        throw new Error(`Invalid search document id: ${documentId}`);
+      }
+
+      return documentId;
+    } finally {
+      resultSet.close();
+    }
   }
 
   private async updateDocument(document: SearchDocument): Promise<void> {
@@ -319,24 +334,6 @@ export class SearchRepository {
     }
 
     return document;
-  }
-
-  private async nextDocumentId(): Promise<number> {
-    const resultSet = await this.database.querySql('SELECT COALESCE(MAX(id), 0) + 1 AS next_id FROM search_index_documents');
-
-    try {
-      if (!resultSet.goToFirstRow()) {
-        this.lastAllocatedDocumentId += 1;
-        return this.lastAllocatedDocumentId;
-      }
-
-      const candidateId = resultSet.getNumber('next_id');
-      const nextId = Math.max(candidateId, this.lastAllocatedDocumentId + 1);
-      this.lastAllocatedDocumentId = nextId;
-      return nextId;
-    } finally {
-      resultSet.close();
-    }
   }
 
   private readDocumentRowFromResultSet(resultSet: MigrationResultSet): SearchIndexDocumentRow {

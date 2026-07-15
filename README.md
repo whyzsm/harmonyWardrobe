@@ -57,6 +57,18 @@ English: To build only the entry module HAP, use module mode and specify product
 <command-line-tools>/bin/hvigorw --mode module -p product=default -p module=entry@default assembleHap --no-daemon --no-incremental --no-parallel --stacktrace
 ```
 
+中文：当前调试默认走模拟机调试环境。先在 DevEco Studio 启动 HarmonyOS 模拟器，然后运行：
+
+English: Debugging now defaults to the emulator debug environment. Start the HarmonyOS emulator in DevEco Studio, then run:
+
+```bash
+scripts/emulator-debug.sh
+```
+
+中文：脚本会构建 `default` debug HAP、通过 `hdc` 安装到当前模拟器、启动 `EntryAbility`，并保存一张模拟器截图。多设备时使用 `HDC_TARGET=<target>` 指定目标；工具路径可通过 `HVIGORW`、`HDC` 或 `DEVECO_COMMAND_LINE_TOOLS` 覆盖。若本机已经有可用 HAP、只想复用现有包安装启动，可运行 `SKIP_BUILD=1 scripts/emulator-debug.sh`。如果模拟器里已有不同签名的同包名应用，脚本会停止并提示；确认可以卸载旧包并保留数据后，再运行 `RESET_APP_ON_SIGN_MISMATCH=1 scripts/emulator-debug.sh`。
+
+English: The script builds the `default` debug HAP, installs it on the current emulator through `hdc`, starts `EntryAbility`, and saves an emulator screenshot. Use `HDC_TARGET=<target>` when multiple devices are connected; override tool paths with `HVIGORW`, `HDC`, or `DEVECO_COMMAND_LINE_TOOLS`. If a usable HAP already exists and you only need to install and launch it, run `SKIP_BUILD=1 scripts/emulator-debug.sh`. If the emulator already has the same bundle name installed with different signing info, the script stops and prompts; when uninstalling the old package while keeping data is acceptable, run `RESET_APP_ON_SIGN_MISMATCH=1 scripts/emulator-debug.sh`.
+
 中文：本仓库提交了 Hvigor 项目配置，但不提交 `.hvigor/`、`build/` 或 `entry/build/` 生成物。
 
 English: This repository commits the Hvigor project configuration, but does not commit generated `.hvigor/`, `build/`, or `entry/build/` outputs.

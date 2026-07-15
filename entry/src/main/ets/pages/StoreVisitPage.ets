@@ -4,6 +4,7 @@ import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
 import { YibuqueColor } from '../theme/Tokens';
 import { ArrayDataSource } from '../utils/ArrayDataSource';
+import { toIsoDate } from '../utils/date';
 import { StoreVisitEditPage } from './StoreVisitEditPage';
 
 interface StoreVisitStatusFilter {
@@ -229,8 +230,19 @@ export struct StoreVisitPage {
     return detail.length > 0 ? detail : visit.visitDate;
   }
 
+  private routeVisits(): StoreVisit[] {
+    const today = toIsoDate(new Date());
+    const todayVisits = this.visits.filter((visit: StoreVisit) => visit.visitDate === today);
+    return todayVisits.length > 0 ? todayVisits : this.visits;
+  }
+
+  private hasTodayRoute(): boolean {
+    const today = toIsoDate(new Date());
+    return this.visits.some((visit: StoreVisit) => visit.visitDate === today);
+  }
+
   private routeLocation(): string {
-    for (const visit of this.visits) {
+    for (const visit of this.routeVisits()) {
       if (visit.districtOrAddress !== undefined && visit.districtOrAddress.trim().length > 0) {
         return visit.districtOrAddress.trim();
       }
@@ -240,7 +252,7 @@ export struct StoreVisitPage {
 
   private routeVisitedCount(): number {
     let count = 0;
-    for (const visit of this.visits) {
+    for (const visit of this.routeVisits()) {
       if (this.visitStatus(visit) !== StoreVisitStatus.WantToVisit) {
         count += 1;
       }
@@ -250,7 +262,7 @@ export struct StoreVisitPage {
 
   private routeWantToVisitCount(): number {
     let count = 0;
-    for (const visit of this.visits) {
+    for (const visit of this.routeVisits()) {
       if (this.visitStatus(visit) === StoreVisitStatus.WantToVisit) {
         count += 1;
       }
@@ -397,7 +409,7 @@ export struct StoreVisitPage {
   RouteCard() {
     Row({ space: 12 }) {
       Column({ space: 2 }) {
-        Text(`今天路线：${this.routeLocation()}`)
+        Text(`${this.hasTodayRoute() ? '今天路线' : '最近路线'}：${this.routeLocation()}`)
           .width('100%')
           .fontSize(14)
           .lineHeight(17)

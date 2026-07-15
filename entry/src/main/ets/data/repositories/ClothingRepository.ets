@@ -50,6 +50,7 @@ const UPDATE_CLOTHING_SQL = `
 
 const DELETE_CLOTHING_SQL = 'DELETE FROM clothing_items WHERE id = ?';
 const DELETE_CLOTHING_PHOTOS_SQL = 'DELETE FROM clothing_photos WHERE clothing_id = ?';
+const DELETE_OUTFIT_ITEMS_BY_CLOTHING_ID_SQL = 'DELETE FROM outfit_items WHERE clothing_id = ?';
 
 const INSERT_CLOTHING_PHOTO_SQL = `
   INSERT INTO clothing_photos (
@@ -235,17 +236,8 @@ function normalizePhotoUris(photoUris?: string[]): string[] {
 }
 
 function normalizeClothingCategory(category: string): ClothingCategory {
-  if (
-    category === ClothingCategory.Top ||
-    category === ClothingCategory.Pants ||
-    category === ClothingCategory.Shorts ||
-    category === ClothingCategory.LongSkirt ||
-    category === ClothingCategory.HalfSkirt
-  ) {
-    return category as ClothingCategory;
-  }
-
-  return ClothingCategory.Top;
+  const normalized = category.trim();
+  return normalized.length > 0 ? normalized as ClothingCategory : ClothingCategory.Top;
 }
 
 function categoryFilterValues(category: ClothingCategory): string[] {
@@ -340,6 +332,7 @@ export class ClothingRepository {
     await this.database.transaction(async () => {
       const affectedOutfitIds = await this.readOutfitIdsByClothingId(id);
       await this.deleteCleanupService.deleteObjectPhotos('clothing_photos', 'clothing_id', id);
+      await this.database.executeSql(DELETE_OUTFIT_ITEMS_BY_CLOTHING_ID_SQL, [id]);
       await this.database.executeSql(DELETE_CLOTHING_SQL, [id]);
       await this.searchRepository.deleteDocumentInTransaction(SearchEntityType.Clothing, id);
       await this.rebuildOutfitSearchDocuments(affectedOutfitIds);
@@ -402,7 +395,19 @@ export class ClothingRepository {
   }
 
   private async replacePhotoRows(clothingId: string, photoUris: string[]): Promise<void> {
+    const existingPhotoUris = await this.deleteCleanupService.readObjectPhotoUris(
+      'clothing_photos',
+      'clothing_id',
+      clothingId
+    );
     await this.database.executeSql(DELETE_CLOTHING_PHOTOS_SQL, [clothingId]);
+    await this.deleteCleanupService.cleanupReplacedPhotos(
+      'clothing_photos',
+      'clothing_id',
+      clothingId,
+      existingPhotoUris,
+      photoUris
+    );
 
     for (let index = 0; index < photoUris.length; index += 1) {
       await this.database.executeSql(INSERT_CLOTHING_PHOTO_SQL, [

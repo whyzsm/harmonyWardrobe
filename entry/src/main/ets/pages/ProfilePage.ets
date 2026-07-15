@@ -287,6 +287,15 @@ export struct ProfilePage {
     return tags;
   }
 
+  private fittingPreferenceSummary(): string {
+    if (!this.fittingPreferenceEnabled) {
+      return '尚未启用';
+    }
+
+    const tags = this.selectedStyleTags();
+    return tags.length > 0 ? tags.join(' · ') : '已启用';
+  }
+
   private async persistPreferences(message: string): Promise<void> {
     if (this.profileRepository === undefined || this.isSaving) return;
     this.isSaving = true;
@@ -560,7 +569,7 @@ export struct ProfilePage {
       Column() {
         this.PreferenceRow('常用尺码', this.measurementSummary, 'size')
         Divider().strokeWidth(1).color(PROFILE_BORDER_SOFT)
-        this.PreferenceRow('试穿偏好', '宽松 · 好走路 · 低维护', 'preference')
+        this.PreferenceRow('试穿偏好', this.fittingPreferenceSummary(), 'preference')
         Divider().strokeWidth(1).color(PROFILE_BORDER_SOFT)
         this.PreferenceRow('常逛商圈', this.frequentDistricts.length > 0 ? this.frequentDistricts.join(' · ') : '尚未设置', 'shops')
         this.StyleTags()
@@ -753,14 +762,8 @@ export struct ProfilePage {
         .width('100%')
         .alignItems(VerticalAlign.Top)
 
-        Row()
-          .width('100%')
-          .height(8)
-          .backgroundColor(PROFILE_BORDER_SOFT)
-          .borderRadius(999)
-
         Row({ space: 10 }) {
-          Text('预算 --')
+          Text('消费记录暂未接入预算统计')
             .layoutWeight(1)
             .fontSize(12)
             .fontColor(PROFILE_MUTED)

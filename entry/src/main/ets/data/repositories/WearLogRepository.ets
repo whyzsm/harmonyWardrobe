@@ -379,7 +379,19 @@ export class WearLogRepository {
   }
 
   private async replacePhotoRows(wearLogId: string, photoUris: string[]): Promise<void> {
+    const existingPhotoUris = await this.deleteCleanupService.readObjectPhotoUris(
+      'wear_log_photos',
+      'wear_log_id',
+      wearLogId
+    );
     await this.database.executeSql(DELETE_WEAR_LOG_PHOTOS_SQL, [wearLogId]);
+    await this.deleteCleanupService.cleanupReplacedPhotos(
+      'wear_log_photos',
+      'wear_log_id',
+      wearLogId,
+      existingPhotoUris,
+      photoUris
+    );
 
     for (let index = 0; index < photoUris.length; index += 1) {
       await this.database.executeSql(INSERT_WEAR_LOG_PHOTO_SQL, [

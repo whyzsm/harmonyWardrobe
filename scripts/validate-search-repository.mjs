@@ -115,8 +115,12 @@ for (const [name, body] of [
 assertIncludes(upsertBody, 'this.upsertDocumentInTransaction', 'upsertDocument must delegate to the transaction-scoped upsert method');
 assertIncludes(deleteBody, 'this.deleteDocumentInTransaction', 'deleteDocument must delegate to the transaction-scoped delete method');
 assertMatches(upsertInTransactionBody, /this\.readDocumentRow/, 'upsertDocumentInTransaction must read existing documents');
-assertMatches(upsertInTransactionBody, /this\.nextDocumentId\s*\(\s*\)/, 'new search documents must allocate ids before insert');
+assertMatches(upsertInTransactionBody, /this\.insertDocument\s*\(\s*document\s*\)/, 'new search documents must use the database auto-increment insert');
 assertMatches(upsertInTransactionBody, /documentRowFromSearchDocument/, 'new search documents must build the saved row without re-querying inside the write transaction');
+assertMatches(repository, /last_insert_rowid\(\)/, 'new search documents must read the id allocated by SQLite');
+if (repository.includes('MAX(id)')) {
+  throw new Error('Search document ids must not use MAX(id)+1 allocation');
+}
 if (/const\s+savedDocument\s*=\s*await\s+this\.requireDocumentRow/.test(upsertInTransactionBody)) {
   throw new Error('upsertDocumentInTransaction must not re-query just-inserted documents inside the write transaction');
 }

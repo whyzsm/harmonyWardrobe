@@ -43,6 +43,8 @@ git diff --check
 
 2026-07-04 追加表单精修后再次执行 entry HAP 构建，结果仍为 `BUILD SUCCESSFUL`，同样仅提示 `No signingConfig found for product default`。
 
+2026-07-15 调试路径已改为模拟机调试环境：使用 `scripts/emulator-debug.sh` 构建 `default` debug HAP，通过 `hdc` 安装到 HarmonyOS 模拟器并启动 `EntryAbility`，同时拉取模拟器截图作为冒烟证据。真机签名与发布安装验证仍作为后续补测项，不阻塞当前模拟机调试。
+
 ## 手工 QA
 
 手工 QA 脚本位于 `docs/qa/manual-test-script.md`，覆盖：

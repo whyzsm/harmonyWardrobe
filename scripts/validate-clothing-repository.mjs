@@ -100,6 +100,7 @@ assertMatches(source, /new\s+SearchRepository\s*\(\s*database\s*,\s*searchIndexM
 assertMatches(source, /new\s+DeleteCleanupService\s*\([\s\S]*photoStorage\s*\)/, 'ClothingRepository must pass PhotoStorage to DeleteCleanupService');
 assertMatches(source, /UPDATE\s+clothing_items/i, 'updateClothing must update clothing_items');
 assertMatches(source, /DELETE\s+FROM\s+clothing_items/i, 'deleteClothing must delete clothing_items');
+assertMatches(source, /DELETE\s+FROM\s+outfit_items\s+WHERE\s+clothing_id\s*=\s*\?/i, 'deleteClothing must explicitly remove outfit references before deleting clothing');
 assertMatches(source, /INSERT\s+INTO\s+clothing_photos/i, 'repository must insert clothing_photos');
 assertMatches(source, /DELETE\s+FROM\s+clothing_photos\s+WHERE\s+clothing_id\s*=\s*\?/i, 'repository must replace clothing_photos by clothing_id');
 assertMatches(source, /ORDER\s+BY\s+sort_order/i, 'photo loading must respect sort_order');
@@ -118,6 +119,7 @@ assert.equal(/INSERT_CLOTHING_SQL[\s\S]*purchase_price_value[\s\S]*VALUES/.test(
 assertMatches(source, /purchase_date/i, 'repository must persist purchase date');
 assertMatches(source, /purchase_note/i, 'repository must persist purchase note');
 assertMatches(source, /categoryFilterValues/, 'listClothing must map category filters through categoryFilterValues');
+assertMatches(source, /normalizeClothingCategory[\s\S]*normalized\.length\s*>\s*0\s*\?\s*normalized\s+as\s+ClothingCategory/, 'legacy clothing categories must be preserved when they are non-empty');
 assertMatches(source, /whereClauses\.push\s*\(\s*`category\s+IN\s+\(\$\{categoryValues\.map/, 'listClothing must support category IN filtering');
 assertMatches(source, /WHERE\s+\$\{whereClauses\.join\(['"`] AND ['"`]\)\}/, 'listClothing must combine dynamic WHERE clauses');
 assertMatches(source, /LIKE\s+\?/i, 'listClothing must support name/note text filtering');

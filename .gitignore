@@ -13,6 +13,12 @@ entry/build/
 .workbuddy/
 .appanalyzer/
 
+# Signing material — never commit keys, certs, or profiles
+signature/
+
+# Backup files
+*.backup
+
 # Executables
 *.swf
 *.air
