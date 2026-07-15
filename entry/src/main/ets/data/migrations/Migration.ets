@@ -1,5 +1,8 @@
 export type MigrationSqlValue = string | number | boolean | null;
-export type MigrationValuesBucket = Record<string, MigrationSqlValue>;
+
+export interface MigrationValuesBucket {
+  [key: string]: MigrationSqlValue;
+}
 
 export interface MigrationResultSet {
   goToFirstRow(): boolean;
