@@ -6,7 +6,7 @@ import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { WearLog } from '../domain/wearLog/WearLogModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { AppTheme } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
 import { monthKey, toIsoDate } from '../utils/date';
 import { WearLogEditPage } from './WearLogEditPage';
 
@@ -130,11 +130,11 @@ export struct CalendarPage {
             Text('日历')
               .fontSize(30)
               .fontWeight(FontWeight.Regular)
-              .fontColor(AppTheme.color.text)
+              .fontColor(YibuqueColor.textPrimary)
 
             Text('按日期回看穿搭、地点和照片记录。')
               .fontSize(15)
-              .fontColor(AppTheme.color.textMuted)
+              .fontColor(YibuqueColor.textSecondary)
           }
           .layoutWeight(1)
           .alignItems(HorizontalAlign.Start)
@@ -142,9 +142,9 @@ export struct CalendarPage {
           Button('补录穿着')
             .height(40)
             .fontSize(14)
-            .fontColor(AppTheme.color.surface)
-            .backgroundColor(AppTheme.color.primary)
-            .borderRadius(AppTheme.radius.md)
+            .fontColor(YibuqueColor.textInverse)
+            .backgroundColor(YibuqueColor.actionBlack)
+            .borderRadius(YibuqueRadius.sm)
             .onClick(() => {
               this.startBackfillWearLog();
             })
@@ -155,14 +155,14 @@ export struct CalendarPage {
         if (this.loading) {
           Text('正在加载日历...')
             .fontSize(14)
-            .fontColor(AppTheme.color.textMuted)
+            .fontColor(YibuqueColor.textSecondary)
         }
 
         if (this.errorMessage.length > 0) {
           Row({ space: 8 }) {
             Text(this.errorMessage)
               .fontSize(14)
-              .fontColor(AppTheme.color.danger)
+              .fontColor(YibuqueColor.danger)
               .layoutWeight(1)
 
             Button('重试')
@@ -179,7 +179,7 @@ export struct CalendarPage {
           Text(this.currentMonth)
             .fontSize(18)
             .fontWeight(FontWeight.Regular)
-            .fontColor(AppTheme.color.text)
+            .fontColor(YibuqueColor.textPrimary)
 
           MonthCalendar({
             month: this.currentMonth,
@@ -192,15 +192,15 @@ export struct CalendarPage {
         }
         .width('100%')
         .padding(12)
-        .borderRadius(AppTheme.radius.lg)
-        .backgroundColor(AppTheme.color.surfaceRaised)
-        .border({ width: 1, color: AppTheme.color.border })
+        .borderRadius(YibuqueRadius.md)
+        .backgroundColor(YibuqueColor.cardSoftGray)
+        .border({ width: 1, color: YibuqueColor.borderMedium })
         .alignItems(HorizontalAlign.Start)
 
         Text(`${this.selectedDate} 记录`)
           .fontSize(18)
           .fontWeight(FontWeight.Regular)
-          .fontColor(AppTheme.color.text)
+          .fontColor(YibuqueColor.textPrimary)
 
         if (this.selectedDateLogs.length === 0) {
           EmptyState({
@@ -214,11 +214,11 @@ export struct CalendarPage {
                 Text(wearLog.outfitTitleSnapshot)
                   .fontSize(15)
                   .fontWeight(FontWeight.Regular)
-                  .fontColor(AppTheme.color.text)
+                  .fontColor(YibuqueColor.textPrimary)
 
                 Text(wearLog.placeText ?? '未记录地点')
                   .fontSize(13)
-                  .fontColor(AppTheme.color.textMuted)
+                  .fontColor(YibuqueColor.textSecondary)
               }
               .layoutWeight(1)
               .alignItems(HorizontalAlign.Start)
@@ -226,19 +226,19 @@ export struct CalendarPage {
               Button('编辑')
                 .height(34)
                 .fontSize(13)
-                .fontColor(AppTheme.color.primary)
-                .backgroundColor(AppTheme.color.surface)
-                .borderRadius(AppTheme.radius.md)
-                .border({ width: 1, color: AppTheme.color.primary })
+                .fontColor(YibuqueColor.actionBlack)
+                .backgroundColor(YibuqueColor.cardWhite)
+                .borderRadius(YibuqueRadius.sm)
+                .border({ width: 1, color: YibuqueColor.borderStrong })
                 .onClick(() => {
                   this.editWearLog(wearLog);
                 })
             }
             .width('100%')
             .padding(12)
-            .borderRadius(AppTheme.radius.lg)
-            .backgroundColor(AppTheme.color.surfaceRaised)
-            .border({ width: 1, color: AppTheme.color.border })
+            .borderRadius(YibuqueRadius.md)
+            .backgroundColor(YibuqueColor.cardSoftGray)
+            .border({ width: 1, color: YibuqueColor.borderMedium })
           }, (wearLog: WearLog) => wearLog.id)
         }
       }
@@ -248,7 +248,7 @@ export struct CalendarPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(AppTheme.color.surfaceMuted)
+    .backgroundColor(YibuqueColor.bgGray)
     }
   }
 }

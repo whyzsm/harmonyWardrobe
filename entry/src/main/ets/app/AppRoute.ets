@@ -22,6 +22,7 @@ export interface AppRouteParams {
   outfitId: string;
   storeVisitId: string;
   storeQuery: string;
+  wearLogId: string;
   wishlistItemId: string;
   quickCaptureSourceRouteKind: AppRouteKind;
   capturePhotoUris: string[];
@@ -42,6 +43,7 @@ export function createDefaultAppRouteParams(): AppRouteParams {
     outfitId: '',
     storeVisitId: '',
     storeQuery: '',
+    wearLogId: '',
     wishlistItemId: '',
     quickCaptureSourceRouteKind: AppRouteKind.Main,
     capturePhotoUris: [],

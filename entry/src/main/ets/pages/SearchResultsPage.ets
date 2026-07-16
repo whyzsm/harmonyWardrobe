@@ -358,7 +358,7 @@ export struct SearchResultsPage {
             .fontSize(16)
             .fontColor(YibuqueColor.textPrimary)
             .placeholderColor(YibuqueColor.textTertiary)
-            .backgroundColor('#00FFFFFF')
+            .backgroundColor(YibuqueColor.transparent)
             .enterKeyType(EnterKeyType.Search)
             .onChange((value: string) => {
               this.searchText = value;
@@ -427,7 +427,7 @@ export struct SearchResultsPage {
     }
     .width('100%')
     .padding({ left: 20, right: 20, top: 4, bottom: 12 })
-    .backgroundColor('#F2FBF9F9')
+    .backgroundColor('#F2FBF9F9') // 保留: 带暖调半透明底(FBF9F9), 无精确 token(glassStrong 为纯白 #F2FFFFFF)
   }
 
   @Builder
@@ -444,7 +444,7 @@ export struct SearchResultsPage {
             Row()
               .width('100%')
               .height(3)
-              .backgroundColor(this.selectedScope === scope.key ? YibuqueColor.actionBlack : '#00FFFFFF')
+              .backgroundColor(this.selectedScope === scope.key ? YibuqueColor.actionBlack : YibuqueColor.transparent)
               .borderRadius(YibuqueRadius.full)
           }
           .width(48)
@@ -616,7 +616,7 @@ export struct SearchResultsPage {
         .fontWeight(FontWeight.Regular)
         .fontColor(YibuqueColor.brandCyan)
         .textAlign(TextAlign.Center)
-        .backgroundColor(YibuqueColor.cardBlue)
+        .backgroundColor(YibuqueColor.cardSurface)
         .borderRadius(YibuqueRadius.full)
     }
     .width('100%')
@@ -660,7 +660,7 @@ export struct SearchResultsPage {
     .width(54)
     .height(54)
     .backgroundColor(YibuqueColor.cardWhite)
-    .borderRadius(5)
+    .borderRadius(YibuqueRadius.xs)
     .border({ width: 1, color: YibuqueColor.borderLight })
     .clip(true)
   }
@@ -675,19 +675,19 @@ export struct SearchResultsPage {
               .width(54)
               .height(54)
               .backgroundColor(YibuqueColor.borderLight)
-              .borderRadius(5)
+              .borderRadius(YibuqueRadius.xs)
 
             Column({ space: 8 }) {
               Row()
                 .width('72%')
                 .height(14)
                 .backgroundColor(YibuqueColor.borderLight)
-                .borderRadius(4)
+                .borderRadius(YibuqueRadius.xs) // 近似: 原 4 无精确 token, xs(5)最接近
               Row()
                 .width('46%')
                 .height(11)
                 .backgroundColor(YibuqueColor.borderLight)
-                .borderRadius(4)
+                .borderRadius(YibuqueRadius.xs) // 近似: 原 4 无精确 token, xs(5)最接近
             }
             .layoutWeight(1)
             .alignItems(HorizontalAlign.Start)

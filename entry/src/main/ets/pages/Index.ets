@@ -70,6 +70,7 @@ struct Index {
       outfitId: params.outfitId,
       storeVisitId: params.storeVisitId,
       storeQuery: params.storeQuery,
+      wearLogId: params.wearLogId,
       wishlistItemId: params.wishlistItemId,
       quickCaptureSourceRouteKind: params.quickCaptureSourceRouteKind,
       capturePhotoUris: params.capturePhotoUris.slice(),
@@ -406,6 +407,7 @@ struct Index {
               photoPickerAdapter: this.runtime.photoPickerAdapter,
               photoStorage: this.runtime.photoStorage,
               initialWardrobeTab: this.activeRoute.params.wardrobeTab,
+              initialWearLogId: this.activeRoute.params.wearLogId,
               onOpenCapture: () => {
                 this.startCameraCapture();
               },
@@ -430,6 +432,7 @@ struct Index {
                 } else if (entityType === SearchEntityType.WearLog) {
                   const params = createDefaultAppRouteParams();
                   params.wardrobeTab = '日历';
+                  params.wearLogId = id;
                   this.showMainRoute(AppMainTab.Wardrobe, params);
                 } else {
                   this.resetMainRoute(AppMainTab.Profile);
@@ -498,7 +501,7 @@ struct Index {
         }
         .width('100%')
         .height('100%')
-        .backgroundColor('#FFFFFF')
+        .backgroundColor(YibuqueColor.bgDefault)
 
         if (this.activeRoute.kind === AppRouteKind.Main && !this.featureNestedContentVisible) {
           BottomNavigationBar({

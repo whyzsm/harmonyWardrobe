@@ -3,17 +3,7 @@ import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { ProfileRepository } from '../data/repositories/ProfileRepository';
 import { StoreRepository } from '../data/repositories/StoreRepository';
 import { UserProfile } from '../domain/profile/ProfileModels';
-
-const PROFILE_BACKGROUND = '#FFFFFF';
-const PROFILE_SURFACE = '#FBFBFD';
-const PROFILE_TEXT = '#1D1D1F';
-const PROFILE_MUTED = '#6E6E73';
-const PROFILE_META = '#86868B';
-const PROFILE_BORDER = '#D2D2D7';
-const PROFILE_BORDER_SOFT = '#E8E8ED';
-const PROFILE_ACCENT = '#1D1D1F';
-const PROFILE_ACCENT_SOFT = '#F2F2F7';
-const PROFILE_DANGER = '#DC2626';
+import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 
 function parseOptionalNumber(value: string): number | undefined {
   const trimmed = value.trim();
@@ -338,10 +328,10 @@ export struct ProfilePage {
           this.PreferenceSection()
 
           if (this.errorMessage.length > 0 && !this.isEditingMeasurements) {
-            this.NoticeText(this.errorMessage, PROFILE_DANGER)
+            this.NoticeText(this.errorMessage, YibuqueColor.danger)
           }
           if (this.savedMessage.length > 0) {
-            this.NoticeText(this.savedMessage, PROFILE_ACCENT)
+            this.NoticeText(this.savedMessage, YibuqueColor.actionBlack)
           }
 
           this.BudgetSection()
@@ -355,13 +345,13 @@ export struct ProfilePage {
       .width('100%')
       .height('100%')
       .scrollBar(BarState.Off)
-      .backgroundColor(PROFILE_BACKGROUND)
+      .backgroundColor(YibuqueColor.bgDefault)
 
       if (this.isEditingMeasurements) {
         Column()
           .width('100%')
           .height('100%')
-          .backgroundColor('#29000000')
+          .backgroundColor(YibuqueColor.scrimLight)
           .onClick(() => {
             this.cancelMeasurementEditor();
           })
@@ -371,7 +361,7 @@ export struct ProfilePage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(PROFILE_BACKGROUND)
+    .backgroundColor(YibuqueColor.bgDefault)
   }
 
   @Builder
@@ -410,10 +400,10 @@ export struct ProfilePage {
           .padding({ left: 11, right: 11 })
           .fontSize(12)
           .fontWeight(FontWeight.Regular)
-          .fontColor(PROFILE_BACKGROUND)
+          .fontColor(YibuqueColor.textInverse)
           .textAlign(TextAlign.Center)
-          .backgroundColor('#38FFFFFF')
-          .borderRadius(999)
+          .backgroundColor(YibuqueColor.glassLight)
+          .borderRadius(YibuqueRadius.full)
 
         Blank()
 
@@ -423,14 +413,14 @@ export struct ProfilePage {
             .fontSize(28)
             .lineHeight(30)
             .fontWeight(FontWeight.Regular)
-            .fontColor(PROFILE_BACKGROUND)
+            .fontColor(YibuqueColor.textInverse)
 
           Text('尺码、预算、常逛商圈和回购提醒，都集中在这里管理。')
             .width(270)
             .fontSize(13)
             .lineHeight(18)
             .fontWeight(FontWeight.Regular)
-            .fontColor('#D9FFFFFF')
+            .fontColor(YibuqueColor.glassMedium)
             .maxLines(2)
         }
         .width('100%')
@@ -440,14 +430,14 @@ export struct ProfilePage {
       .height('100%')
       .padding(16)
       .alignItems(HorizontalAlign.Start)
-      .backgroundColor('#52000000')
+      .backgroundColor(YibuqueColor.scrimMedium)
     }
     .width('100%')
     .height(176)
-    .backgroundColor(PROFILE_TEXT)
-    .borderRadius(28)
+    .backgroundColor(YibuqueColor.textPrimary)
+    .borderRadius(YibuqueRadius.sheet)
     .clip(true)
-    .shadow({ radius: 22, color: '#1F000000', offsetX: 0, offsetY: 8 })
+    .shadow(YibuqueShadow.floating)
   }
 
   @Builder
@@ -461,13 +451,13 @@ export struct ProfilePage {
       Column() {
         SymbolGlyph($r('sys.symbol.hanger_and_towels'))
           .fontSize(index === 0 ? 34 : 24)
-          .fontColor(['#8E8E93'])
+          .fontColor([YibuqueColor.textTertiary])
       }
         .width('100%')
         .height('100%')
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .backgroundColor(index === 0 ? '#E8E8ED' : '#F2F2F7')
+        .backgroundColor(index === 0 ? YibuqueColor.borderLight : YibuqueColor.cardSurface)
     }
   }
 
@@ -491,20 +481,20 @@ export struct ProfilePage {
         .fontSize(18)
         .lineHeight(20)
         .fontWeight(FontWeight.Regular)
-        .fontColor(PROFILE_TEXT)
+        .fontColor(YibuqueColor.textPrimary)
       Text(label)
         .width('100%')
         .fontSize(11)
         .lineHeight(14)
-        .fontColor(PROFILE_MUTED)
+        .fontColor(YibuqueColor.textSecondary)
     }
     .height(52)
     .layoutWeight(1)
     .padding({ left: 10, right: 10, top: 8, bottom: 8 })
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor(PROFILE_BACKGROUND)
-    .borderRadius(18)
-    .border({ width: 1, color: PROFILE_BORDER_SOFT })
+    .backgroundColor(YibuqueColor.bgDefault)
+    .borderRadius(YibuqueRadius.xxl)
+    .border({ width: 1, color: YibuqueColor.borderLight })
   }
 
   @Builder
@@ -513,15 +503,15 @@ export struct ProfilePage {
       Row({ space: 9 }) {
         SymbolGlyph($r('sys.symbol.magnifyingglass'))
           .fontSize(18)
-          .fontColor([PROFILE_MUTED])
+          .fontColor([YibuqueColor.textSecondary])
 
         TextInput({ text: this.searchQuery, placeholder: '找尺码、预算、商场、提醒' })
           .height(46)
           .layoutWeight(1)
           .fontSize(14)
           .fontWeight(FontWeight.Regular)
-          .fontColor(PROFILE_TEXT)
-          .placeholderColor(PROFILE_META)
+          .fontColor(YibuqueColor.textPrimary)
+          .placeholderColor(YibuqueColor.textTertiary)
           .backgroundColor(Color.Transparent)
           .enterKeyType(EnterKeyType.Search)
           .onChange((value: string) => {
@@ -532,9 +522,9 @@ export struct ProfilePage {
       .height(48)
       .padding({ left: 14, right: 14 })
       .alignItems(VerticalAlign.Center)
-      .backgroundColor(PROFILE_BACKGROUND)
-      .borderRadius(12)
-      .border({ width: 1, color: PROFILE_BORDER })
+      .backgroundColor(YibuqueColor.bgDefault)
+      .borderRadius(YibuqueRadius.md)
+      .border({ width: 1, color: YibuqueColor.borderMedium })
 
       if (!this.hasSearchResult()) {
         Column({ space: 4 }) {
@@ -542,19 +532,19 @@ export struct ProfilePage {
             .width('100%')
             .fontSize(14)
             .fontWeight(FontWeight.Regular)
-            .fontColor(PROFILE_TEXT)
+            .fontColor(YibuqueColor.textPrimary)
           Text('换个关键词，或从下面的工具入口继续管理。')
             .width('100%')
             .fontSize(12)
             .lineHeight(18)
-            .fontColor(PROFILE_MUTED)
+            .fontColor(YibuqueColor.textSecondary)
         }
         .width('100%')
         .padding(18)
         .alignItems(HorizontalAlign.Start)
-        .backgroundColor(PROFILE_SURFACE)
-        .borderRadius(18)
-        .border({ width: 1, color: PROFILE_BORDER })
+        .backgroundColor(YibuqueColor.cardSoftGray)
+        .borderRadius(YibuqueRadius.xxl)
+        .border({ width: 1, color: YibuqueColor.borderMedium })
       }
     }
     .width('100%')
@@ -568,18 +558,18 @@ export struct ProfilePage {
 
       Column() {
         this.PreferenceRow('常用尺码', this.measurementSummary, 'size')
-        Divider().strokeWidth(1).color(PROFILE_BORDER_SOFT)
+        Divider().strokeWidth(1).color(YibuqueColor.borderLight)
         this.PreferenceRow('试穿偏好', this.fittingPreferenceSummary(), 'preference')
-        Divider().strokeWidth(1).color(PROFILE_BORDER_SOFT)
+        Divider().strokeWidth(1).color(YibuqueColor.borderLight)
         this.PreferenceRow('常逛商圈', this.frequentDistricts.length > 0 ? this.frequentDistricts.join(' · ') : '尚未设置', 'shops')
         this.StyleTags()
       }
       .width('100%')
       .padding(14)
       .alignItems(HorizontalAlign.Start)
-      .backgroundColor(PROFILE_SURFACE)
-      .borderRadius(18)
-      .border({ width: 1, color: PROFILE_BORDER_SOFT })
+      .backgroundColor(YibuqueColor.cardSoftGray)
+      .borderRadius(YibuqueRadius.xxl)
+      .border({ width: 1, color: YibuqueColor.borderLight })
     }
     .width('100%')
     .margin({ top: 14 })
@@ -594,11 +584,11 @@ export struct ProfilePage {
         .fontSize(19)
         .lineHeight(23)
         .fontWeight(FontWeight.Regular)
-        .fontColor(PROFILE_TEXT)
+        .fontColor(YibuqueColor.textPrimary)
       Text(meta)
         .fontSize(12)
         .lineHeight(18)
-        .fontColor(PROFILE_MUTED)
+        .fontColor(YibuqueColor.textSecondary)
         .maxLines(1)
     }
     .width('100%')
@@ -613,21 +603,21 @@ export struct ProfilePage {
         if (action === 'size') {
           SymbolGlyph($r('sys.symbol.shirt'))
             .fontSize(19)
-            .fontColor([PROFILE_ACCENT])
+            .fontColor([YibuqueColor.actionBlack])
         } else if (action === 'preference') {
           SymbolGlyph($r('sys.symbol.heart'))
             .fontSize(19)
-            .fontColor([PROFILE_ACCENT])
+            .fontColor([YibuqueColor.actionBlack])
         } else {
           SymbolGlyph($r('sys.symbol.mappin_and_rectangle'))
             .fontSize(19)
-            .fontColor([PROFILE_ACCENT])
+            .fontColor([YibuqueColor.actionBlack])
         }
       }
       .width(38)
       .height(38)
-      .backgroundColor(PROFILE_ACCENT_SOFT)
-      .borderRadius(14)
+      .backgroundColor(YibuqueColor.cardSurface)
+      .borderRadius(YibuqueRadius.lg)
 
       Column({ space: 3 }) {
         Text(title)
@@ -635,12 +625,12 @@ export struct ProfilePage {
           .fontSize(14)
           .lineHeight(17)
           .fontWeight(FontWeight.Regular)
-          .fontColor(PROFILE_TEXT)
+          .fontColor(YibuqueColor.textPrimary)
         Text(subtitle)
           .width('100%')
           .fontSize(12)
           .lineHeight(16)
-          .fontColor(PROFILE_MUTED)
+          .fontColor(YibuqueColor.textSecondary)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
       }
@@ -650,7 +640,7 @@ export struct ProfilePage {
       if (action === 'shops') {
         Text(this.frequentDistricts.length > 0 ? `${this.frequentDistricts.length} 个` : '未设置')
           .fontSize(12)
-          .fontColor(PROFILE_MUTED)
+          .fontColor(YibuqueColor.textSecondary)
       } else {
       Button(action === 'size' ? (this.isLoading ? '加载中' : '编辑') :
         (this.fittingPreferenceEnabled ? '已启用' : '未启用'))
@@ -658,12 +648,12 @@ export struct ProfilePage {
         .padding({ left: 13, right: 13 })
         .fontSize(12)
         .fontWeight(FontWeight.Regular)
-        .fontColor(action === 'preference' && this.fittingPreferenceEnabled ? PROFILE_BACKGROUND : PROFILE_TEXT)
-        .backgroundColor(action === 'preference' && this.fittingPreferenceEnabled ? PROFILE_TEXT : PROFILE_SURFACE)
-        .borderRadius(999)
+        .fontColor(action === 'preference' && this.fittingPreferenceEnabled ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
+        .backgroundColor(action === 'preference' && this.fittingPreferenceEnabled ? YibuqueColor.textPrimary : YibuqueColor.cardSoftGray)
+        .borderRadius(YibuqueRadius.full)
         .border({
           width: 1,
-          color: action === 'preference' && this.fittingPreferenceEnabled ? PROFILE_TEXT : PROFILE_BORDER
+          color: action === 'preference' && this.fittingPreferenceEnabled ? YibuqueColor.textPrimary : YibuqueColor.borderMedium
         })
         .enabled(action !== 'size' || !this.isLoading)
         .onClick(() => {
@@ -701,11 +691,11 @@ export struct ProfilePage {
       .margin({ right: 8, bottom: 8 })
       .fontSize(12)
       .fontWeight(FontWeight.Regular)
-      .fontColor(selected ? PROFILE_BACKGROUND : PROFILE_MUTED)
+      .fontColor(selected ? YibuqueColor.textInverse : YibuqueColor.textSecondary)
       .textAlign(TextAlign.Center)
-      .backgroundColor(selected ? PROFILE_TEXT : PROFILE_SURFACE)
-      .borderRadius(999)
-      .border({ width: 1, color: selected ? PROFILE_TEXT : PROFILE_BORDER })
+      .backgroundColor(selected ? YibuqueColor.textPrimary : YibuqueColor.cardSoftGray)
+      .borderRadius(YibuqueRadius.full)
+      .border({ width: 1, color: selected ? YibuqueColor.textPrimary : YibuqueColor.borderMedium })
       .onClick(() => {
         if (key === 'commute') {
           this.commuteSelected = !this.commuteSelected;
@@ -743,12 +733,12 @@ export struct ProfilePage {
               .fontSize(14)
               .lineHeight(17)
               .fontWeight(FontWeight.Regular)
-              .fontColor(PROFILE_TEXT)
+              .fontColor(YibuqueColor.textPrimary)
             Text(this.storeVisitCount > 0 ? `已记录 ${this.storeVisitCount} 次逛店，预算尚未设置。` : '预算尚未设置。')
               .width('100%')
               .fontSize(12)
               .lineHeight(16)
-              .fontColor(PROFILE_MUTED)
+              .fontColor(YibuqueColor.textSecondary)
           }
           .layoutWeight(1)
           .alignItems(HorizontalAlign.Start)
@@ -757,7 +747,7 @@ export struct ProfilePage {
             .fontSize(20)
             .lineHeight(22)
             .fontWeight(FontWeight.Regular)
-            .fontColor(PROFILE_TEXT)
+            .fontColor(YibuqueColor.textPrimary)
         }
         .width('100%')
         .alignItems(VerticalAlign.Top)
@@ -766,7 +756,7 @@ export struct ProfilePage {
           Text('消费记录暂未接入预算统计')
             .layoutWeight(1)
             .fontSize(12)
-            .fontColor(PROFILE_MUTED)
+            .fontColor(YibuqueColor.textSecondary)
         }
         .width('100%')
         .alignItems(VerticalAlign.Center)
@@ -774,9 +764,9 @@ export struct ProfilePage {
       .width('100%')
       .padding(15)
       .alignItems(HorizontalAlign.Start)
-      .backgroundColor(PROFILE_SURFACE)
-      .borderRadius(18)
-      .border({ width: 1, color: PROFILE_BORDER_SOFT })
+      .backgroundColor(YibuqueColor.cardSoftGray)
+      .borderRadius(YibuqueRadius.xxl)
+      .border({ width: 1, color: YibuqueColor.borderLight })
     }
     .width('100%')
     .margin({ top: 14 })
@@ -813,25 +803,25 @@ export struct ProfilePage {
         if (action === 'store') {
           SymbolGlyph($r('sys.symbol.plus'))
             .fontSize(22)
-            .fontColor(['#FFFFFF'])
+            .fontColor([YibuqueColor.textInverse])
         } else if (action === 'capture') {
           SymbolGlyph($r('sys.symbol.camera_fill'))
             .fontSize(20)
-            .fontColor(['#FFFFFF'])
+            .fontColor([YibuqueColor.textInverse])
         } else if (action === 'wishlist') {
           SymbolGlyph($r('sys.symbol.heart_fill'))
             .fontSize(20)
-            .fontColor([PROFILE_ACCENT])
+            .fontColor([YibuqueColor.actionBlack])
         } else {
           SymbolGlyph($r('sys.symbol.bag'))
             .fontSize(20)
-            .fontColor([PROFILE_ACCENT])
+            .fontColor([YibuqueColor.actionBlack])
         }
       }
       .width(40)
       .height(40)
-      .backgroundColor((action === 'outfit' || action === 'wishlist') ? PROFILE_ACCENT_SOFT : '#3A3A3C')
-      .borderRadius(14)
+      .backgroundColor((action === 'outfit' || action === 'wishlist') ? YibuqueColor.cardSurface : '#3A3A3C')
+      .borderRadius(YibuqueRadius.lg)
 
       Blank()
 
@@ -841,12 +831,12 @@ export struct ProfilePage {
           .fontSize(14)
           .lineHeight(17)
           .fontWeight(FontWeight.Regular)
-          .fontColor((action === 'outfit' || action === 'wishlist') ? PROFILE_TEXT : '#FFFFFF')
+          .fontColor((action === 'outfit' || action === 'wishlist') ? YibuqueColor.textPrimary : YibuqueColor.textInverse)
         Text(subtitle)
           .width('100%')
           .fontSize((action === 'outfit' || action === 'wishlist') ? 9 : 11)
           .lineHeight(14)
-          .fontColor((action === 'outfit' || action === 'wishlist') ? PROFILE_MUTED : '#B8B8BD')
+          .fontColor((action === 'outfit' || action === 'wishlist') ? YibuqueColor.textSecondary : YibuqueColor.textDisabled)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
       }
@@ -857,9 +847,9 @@ export struct ProfilePage {
     .height('100%')
     .padding(14)
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor((action === 'outfit' || action === 'wishlist') ? PROFILE_SURFACE : '#1C1C1E')
-    .borderRadius(18)
-    .border({ width: (action === 'outfit' || action === 'wishlist') ? 1 : 0, color: PROFILE_BORDER_SOFT })
+    .backgroundColor((action === 'outfit' || action === 'wishlist') ? YibuqueColor.cardSoftGray : '#1C1C1E')
+    .borderRadius(YibuqueRadius.xxl)
+    .border({ width: (action === 'outfit' || action === 'wishlist') ? 1 : 0, color: YibuqueColor.borderLight })
     .onClick(() => {
       if (action === 'store') {
         this.onOpenStoreEditor();
@@ -880,15 +870,15 @@ export struct ProfilePage {
 
       Column() {
         this.LocalStateRow()
-        Divider().strokeWidth(1).color(PROFILE_BORDER_SOFT)
+        Divider().strokeWidth(1).color(YibuqueColor.borderLight)
         this.ToggleRow('隐私模式', '隐藏价格和商场位置，适合给朋友看衣柜。', this.privacyModeEnabled, 'privacy')
       }
       .width('100%')
       .padding(14)
       .alignItems(HorizontalAlign.Start)
-      .backgroundColor(PROFILE_SURFACE)
-      .borderRadius(18)
-      .border({ width: 1, color: PROFILE_BORDER_SOFT })
+      .backgroundColor(YibuqueColor.cardSoftGray)
+      .borderRadius(YibuqueRadius.xxl)
+      .border({ width: 1, color: YibuqueColor.borderLight })
     }
     .width('100%')
     .margin({ top: 14 })
@@ -904,12 +894,12 @@ export struct ProfilePage {
           .fontSize(14)
           .lineHeight(17)
           .fontWeight(FontWeight.Regular)
-          .fontColor(PROFILE_TEXT)
+          .fontColor(YibuqueColor.textPrimary)
         Text(subtitle)
           .width('100%')
           .fontSize(12)
           .lineHeight(16)
-          .fontColor(PROFILE_MUTED)
+          .fontColor(YibuqueColor.textSecondary)
           .maxLines(2)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
       }
@@ -923,8 +913,8 @@ export struct ProfilePage {
         Circle()
           .width(26)
           .height(26)
-          .fill(PROFILE_BACKGROUND)
-          .shadow({ radius: 6, color: '#29000000', offsetX: 0, offsetY: 2 })
+          .fill(YibuqueColor.bgDefault)
+          .shadow(YibuqueShadow.soft)
         if (!enabled) {
           Blank().layoutWeight(1)
         }
@@ -932,8 +922,8 @@ export struct ProfilePage {
       .width(52)
       .height(32)
       .padding(3)
-      .backgroundColor(enabled ? PROFILE_TEXT : PROFILE_BORDER)
-      .borderRadius(999)
+      .backgroundColor(enabled ? YibuqueColor.textPrimary : YibuqueColor.borderMedium)
+      .borderRadius(YibuqueRadius.full)
       .onClick(() => {
         if (action === 'privacy') {
           this.privacyModeEnabled = !this.privacyModeEnabled;
@@ -949,8 +939,8 @@ export struct ProfilePage {
   @Builder
   LocalStateRow() {
     Column({ space: 3 }) {
-      Text('本地照片与记录').width('100%').fontSize(14).fontColor(PROFILE_TEXT)
-      Text(this.localSummary).width('100%').fontSize(12).lineHeight(16).fontColor(PROFILE_MUTED)
+      Text('本地照片与记录').width('100%').fontSize(14).fontColor(YibuqueColor.textPrimary)
+      Text(this.localSummary).width('100%').fontSize(12).lineHeight(16).fontColor(YibuqueColor.textSecondary)
     }
     .width('100%')
     .height(74)
@@ -968,12 +958,12 @@ export struct ProfilePage {
             .fontSize(23)
             .lineHeight(27)
             .fontWeight(FontWeight.Regular)
-            .fontColor(PROFILE_TEXT)
+            .fontColor(YibuqueColor.textPrimary)
           Text('保存后用于试穿记录和衣柜信息。')
             .width('100%')
             .fontSize(12)
             .lineHeight(17)
-            .fontColor(PROFILE_MUTED)
+            .fontColor(YibuqueColor.textSecondary)
         }
         .layoutWeight(1)
         .alignItems(HorizontalAlign.Start)
@@ -983,7 +973,7 @@ export struct ProfilePage {
           .padding({ left: 0, right: 0 })
           .fontSize(15)
           .fontWeight(FontWeight.Regular)
-          .fontColor(PROFILE_ACCENT)
+          .fontColor(YibuqueColor.actionBlack)
           .backgroundColor(Color.Transparent)
           .onClick(() => {
             this.cancelMeasurementEditor();
@@ -1006,7 +996,7 @@ export struct ProfilePage {
           .width('100%')
           .fontSize(12)
           .lineHeight(18)
-          .fontColor(PROFILE_DANGER)
+          .fontColor(YibuqueColor.danger)
           .margin({ top: 10 })
       }
 
@@ -1016,10 +1006,10 @@ export struct ProfilePage {
           .layoutWeight(1)
           .fontSize(13)
           .fontWeight(FontWeight.Regular)
-          .fontColor(PROFILE_TEXT)
-          .backgroundColor(PROFILE_SURFACE)
-          .borderRadius(999)
-          .border({ width: 1, color: PROFILE_BORDER })
+          .fontColor(YibuqueColor.textPrimary)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.full)
+          .border({ width: 1, color: YibuqueColor.borderMedium })
           .onClick(() => {
             this.cancelMeasurementEditor();
           })
@@ -1029,18 +1019,18 @@ export struct ProfilePage {
             LoadingProgress()
               .width(18)
               .height(18)
-              .color(PROFILE_BACKGROUND)
+              .color(YibuqueColor.textInverse)
           } else {
             Text('保存')
               .fontSize(13)
               .fontWeight(FontWeight.Regular)
-              .fontColor(PROFILE_BACKGROUND)
+              .fontColor(YibuqueColor.textInverse)
           }
         }
           .height(44)
           .layoutWeight(1)
-          .backgroundColor(this.hasInvalidMeasurements() ? PROFILE_META : PROFILE_TEXT)
-          .borderRadius(999)
+          .backgroundColor(this.hasInvalidMeasurements() ? YibuqueColor.textTertiary : YibuqueColor.textPrimary)
+          .borderRadius(YibuqueRadius.full)
           .enabled(!this.isSaving && !this.hasInvalidMeasurements())
           .onClick(() => {
             this.saveProfile();
@@ -1052,8 +1042,8 @@ export struct ProfilePage {
     .width('100%')
     .padding({ left: 20, right: 20, top: 18, bottom: 34 })
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor(PROFILE_BACKGROUND)
-    .borderRadius({ topLeft: 28, topRight: 28, bottomLeft: 0, bottomRight: 0 })
+    .backgroundColor(YibuqueColor.bgDefault)
+    .borderRadius({ topLeft: YibuqueRadius.sheet, topRight: YibuqueRadius.sheet, bottomLeft: 0, bottomRight: 0 })
     .shadow({ radius: 28, color: '#29000000', offsetX: 0, offsetY: -8 })
   }
 
@@ -1064,18 +1054,18 @@ export struct ProfilePage {
         .width('100%')
         .fontSize(12)
         .fontWeight(FontWeight.Regular)
-        .fontColor(PROFILE_TEXT)
+        .fontColor(YibuqueColor.textPrimary)
 
       TextInput({ text: value, placeholder: unit })
         .width('100%')
         .height(44)
         .fontSize(14)
         .fontWeight(FontWeight.Regular)
-        .fontColor(PROFILE_TEXT)
-        .placeholderColor(PROFILE_META)
-        .backgroundColor(PROFILE_SURFACE)
-        .borderRadius(12)
-        .border({ width: 1, color: this.measurementError(value).length > 0 ? PROFILE_DANGER : PROFILE_BORDER })
+        .fontColor(YibuqueColor.textPrimary)
+        .placeholderColor(YibuqueColor.textTertiary)
+        .backgroundColor(YibuqueColor.cardSoftGray)
+        .borderRadius(YibuqueRadius.md)
+        .border({ width: 1, color: this.measurementError(value).length > 0 ? YibuqueColor.danger : YibuqueColor.borderMedium })
         .type(InputType.Number)
         .onChange((nextValue: string) => {
           this.errorMessage = '';
@@ -1093,7 +1083,7 @@ export struct ProfilePage {
           .width('100%')
           .fontSize(11)
           .lineHeight(15)
-          .fontColor(PROFILE_DANGER)
+          .fontColor(YibuqueColor.danger)
       }
     }
     .layoutWeight(1)

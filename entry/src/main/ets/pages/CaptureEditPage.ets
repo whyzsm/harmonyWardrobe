@@ -7,6 +7,7 @@ import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import { ClothingItem, PurchaseInfo } from '../domain/clothing/ClothingModels';
 import { StoreVisit } from '../domain/store/StoreModels';
 import { toIsoDate } from '../utils/date';
+import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
 
 interface CaptureCategoryOption {
   label: string;
@@ -18,14 +19,6 @@ const CAPTURE_CATEGORY_OPTIONS: CaptureCategoryOption[] = [
   { label: '裤装', value: ClothingCategory.Pants },
   { label: '裙装', value: ClothingCategory.LongSkirt }
 ];
-
-const CAPTURE_BG: string = '#FFFFFF';
-const CAPTURE_SURFACE: string = '#FBFBFD';
-const CAPTURE_TEXT: string = '#1D1D1F';
-const CAPTURE_MUTED: string = '#6E6E73';
-const CAPTURE_META: string = '#86868B';
-const CAPTURE_BORDER: string = '#D2D2D7';
-const CAPTURE_BORDER_SOFT: string = '#E8E8ED';
 
 function optionalText(value: string): string | undefined {
   const trimmed = value.trim();
@@ -290,10 +283,10 @@ export struct CaptureEditPage {
             .height(44)
             .fontSize(13)
             .fontWeight(FontWeight.Regular)
-            .fontColor(CAPTURE_TEXT)
-            .backgroundColor(CAPTURE_SURFACE)
-            .borderRadius(22)
-            .border({ width: 1, color: CAPTURE_BORDER })
+            .fontColor(YibuqueColor.textPrimary)
+            .backgroundColor(YibuqueColor.cardSoftGray)
+            .borderRadius(YibuqueRadius.xxxl)
+            .border({ width: 1, color: YibuqueColor.borderMedium })
             .enabled(!this.isChoosingPhotos)
             .onClick(() => {
               this.choosePhotos();
@@ -304,18 +297,18 @@ export struct CaptureEditPage {
               LoadingProgress()
                 .width(18)
                 .height(18)
-                .color('#FFFFFF')
+                .color(YibuqueColor.textInverse)
             } else {
               Text(this.saveButtonLabel())
                 .fontSize(13)
                 .fontWeight(FontWeight.Regular)
-                .fontColor('#FFFFFF')
+                .fontColor(YibuqueColor.textInverse)
             }
           }
             .layoutWeight(1)
             .height(44)
-            .backgroundColor(this.canSave() ? CAPTURE_TEXT : CAPTURE_META)
-            .borderRadius(22)
+            .backgroundColor(this.canSave() ? YibuqueColor.actionBlack : YibuqueColor.textTertiary)
+            .borderRadius(YibuqueRadius.xxxl)
             .enabled(this.canSave())
             .onClick(() => {
               this.saveCapture();
@@ -342,7 +335,7 @@ export struct CaptureEditPage {
           Text(this.errorMessage)
             .width('100%')
             .fontSize(12)
-            .fontColor('#DC2626')
+            .fontColor(YibuqueColor.danger)
         }
 
         this.RecentCaptures()
@@ -357,7 +350,7 @@ export struct CaptureEditPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(CAPTURE_BG)
+    .backgroundColor(YibuqueColor.bgDefault)
   }
 
   @Builder
@@ -369,27 +362,27 @@ export struct CaptureEditPage {
             if (mode === '单品') {
               SymbolGlyph($r('sys.symbol.shirt'))
                 .fontSize(17)
-                .fontColor([this.captureMode === mode ? '#FFFFFF' : CAPTURE_MUTED])
+                .fontColor([this.captureMode === mode ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
             } else if (mode === '试穿') {
               SymbolGlyph($r('sys.symbol.hanger_and_towels'))
                 .fontSize(17)
-                .fontColor([this.captureMode === mode ? '#FFFFFF' : CAPTURE_MUTED])
+                .fontColor([this.captureMode === mode ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
             } else {
               SymbolGlyph($r('sys.symbol.bag'))
                 .fontSize(17)
-                .fontColor([this.captureMode === mode ? '#FFFFFF' : CAPTURE_MUTED])
+                .fontColor([this.captureMode === mode ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
             }
 
             Text(mode)
               .fontSize(12)
               .fontWeight(this.captureMode === mode ? FontWeight.Regular : FontWeight.Regular)
-              .fontColor(this.captureMode === mode ? '#FFFFFF' : CAPTURE_MUTED)
+              .fontColor(this.captureMode === mode ? YibuqueColor.textInverse : YibuqueColor.textSecondary)
           }
           .height(44)
           .padding({ left: 13, right: 15 })
-          .backgroundColor(this.captureMode === mode ? CAPTURE_TEXT : CAPTURE_SURFACE)
-          .borderRadius(22)
-          .border({ width: 1, color: this.captureMode === mode ? CAPTURE_TEXT : CAPTURE_BORDER })
+          .backgroundColor(this.captureMode === mode ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.xxxl)
+          .border({ width: 1, color: this.captureMode === mode ? YibuqueColor.borderStrong : YibuqueColor.borderMedium })
           .onClick(() => {
             this.selectMode(mode);
           })
@@ -420,8 +413,8 @@ export struct CaptureEditPage {
         Column()
           .width('100%')
           .height('100%')
-          .border({ width: 1, color: '#BFFFFFFF' })
-          .borderRadius(5)
+          .border({ width: 1, color: YibuqueColor.glassMedium })
+          .borderRadius(YibuqueRadius.xs)
       }
       .width('91%')
       .height(336)
@@ -432,18 +425,18 @@ export struct CaptureEditPage {
         .padding({ left: 12, right: 12 })
         .fontSize(12)
         .fontWeight(FontWeight.Regular)
-        .fontColor('#FFFFFF')
+        .fontColor(YibuqueColor.textInverse)
         .textAlign(TextAlign.Center)
-        .backgroundColor('#D11D1D1F')
-        .borderRadius(16)
+        .backgroundColor(YibuqueColor.overlayDark)
+        .borderRadius(YibuqueRadius.xl)
         .margin({ left: 12, bottom: 12 })
     }
     .width('100%')
     .height(372)
-    .borderRadius(5)
+    .borderRadius(YibuqueRadius.xs)
     .clip(true)
-    .border({ width: 1, color: CAPTURE_BORDER_SOFT })
-    .backgroundColor('#F5F5F7')
+    .border({ width: 1, color: YibuqueColor.borderLight })
+    .backgroundColor(YibuqueColor.bgGray)
   }
 
   @Builder
@@ -456,11 +449,11 @@ export struct CaptureEditPage {
             .height(46)
             .fontSize(13)
             .fontWeight(this.category === option.value ? FontWeight.Regular : FontWeight.Regular)
-            .fontColor(this.category === option.value ? '#FFFFFF' : CAPTURE_MUTED)
+            .fontColor(this.category === option.value ? YibuqueColor.textInverse : YibuqueColor.textSecondary)
             .textAlign(TextAlign.Center)
-            .backgroundColor(this.category === option.value ? CAPTURE_TEXT : CAPTURE_SURFACE)
-            .borderRadius(12)
-            .border({ width: 1, color: this.category === option.value ? CAPTURE_TEXT : CAPTURE_BORDER })
+            .backgroundColor(this.category === option.value ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
+            .borderRadius(YibuqueRadius.md)
+            .border({ width: 1, color: this.category === option.value ? YibuqueColor.borderStrong : YibuqueColor.borderMedium })
             .onClick(() => {
               this.category = option.value;
             })
@@ -478,14 +471,14 @@ export struct CaptureEditPage {
     Row({ space: 9 }) {
       SymbolGlyph($r('sys.symbol.shirt'))
         .fontSize(18)
-        .fontColor([CAPTURE_MUTED])
+        .fontColor([YibuqueColor.textSecondary])
 
       TextInput({ text: this.name, placeholder: this.generatedClothingName() })
         .layoutWeight(1)
         .height(46)
         .fontSize(14)
-        .fontColor(CAPTURE_TEXT)
-        .placeholderColor(CAPTURE_META)
+        .fontColor(YibuqueColor.textPrimary)
+        .placeholderColor(YibuqueColor.textTertiary)
         .backgroundColor(Color.Transparent)
         .onChange((value: string) => {
           this.name = value;
@@ -494,9 +487,9 @@ export struct CaptureEditPage {
     .width('100%')
     .height(48)
     .padding({ left: 14, right: 10 })
-    .border({ width: 1, color: CAPTURE_BORDER })
-    .borderRadius(12)
-    .backgroundColor(CAPTURE_BG)
+    .border({ width: 1, color: YibuqueColor.borderMedium })
+    .borderRadius(YibuqueRadius.md)
+    .backgroundColor(YibuqueColor.bgDefault)
   }
 
   @Builder
@@ -506,11 +499,11 @@ export struct CaptureEditPage {
       .height(82)
       .padding({ left: 14, right: 14, top: 10, bottom: 10 })
       .fontSize(14)
-      .fontColor(CAPTURE_TEXT)
-      .placeholderColor(CAPTURE_META)
-      .backgroundColor(CAPTURE_BG)
-      .borderRadius(12)
-      .border({ width: 1, color: CAPTURE_BORDER })
+      .fontColor(YibuqueColor.textPrimary)
+      .placeholderColor(YibuqueColor.textTertiary)
+      .backgroundColor(YibuqueColor.bgDefault)
+      .borderRadius(YibuqueRadius.md)
+      .border({ width: 1, color: YibuqueColor.borderMedium })
       .onChange((value: string) => {
         this.note = value;
       })
@@ -522,8 +515,8 @@ export struct CaptureEditPage {
       TextInput({ text: this.storeName, placeholder: '购买店铺（选填）' })
         .height(48)
         .fontSize(14)
-        .backgroundColor(CAPTURE_SURFACE)
-        .borderRadius(12)
+        .backgroundColor(YibuqueColor.cardSoftGray)
+        .borderRadius(YibuqueRadius.md)
         .onChange((value: string) => {
           this.storeName = value;
         })
@@ -533,8 +526,8 @@ export struct CaptureEditPage {
           .layoutWeight(1)
           .height(48)
           .fontSize(14)
-          .backgroundColor(CAPTURE_SURFACE)
-          .borderRadius(12)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.md)
           .onChange((value: string) => {
             this.price = value;
           })
@@ -543,8 +536,8 @@ export struct CaptureEditPage {
           .layoutWeight(1)
           .height(48)
           .fontSize(14)
-          .backgroundColor(CAPTURE_SURFACE)
-          .borderRadius(12)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.md)
           .onChange((value: string) => {
             this.purchaseDate = value;
           })
@@ -553,8 +546,8 @@ export struct CaptureEditPage {
       TextInput({ text: this.purchaseNote, placeholder: '购买备注' })
         .height(48)
         .fontSize(14)
-        .backgroundColor(CAPTURE_SURFACE)
-        .borderRadius(12)
+        .backgroundColor(YibuqueColor.cardSoftGray)
+        .borderRadius(YibuqueRadius.md)
         .onChange((value: string) => {
           this.purchaseNote = value;
         })
@@ -568,8 +561,8 @@ export struct CaptureEditPage {
       TextInput({ text: this.outfitTitle, placeholder: this.generatedOutfitTitle() })
         .height(48)
         .fontSize(14)
-        .backgroundColor(CAPTURE_SURFACE)
-        .borderRadius(12)
+        .backgroundColor(YibuqueColor.cardSoftGray)
+        .borderRadius(YibuqueRadius.md)
         .onChange((value: string) => {
           this.outfitTitle = value;
         })
@@ -591,8 +584,8 @@ export struct CaptureEditPage {
       TextInput({ text: this.storeName, placeholder: this.generatedStoreVisitName() })
         .height(48)
         .fontSize(14)
-        .backgroundColor(CAPTURE_SURFACE)
-        .borderRadius(12)
+        .backgroundColor(YibuqueColor.cardSoftGray)
+        .borderRadius(YibuqueRadius.md)
         .onChange((value: string) => {
           this.storeName = value;
         })
@@ -600,8 +593,8 @@ export struct CaptureEditPage {
       TextInput({ text: this.districtOrAddress, placeholder: '商场、商圈或地址' })
         .height(48)
         .fontSize(14)
-        .backgroundColor(CAPTURE_SURFACE)
-        .borderRadius(12)
+        .backgroundColor(YibuqueColor.cardSoftGray)
+        .borderRadius(YibuqueRadius.md)
         .onChange((value: string) => {
           this.districtOrAddress = value;
         })
@@ -609,8 +602,8 @@ export struct CaptureEditPage {
       TextInput({ text: this.visitDate, placeholder: '逛店日期 YYYY-MM-DD' })
         .height(48)
         .fontSize(14)
-        .backgroundColor(CAPTURE_SURFACE)
-        .borderRadius(12)
+        .backgroundColor(YibuqueColor.cardSoftGray)
+        .borderRadius(YibuqueRadius.md)
         .onChange((value: string) => {
           this.visitDate = value;
         })
@@ -624,7 +617,7 @@ export struct CaptureEditPage {
       Text('刚录入')
         .fontSize(19)
         .fontWeight(FontWeight.Regular)
-        .fontColor(CAPTURE_TEXT)
+        .fontColor(YibuqueColor.textPrimary)
 
       Grid() {
         ForEach(this.photoUris.slice(0, 3), (photoUri: string) => {
@@ -633,7 +626,7 @@ export struct CaptureEditPage {
               .width('100%')
               .height('100%')
               .objectFit(ImageFit.Cover)
-              .borderRadius(5)
+              .borderRadius(YibuqueRadius.xs)
           }
         }, (photoUri: string) => photoUri)
       }

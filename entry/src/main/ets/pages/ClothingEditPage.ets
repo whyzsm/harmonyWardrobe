@@ -343,7 +343,7 @@ export struct ClothingEditPage {
         .fontWeight(FontWeight.Regular)
         .fontColor(YibuqueColor.textPrimary)
         .placeholderColor(YibuqueColor.textTertiary)
-        .backgroundColor('#00FFFFFF')
+        .backgroundColor(YibuqueColor.transparent)
         .onChange((value: string) => {
           this.name = value;
         })
@@ -449,7 +449,7 @@ export struct ClothingEditPage {
           .fontSize(15)
           .fontColor(YibuqueColor.textPrimary)
           .placeholderColor(YibuqueColor.textPrimary)
-          .backgroundColor('#00FFFFFF')
+          .backgroundColor(YibuqueColor.transparent)
           .onChange((value: string) => {
             this.storeName = value;
           })
@@ -474,7 +474,7 @@ export struct ClothingEditPage {
           .fontColor(YibuqueColor.textPrimary)
           .placeholderColor(YibuqueColor.textPrimary)
           .type(InputType.Number)
-          .backgroundColor('#00FFFFFF')
+          .backgroundColor(YibuqueColor.transparent)
           .onChange((value: string) => {
             this.price = value;
           })
@@ -549,7 +549,7 @@ export struct ClothingEditPage {
           .fontSize(15)
           .fontColor(YibuqueColor.textPrimary)
           .placeholderColor(YibuqueColor.textPrimary)
-          .backgroundColor('#00FFFFFF')
+          .backgroundColor(YibuqueColor.transparent)
           .onChange((value: string) => {
             this.purchaseNote = value;
           })
@@ -632,6 +632,6 @@ export struct ClothingEditPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(YibuqueColor.bgBlueGray)
+    .backgroundColor(YibuqueColor.bgBase)
   }
 }

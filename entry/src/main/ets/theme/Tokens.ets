@@ -40,6 +40,17 @@ export interface YibuqueColorTokens {
   borderMedium: string;
   borderStrong: string;
   overlayDark: string;
+  scrimLight: string;
+  scrimMedium: string;
+  scrimStrong: string;
+  glassLight: string;
+  glassMedium: string;
+  glassStrong: string;
+  transparent: string;
+  transparentBlack: string;
+  bgBase: string;
+  bgHeader: string;
+  cardSurface: string;
 }
 
 export interface YibuqueFontSizeTokens {
@@ -169,7 +180,23 @@ export const YibuqueColor: YibuqueColorTokens = {
   borderLight: '#E8E8ED',
   borderMedium: '#D2D2D7',
   borderStrong: '#1D1D1F',
-  overlayDark: '#7A1D1D1F'
+  overlayDark: '#7A1D1D1F',
+  // 半透明黑色遮罩（ARGB #AARRGGBB），由浅到深
+  scrimLight: '#29000000',
+  scrimMedium: '#52000000',
+  scrimStrong: '#99000000',
+  // 白色半透明（毛玻璃）表面，由浅到深
+  glassLight: '#38FFFFFF',
+  glassMedium: '#D9FFFFFF',
+  glassStrong: '#F2FFFFFF',
+  // 全透明占位：白色通道（等价 #00FFFFFF），用于 backgroundColor 透明底
+  transparent: '#00FFFFFF',
+  // 全透明占位：黑色通道（等价 #00000000），用于黑色渐变的起始停靠点，避免插值泛白
+  transparentBlack: '#00000000',
+  // 命名修正别名：与实际值相符（bgBlueGray/bgHeaderBlue/cardBlue 名不副实）
+  bgBase: '#FFFFFF',
+  bgHeader: '#F5F5F7',
+  cardSurface: '#F2F2F7'
 };
 
 export const YibuqueFontSize: YibuqueFontSizeTokens = {

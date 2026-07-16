@@ -104,9 +104,9 @@ The bottom navigation is a 90%-wide translucent black floating capsule with ward
 
 ### 快捷录入 / Quick Capture Sheet
 
-快捷录入弹层使用白色四角圆角面板、灰色遮罩和中性阴影。标题为“快捷录入”，右侧“取消”使用黑色。
+快捷录入弹层使用白色贴底面板、顶部圆角、灰色遮罩和中性阴影；面板底部必须贴到屏幕底部，不能悬浮露出遮罩。标题为“快捷录入”，右侧“取消”使用黑色。
 
-The quick capture sheet uses a white fully-rounded panel, a gray scrim, and a neutral shadow. Its title is `快捷录入`, with a black `取消` action.
+The quick capture sheet uses a white bottom-attached panel, rounded top corners, a gray scrim, and a neutral shadow; the panel must reach the bottom edge instead of floating above the scrim. Its title is `快捷录入`, with a black `取消` action.
 
 - “衣柜”：黑色主卡片、白色衣物系统图标。
 - `衣柜`: black primary card with a white shirt system icon.

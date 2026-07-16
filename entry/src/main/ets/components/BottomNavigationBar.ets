@@ -1,4 +1,4 @@
-import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 
 @Component
 export struct BottomNavigationBar {
@@ -41,9 +41,9 @@ export struct BottomNavigationBar {
     .width('90%')
     .height(56)
     .padding({ left: 12, right: 12, top: 2, bottom: 2 })
-    .backgroundColor('#E62D2C2C')
-    .borderRadius(28)
-    .shadow({ radius: 16, color: '#32000000', offsetX: 0, offsetY: 6 })
+    .backgroundColor('#E62D2C2C') // 保留: 深色半透明导航底(ARGB)无匹配 token
+    .borderRadius(YibuqueRadius.sheet)
+    .shadow(YibuqueShadow.soft) // 近似: 原 radius16/offsetY6/#32 → soft radius16/offsetY5/#18
     .alignItems(VerticalAlign.Center)
     .margin({ bottom: 0 })
   }
@@ -59,10 +59,10 @@ export struct BottomNavigationBar {
     .height(40)
     .linearGradient({
       angle: 135,
-      colors: [['#F37A59', 0], ['#4578FF', 0.55], ['#56D0FF', 1]]
+      colors: [['#4578FF', 0], ['#56D0FF', 1]] // P0-6: 去橙色, 蓝→青蓝渐变(保留蓝色入口设计)
     })
     .borderRadius(YibuqueRadius.full)
-    .shadow({ radius: 18, color: '#26000000', offsetX: 0, offsetY: 0 })
+    .shadow({ radius: 18, color: '#26000000', offsetX: 0, offsetY: 0 }) // 保留: offsetY=0 光晕效果, floating(offsetY8)会变投影改变视觉
   }
 
   @Builder
@@ -70,19 +70,19 @@ export struct BottomNavigationBar {
     if (value === 'wardrobe') {
       SymbolGlyph($r('sys.symbol.shirt'))
         .fontSize(20)
-        .fontColor([this.selected === value ? YibuqueColor.textInverse : '#8D8D92'])
+        .fontColor([this.selected === value ? YibuqueColor.textInverse : YibuqueColor.textTertiary])
     } else if (value === 'store') {
       SymbolGlyph($r('sys.symbol.store_fill'))
         .fontSize(20)
-        .fontColor([this.selected === value ? YibuqueColor.textInverse : '#8D8D92'])
+        .fontColor([this.selected === value ? YibuqueColor.textInverse : YibuqueColor.textTertiary])
     } else if (value === 'outfit') {
       SymbolGlyph($r('sys.symbol.hanger_and_towels'))
         .fontSize(20)
-        .fontColor([this.selected === value ? YibuqueColor.textInverse : '#8D8D92'])
+        .fontColor([this.selected === value ? YibuqueColor.textInverse : YibuqueColor.textTertiary])
     } else {
       SymbolGlyph($r('sys.symbol.person'))
         .fontSize(20)
-        .fontColor([this.selected === value ? YibuqueColor.textInverse : '#8D8D92'])
+        .fontColor([this.selected === value ? YibuqueColor.textInverse : YibuqueColor.textTertiary])
     }
   }
 
@@ -99,7 +99,7 @@ export struct BottomNavigationBar {
         .fontSize(11)
         .lineHeight(15)
         .fontWeight(this.selected === value ? FontWeight.Regular : FontWeight.Regular)
-        .fontColor(this.selected === value ? YibuqueColor.textInverse : '#8D8D92')
+        .fontColor(this.selected === value ? YibuqueColor.textInverse : YibuqueColor.textTertiary)
     }
     .layoutWeight(1)
     .height(52)

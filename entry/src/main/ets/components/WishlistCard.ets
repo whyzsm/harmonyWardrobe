@@ -1,4 +1,4 @@
-import { AppTheme } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
 
 @Component
 export struct WishlistCard {
@@ -14,46 +14,46 @@ export struct WishlistCard {
           .width(72)
           .height(72)
           .objectFit(ImageFit.Cover)
-          .borderRadius(AppTheme.radius.lg)
+          .borderRadius(YibuqueRadius.md)
       } else {
         Column() {
           SymbolGlyph($r('sys.symbol.heart_fill'))
             .fontSize(26)
-            .fontColor([AppTheme.color.accent])
+            .fontColor([YibuqueColor.actionBlack])
         }
         .width(72)
         .height(72)
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .borderRadius(AppTheme.radius.lg)
-        .backgroundColor(AppTheme.color.primarySoft)
+        .borderRadius(YibuqueRadius.md)
+        .backgroundColor(YibuqueColor.cardSurface)
       }
 
       Column({ space: 6 }) {
         Text(this.title)
           .fontSize(16)
           .fontWeight(FontWeight.Regular)
-          .fontColor(AppTheme.color.text)
+          .fontColor(YibuqueColor.textPrimary)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
         Text(this.storeName.length > 0 ? this.storeName : '未记录门店')
           .fontSize(13)
-          .fontColor(AppTheme.color.textMuted)
+          .fontColor(YibuqueColor.textSecondary)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
         Text(this.priceText.length > 0 ? this.priceText : '未记录价格')
           .fontSize(13)
-          .fontColor(this.priceText.length > 0 ? AppTheme.color.success : AppTheme.color.textDisabled)
+          .fontColor(this.priceText.length > 0 ? YibuqueColor.success : YibuqueColor.textDisabled)
       }
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
     }
     .width('100%')
     .padding(12)
-    .borderRadius(AppTheme.radius.lg)
-    .backgroundColor(AppTheme.color.surfaceRaised)
-    .border({ width: 1, color: AppTheme.color.border })
+    .borderRadius(YibuqueRadius.md)
+    .backgroundColor(YibuqueColor.cardSoftGray)
+    .border({ width: 1, color: YibuqueColor.borderMedium })
   }
 }

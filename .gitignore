@@ -19,6 +19,9 @@ signature/
 # Backup files
 *.backup
 
+# Tool-generated workflows
+.spec-workflow/
+
 # Executables
 *.swf
 *.air

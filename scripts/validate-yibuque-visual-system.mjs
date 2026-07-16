@@ -76,9 +76,20 @@ for (const needle of ['衣柜', '逛店', '套装', '我的', "SymbolGlyph($r('s
 mustInclude(nav, navPath, '#26000000');
 mustNotInclude(nav, navPath, '#735A7CFF');
 
-for (const needle of ['快捷录入', '衣柜', '逛店', '穿搭', 'onOpenWardrobe', 'onOpenStoreVisit', 'onOpenOutfit', "SymbolGlyph($r('sys.symbol.shirt'))", "SymbolGlyph($r('sys.symbol.store_fill'))", "SymbolGlyph($r('sys.symbol.hanger_and_towels'))", 'YibuqueColor.actionBlack', 'YibuqueShadow.floating']) {
+for (const needle of ['快捷录入', '衣柜', '逛店', '穿搭', 'onOpenWardrobe', 'onOpenStoreVisit', 'onOpenOutfit', "SymbolGlyph($r('sys.symbol.shirt'))", "SymbolGlyph($r('sys.symbol.store_fill'))", "SymbolGlyph($r('sys.symbol.hanger_and_towels'))", 'YibuqueColor.actionBlack']) {
   mustInclude(quickSheet, quickSheetPath, needle);
 }
+mustInclude(quickSheet, quickSheetPath, '.backgroundColor(YibuqueColor.scrimMedium)');
+mustInclude(quickSheet, quickSheetPath, ".height('100%')\n    .backgroundColor(YibuqueColor.scrimMedium)");
+mustInclude(quickSheet, quickSheetPath, 'Column({ space: 0 })');
+mustInclude(quickSheet, quickSheetPath, 'Divider()');
+mustInclude(quickSheet, quickSheetPath, '.strokeWidth(1)');
+mustInclude(quickSheet, quickSheetPath, '.color(YibuqueColor.borderLight)');
+mustNotInclude(quickSheet, quickSheetPath, ".backgroundColor('#521D1D1F')");
+mustNotInclude(quickSheet, quickSheetPath, 'primary ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray');
+mustNotInclude(quickSheet, quickSheetPath, '.borderRadius(YibuqueRadius.xxl)');
+mustNotInclude(quickSheet, quickSheetPath, '.margin({ bottom: 16 })');
+mustNotInclude(quickSheet, quickSheetPath, '.shadow(');
 
 for (const needle of ['#0071E3', '#1D1D1F', '#93C5FD', '#EAF3FE', 'feDropShadow']) {
   mustInclude(icon, iconPath, needle);

@@ -13,7 +13,7 @@ export struct OutfitCard {
           .width('100%')
           .height(132)
           .objectFit(ImageFit.Cover)
-          .borderRadius(5)
+          .borderRadius(YibuqueRadius.xs)
       } else {
         Column() {
           SymbolGlyph($r('sys.symbol.hanger_and_towels'))
@@ -24,8 +24,8 @@ export struct OutfitCard {
         .height(132)
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .borderRadius(5)
-        .backgroundColor(YibuqueColor.cardBlue)
+        .borderRadius(YibuqueRadius.xs)
+        .backgroundColor(YibuqueColor.cardSurface)
       }
 
       Text(this.title)

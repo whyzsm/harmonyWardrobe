@@ -1,4 +1,4 @@
-import { YibuqueColor, YibuqueFontSize, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
+import { YibuqueColor, YibuqueFontSize, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
 
 @Component
 export struct AppTopBar {
@@ -12,8 +12,8 @@ export struct AppTopBar {
           Row()
             .width(30)
             .height(30)
-            .backgroundColor(YibuqueColor.cardBlue)
-            .borderRadius(12)
+            .backgroundColor(YibuqueColor.cardSurface)
+            .borderRadius(YibuqueRadius.md)
 
           SymbolGlyph($r('sys.symbol.shirt'))
             .fontSize(20)
@@ -21,9 +21,9 @@ export struct AppTopBar {
         }
         .width(36)
         .height(36)
-        .backgroundColor('#00FFFFFF')
+        .backgroundColor(YibuqueColor.transparent)
         .borderRadius(YibuqueRadius.lg)
-        .shadow({ radius: 12, color: '#18000000', offsetX: 0, offsetY: 4 })
+        .shadow(YibuqueShadow.soft) // 近似: 原 radius12/offsetY4/#18 → soft radius16/offsetY5/#18
 
         Text('衣不缺')
           .fontSize(20)

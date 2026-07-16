@@ -208,7 +208,7 @@ export struct OutfitEditPage {
         .height('60%')
         .linearGradient({
           angle: 180,
-          colors: [['#00000000', 0], ['#99000000', 1]]
+          colors: [[YibuqueColor.transparentBlack, 0], [YibuqueColor.scrimStrong, 1]]
         })
 
       Column() {
@@ -226,12 +226,12 @@ export struct OutfitEditPage {
             .fontSize(20)
             .lineHeight(28)
             .fontWeight(FontWeight.Regular)
-            .fontColor('#FFFFFF')
+            .fontColor(YibuqueColor.textInverse)
 
           Text('整体、细节或上身效果都可以')
             .fontSize(14)
             .lineHeight(20)
-            .fontColor('#D9FFFFFF')
+            .fontColor(YibuqueColor.glassMedium)
 
           this.GalleryAction()
         }
@@ -244,9 +244,9 @@ export struct OutfitEditPage {
     }
     .width('100%')
     .aspectRatio(530 / 386)
-    .backgroundColor('#E4E2E2')
-    .borderRadius(24)
-    .border({ width: 1, color: '#4DC4C7C7' })
+    .backgroundColor(YibuqueColor.borderLight)
+    .borderRadius(YibuqueRadius.sheet)
+    .border({ width: 1, color: YibuqueColor.borderLight })
     .clip(true)
     .accessibilityText(this.hasSelectedPhoto() ? `已选择 ${this.photoUris.length} 张美搭照片` : '添加美搭照片')
   }
@@ -256,12 +256,12 @@ export struct OutfitEditPage {
     Stack({ alignContent: Alignment.Center }) {
       SymbolGlyph($r('sys.symbol.camera_fill'))
         .fontSize(24)
-        .fontColor(['#000000'])
+        .fontColor([YibuqueColor.actionBlack])
     }
     .width(48)
     .height(48)
-    .backgroundColor('#F2FFFFFF')
-    .borderRadius(24)
+    .backgroundColor(YibuqueColor.glassStrong)
+    .borderRadius(YibuqueRadius.full)
     .accessibilityText('拍照')
     .onClick(() => {
       this.capturePhoto();
@@ -273,17 +273,17 @@ export struct OutfitEditPage {
     Row({ space: 8 }) {
       SymbolGlyph($r('sys.symbol.picture'))
         .fontSize(18)
-        .fontColor(['#000000'])
+        .fontColor([YibuqueColor.actionBlack])
       Text(this.photoUris.length > 1 ? `已选择 ${this.photoUris.length} 张` : (this.hasSelectedPhoto() ? '继续选图' : '选择照片'))
         .fontSize(14)
         .fontWeight(FontWeight.Regular)
-        .fontColor('#000000')
+        .fontColor(YibuqueColor.actionBlack)
     }
     .width(164)
     .height(48)
     .justifyContent(FlexAlign.Center)
-    .backgroundColor('#FFFFFF')
-    .borderRadius(24)
+    .backgroundColor(YibuqueColor.cardWhite)
+    .borderRadius(YibuqueRadius.full)
     .accessibilityText('选择照片')
     .onClick(() => {
       this.pickGalleryPhotos();
@@ -408,6 +408,6 @@ export struct OutfitEditPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(YibuqueColor.bgBlueGray)
+    .backgroundColor(YibuqueColor.bgBase)
   }
 }

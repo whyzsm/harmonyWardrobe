@@ -46,7 +46,8 @@ export struct WardrobePage {
   onNestedPageVisibilityChange: (visible: boolean) => void = () => {};
   onOpenSearchTarget: (entityType: SearchEntityType, id: string, title: string) => void =
     (_entityType: SearchEntityType, _id: string, _title: string) => {};
-  @Prop initialWardrobeTab: string = '衣裤';
+  @Prop @Watch('onInitialWardrobeTabChange') initialWardrobeTab: string = '衣裤';
+  @Prop @Watch('onInitialWearLogTargetChange') initialWearLogId: string = '';
 
   @State private selectedWardrobeTab: string = '衣裤';
   @State private searchQuery: string = '';
@@ -78,6 +79,40 @@ export struct WardrobePage {
     this.loadClothingItems();
     this.loadOutfits();
     this.loadCalendar();
+    if (this.initialWearLogId.length > 0) {
+      this.locateWearLog(this.initialWearLogId);
+    }
+  }
+
+  private onInitialWardrobeTabChange(): void {
+    if (this.initialWardrobeTab === '美搭' || this.initialWardrobeTab === '日历' || this.initialWardrobeTab === '衣裤') {
+      this.selectedWardrobeTab = this.initialWardrobeTab;
+      if (this.initialWardrobeTab === '日历') {
+        this.loadCalendar();
+      }
+    }
+  }
+
+  private onInitialWearLogTargetChange(): void {
+    if (this.initialWearLogId.length > 0) {
+      this.locateWearLog(this.initialWearLogId);
+    }
+  }
+
+  private async locateWearLog(wearLogId: string): Promise<void> {
+    if (this.wearLogRepository === undefined) {
+      return;
+    }
+
+    const wearLog = await this.wearLogRepository.getWearLogById(wearLogId);
+    if (wearLog === undefined) {
+      return;
+    }
+
+    this.selectedWardrobeTab = '日历';
+    this.currentMonth = wearLog.wornDate.substring(0, 7);
+    this.selectedDate = wearLog.wornDate;
+    await this.loadCalendar();
   }
 
   aboutToDisappear(): void {
@@ -590,6 +625,8 @@ export struct WardrobePage {
           this.onOpenSearchTarget(SearchEntityType.Wishlist, id, '');
         },
         onOpenWearLogResult: (id: string) => {
+          this.showUnifiedSearch = false;
+          this.onNestedPageVisibilityChange(false);
           this.onOpenSearchTarget(SearchEntityType.WearLog, id, '');
         },
         onOpenProfileResult: (entityType: SearchEntityType, id: string) => {
@@ -608,6 +645,8 @@ export struct WardrobePage {
     } else {
       Column({ space: 14 }) {
       this.WardrobeSearchHeader()
+
+      this.WardrobePrimaryTabs()
 
       if (this.loading) {
         Text('正在加载衣橱...')
@@ -659,7 +698,7 @@ export struct WardrobePage {
           .justifyContent(FlexAlign.Center)
           .alignItems(HorizontalAlign.Center)
           .backgroundColor(YibuqueColor.cardSoftGray)
-          .borderRadius(18)
+          .borderRadius(YibuqueRadius.xxl)
           .border({ width: 1, color: YibuqueColor.borderMedium })
 
           Text('点底部相机，选择照片后归类为衣橱')
@@ -688,7 +727,7 @@ export struct WardrobePage {
         .height(220)
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .backgroundColor(YibuqueColor.cardBlue)
+        .backgroundColor(YibuqueColor.cardSurface)
         .borderRadius(YibuqueRadius.xxl)
       } else if (this.selectedWardrobeTab === '衣裤') {
         this.WardrobeWaterFlow()
@@ -740,7 +779,7 @@ export struct WardrobePage {
         .layoutWeight(1)
         .fontSize(14)
         .fontColor(YibuqueColor.textPrimary)
-        .placeholderColor('#96969C')
+        .placeholderColor(YibuqueColor.textTertiary) // 近似: 原 #96969C 无精确 token, textTertiary(#86868B)最接近
         .backgroundColor(Color.Transparent)
         .enterKeyType(EnterKeyType.Search)
         .onChange((value: string) => {
@@ -759,7 +798,7 @@ export struct WardrobePage {
     .padding({ left: 16, right: 14 })
     .alignItems(VerticalAlign.Center)
     .backgroundColor(YibuqueColor.cardWhite)
-    .borderRadius(12)
+    .borderRadius(YibuqueRadius.md)
     .border({ width: 1, color: YibuqueColor.borderMedium })
   }
 
@@ -887,7 +926,7 @@ export struct WardrobePage {
         }
         .width(78)
         .height(92)
-        .backgroundColor(YibuqueColor.cardBlue)
+        .backgroundColor(YibuqueColor.cardSurface)
         .borderRadius(YibuqueRadius.xl)
       }
 
@@ -934,7 +973,7 @@ export struct WardrobePage {
             Text(category)
               .fontSize(13)
               .fontWeight(this.selectedCategoryLabel === category ? FontWeight.Regular : FontWeight.Regular)
-              .fontColor(this.selectedCategoryLabel === category ? YibuqueColor.textInverse : '#626267')
+              .fontColor(this.selectedCategoryLabel === category ? YibuqueColor.textInverse : YibuqueColor.textSecondary) // 近似: 原 #626267 无精确 token, textSecondary(#6E6E73)最接近
           }
           .width(76)
           .constraintSize({ minHeight: 44 })
@@ -1022,13 +1061,13 @@ export struct WardrobePage {
             .justifyContent(FlexAlign.Center)
             .alignItems(HorizontalAlign.Center)
             .backgroundColor(YibuqueColor.cardSoftGray)
-            .borderRadius(18)
+            .borderRadius(YibuqueRadius.xxl)
         } else {
           Image(this.firstPhotoUri(item))
             .width('100%')
             .aspectRatio(this.wardrobeCardAspectRatio(index))
             .objectFit(ImageFit.Cover)
-            .borderRadius(18)
+            .borderRadius(YibuqueRadius.xxl)
         }
 
         Row() {
@@ -1089,9 +1128,9 @@ export struct WardrobePage {
     }
     .width(28)
     .height(28)
-    .backgroundColor('#E6FFFFFF')
-    .borderRadius(14)
-    .shadow({ radius: 8, color: '#16000000', offsetX: 0, offsetY: 3 })
+    .backgroundColor(YibuqueColor.glassStrong) // 近似: 原 #E6FFFFFF 无精确 token, glassStrong(#F2FFFFFF)最接近
+    .borderRadius(YibuqueRadius.lg)
+    .shadow(YibuqueShadow.soft) // 近似: 原 radius8/offsetY3/#16 小徽章阴影 → soft radius16/offsetY5/#18
   }
 
   @Builder
@@ -1102,7 +1141,7 @@ export struct WardrobePage {
           .width('100%')
           .height(150)
           .objectFit(ImageFit.Cover)
-          .borderRadius(5)
+          .borderRadius(YibuqueRadius.xs)
       } else {
         Column() {
           SymbolGlyph($r('sys.symbol.hanger_and_towels'))
@@ -1114,7 +1153,7 @@ export struct WardrobePage {
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
         .backgroundColor(YibuqueColor.cardMint)
-        .borderRadius(5)
+        .borderRadius(YibuqueRadius.xs)
       }
 
       Text(outfit.title)

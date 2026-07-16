@@ -317,7 +317,7 @@ export struct StoreVisitEditPage {
           .height('60%')
           .linearGradient({
             angle: 180,
-            colors: [['#00000000', 0], ['#99000000', 1]]
+            colors: [[YibuqueColor.transparentBlack, 0], [YibuqueColor.scrimStrong, 1]]
           })
       }
 
@@ -337,12 +337,12 @@ export struct StoreVisitEditPage {
               .fontSize(20)
               .lineHeight(28)
               .fontWeight(FontWeight.Regular)
-              .fontColor('#FFFFFF')
+              .fontColor(YibuqueColor.textInverse)
 
             Text('招牌、试衣间或想回看的单品都可以')
               .fontSize(14)
               .lineHeight(20)
-              .fontColor('#D9FFFFFF')
+              .fontColor(YibuqueColor.glassMedium)
 
             this.GalleryAction()
           }
@@ -363,7 +363,7 @@ export struct StoreVisitEditPage {
     .width('100%')
     .aspectRatio(530 / 386)
     .backgroundColor(YibuqueColor.bgGray)
-    .borderRadius(24)
+    .borderRadius(YibuqueRadius.xxxl)
     .border({ width: 1, color: YibuqueColor.borderLight })
     .clip(true)
     .accessibilityText(this.photoUris.length > 0 ? `已选择 ${this.photoUris.length} 张店铺照片` : '添加店铺照片')
@@ -374,12 +374,12 @@ export struct StoreVisitEditPage {
     Stack({ alignContent: Alignment.Center }) {
       SymbolGlyph($r('sys.symbol.camera_fill'))
         .fontSize(24)
-        .fontColor(['#000000'])
+        .fontColor([YibuqueColor.actionBlack])
     }
     .width(48)
     .height(48)
-    .backgroundColor('#F2FFFFFF')
-    .borderRadius(24)
+    .backgroundColor(YibuqueColor.glassStrong)
+    .borderRadius(YibuqueRadius.full)
     .accessibilityText('拍照')
     .enabled(!this.isSaving && !this.isChoosingPhotos)
     .onClick(() => {
@@ -392,17 +392,17 @@ export struct StoreVisitEditPage {
     Row({ space: 8 }) {
       SymbolGlyph($r('sys.symbol.picture'))
         .fontSize(18)
-        .fontColor(['#000000'])
+        .fontColor([YibuqueColor.actionBlack])
       Text(this.isChoosingPhotos ? '选择中...' : (this.photoUris.length > 1 ? `已选择 ${this.photoUris.length} 张` : '选择照片'))
         .fontSize(14)
         .fontWeight(FontWeight.Regular)
-        .fontColor('#000000')
+        .fontColor(YibuqueColor.actionBlack)
     }
     .width(164)
     .height(48)
     .justifyContent(FlexAlign.Center)
-    .backgroundColor('#FFFFFF')
-    .borderRadius(24)
+    .backgroundColor(YibuqueColor.cardWhite)
+    .borderRadius(YibuqueRadius.full)
     .accessibilityText('选择照片')
     .enabled(!this.isSaving && !this.isChoosingPhotos)
     .onClick(() => {
@@ -417,11 +417,11 @@ export struct StoreVisitEditPage {
         Row({ space: 10 }) {
           SymbolGlyph($r('sys.symbol.store_fill'))
             .fontSize(18)
-            .fontColor(['#444748'])
+            .fontColor([YibuqueColor.textSecondary])
           Text('店名 / 品牌')
             .fontSize(14)
             .fontWeight(FontWeight.Regular)
-            .fontColor('#444748')
+            .fontColor(YibuqueColor.textSecondary)
         }
 
         TextInput({ text: this.storeName, placeholder: '例如：静安嘉里 COS' })
@@ -429,10 +429,10 @@ export struct StoreVisitEditPage {
           .height(56)
           .padding({ left: 16, right: 16 })
           .fontSize(16)
-          .fontColor('#1B1C1C')
-          .placeholderColor('#C4C7C7')
+          .fontColor(YibuqueColor.textPrimary)
+          .placeholderColor(YibuqueColor.textDisabled)
           .backgroundColor(this.isStoreNameInvalid() ? YibuqueColor.bgGray : YibuqueColor.cardSoftGray)
-          .borderRadius(24)
+          .borderRadius(YibuqueRadius.xxxl)
           .border({ width: this.isStoreNameInvalid() ? 1 : 0, color: YibuqueColor.danger })
           .onChange((value: string) => {
             this.storeName = value;
@@ -454,11 +454,11 @@ export struct StoreVisitEditPage {
         Row({ space: 10 }) {
           SymbolGlyph($r('sys.symbol.mappin_and_rectangle'))
             .fontSize(18)
-            .fontColor(['#444748'])
+            .fontColor([YibuqueColor.textSecondary])
           Text('商圈 / 地址')
             .fontSize(14)
             .fontWeight(FontWeight.Regular)
-            .fontColor('#444748')
+            .fontColor(YibuqueColor.textSecondary)
         }
 
         TextInput({ text: this.districtOrAddress, placeholder: '例如：静安寺 · 二楼女装区' })
@@ -466,10 +466,10 @@ export struct StoreVisitEditPage {
           .height(56)
           .padding({ left: 16, right: 16 })
           .fontSize(16)
-          .fontColor('#1B1C1C')
-          .placeholderColor('#C4C7C7')
+          .fontColor(YibuqueColor.textPrimary)
+          .placeholderColor(YibuqueColor.textDisabled)
           .backgroundColor(this.isAddressInvalid() ? YibuqueColor.bgGray : YibuqueColor.cardSoftGray)
-          .borderRadius(24)
+          .borderRadius(YibuqueRadius.xxxl)
           .border({ width: this.isAddressInvalid() ? 1 : 0, color: YibuqueColor.danger })
           .onChange((value: string) => {
             this.districtOrAddress = value;
@@ -499,11 +499,11 @@ export struct StoreVisitEditPage {
           Row()
             .width(2)
             .height(20)
-            .backgroundColor('#000000')
+            .backgroundColor(YibuqueColor.actionBlack)
           Text('逛店状态')
             .fontSize(14)
             .fontWeight(FontWeight.Regular)
-            .fontColor('#444748')
+            .fontColor(YibuqueColor.textSecondary)
         }
         Row({ space: 12 }) {
           ForEach(VISIT_STATUS_OPTIONS, (option: VisitStatusOption) => {
@@ -512,11 +512,11 @@ export struct StoreVisitEditPage {
               .layoutWeight(1)
               .fontSize(14)
               .fontWeight(FontWeight.Regular)
-              .fontColor(this.selectedStatus === option.value ? '#FFFFFF' : '#444748')
+              .fontColor(this.selectedStatus === option.value ? YibuqueColor.textInverse : YibuqueColor.textSecondary)
               .textAlign(TextAlign.Center)
-              .backgroundColor(this.selectedStatus === option.value ? '#000000' : '#00FFFFFF')
-              .borderRadius(24)
-              .border({ width: 1, color: this.selectedStatus === option.value ? '#000000' : '#C4C7C7' })
+              .backgroundColor(this.selectedStatus === option.value ? YibuqueColor.actionBlack : YibuqueColor.transparent)
+              .borderRadius(YibuqueRadius.full)
+              .border({ width: 1, color: this.selectedStatus === option.value ? YibuqueColor.actionBlack : YibuqueColor.borderMedium })
               .onClick(() => {
                 this.selectedStatus = option.value;
               })
@@ -532,11 +532,11 @@ export struct StoreVisitEditPage {
           Row()
             .width(2)
             .height(20)
-            .backgroundColor('#000000')
+            .backgroundColor(YibuqueColor.actionBlack)
           Text('这次要记什么')
             .fontSize(14)
             .fontWeight(FontWeight.Regular)
-            .fontColor('#444748')
+            .fontColor(YibuqueColor.textSecondary)
         }
         Grid() {
           ForEach(VISIT_FOCUS_TAGS, (tag: string) => {
@@ -546,14 +546,14 @@ export struct StoreVisitEditPage {
                 Text(tag)
                   .fontSize(14)
                   .fontWeight(FontWeight.Regular)
-                  .fontColor(this.selectedTags.includes(tag) ? '#FFFFFF' : '#1B1C1C')
+                  .fontColor(this.selectedTags.includes(tag) ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
               }
               .width('100%')
               .height(52)
               .justifyContent(FlexAlign.Center)
-              .backgroundColor(this.selectedTags.includes(tag) ? '#000000' : '#00FFFFFF')
-              .borderRadius(24)
-              .border({ width: 1, color: this.selectedTags.includes(tag) ? '#000000' : '#C4C7C7' })
+              .backgroundColor(this.selectedTags.includes(tag) ? YibuqueColor.actionBlack : YibuqueColor.transparent)
+              .borderRadius(YibuqueRadius.full)
+              .border({ width: 1, color: this.selectedTags.includes(tag) ? YibuqueColor.actionBlack : YibuqueColor.borderMedium })
               .onClick(() => {
                 this.toggleFocusTag(tag);
               })
@@ -578,19 +578,19 @@ export struct StoreVisitEditPage {
     if (tag === '试穿') {
       SymbolGlyph($r('sys.symbol.shirt'))
         .fontSize(18)
-        .fontColor([this.selectedTags.includes(tag) ? '#FFFFFF' : '#000000'])
+        .fontColor([this.selectedTags.includes(tag) ? YibuqueColor.textInverse : YibuqueColor.actionBlack])
     } else if (tag === '想回看') {
       SymbolGlyph($r('sys.symbol.eye'))
         .fontSize(18)
-        .fontColor([this.selectedTags.includes(tag) ? '#FFFFFF' : '#000000'])
+        .fontColor([this.selectedTags.includes(tag) ? YibuqueColor.textInverse : YibuqueColor.actionBlack])
     } else if (tag === '需比价') {
       SymbolGlyph($r('sys.symbol.creditcard'))
         .fontSize(18)
-        .fontColor([this.selectedTags.includes(tag) ? '#FFFFFF' : '#000000'])
+        .fontColor([this.selectedTags.includes(tag) ? YibuqueColor.textInverse : YibuqueColor.actionBlack])
     } else {
       SymbolGlyph($r('sys.symbol.bag'))
         .fontSize(18)
-        .fontColor([this.selectedTags.includes(tag) ? '#FFFFFF' : '#000000'])
+        .fontColor([this.selectedTags.includes(tag) ? YibuqueColor.textInverse : YibuqueColor.actionBlack])
     }
   }
 
@@ -626,18 +626,18 @@ export struct StoreVisitEditPage {
           LoadingProgress()
             .width(20)
             .height(20)
-            .color('#FFFFFF')
+            .color(YibuqueColor.textInverse)
         } else {
           Text('保存记录')
             .fontSize(14)
             .fontWeight(FontWeight.Regular)
-            .fontColor('#FFFFFF')
+            .fontColor(YibuqueColor.textInverse)
         }
       }
         .height(56)
         .width('100%')
-        .backgroundColor('#000000')
-        .borderRadius(28)
+        .backgroundColor(YibuqueColor.actionBlack)
+        .borderRadius(YibuqueRadius.sheet)
         .enabled(this.canSave())
         .onClick(() => {
           this.saveStoreVisit();

@@ -6,7 +6,7 @@ import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { WearLog } from '../domain/wearLog/WearLogModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { YibuqueColor } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
 import { ArrayDataSource } from '../utils/ArrayDataSource';
 import { OutfitEditPage } from './OutfitEditPage';
 import { WearLogEditPage } from './WearLogEditPage';
@@ -23,15 +23,6 @@ const OUTFIT_SCENE_FILTERS: OutfitSceneFilter[] = [
   { label: '通勤', keywords: ['通勤', '上班', '工作', '职场'] }
 ];
 
-const PAGE_BG = '#FFFFFF';
-const SURFACE_WARM = '#FBFBFD';
-const TEXT_PRIMARY = '#1D1D1F';
-const TEXT_MUTED = '#6E6E73';
-const TEXT_META = '#86868B';
-const BORDER = '#D2D2D7';
-const BORDER_SOFT = '#E8E8ED';
-const ACCENT = '#1D1D1F';
-const ACCENT_SOFT = '#F2F2F7';
 const ERROR = YibuqueColor.danger;
 const ERROR_BG = YibuqueColor.cardSoftGray;
 const RECORD_WEAR_ACCESSIBILITY_TEXT = '记录一次穿着';
@@ -278,11 +269,11 @@ export struct OutfitsPage {
             LoadingProgress()
               .width(22)
               .height(22)
-              .color(TEXT_PRIMARY)
+              .color(YibuqueColor.textPrimary)
 
             Text('正在加载套装...')
               .fontSize(14)
-              .fontColor(TEXT_MUTED)
+              .fontColor(YibuqueColor.textSecondary)
           }
           .width('100%')
           .layoutWeight(1)
@@ -300,9 +291,9 @@ export struct OutfitsPage {
               Button('重试')
                 .height(36)
                 .fontSize(13)
-                .fontColor(PAGE_BG)
+                .fontColor(YibuqueColor.textInverse)
                 .backgroundColor(ERROR)
-                .borderRadius(18)
+                .borderRadius(YibuqueRadius.xxl)
                 .onClick(() => {
                   this.retry();
                 })
@@ -310,7 +301,7 @@ export struct OutfitsPage {
             .width('100%')
             .padding(14)
             .backgroundColor(ERROR_BG)
-            .borderRadius(12)
+            .borderRadius(YibuqueRadius.md)
           }
           .width('100%')
           .layoutWeight(1)
@@ -337,9 +328,9 @@ export struct OutfitsPage {
             Button('查看全部')
               .height(44)
               .fontSize(14)
-              .fontColor(ACCENT)
-              .backgroundColor(ACCENT_SOFT)
-              .borderRadius(22)
+              .fontColor(YibuqueColor.textPrimary)
+              .backgroundColor(YibuqueColor.cardSurface)
+              .borderRadius(YibuqueRadius.xxxl)
               .onClick(() => {
                 this.selectedFilterLabel = '全部';
                 this.refreshOutfitDataSource();
@@ -368,7 +359,7 @@ export struct OutfitsPage {
       }
       .width('100%')
       .height('100%')
-      .backgroundColor(PAGE_BG)
+      .backgroundColor(YibuqueColor.bgDefault)
     }
   }
 
@@ -378,18 +369,18 @@ export struct OutfitsPage {
       Column({ space: 8 }) {
         SymbolGlyph($r('sys.symbol.hanger_and_towels'))
           .fontSize(36)
-          .fontColor([TEXT_PRIMARY])
+          .fontColor([YibuqueColor.textPrimary])
 
         Text(title)
           .fontSize(16)
           .fontWeight(FontWeight.Regular)
-          .fontColor(TEXT_PRIMARY)
+          .fontColor(YibuqueColor.textPrimary)
           .textAlign(TextAlign.Center)
 
         Text(description)
           .fontSize(13)
           .lineHeight(19)
-          .fontColor(TEXT_MUTED)
+          .fontColor(YibuqueColor.textSecondary)
           .textAlign(TextAlign.Center)
       }
       .width('100%')
@@ -397,27 +388,27 @@ export struct OutfitsPage {
       .padding({ left: 18, right: 18 })
       .justifyContent(FlexAlign.Center)
       .alignItems(HorizontalAlign.Center)
-      .backgroundColor(SURFACE_WARM)
-      .borderRadius(18)
-      .border({ width: 1, color: BORDER })
+      .backgroundColor(YibuqueColor.cardSoftGray)
+      .borderRadius(YibuqueRadius.xxl)
+      .border({ width: 1, color: YibuqueColor.borderMedium })
 
       Text(guideTitle)
         .fontSize(15)
         .fontWeight(FontWeight.Regular)
-        .fontColor(TEXT_PRIMARY)
+        .fontColor(YibuqueColor.textPrimary)
         .textAlign(TextAlign.Center)
 
       Text(guideDescription)
         .fontSize(12)
         .lineHeight(18)
-        .fontColor(TEXT_MUTED)
+        .fontColor(YibuqueColor.textSecondary)
         .textAlign(TextAlign.Center)
     }
     .width('100%')
     .padding(8)
     .alignItems(HorizontalAlign.Center)
-    .backgroundColor(PAGE_BG)
-    .borderRadius(18)
+    .backgroundColor(YibuqueColor.bgDefault)
+    .borderRadius(YibuqueRadius.xxl)
   }
 
   @Builder
@@ -431,15 +422,15 @@ export struct OutfitsPage {
             Text(filter.label)
               .fontSize(12)
               .fontWeight(this.selectedFilterLabel === filter.label ? FontWeight.Regular : FontWeight.Regular)
-              .fontColor(this.selectedFilterLabel === filter.label ? PAGE_BG : TEXT_MUTED)
+              .fontColor(this.selectedFilterLabel === filter.label ? YibuqueColor.textInverse : YibuqueColor.textSecondary)
           }
           .height(44)
           .padding({ left: 12, right: 15 })
           .justifyContent(FlexAlign.Center)
           .alignItems(VerticalAlign.Center)
-          .backgroundColor(this.selectedFilterLabel === filter.label ? TEXT_PRIMARY : SURFACE_WARM)
-          .borderRadius(22)
-          .border({ width: 1, color: this.selectedFilterLabel === filter.label ? TEXT_PRIMARY : BORDER })
+          .backgroundColor(this.selectedFilterLabel === filter.label ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.xxxl)
+          .border({ width: 1, color: this.selectedFilterLabel === filter.label ? YibuqueColor.borderStrong : YibuqueColor.borderMedium })
           .onClick(() => {
             this.selectedFilterLabel = filter.label;
             this.refreshOutfitDataSource();
@@ -463,19 +454,19 @@ export struct OutfitsPage {
     if (label === '全部') {
       SymbolGlyph($r('sys.symbol.hanger_and_towels'))
         .fontSize(17)
-        .fontColor([this.selectedFilterLabel === label ? PAGE_BG : TEXT_MUTED])
+        .fontColor([this.selectedFilterLabel === label ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
     } else if (label === '逛街') {
       SymbolGlyph($r('sys.symbol.bag'))
         .fontSize(17)
-        .fontColor([this.selectedFilterLabel === label ? PAGE_BG : TEXT_MUTED])
+        .fontColor([this.selectedFilterLabel === label ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
     } else if (label === '周末') {
       SymbolGlyph($r('sys.symbol.shirt'))
         .fontSize(17)
-        .fontColor([this.selectedFilterLabel === label ? PAGE_BG : TEXT_MUTED])
+        .fontColor([this.selectedFilterLabel === label ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
     } else {
       SymbolGlyph($r('sys.symbol.clothing'))
         .fontSize(17)
-        .fontColor([this.selectedFilterLabel === label ? PAGE_BG : TEXT_MUTED])
+        .fontColor([this.selectedFilterLabel === label ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
     }
   }
 
@@ -487,14 +478,14 @@ export struct OutfitsPage {
           Text(this.clothingItems.length > 0 ? '从已有单品开始搭配' : '先添加衣物再创建套装')
             .fontSize(15)
             .fontWeight(FontWeight.Regular)
-            .fontColor(TEXT_PRIMARY)
+            .fontColor(YibuqueColor.textPrimary)
             .lineHeight(18)
 
           Text(this.clothingItems.length > 0 ?
             '选择衣橱里的真实单品，组合适合自己的穿搭。' :
             '衣橱中有单品后，就可以在这里创建搭配。')
             .fontSize(12)
-            .fontColor(TEXT_MUTED)
+            .fontColor(YibuqueColor.textSecondary)
             .maxLines(2)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
         }
@@ -506,17 +497,17 @@ export struct OutfitsPage {
           .padding({ left: 12, right: 12 })
           .fontSize(12)
           .fontWeight(FontWeight.Regular)
-          .fontColor(ACCENT)
+          .fontColor(YibuqueColor.textPrimary)
           .textAlign(TextAlign.Center)
-          .backgroundColor(ACCENT_SOFT)
-          .borderRadius(18)
+          .backgroundColor(YibuqueColor.cardSurface)
+          .borderRadius(YibuqueRadius.xxl)
       }
       .width('100%')
       .padding(14)
       .alignItems(VerticalAlign.Center)
-      .backgroundColor(SURFACE_WARM)
-      .borderRadius(18)
-      .border({ width: 1, color: BORDER_SOFT })
+      .backgroundColor(YibuqueColor.cardSoftGray)
+      .borderRadius(YibuqueRadius.xxl)
+      .border({ width: 1, color: YibuqueColor.borderLight })
     }
     .width('100%')
     .padding({ left: 20, right: 20, bottom: 16 })
@@ -539,7 +530,7 @@ export struct OutfitsPage {
         Text(outfit.title)
           .fontSize(14)
           .fontWeight(FontWeight.Regular)
-          .fontColor(TEXT_PRIMARY)
+          .fontColor(YibuqueColor.textPrimary)
           .lineHeight(17)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -550,7 +541,7 @@ export struct OutfitsPage {
 
         Text(this.outfitMeta(outfit))
           .fontSize(11)
-          .fontColor(TEXT_META)
+          .fontColor(YibuqueColor.textTertiary)
           .lineHeight(15)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
@@ -573,26 +564,26 @@ export struct OutfitsPage {
       Column({ space: 5 }) {
         SymbolGlyph($r('sys.symbol.picture'))
           .fontSize(24)
-          .fontColor([TEXT_MUTED])
+          .fontColor([YibuqueColor.textSecondary])
 
         Text('暂无照片')
           .fontSize(10)
-          .fontColor(TEXT_META)
+          .fontColor(YibuqueColor.textTertiary)
       }
         .width('100%')
         .layoutWeight(weight)
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .backgroundColor(SURFACE_WARM)
-        .borderRadius(5)
-        .border({ width: 1, color: BORDER_SOFT })
+        .backgroundColor(YibuqueColor.cardSoftGray)
+        .borderRadius(YibuqueRadius.xs)
+        .border({ width: 1, color: YibuqueColor.borderLight })
     } else {
       Image(this.photoUriAt(outfit, slot))
         .width('100%')
         .layoutWeight(weight)
         .objectFit(ImageFit.Cover)
-        .borderRadius(5)
-        .border({ width: 1, color: BORDER_SOFT })
+        .borderRadius(YibuqueRadius.xs)
+        .border({ width: 1, color: YibuqueColor.borderLight })
     }
   }
 }

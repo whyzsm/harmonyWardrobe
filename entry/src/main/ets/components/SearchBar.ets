@@ -1,4 +1,4 @@
-import { AppTheme } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
 
 @Component
 export struct SearchBar {
@@ -10,13 +10,13 @@ export struct SearchBar {
     TextInput({ text: this.value, placeholder: this.placeholder })
       .width('100%')
       .height(44)
-      .padding({ left: AppTheme.spacing.md, right: AppTheme.spacing.md })
+      .padding({ left: YibuqueSpacing.md, right: YibuqueSpacing.md })
       .fontSize(15)
-      .fontColor(AppTheme.color.text)
-      .placeholderColor(AppTheme.color.textDisabled)
-      .backgroundColor(AppTheme.color.surface)
-      .borderRadius(AppTheme.radius.lg)
-      .border({ width: 1, color: AppTheme.color.border })
+      .fontColor(YibuqueColor.textPrimary)
+      .placeholderColor(YibuqueColor.textDisabled)
+      .backgroundColor(YibuqueColor.cardWhite)
+      .borderRadius(YibuqueRadius.md)
+      .border({ width: 1, color: YibuqueColor.borderMedium })
       .onChange((value: string) => {
         this.onChange(value);
       })

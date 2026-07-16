@@ -319,7 +319,7 @@ export struct ClothingDetailPage {
       Column()
         .width('100%')
         .height('100%')
-        .backgroundColor('#D11D1D1F')
+        .backgroundColor(YibuqueColor.overlayDark)
         .onClick(() => {
           this.closePhotoPreview();
         })
@@ -559,7 +559,7 @@ export struct ClothingDetailPage {
       }
       .width('100%')
       .height('100%')
-      .backgroundColor(YibuqueColor.bgBlueGray)
+      .backgroundColor(YibuqueColor.bgBase)
     } else {
       Stack() {
         Column() {
@@ -579,12 +579,12 @@ export struct ClothingDetailPage {
           }
           .width('100%')
           .layoutWeight(1)
-          .backgroundColor(YibuqueColor.bgBlueGray)
+          .backgroundColor(YibuqueColor.bgBase)
           .scrollBar(BarState.Off)
         }
         .width('100%')
         .height('100%')
-        .backgroundColor(YibuqueColor.bgBlueGray)
+        .backgroundColor(YibuqueColor.bgBase)
 
         if (this.showPhotoPreview) {
           this.PhotoPreviewOverlay()
@@ -592,7 +592,7 @@ export struct ClothingDetailPage {
       }
       .width('100%')
       .height('100%')
-      .backgroundColor(YibuqueColor.bgBlueGray)
+      .backgroundColor(YibuqueColor.bgBase)
     }
   }
 }

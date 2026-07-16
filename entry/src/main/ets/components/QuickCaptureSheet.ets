@@ -1,4 +1,4 @@
-import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
 
 @Component
 export struct QuickCaptureSheet {
@@ -47,7 +47,7 @@ export struct QuickCaptureSheet {
           this.closeSheet();
         })
 
-      Column({ space: 14 }) {
+      Column({ space: 0 }) {
         Row() {
           Text('快捷录入')
             .fontSize(22)
@@ -66,61 +66,72 @@ export struct QuickCaptureSheet {
             })
         }
         .width('100%')
-        .height(44)
+        .height(52)
+        .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX })
         .alignItems(VerticalAlign.Center)
 
-        this.ActionCard('衣柜', '新增衣物', 'wardrobe', true, () => {
+        Divider()
+          .strokeWidth(1)
+          .color(YibuqueColor.borderLight)
+
+        this.ActionCard('衣柜', '新增衣物', 'wardrobe', () => {
           this.onOpenWardrobe();
         })
 
-        this.ActionCard('逛店', '新增逛店记录', 'store', false, () => {
+        Divider()
+          .strokeWidth(1)
+          .color(YibuqueColor.borderLight)
+
+        this.ActionCard('逛店', '新增逛店记录', 'store', () => {
           this.onOpenStoreVisit();
         })
 
-        this.ActionCard('穿搭', '新增穿搭', 'outfit', false, () => {
+        Divider()
+          .strokeWidth(1)
+          .color(YibuqueColor.borderLight)
+
+        this.ActionCard('穿搭', '新增穿搭', 'outfit', () => {
           this.onOpenOutfit();
         })
       }
       .width('100%')
-      .padding({ left: 20, right: 20, top: 22, bottom: 24 })
+      .padding({ top: YibuqueSpacing.sm, bottom: YibuqueSpacing.bottomSafe })
       .backgroundColor(YibuqueColor.cardWhite)
-      .borderRadius({ topLeft: YibuqueRadius.sheet, topRight: YibuqueRadius.sheet, bottomLeft: YibuqueRadius.sheet, bottomRight: YibuqueRadius.sheet })
-      .shadow(YibuqueShadow.floating)
-      .margin({ bottom: 16 })
+      .borderRadius({ topLeft: YibuqueRadius.sheet, topRight: YibuqueRadius.sheet, bottomLeft: 0, bottomRight: 0 })
       .translate({ y: this.sheetTranslateY })
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(YibuqueColor.overlayDark)
+    .backgroundColor(YibuqueColor.scrimMedium)
     .opacity(this.backgroundOpacity)
   }
 
   @Builder
-  ActionIcon(variant: string, primary: boolean) {
+  ActionIcon(variant: string) {
     if (variant === 'wardrobe') {
       SymbolGlyph($r('sys.symbol.shirt'))
         .fontSize(22)
-        .fontColor([primary ? YibuqueColor.textInverse : YibuqueColor.textPrimary])
+        .fontColor([YibuqueColor.textPrimary])
     } else if (variant === 'store') {
       SymbolGlyph($r('sys.symbol.store_fill'))
         .fontSize(22)
-        .fontColor([primary ? YibuqueColor.textInverse : YibuqueColor.textPrimary])
+        .fontColor([YibuqueColor.textPrimary])
     } else {
       SymbolGlyph($r('sys.symbol.hanger_and_towels'))
         .fontSize(22)
-        .fontColor([primary ? YibuqueColor.textInverse : YibuqueColor.textPrimary])
+        .fontColor([YibuqueColor.textPrimary])
     }
   }
 
   @Builder
-  ActionCard(title: string, description: string, variant: string, primary: boolean, action: () => void) {
+  ActionCard(title: string, description: string, variant: string, action: () => void) {
     Row({ space: 12 }) {
       Stack({ alignContent: Alignment.Center }) {
-        this.ActionIcon(variant, primary)
+        this.ActionIcon(variant)
       }
       .width(44)
       .height(44)
-      .backgroundColor(primary ? YibuqueColor.actionBlack : YibuqueColor.cardBlue)
+      .backgroundColor(YibuqueColor.cardSurface)
       .borderRadius(YibuqueRadius.full)
 
       Column({ space: 3 }) {
@@ -128,12 +139,12 @@ export struct QuickCaptureSheet {
           .width('100%')
           .fontSize(17)
           .fontWeight(FontWeight.Regular)
-          .fontColor(primary ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
+          .fontColor(YibuqueColor.textPrimary)
 
         Text(description)
           .width('100%')
           .fontSize(13)
-          .fontColor(primary ? YibuqueColor.textDisabled : YibuqueColor.textSecondary)
+          .fontColor(YibuqueColor.textSecondary)
           .maxLines(1)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
       }
@@ -141,12 +152,10 @@ export struct QuickCaptureSheet {
       .alignItems(HorizontalAlign.Start)
     }
     .width('100%')
-    .height(82)
-    .padding({ left: 15, right: 15 })
+    .height(72)
+    .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX })
     .alignItems(VerticalAlign.Center)
-    .backgroundColor(primary ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
-    .borderRadius(YibuqueRadius.xxl)
-    .border({ width: primary ? 0 : 1, color: YibuqueColor.borderLight })
+    .backgroundColor(YibuqueColor.cardWhite)
     .scale({ x: this.pressedAction === title ? 0.98 : 1.0, y: this.pressedAction === title ? 0.98 : 1.0 })
     .animation({
       duration: 150,

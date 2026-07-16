@@ -52,7 +52,7 @@ export struct SecondaryPageHeader {
     .width('100%')
     .height(60)
     .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX })
-    .backgroundColor('#F2FFFFFF')
+    .backgroundColor(YibuqueColor.glassStrong)
     .border({ width: { bottom: 1 }, color: YibuqueColor.borderLight })
     .alignItems(VerticalAlign.Center)
   }

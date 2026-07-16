@@ -9,7 +9,7 @@ import { WishlistItem } from '../domain/wishlist/WishlistModels';
 import { PhotoSource } from '../media/PhotoModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { AppTheme } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
 
 function optionalText(value: string): string | undefined {
   const trimmed = value.trim();
@@ -149,7 +149,7 @@ export struct WishlistEditPage {
       },
       secondaryButton: {
         value: '删除',
-        fontColor: AppTheme.color.danger,
+        fontColor: YibuqueColor.danger,
         action: () => {
           this.deleteWishlistItem();
         }
@@ -192,9 +192,9 @@ export struct WishlistEditPage {
           Button('从相册选择')
             .height(44)
             .fontSize(14)
-            .backgroundColor(AppTheme.color.primary)
-            .fontColor(AppTheme.color.surface)
-            .borderRadius(8)
+            .backgroundColor(YibuqueColor.actionBlack)
+            .fontColor(YibuqueColor.textInverse)
+            .borderRadius(YibuqueRadius.sm)
             .onClick(() => {
               this.pickGalleryPhotos();
             })
@@ -202,10 +202,10 @@ export struct WishlistEditPage {
           Button('拍照')
             .height(44)
             .fontSize(14)
-            .backgroundColor(AppTheme.color.surface)
-            .fontColor(AppTheme.color.primary)
-            .borderRadius(8)
-            .border({ width: 1, color: AppTheme.color.border })
+            .backgroundColor(YibuqueColor.cardWhite)
+            .fontColor(YibuqueColor.actionBlack)
+            .borderRadius(YibuqueRadius.sm)
+            .border({ width: 1, color: YibuqueColor.borderMedium })
             .onClick(() => {
               this.capturePhoto();
             })
@@ -214,57 +214,57 @@ export struct WishlistEditPage {
 
         Text('商品名称')
           .fontSize(13)
-          .fontColor(AppTheme.color.textMuted)
+          .fontColor(YibuqueColor.textSecondary)
 
         TextInput({ text: this.title, placeholder: '输入心仪单品名称' })
           .height(44)
           .fontSize(15)
-          .backgroundColor(AppTheme.color.surface)
-          .borderRadius(8)
-          .border({ width: 1, color: AppTheme.color.border })
+          .backgroundColor(YibuqueColor.cardWhite)
+          .borderRadius(YibuqueRadius.sm)
+          .border({ width: 1, color: YibuqueColor.borderMedium })
           .onChange((value: string) => {
             this.title = value;
           })
 
         Text('门店')
           .fontSize(13)
-          .fontColor(AppTheme.color.textMuted)
+          .fontColor(YibuqueColor.textSecondary)
 
         TextInput({ text: this.storeName, placeholder: '输入门店或品牌' })
           .height(44)
           .fontSize(15)
-          .backgroundColor(AppTheme.color.surface)
-          .borderRadius(8)
-          .border({ width: 1, color: AppTheme.color.border })
+          .backgroundColor(YibuqueColor.cardWhite)
+          .borderRadius(YibuqueRadius.sm)
+          .border({ width: 1, color: YibuqueColor.borderMedium })
           .onChange((value: string) => {
             this.storeName = value;
           })
 
         Text('期望价格')
           .fontSize(13)
-          .fontColor(AppTheme.color.textMuted)
+          .fontColor(YibuqueColor.textSecondary)
 
         TextInput({ text: this.price, placeholder: '输入价格' })
           .height(44)
           .fontSize(15)
           .type(InputType.Number)
-          .backgroundColor(AppTheme.color.surface)
-          .borderRadius(8)
-          .border({ width: 1, color: AppTheme.color.border })
+          .backgroundColor(YibuqueColor.cardWhite)
+          .borderRadius(YibuqueRadius.sm)
+          .border({ width: 1, color: YibuqueColor.borderMedium })
           .onChange((value: string) => {
             this.price = value;
           })
 
         Text('备注')
           .fontSize(13)
-          .fontColor(AppTheme.color.textMuted)
+          .fontColor(YibuqueColor.textSecondary)
 
         TextInput({ text: this.note, placeholder: '记录尺码、试穿感受或购买理由' })
           .height(44)
           .fontSize(15)
-          .backgroundColor(AppTheme.color.surface)
-          .borderRadius(8)
-          .border({ width: 1, color: AppTheme.color.border })
+          .backgroundColor(YibuqueColor.cardWhite)
+          .borderRadius(YibuqueRadius.sm)
+          .border({ width: 1, color: YibuqueColor.borderMedium })
           .onChange((value: string) => {
             this.note = value;
           })
@@ -272,7 +272,7 @@ export struct WishlistEditPage {
         if (this.errorMessage.length > 0) {
           Text(this.errorMessage)
             .fontSize(13)
-            .fontColor(AppTheme.color.danger)
+            .fontColor(YibuqueColor.danger)
         }
 
         if (this.initialItem !== undefined) {
@@ -281,17 +281,17 @@ export struct WishlistEditPage {
               LoadingProgress()
                 .width(20)
                 .height(20)
-                .color(AppTheme.color.surface)
+                .color(YibuqueColor.textInverse)
             } else {
               Text('删除心愿')
                 .fontSize(15)
-                .fontColor(AppTheme.color.surface)
+                .fontColor(YibuqueColor.textInverse)
             }
           }
             .height(44)
             .width('100%')
-            .backgroundColor(AppTheme.color.danger)
-            .borderRadius(8)
+            .backgroundColor(YibuqueColor.danger)
+            .borderRadius(YibuqueRadius.sm)
             .enabled(!this.isSaving && !this.isDeleting)
             .onClick(() => {
               this.confirmDeleteWishlistItem();
@@ -303,17 +303,17 @@ export struct WishlistEditPage {
             LoadingProgress()
               .width(20)
               .height(20)
-              .color(AppTheme.color.surface)
+              .color(YibuqueColor.textInverse)
           } else {
             Text('保存心愿')
               .fontSize(15)
-              .fontColor(AppTheme.color.surface)
+              .fontColor(YibuqueColor.textInverse)
           }
         }
           .height(44)
           .width('100%')
-          .backgroundColor(this.canSave() ? AppTheme.color.primary : AppTheme.color.disabled)
-          .borderRadius(8)
+          .backgroundColor(this.canSave() ? YibuqueColor.actionBlack : YibuqueColor.textDisabled)
+          .borderRadius(YibuqueRadius.sm)
           .enabled(this.canSave())
           .onClick(() => {
             this.saveWishlistItem();
@@ -329,6 +329,6 @@ export struct WishlistEditPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(AppTheme.color.surfaceMuted)
+    .backgroundColor(YibuqueColor.bgGray)
   }
 }

@@ -2,7 +2,7 @@ import { StoreRepository } from '../data/repositories/StoreRepository';
 import { StoreVisit, StoreVisitStatus } from '../domain/store/StoreModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { YibuqueColor } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 import { ArrayDataSource } from '../utils/ArrayDataSource';
 import { toIsoDate } from '../utils/date';
 import { StoreVisitEditPage } from './StoreVisitEditPage';
@@ -26,7 +26,7 @@ const BORDER = YibuqueColor.borderMedium;
 const BORDER_SOFT = YibuqueColor.borderLight;
 const SURFACE_WARM = YibuqueColor.cardSoftGray;
 const ACCENT = YibuqueColor.brandCyan;
-const ACCENT_SOFT = YibuqueColor.cardBlue;
+const ACCENT_SOFT = YibuqueColor.cardSurface;
 
 @Component
 export struct StoreVisitPage {
@@ -329,7 +329,7 @@ export struct StoreVisitPage {
             .layoutWeight(1)
             .fontSize(14)
             .fontColor(TEXT_PRIMARY)
-            .placeholderColor('#96969C')
+            .placeholderColor(YibuqueColor.textTertiary)
             .backgroundColor(Color.Transparent)
             .enterKeyType(EnterKeyType.Search)
             .onChange((value: string) => {
@@ -342,7 +342,7 @@ export struct StoreVisitPage {
         .padding({ left: 14, right: 14 })
         .alignItems(VerticalAlign.Center)
         .backgroundColor(PAGE_BACKGROUND)
-        .borderRadius(12)
+        .borderRadius(YibuqueRadius.md)
         .border({ width: 1, color: BORDER })
 
       }
@@ -364,7 +364,7 @@ export struct StoreVisitPage {
             .justifyContent(FlexAlign.Center)
             .alignItems(VerticalAlign.Center)
             .backgroundColor(this.selectedStatus === filter.value ? TEXT_PRIMARY : SURFACE_WARM)
-            .borderRadius(22)
+            .borderRadius(YibuqueRadius.xxxl)
             .border({ width: 1, color: this.selectedStatus === filter.value ? TEXT_PRIMARY : BORDER })
             .onClick(() => {
               this.selectStatus(filter);
@@ -436,14 +436,14 @@ export struct StoreVisitPage {
       .width(38)
       .height(38)
       .backgroundColor(ACCENT_SOFT)
-      .borderRadius(19)
+      .borderRadius(YibuqueRadius.xxl)
     }
     .width('100%')
     .padding(12)
     .margin({ bottom: 16 })
     .alignItems(VerticalAlign.Center)
     .backgroundColor(SURFACE_WARM)
-    .borderRadius(18)
+    .borderRadius(YibuqueRadius.xxl)
     .border({ width: 1, color: BORDER_SOFT })
   }
 
@@ -476,7 +476,7 @@ export struct StoreVisitPage {
             .width('100%')
             .aspectRatio(this.cardAspectRatio(index))
             .objectFit(ImageFit.Cover)
-            .borderRadius(18)
+            .borderRadius(YibuqueRadius.xxl)
         } else {
           Column({ space: 8 }) {
             SymbolGlyph($r('sys.symbol.store_fill'))
@@ -491,7 +491,7 @@ export struct StoreVisitPage {
           .justifyContent(FlexAlign.Center)
           .alignItems(HorizontalAlign.Center)
           .backgroundColor(SURFACE_WARM)
-          .borderRadius(18)
+          .borderRadius(YibuqueRadius.xxl)
         }
 
         Row() {
@@ -503,9 +503,9 @@ export struct StoreVisitPage {
             .fontWeight(FontWeight.Regular)
             .fontColor(TEXT_PRIMARY)
             .textAlign(TextAlign.Center)
-            .backgroundColor('#EFFFFFFF')
-            .borderRadius(14)
-            .shadow({ radius: 9, color: '#24000000', offsetX: 0, offsetY: 4 })
+            .backgroundColor(YibuqueColor.glassStrong)
+            .borderRadius(YibuqueRadius.lg)
+            .shadow(YibuqueShadow.soft)
         }
         .width('100%')
         .padding({ top: 8, right: 8 })
@@ -560,7 +560,7 @@ export struct StoreVisitPage {
     .padding(18)
     .alignItems(HorizontalAlign.Start)
     .backgroundColor(SURFACE_WARM)
-    .borderRadius(18)
+    .borderRadius(YibuqueRadius.xxl)
     .border({ width: 1, color: BORDER })
   }
 
@@ -587,7 +587,7 @@ export struct StoreVisitPage {
         .fontWeight(FontWeight.Regular)
         .fontColor(YibuqueColor.textInverse)
         .backgroundColor(TEXT_PRIMARY)
-        .borderRadius(18)
+        .borderRadius(YibuqueRadius.xxl)
         .onClick(() => {
           this.loadStoreVisits();
         })
@@ -596,7 +596,7 @@ export struct StoreVisitPage {
     .padding(18)
     .alignItems(VerticalAlign.Center)
     .backgroundColor(SURFACE_WARM)
-    .borderRadius(18)
+    .borderRadius(YibuqueRadius.xxl)
     .border({ width: 1, color: BORDER })
   }
 
@@ -624,7 +624,7 @@ export struct StoreVisitPage {
       .justifyContent(FlexAlign.Center)
       .alignItems(HorizontalAlign.Center)
       .backgroundColor(SURFACE_WARM)
-      .borderRadius(18)
+      .borderRadius(YibuqueRadius.xxl)
       .border({ width: 1, color: BORDER })
 
       Text(this.isSearching() ? '换个关键词，看看其它逛店记录' : this.visits.length === 0 ? '点底部相机，打开快捷录入里的新增逛店。' : '切换状态，看看其他逛店记录。')
@@ -643,6 +643,6 @@ export struct StoreVisitPage {
     .padding(8)
     .alignItems(HorizontalAlign.Center)
     .backgroundColor(PAGE_BACKGROUND)
-    .borderRadius(18)
+    .borderRadius(YibuqueRadius.xxl)
   }
 }

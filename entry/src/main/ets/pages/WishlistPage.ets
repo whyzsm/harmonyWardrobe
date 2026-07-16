@@ -7,7 +7,7 @@ import { SearchEntityType } from '../domain/search/SearchModels';
 import { WishlistItem } from '../domain/wishlist/WishlistModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { AppTheme } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
 import { SearchResultsPage } from './SearchResultsPage';
 import { WishlistEditPage } from './WishlistEditPage';
 
@@ -197,7 +197,7 @@ export struct WishlistPage {
         Stack({ alignContent: Alignment.Center }) {
           SymbolGlyph($r('sys.symbol.arrow_left'))
             .fontSize(22)
-            .fontColor([AppTheme.color.text])
+            .fontColor([YibuqueColor.textPrimary])
         }
         .width(44)
         .height(44)
@@ -210,11 +210,11 @@ export struct WishlistPage {
           Text('心仪单品')
             .fontSize(30)
             .fontWeight(FontWeight.Regular)
-            .fontColor(AppTheme.color.text)
+            .fontColor(YibuqueColor.textPrimary)
 
           Text('记录想买的衣物、门店、价格和试穿照片。')
             .fontSize(15)
-            .fontColor(AppTheme.color.textMuted)
+            .fontColor(YibuqueColor.textSecondary)
         }
         .layoutWeight(1)
         .alignItems(HorizontalAlign.Start)
@@ -222,9 +222,9 @@ export struct WishlistPage {
         Button('添加心愿')
           .height(40)
           .fontSize(14)
-          .fontColor(AppTheme.color.surface)
-          .backgroundColor(AppTheme.color.primary)
-          .borderRadius(AppTheme.radius.md)
+          .fontColor(YibuqueColor.textInverse)
+          .backgroundColor(YibuqueColor.actionBlack)
+          .borderRadius(YibuqueRadius.sm)
           .onClick(() => {
             this.onCreateWishlistItem();
           })
@@ -235,14 +235,14 @@ export struct WishlistPage {
       if (this.loading) {
         Text('正在加载心愿...')
           .fontSize(14)
-          .fontColor(AppTheme.color.textMuted)
+          .fontColor(YibuqueColor.textSecondary)
       }
 
       if (this.errorMessage.length > 0) {
         Row({ space: 8 }) {
           Text(this.errorMessage)
             .fontSize(14)
-            .fontColor(AppTheme.color.danger)
+            .fontColor(YibuqueColor.danger)
             .layoutWeight(1)
 
           Button('重试')
@@ -287,7 +287,7 @@ export struct WishlistPage {
     .height('100%')
     .padding(20)
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor(AppTheme.color.surfaceMuted)
+    .backgroundColor(YibuqueColor.bgGray)
     }
   }
 }
