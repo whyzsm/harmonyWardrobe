@@ -18,6 +18,8 @@ for (const needle of [
   'createStoreVisitWithOptionalStore',
   'CreateStoreVisitWithOptionalStoreInput',
   'updateStoreVisit',
+  'updateStoreVisitWithOptionalStore',
+  'UpdateStoreVisitWithOptionalStoreInput',
   'listStoreVisits',
   'getStoreVisitById',
   'deleteStoreVisit',
@@ -41,6 +43,14 @@ for (const needle of [
 
 if (!/createStoreVisitWithOptionalStore[\s\S]*?this\.database\.transaction[\s\S]*?findStoreByNameInTransaction[\s\S]*?createStoreInTransaction[\s\S]*?createStoreVisitInTransaction/.test(text)) {
   throw new Error(`${file} must create optional store and store visit in one transaction`);
+}
+
+if (!/updateStoreVisitWithOptionalStore[\s\S]*?this\.database\.transaction[\s\S]*?findStoreByNameInTransaction[\s\S]*?createStoreInTransaction[\s\S]*?updateStoreVisitInTransaction/.test(text)) {
+  throw new Error(`${file} must relink optional store and update store visit in one transaction`);
+}
+
+if (/cleanupOrphanStoreInTransaction|COUNT_STORE_VISITS_BY_STORE_ID_SQL/.test(text)) {
+  throw new Error(`${file} must not implicitly delete stores when visits are relinked or deleted`);
 }
 
 if (!/constructor\s*\(\s*database:\s*MigrationDatabase\s*,\s*searchIndexMode:\s*SearchIndexMode\s*,\s*photoStorage\?:\s*PhotoStorage\s*\)/.test(text)) {

@@ -71,6 +71,7 @@ export struct WardrobePage {
   @State private unifiedSearchQuery: string = '';
   @State private loading: boolean = false;
   @State private errorMessage: string = '';
+  @State private pressedWardrobeItemId: string = '';
 
   aboutToAppear(): void {
     if (this.initialWardrobeTab === '美搭' || this.initialWardrobeTab === '日历' || this.initialWardrobeTab === '衣裤') {
@@ -177,6 +178,19 @@ export struct WardrobePage {
   private selectCalendarDate(date: string): void {
     this.selectedDate = date;
     this.loadSelectedDateLogs();
+  }
+
+  private changeCalendarMonth(month: string): void {
+    const parts = month.split('-');
+    const year = Number(parts[0]);
+    const monthNumber = Number(parts[1]);
+    const selectedDay = Number(this.selectedDate.split('-')[2]);
+    const safeDay = Number.isFinite(selectedDay) ? selectedDay : 1;
+    const daysInTargetMonth = new Date(year, monthNumber, 0).getDate();
+    const day = Math.min(safeDay, daysInTargetMonth);
+    this.currentMonth = month;
+    this.selectedDate = `${month}-${`${day}`.padStart(2, '0')}`;
+    this.loadCalendar();
   }
 
   private selectedCategories(): ClothingCategory[] | undefined {
@@ -779,7 +793,7 @@ export struct WardrobePage {
         .layoutWeight(1)
         .fontSize(14)
         .fontColor(YibuqueColor.textPrimary)
-        .placeholderColor(YibuqueColor.textTertiary) // 近似: 原 #96969C 无精确 token, textTertiary(#86868B)最接近
+        .placeholderColor(YibuqueColor.textTertiary)
         .backgroundColor(Color.Transparent)
         .enterKeyType(EnterKeyType.Search)
         .onChange((value: string) => {
@@ -842,7 +856,7 @@ export struct WardrobePage {
               .layoutWeight(1)
 
             Button('补记')
-              .height(38)
+              .height(44)
               .fontSize(14)
               .fontWeight(FontWeight.Regular)
               .fontColor(YibuqueColor.textInverse)
@@ -859,6 +873,9 @@ export struct WardrobePage {
             month: this.currentMonth,
             markedDates: this.markedDates,
             selectedDate: this.selectedDate,
+            onChangeMonth: (month: string) => {
+              this.changeCalendarMonth(month);
+            },
             onSelectDate: (date: string) => {
               this.selectCalendarDate(date);
             }
@@ -892,7 +909,7 @@ export struct WardrobePage {
           .height(180)
           .justifyContent(FlexAlign.Center)
           .alignItems(HorizontalAlign.Center)
-          .backgroundColor(YibuqueColor.cardMint)
+          .backgroundColor(YibuqueColor.cardMuted)
           .borderRadius(YibuqueRadius.xxl)
         } else {
           ForEach(this.selectedDateLogs, (wearLog: WearLog) => {
@@ -944,13 +961,18 @@ export struct WardrobePage {
           .maxLines(2)
           .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-        Text('编辑')
-          .fontSize(13)
-          .fontWeight(FontWeight.Regular)
-          .fontColor(YibuqueColor.textPrimary)
-          .onClick(() => {
-            this.openWearLogEditor(wearLog);
-          })
+        Row() {
+          Text('编辑')
+            .fontSize(13)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textPrimary)
+        }
+        .height(44)
+        .justifyContent(FlexAlign.Start)
+        .alignItems(VerticalAlign.Center)
+        .onClick(() => {
+          this.openWearLogEditor(wearLog);
+        })
       }
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
@@ -973,10 +995,10 @@ export struct WardrobePage {
             Text(category)
               .fontSize(13)
               .fontWeight(this.selectedCategoryLabel === category ? FontWeight.Regular : FontWeight.Regular)
-              .fontColor(this.selectedCategoryLabel === category ? YibuqueColor.textInverse : YibuqueColor.textSecondary) // 近似: 原 #626267 无精确 token, textSecondary(#6E6E73)最接近
+              .fontColor(this.selectedCategoryLabel === category ? YibuqueColor.textInverse : YibuqueColor.textQuaternary)
           }
-          .width(76)
-          .constraintSize({ minHeight: 44 })
+          .constraintSize({ minWidth: 76, minHeight: 44 })
+          .padding({ left: 14, right: 14 })
           .justifyContent(FlexAlign.Center)
           .alignItems(VerticalAlign.Center)
           .backgroundColor(this.selectedCategoryLabel === category ? YibuqueColor.actionBlack : YibuqueColor.cardWhite)
@@ -1104,6 +1126,15 @@ export struct WardrobePage {
         .alignItems(VerticalAlign.Center)
     }
     .width('100%')
+    .scale({ x: this.pressedWardrobeItemId === item.id ? 0.98 : 1.0, y: this.pressedWardrobeItemId === item.id ? 0.98 : 1.0 })
+    .animation({ duration: 120, curve: Curve.EaseOut })
+    .onTouch((event: TouchEvent) => {
+      if (event.type === TouchType.Down) {
+        this.pressedWardrobeItemId = item.id;
+      } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
+        this.pressedWardrobeItemId = '';
+      }
+    })
     .onClick(() => {
       this.openClothingDetail(item);
     })
@@ -1128,9 +1159,9 @@ export struct WardrobePage {
     }
     .width(28)
     .height(28)
-    .backgroundColor(YibuqueColor.glassStrong) // 近似: 原 #E6FFFFFF 无精确 token, glassStrong(#F2FFFFFF)最接近
+    .backgroundColor(YibuqueColor.glassBadge)
     .borderRadius(YibuqueRadius.lg)
-    .shadow(YibuqueShadow.soft) // 近似: 原 radius8/offsetY3/#16 小徽章阴影 → soft radius16/offsetY5/#18
+    .shadow(YibuqueShadow.badge)
   }
 
   @Builder
@@ -1152,7 +1183,7 @@ export struct WardrobePage {
         .height(150)
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .backgroundColor(YibuqueColor.cardMint)
+        .backgroundColor(YibuqueColor.cardMuted)
         .borderRadius(YibuqueRadius.xs)
       }
 

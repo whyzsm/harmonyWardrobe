@@ -248,6 +248,18 @@ export interface UpdateStoreVisitInput {
   note?: string;
 }
 
+export interface UpdateStoreVisitWithOptionalStoreInput {
+  id: string;
+  storeName?: string;
+  storeNameSnapshot: string;
+  districtOrAddress?: string;
+  visitDate?: string;
+  photoUris?: string[];
+  status?: StoreVisitStatus;
+  focusTags?: string[];
+  note?: string;
+}
+
 function optionalString(value: string): string | undefined {
   return value.length > 0 ? value : undefined;
 }
@@ -428,33 +440,46 @@ export class StoreRepository {
         throw new Error(`Store visit not found: ${input.id}`);
       }
 
-      const visit: StoreVisit = {
-        id: input.id,
-        storeId: toSqlNullableText(input.storeId) ?? undefined,
-        storeNameSnapshot: requiredText(input.storeNameSnapshot, existing.storeNameSnapshot),
-        districtOrAddress: toSqlNullableText(input.districtOrAddress) ?? undefined,
-        visitDate: normalizeVisitDate(input.visitDate),
-        photoUris: normalizePhotoUris(input.photoUris),
-        status: normalizeStoreVisitStatus(input.status ?? existing.status),
-        focusTags: normalizeFocusTags(input.focusTags ?? existing.focusTags),
-        note: toSqlNullableText(input.note) ?? undefined,
-        createdAt: existing.createdAt,
-        updatedAt: toIsoDateTime(new Date())
-      };
+      return this.updateStoreVisitInTransaction(existing, input);
+    });
+  }
 
-      await this.database.executeSql(UPDATE_STORE_VISIT_SQL, [
-        visit.storeId ?? null,
-        visit.storeNameSnapshot,
-        visit.districtOrAddress ?? null,
-        visit.visitDate,
-        visit.status ?? StoreVisitStatus.Visited,
-        encodeFocusTags(visit.focusTags),
-        visit.note ?? null,
-        visit.updatedAt,
-        visit.id
-      ]);
-      await this.replaceStoreVisitPhotoRows(visit.id, visit.photoUris);
-      await this.searchRepository.upsertDocumentInTransaction(buildStoreVisitSearchDocument(visit));
+  async updateStoreVisitWithOptionalStore(input: UpdateStoreVisitWithOptionalStoreInput): Promise<StoreVisit> {
+    return this.database.transaction(async () => {
+      const existing = await this.getStoreVisitByIdInTransaction(input.id);
+      if (existing === undefined) {
+        throw new Error(`Store visit not found: ${input.id}`);
+      }
+
+      const normalizedStoreName = toSqlNullableText(input.storeName);
+      let storeId: string | undefined = undefined;
+
+      if (normalizedStoreName !== null) {
+        const existingStore = await this.findStoreByNameInTransaction(normalizedStoreName);
+        if (existingStore !== undefined) {
+          storeId = existingStore.id;
+        } else {
+          const store = await this.createStoreInTransaction({
+            name: normalizedStoreName,
+            districtOrAddress: input.districtOrAddress,
+            photoUris: normalizePhotoUris(input.photoUris).slice(0, 1),
+            note: input.note
+          });
+          storeId = store.id;
+        }
+      }
+
+      const visit = await this.updateStoreVisitInTransaction(existing, {
+        id: input.id,
+        storeId,
+        storeNameSnapshot: input.storeNameSnapshot,
+        districtOrAddress: input.districtOrAddress,
+        visitDate: input.visitDate,
+        photoUris: input.photoUris,
+        status: input.status,
+        focusTags: input.focusTags,
+        note: input.note
+      });
       return visit;
     });
   }
@@ -519,6 +544,37 @@ export class StoreRepository {
     };
 
     await this.database.executeSql(INSERT_STORE_VISIT_SQL, this.storeVisitBindArgs(visit));
+    await this.replaceStoreVisitPhotoRows(visit.id, visit.photoUris);
+    await this.searchRepository.upsertDocumentInTransaction(buildStoreVisitSearchDocument(visit));
+    return visit;
+  }
+
+  private async updateStoreVisitInTransaction(existing: StoreVisit, input: UpdateStoreVisitInput): Promise<StoreVisit> {
+    const visit: StoreVisit = {
+      id: input.id,
+      storeId: toSqlNullableText(input.storeId) ?? undefined,
+      storeNameSnapshot: requiredText(input.storeNameSnapshot, existing.storeNameSnapshot),
+      districtOrAddress: toSqlNullableText(input.districtOrAddress) ?? undefined,
+      visitDate: normalizeVisitDate(input.visitDate),
+      photoUris: normalizePhotoUris(input.photoUris),
+      status: normalizeStoreVisitStatus(input.status ?? existing.status),
+      focusTags: normalizeFocusTags(input.focusTags ?? existing.focusTags),
+      note: toSqlNullableText(input.note) ?? undefined,
+      createdAt: existing.createdAt,
+      updatedAt: toIsoDateTime(new Date())
+    };
+
+    await this.database.executeSql(UPDATE_STORE_VISIT_SQL, [
+      visit.storeId ?? null,
+      visit.storeNameSnapshot,
+      visit.districtOrAddress ?? null,
+      visit.visitDate,
+      visit.status ?? StoreVisitStatus.Visited,
+      encodeFocusTags(visit.focusTags),
+      visit.note ?? null,
+      visit.updatedAt,
+      visit.id
+    ]);
     await this.replaceStoreVisitPhotoRows(visit.id, visit.photoUris);
     await this.searchRepository.upsertDocumentInTransaction(buildStoreVisitSearchDocument(visit));
     return visit;

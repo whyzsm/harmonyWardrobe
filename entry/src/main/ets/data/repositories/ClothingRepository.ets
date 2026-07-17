@@ -242,14 +242,7 @@ function normalizeClothingCategory(category: string): ClothingCategory {
 
 function categoryFilterValues(category: ClothingCategory): string[] {
   if (category === ClothingCategory.Top) {
-    return [
-      ClothingCategory.Top,
-      'Outerwear',
-      'Shoes',
-      'Bag',
-      'Accessory',
-      'Other'
-    ];
+    return [category, 'Outerwear', 'Shoes', 'Bag', 'Accessory', 'Other'];
   }
 
   return [category];

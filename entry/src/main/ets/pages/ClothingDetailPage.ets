@@ -282,7 +282,7 @@ export struct ClothingDetailPage {
         .height('100%')
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .backgroundColor(YibuqueColor.cardMint)
+        .backgroundColor(YibuqueColor.cardMuted)
       }
 
     }

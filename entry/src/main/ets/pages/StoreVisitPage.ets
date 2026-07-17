@@ -25,7 +25,7 @@ const TEXT_META = YibuqueColor.textTertiary;
 const BORDER = YibuqueColor.borderMedium;
 const BORDER_SOFT = YibuqueColor.borderLight;
 const SURFACE_WARM = YibuqueColor.cardSoftGray;
-const ACCENT = YibuqueColor.brandCyan;
+const ACCENT = YibuqueColor.actionBlack;
 const ACCENT_SOFT = YibuqueColor.cardSurface;
 
 @Component
@@ -45,6 +45,7 @@ export struct StoreVisitPage {
   @State private editingVisitId: string = '';
   @State private loading: boolean = false;
   @State private errorMessage: string = '';
+  @State private pressedVisitCardId: string = '';
 
   aboutToAppear(): void {
     this.loadStoreVisits();
@@ -433,8 +434,8 @@ export struct StoreVisitPage {
           .fontWeight(FontWeight.Regular)
           .fontColor(ACCENT)
       }
-      .width(38)
-      .height(38)
+      .width(44)
+      .height(44)
       .backgroundColor(ACCENT_SOFT)
       .borderRadius(YibuqueRadius.xxl)
     }
@@ -534,6 +535,15 @@ export struct StoreVisitPage {
     }
     .width('100%')
     .margin({ top: index % 4 === 3 ? 6 : 0 })
+    .scale({ x: this.pressedVisitCardId === visit.id ? 0.98 : 1.0, y: this.pressedVisitCardId === visit.id ? 0.98 : 1.0 })
+    .animation({ duration: 120, curve: Curve.EaseOut })
+    .onTouch((event: TouchEvent) => {
+      if (event.type === TouchType.Down) {
+        this.pressedVisitCardId = visit.id;
+      } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
+        this.pressedVisitCardId = '';
+      }
+    })
     .accessibilityText(`${visit.storeNameSnapshot}，${this.visitBadge(visit)}，${this.visitMeta(visit)}`)
     .onClick(() => {
       this.openVisitEditor(visit);

@@ -34,7 +34,7 @@ export struct StoreVisitCard {
         .height(150)
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .backgroundColor(YibuqueColor.cardMint)
+        .backgroundColor(YibuqueColor.cardMuted)
         .borderRadius(YibuqueRadius.xs)
       }
 

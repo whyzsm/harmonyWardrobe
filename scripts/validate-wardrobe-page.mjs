@@ -61,8 +61,7 @@ for (const needle of [
   '.height(48)',
   '.borderRadius(YibuqueRadius.md)',
   'Row({ space: 10 })',
-  '.width(76)',
-  '.constraintSize({ minHeight: 44 })',
+  '.constraintSize({ minWidth: 76, minHeight: 44 })',
   '点底部相机，选择照片后归类为衣橱',
   '点底部相机，选择照片后归类为美搭',
   ".height('100%')",
@@ -98,6 +97,10 @@ if (!/WardrobeSearchTabs\(\)[\s\S]*?Scroll\(\)[\s\S]*?Row\(\{ space: 10 \}\)[\s\
   throw new Error('Wardrobe search tabs must be wrapped in a horizontal Scroll');
 }
 
+if (/WardrobeSearchTabs\(\)[\s\S]*?\.width\(76\)/.test(text)) {
+  throw new Error('Wardrobe category chips must not use fixed 76vp width');
+}
+
 if (!/selectedCategoryLabel === category \? YibuqueColor\.textInverse[\s\S]*?selectedCategoryLabel === category \? YibuqueColor\.actionBlack[\s\S]*?selectedCategoryLabel === category \? YibuqueColor\.actionBlack/.test(text)) {
   throw new Error('Wardrobe category selection must use tokenized black background and white foreground');
 }
@@ -105,7 +108,6 @@ if (!/selectedCategoryLabel === category \? YibuqueColor\.textInverse[\s\S]*?sel
 for (const forbidden of [
   'SearchBar',
   'CategoryTabs',
-  'ClothingCard',
   '添加衣服',
   "Text('衣橱')",
   "Text('search')",
@@ -121,6 +123,15 @@ for (const forbidden of [
 ]) {
   if (text.includes(forbidden)) {
     throw new Error(`WardrobePage should follow the search result layout and omit ${forbidden}`);
+  }
+}
+
+for (const forbiddenPattern of [
+  /import\s+\{\s*ClothingCard\s*\}/,
+  /ClothingCard\(\{/
+]) {
+  if (forbiddenPattern.test(text)) {
+    throw new Error(`WardrobePage should follow the search result layout and omit ${forbiddenPattern}`);
   }
 }
 

@@ -46,6 +46,7 @@ export struct OutfitsPage {
   @State private showWearLogEditor: boolean = false;
   @State private loading: boolean = false;
   @State private errorMessage: string = '';
+  @State private pressedOutfitCardId: string = '';
 
   aboutToAppear(): void {
     this.loadOutfits();
@@ -556,6 +557,15 @@ export struct OutfitsPage {
     }
     .width('100%')
     .margin({ top: this.outfitTopMargin(index) })
+    .scale({ x: this.pressedOutfitCardId === outfit.id ? 0.98 : 1.0, y: this.pressedOutfitCardId === outfit.id ? 0.98 : 1.0 })
+    .animation({ duration: 120, curve: Curve.EaseOut })
+    .onTouch((event: TouchEvent) => {
+      if (event.type === TouchType.Down) {
+        this.pressedOutfitCardId = outfit.id;
+      } else if (event.type === TouchType.Up || event.type === TouchType.Cancel) {
+        this.pressedOutfitCardId = '';
+      }
+    })
   }
 
   @Builder

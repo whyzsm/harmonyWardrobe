@@ -19,6 +19,30 @@ function optionalText(value: string): string | undefined {
   return trimmed.length > 0 ? trimmed : undefined;
 }
 
+function padTwoDigits(value: number): string {
+  return value < 10 ? `0${value}` : `${value}`;
+}
+
+function formatDateForStorage(date: Date): string {
+  return `${date.getFullYear()}-${padTwoDigits(date.getMonth() + 1)}-${padTwoDigits(date.getDate())}`;
+}
+
+function dateFromStorage(value: string): Date {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (match === null) {
+    return new Date();
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return new Date();
+  }
+
+  return new Date(year, month - 1, day);
+}
+
 @Component
 export struct WearLogEditPage {
   @Prop initialWearLog?: WearLog = undefined;
@@ -140,12 +164,28 @@ export struct WearLogEditPage {
       const savedWearLog = this.initialWearLog === undefined
         ? await this.wearLogRepository.createWearLog(this.createInput())
         : await this.wearLogRepository.updateWearLog(this.updateInput(this.initialWearLog.id));
+      this.showSaveToast('穿着记录已保存');
       this.onSave(savedWearLog);
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '保存穿着记录失败';
     } finally {
       this.isSaving = false;
     }
+  }
+
+  private showSaveToast(message: string): void {
+    this.getUIContext().getPromptAction().showToast({ message });
+  }
+
+  private openWornDatePicker(): void {
+    this.getUIContext().showDatePickerDialog({
+      start: new Date(2000, 0, 1),
+      end: new Date(),
+      selected: dateFromStorage(this.wornDate),
+      onDateAccept: (date: Date) => {
+        this.wornDate = formatDateForStorage(date);
+      }
+    });
   }
 
   private confirmDeleteWearLog(): void {
@@ -212,15 +252,19 @@ export struct WearLogEditPage {
           .fontSize(13)
           .fontColor(YibuqueColor.textSecondary)
 
-        TextInput({ text: this.wornDate, placeholder: '穿搭日期 YYYY-MM-DD' })
+        Row() {
+          Text(this.wornDate)
+            .fontSize(15)
+            .fontColor(YibuqueColor.textPrimary)
+        }
+          .width('100%')
           .height(44)
-          .fontSize(15)
-          .fontColor(YibuqueColor.textPrimary)
+          .padding({ left: 12, right: 12 })
           .backgroundColor(YibuqueColor.cardWhite)
           .borderRadius(YibuqueRadius.lg)
           .border({ width: 1, color: YibuqueColor.borderLight })
-          .onChange((value: string) => {
-            this.wornDate = value;
+          .onClick(() => {
+            this.openWornDatePicker();
           })
 
         PhotoGrid({ photoUris: this.photoUris })
@@ -342,6 +386,6 @@ export struct WearLogEditPage {
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(YibuqueColor.bgBlueGray)
+    .backgroundColor(YibuqueColor.bgBase)
   }
 }

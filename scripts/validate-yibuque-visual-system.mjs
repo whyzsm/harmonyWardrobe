@@ -39,9 +39,12 @@ const design = read(designPath);
 for (const needle of [
   'YibuqueColor',
   'actionBlack',
-  'bgBlueGray',
-  'cardBlue',
-  'cardMint',
+  'bgBase',
+  'bgHeader',
+  'cardSurface',
+  'cardMuted',
+  'textQuaternary',
+  'glassBadge',
   'borderStrong',
   'YibuqueFontSize',
   'YibuqueLineHeight',
@@ -52,6 +55,10 @@ for (const needle of [
   'YibuqueShadow'
 ]) {
   mustInclude(tokens, tokenPath, needle);
+}
+
+for (const misleadingToken of ['bgBlueGray', 'bgHeaderBlue', 'cardBlue', 'cardMint', 'brandCyan']) {
+  mustNotInclude(tokens, tokenPath, misleadingToken);
 }
 
 for (const needle of ['#1D1D1F', '#000000', '#F5F5F7', '#F2F2F7', '#FFFFFF']) {

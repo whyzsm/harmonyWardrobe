@@ -614,8 +614,8 @@ export struct ProfilePage {
             .fontColor([YibuqueColor.actionBlack])
         }
       }
-      .width(38)
-      .height(38)
+      .width(44)
+      .height(44)
       .backgroundColor(YibuqueColor.cardSurface)
       .borderRadius(YibuqueRadius.lg)
 
@@ -644,7 +644,7 @@ export struct ProfilePage {
       } else {
       Button(action === 'size' ? (this.isLoading ? '加载中' : '编辑') :
         (this.fittingPreferenceEnabled ? '已启用' : '未启用'))
-        .height(38)
+        .height(44)
         .padding({ left: 13, right: 13 })
         .fontSize(12)
         .fontWeight(FontWeight.Regular)
@@ -827,7 +827,7 @@ export struct ProfilePage {
       }
       .width(40)
       .height(40)
-      .backgroundColor((action === 'outfit' || action === 'wishlist') ? YibuqueColor.cardSurface : '#3A3A3C')
+      .backgroundColor((action === 'outfit' || action === 'wishlist') ? YibuqueColor.cardSurface : YibuqueColor.iconDarkSurface)
       .borderRadius(YibuqueRadius.lg)
 
       Blank()
@@ -854,7 +854,7 @@ export struct ProfilePage {
     .height('100%')
     .padding(14)
     .alignItems(HorizontalAlign.Start)
-    .backgroundColor((action === 'outfit' || action === 'wishlist') ? YibuqueColor.cardSoftGray : '#1C1C1E')
+    .backgroundColor((action === 'outfit' || action === 'wishlist') ? YibuqueColor.cardSoftGray : YibuqueColor.cardDark)
     .borderRadius(YibuqueRadius.xxl)
     .border({ width: (action === 'outfit' || action === 'wishlist') ? 1 : 0, color: YibuqueColor.borderLight })
     .onClick(() => {
@@ -1055,7 +1055,7 @@ export struct ProfilePage {
     .alignItems(HorizontalAlign.Start)
     .backgroundColor(YibuqueColor.bgDefault)
     .borderRadius({ topLeft: YibuqueRadius.sheet, topRight: YibuqueRadius.sheet, bottomLeft: 0, bottomRight: 0 })
-    .shadow({ radius: 28, color: '#29000000', offsetX: 0, offsetY: -8 })
+    .shadow(YibuqueShadow.sheetHandle)
   }
 
   @Builder

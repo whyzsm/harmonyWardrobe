@@ -114,7 +114,9 @@ for (const needle of [
   'onEditorVisibilityChange',
   'onClothingEditorVisibilityChange',
   'onNestedPageVisibilityChange',
-  'if (this.activeRoute.kind === AppRouteKind.Main && !this.featureNestedContentVisible)',
+  'private shouldShowBottomNavigation(): boolean',
+  'return this.activeRoute.kind === AppRouteKind.Main && !this.featureNestedContentVisible',
+  'if (this.shouldShowBottomNavigation())',
   'BottomNavigationBar({'
 ]) {
   if (!index.includes(needle)) {

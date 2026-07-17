@@ -38,7 +38,7 @@ export struct ClothingCard {
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
         .borderRadius(YibuqueRadius.xs)
-        .backgroundColor(YibuqueColor.cardMint)
+        .backgroundColor(YibuqueColor.cardMuted)
       }
 
       Text(this.name)

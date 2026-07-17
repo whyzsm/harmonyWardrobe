@@ -6,6 +6,7 @@ import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { SearchEntityType, SearchResult } from '../domain/search/SearchModels';
 import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
+import { ArrayDataSource } from '../utils/ArrayDataSource';
 
 interface SearchVisualResult {
   entityType: SearchEntityType;
@@ -101,6 +102,7 @@ export struct SearchResultsPage {
   @State private historyTerms: string[] = [];
   @State private searchResults: SearchResult[] = [];
   @State private visualResults: SearchVisualResult[] = [];
+  @State private visualResultDataSource: ArrayDataSource<SearchVisualResult> = new ArrayDataSource<SearchVisualResult>();
   @State private isSearching: boolean = false;
   @State private errorMessage: string = '';
   @State private inputErrorMessage: string = '';
@@ -119,6 +121,7 @@ export struct SearchResultsPage {
     if (this.searchRepository === undefined || searchQuery.trim().length === 0) {
       this.searchResults = [];
       this.visualResults = [];
+      this.refreshVisualResultDataSource();
       return;
     }
 
@@ -138,12 +141,14 @@ export struct SearchResultsPage {
       }
       this.searchResults = supportedResults;
       this.visualResults = this.buildVisualResults(supportedResults, clothingItems, outfits);
+      this.refreshVisualResultDataSource();
     } catch (error) {
       if (requestVersion !== this.searchRequestVersion) {
         return;
       }
       this.errorMessage = error instanceof Error ? error.message : '搜索失败';
       this.visualResults = [];
+      this.refreshVisualResultDataSource();
     } finally {
       if (requestVersion === this.searchRequestVersion) {
         this.isSearching = false;
@@ -254,6 +259,7 @@ export struct SearchResultsPage {
     this.activeQuery = '';
     this.searchResults = [];
     this.visualResults = [];
+    this.refreshVisualResultDataSource();
     this.errorMessage = '';
     this.inputErrorMessage = '';
   }
@@ -297,6 +303,10 @@ export struct SearchResultsPage {
 
   private filteredVisualResults(): SearchVisualResult[] {
     return this.visualResults.filter((result: SearchVisualResult) => this.resultMatchesScope(result));
+  }
+
+  private refreshVisualResultDataSource(): void {
+    this.visualResultDataSource.setData(this.filteredVisualResults());
   }
 
   private openResult(result: SearchVisualResult): void {
@@ -452,6 +462,7 @@ export struct SearchResultsPage {
           .justifyContent(FlexAlign.End)
           .onClick(() => {
             this.selectedScope = scope.key;
+            this.refreshVisualResultDataSource();
           })
         }, (scope: SearchScopeOption) => scope.key)
       }
@@ -555,7 +566,7 @@ export struct SearchResultsPage {
           .fontColor(YibuqueColor.textSecondary)
 
         Button('拍照录入')
-          .height(38)
+          .height(44)
           .fontSize(13)
           .fontWeight(FontWeight.Regular)
           .fontColor(YibuqueColor.textInverse)
@@ -571,7 +582,7 @@ export struct SearchResultsPage {
       .alignItems(HorizontalAlign.Start)
     } else {
       List() {
-        ForEach(this.filteredVisualResults(), (result: SearchVisualResult, index: number) => {
+        LazyForEach(this.visualResultDataSource, (result: SearchVisualResult, index: number) => {
           ListItem() {
             this.ResultCard(result, index)
           }
@@ -610,11 +621,11 @@ export struct SearchResultsPage {
       .alignItems(HorizontalAlign.Start)
 
       Text(entityTypeLabel(result.entityType))
-        .height(30)
+        .height(44)
         .padding({ left: 10, right: 10 })
         .fontSize(12)
         .fontWeight(FontWeight.Regular)
-        .fontColor(YibuqueColor.brandCyan)
+        .fontColor(YibuqueColor.actionBlack)
         .textAlign(TextAlign.Center)
         .backgroundColor(YibuqueColor.cardSurface)
         .borderRadius(YibuqueRadius.full)
@@ -642,19 +653,19 @@ export struct SearchResultsPage {
       } else if (result.entityType === SearchEntityType.Clothing) {
         SymbolGlyph($r('sys.symbol.shirt'))
           .fontSize(24)
-          .fontColor([YibuqueColor.brandCyan])
+          .fontColor([YibuqueColor.actionBlack])
       } else if (result.entityType === SearchEntityType.Outfit) {
         SymbolGlyph($r('sys.symbol.hanger_and_towels'))
           .fontSize(24)
-          .fontColor([YibuqueColor.brandCyan])
+          .fontColor([YibuqueColor.actionBlack])
       } else if (result.entityType === SearchEntityType.WearLog || result.entityType === SearchEntityType.Wishlist) {
         SymbolGlyph($r('sys.symbol.person'))
           .fontSize(24)
-          .fontColor([YibuqueColor.brandCyan])
+          .fontColor([YibuqueColor.actionBlack])
       } else {
         SymbolGlyph($r('sys.symbol.store_fill'))
           .fontSize(24)
-          .fontColor([YibuqueColor.brandCyan])
+          .fontColor([YibuqueColor.actionBlack])
       }
     }
     .width(54)
@@ -717,7 +728,7 @@ export struct SearchResultsPage {
         .fontColor(YibuqueColor.danger)
 
       Button('重试')
-        .height(38)
+        .height(44)
         .fontSize(13)
         .fontWeight(FontWeight.Regular)
         .fontColor(YibuqueColor.textInverse)

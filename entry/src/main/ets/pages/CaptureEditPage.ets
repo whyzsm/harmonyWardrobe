@@ -43,6 +43,26 @@ function captureDate(value: string): string {
   return toIsoDate(dateFromIsoDateTime(value));
 }
 
+function formatDateForStorage(date: Date): string {
+  return `${date.getFullYear()}-${padTwoDigits(date.getMonth() + 1)}-${padTwoDigits(date.getDate())}`;
+}
+
+function dateFromStorage(value: string): Date {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value.trim());
+  if (match === null) {
+    return new Date();
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return new Date();
+  }
+
+  return new Date(year, month - 1, day);
+}
+
 function categoryLabel(category: ClothingCategory): string {
   for (const option of CAPTURE_CATEGORY_OPTIONS) {
     if (option.value === category) {
@@ -121,6 +141,28 @@ export struct CaptureEditPage {
 
   private normalizedStoreName(): string {
     return optionalText(this.storeName) ?? optionalText(this.name) ?? this.generatedStoreVisitName();
+  }
+
+  private openPurchaseDatePicker(): void {
+    this.getUIContext().showDatePickerDialog({
+      start: new Date(2000, 0, 1),
+      end: new Date(),
+      selected: dateFromStorage(this.purchaseDate),
+      onDateAccept: (date: Date) => {
+        this.purchaseDate = formatDateForStorage(date);
+      }
+    });
+  }
+
+  private openVisitDatePicker(): void {
+    this.getUIContext().showDatePickerDialog({
+      start: new Date(2000, 0, 1),
+      end: new Date(),
+      selected: dateFromStorage(this.visitDate.length > 0 ? this.visitDate : this.captureDate()),
+      onDateAccept: (date: Date) => {
+        this.visitDate = formatDateForStorage(date);
+      }
+    });
   }
 
   private canSave(): boolean {
@@ -564,13 +606,19 @@ export struct CaptureEditPage {
             .fontSize(13)
             .fontColor(YibuqueColor.textSecondary)
 
-          TextInput({ text: this.purchaseDate, placeholder: '购买日期' })
+          Row() {
+            Text(this.purchaseDate.length > 0 ? this.purchaseDate : '购买日期')
+              .fontSize(14)
+              .fontColor(this.purchaseDate.length > 0 ? YibuqueColor.textPrimary : YibuqueColor.textTertiary)
+          }
+            .width('100%')
             .height(48)
-            .fontSize(14)
+            .padding({ left: 12, right: 12 })
             .backgroundColor(YibuqueColor.cardSoftGray)
             .borderRadius(YibuqueRadius.md)
-            .onChange((value: string) => {
-              this.purchaseDate = value;
+            .alignItems(VerticalAlign.Center)
+            .onClick(() => {
+              this.openPurchaseDatePicker();
             })
         }
         .layoutWeight(1)
@@ -666,13 +714,19 @@ export struct CaptureEditPage {
           .fontSize(13)
           .fontColor(YibuqueColor.textSecondary)
 
-        TextInput({ text: this.visitDate, placeholder: '逛店日期 YYYY-MM-DD' })
+        Row() {
+          Text(this.visitDate.length > 0 ? this.visitDate : '逛店日期 YYYY-MM-DD')
+            .fontSize(14)
+            .fontColor(this.visitDate.length > 0 ? YibuqueColor.textPrimary : YibuqueColor.textTertiary)
+        }
+          .width('100%')
           .height(48)
-          .fontSize(14)
+          .padding({ left: 12, right: 12 })
           .backgroundColor(YibuqueColor.cardSoftGray)
           .borderRadius(YibuqueRadius.md)
-          .onChange((value: string) => {
-            this.visitDate = value;
+          .alignItems(VerticalAlign.Center)
+          .onClick(() => {
+            this.openVisitDatePicker();
           })
       }
       .width('100%')

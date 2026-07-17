@@ -106,8 +106,13 @@ if (!/IdlePanel\(\)[\s\S]*?historyTerms[\s\S]*?SEARCH_SUGGESTIONS[\s\S]*?this\.s
   throw new Error('SearchResultsPage must render interactive history and suggestion chips');
 }
 
-if (!/ResultsPanel\(\)[\s\S]*?List\(\)[\s\S]*?ForEach\(this\.filteredVisualResults\(\)[\s\S]*?ListItem\(\)[\s\S]*?this\.ResultCard\(result/.test(resultPage)) {
+if (!/ResultsPanel\(\)[\s\S]*?List\(\)[\s\S]*?LazyForEach\(this\.visualResultDataSource[\s\S]*?ListItem\(\)[\s\S]*?this\.ResultCard\(result/.test(resultPage)) {
   throw new Error('SearchResultsPage must render results as the designed single-column list');
+}
+
+if (!/visualResultDataSource:\s*ArrayDataSource<SearchVisualResult>/.test(resultPage) ||
+  !/refreshVisualResultDataSource\(\)[\s\S]*?this\.visualResultDataSource\.setData\(this\.filteredVisualResults\(\)\)/.test(resultPage)) {
+  throw new Error('SearchResultsPage must back result rendering with ArrayDataSource');
 }
 
 if (!/const requestVersion = \+\+this\.searchRequestVersion[\s\S]*?requestVersion !== this\.searchRequestVersion[\s\S]*?requestVersion === this\.searchRequestVersion/.test(resultPage)) {

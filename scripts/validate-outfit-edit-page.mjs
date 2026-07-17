@@ -87,6 +87,8 @@ for (const needle of [
   'Image(',
   'coverPhotoUri',
   'clothingCategoryLabel',
+  'ArrayDataSource',
+  'LazyForEach(this.itemDataSource',
   'borderRadius(YibuqueRadius.xs)',
   "SymbolGlyph($r('sys.symbol.checkmark_circle_fill'))",
   'YibuqueColor.actionBlack'
@@ -94,6 +96,10 @@ for (const needle of [
   if (!picker.includes(needle)) {
     throw new Error(`ClothingPicker missing ${needle}`);
   }
+}
+
+if (/ForEach\(this\.items/.test(picker)) {
+  throw new Error('ClothingPicker must use LazyForEach for the item list');
 }
 
 for (const forbidden of [

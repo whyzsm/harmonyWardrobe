@@ -119,6 +119,9 @@ assert.equal(/INSERT_CLOTHING_SQL[\s\S]*purchase_price_value[\s\S]*VALUES/.test(
 assertMatches(source, /purchase_date/i, 'repository must persist purchase date');
 assertMatches(source, /purchase_note/i, 'repository must persist purchase note');
 assertMatches(source, /categoryFilterValues/, 'listClothing must map category filters through categoryFilterValues');
+for (const legacyCategory of ['Outerwear', 'Shoes', 'Bag', 'Accessory', 'Other']) {
+  assertIncludes(source, `'${legacyCategory}'`, `categoryFilterValues must keep legacy ${legacyCategory} items visible`);
+}
 assertMatches(source, /normalizeClothingCategory[\s\S]*normalized\.length\s*>\s*0\s*\?\s*normalized\s+as\s+ClothingCategory/, 'legacy clothing categories must be preserved when they are non-empty');
 assertMatches(source, /whereClauses\.push\s*\(\s*`category\s+IN\s+\(\$\{categoryValues\.map/, 'listClothing must support category IN filtering');
 assertMatches(source, /WHERE\s+\$\{whereClauses\.join\(['"`] AND ['"`]\)\}/, 'listClothing must combine dynamic WHERE clauses');

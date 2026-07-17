@@ -71,10 +71,8 @@ if (!/wishlist_items[\s\S]*price INTEGER/.test(text)) {
   process.exit(1);
 }
 
-const repairCallIndex = text.indexOf('await ensureClothingPurchaseColumns(database)');
-const indexLoopIndex = text.indexOf('for (const sql of CREATE_INDEX_SQLS)');
-if (repairCallIndex < 0 || indexLoopIndex < 0 || repairCallIndex > indexLoopIndex) {
-  console.error('V1 schema must repair clothing purchase columns before creating purchase indexes.');
+if (text.includes('ensureClothingPurchaseColumns')) {
+  console.error('V1 schema must not call the V2 purchase-column migration helper.');
   process.exit(1);
 }
 

@@ -1,6 +1,7 @@
 import { ClothingCategory } from '../domain/clothing/ClothingCategory';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
+import { ArrayDataSource } from '../utils/ArrayDataSource';
 
 function clothingCategoryLabel(category: ClothingCategory): string {
   if (category === ClothingCategory.Top) {
@@ -20,9 +21,22 @@ function clothingCategoryLabel(category: ClothingCategory): string {
 
 @Component
 export struct ClothingPicker {
-  @Prop items: ClothingItem[] = [];
+  @Prop @Watch('onItemsChange') items: ClothingItem[] = [];
   @Prop selectedIds: string[] = [];
   onToggle: (id: string) => void = () => {};
+  @State private itemDataSource: ArrayDataSource<ClothingItem> = new ArrayDataSource<ClothingItem>();
+
+  aboutToAppear(): void {
+    this.refreshItemDataSource();
+  }
+
+  onItemsChange(): void {
+    this.refreshItemDataSource();
+  }
+
+  private refreshItemDataSource(): void {
+    this.itemDataSource.setData(this.items);
+  }
 
   private isSelected(id: string): boolean {
     return this.selectedIds.includes(id);
@@ -56,7 +70,7 @@ export struct ClothingPicker {
           .fontSize(14)
           .fontColor(YibuqueColor.textSecondary)
       } else {
-        ForEach(this.items, (item: ClothingItem) => {
+        LazyForEach(this.itemDataSource, (item: ClothingItem) => {
           Row({ space: 12 }) {
             Stack({ alignContent: Alignment.Center }) {
               if (this.coverPhotoUri(item).length > 0) {
@@ -102,7 +116,7 @@ export struct ClothingPicker {
               .height(44)
             } else {
               Text('选择')
-                .height(36)
+                .height(44)
                 .padding({ left: 13, right: 13 })
                 .fontSize(13)
                 .fontWeight(FontWeight.Regular)

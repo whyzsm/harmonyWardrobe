@@ -65,7 +65,9 @@ for (const needle of [
   "SymbolGlyph($r('sys.symbol.bag'))",
   'validateForm',
   'status: this.selectedStatus',
-  'focusTags: this.selectedTags'
+  'focusTags: this.selectedTags',
+  'UpdateStoreVisitWithOptionalStoreInput',
+  'updateStoreVisitWithOptionalStore'
 ]) {
   if (!text.includes(needle)) {
     throw new Error(`${file} missing ${needle}`);
@@ -94,6 +96,14 @@ if (!/validateForm\(\)\s*:\s*boolean\s*{[\s\S]*?storeName\.trim\(\)\.length\s*>\
 
 if (!/this\.photoUris\s*=\s*\[\s*\.\.\.this\.initialVisit\.photoUris\s*\]/.test(text)) {
   throw new Error(`${file} must clone initial visit photoUris before assigning to state`);
+}
+
+if (!/private updateInput\(id: string\): UpdateStoreVisitWithOptionalStoreInput[\s\S]*?storeName: this\.storeName\.trim\(\)/.test(text)) {
+  throw new Error(`${file} edit save input must carry storeName for relinking`);
+}
+
+if (!/this\.initialVisit === undefined[\s\S]*?createStoreVisitWithOptionalStore[\s\S]*?updateStoreVisitWithOptionalStore\(this\.updateInput\(this\.initialVisit\.id\)\)/.test(text)) {
+  throw new Error(`${file} must relink store entity when editing store name`);
 }
 
 const captureBody = blockAfter(text, 'private async captureStorePhoto()').body;

@@ -1,6 +1,6 @@
 import {
   StoreRepository,
-  UpdateStoreVisitInput
+  UpdateStoreVisitWithOptionalStoreInput
 } from '../data/repositories/StoreRepository';
 import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import { StoreVisit, StoreVisitStatus } from '../domain/store/StoreModels';
@@ -149,10 +149,10 @@ export struct StoreVisitEditPage {
     this.selectedTags = this.selectedTags.concat(tag);
   }
 
-  private updateInput(id: string, storeId?: string): UpdateStoreVisitInput {
+  private updateInput(id: string): UpdateStoreVisitWithOptionalStoreInput {
     return {
       id,
-      storeId,
+      storeName: this.storeName.trim(),
       storeNameSnapshot: this.storeName.trim(),
       districtOrAddress: this.districtOrAddress.trim(),
       visitDate: this.visitDate,
@@ -182,14 +182,19 @@ export struct StoreVisitEditPage {
           focusTags: this.selectedTags,
           note: optionalText(this.note)
         })
-        : await this.storeRepository.updateStoreVisit(this.updateInput(this.initialVisit.id, this.initialVisit.storeId));
+        : await this.storeRepository.updateStoreVisitWithOptionalStore(this.updateInput(this.initialVisit.id));
 
+      this.showSaveToast('逛店记录已保存');
       this.onSave(savedVisit);
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '保存逛店失败';
     } finally {
       this.isSaving = false;
     }
+  }
+
+  private showSaveToast(message: string): void {
+    this.getUIContext().getPromptAction().showToast({ message });
   }
 
   private confirmDeleteStoreVisit(): void {

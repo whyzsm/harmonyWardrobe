@@ -157,12 +157,17 @@ export struct OutfitEditPage {
       const savedOutfit = this.initialOutfit === undefined
         ? await this.outfitRepository.createOutfit(this.createInput())
         : await this.outfitRepository.updateOutfit(this.updateInput(this.initialOutfit.id));
+      this.showSaveToast('美搭已保存');
       this.onSave(savedOutfit);
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '保存美搭失败';
     } finally {
       this.isSaving = false;
     }
+  }
+
+  private showSaveToast(message: string): void {
+    this.getUIContext().getPromptAction().showToast({ message });
   }
 
   private confirmDeleteOutfit(): void {

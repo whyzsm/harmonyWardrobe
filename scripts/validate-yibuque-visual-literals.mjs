@@ -13,10 +13,10 @@ const exemptions = {
     reason: '相机入口保留蓝到青蓝渐变。'
   },
   'entry/src/main/ets/pages/ProfilePage.ets': {
-    colors: new Set(['#3A3A3C', '#1C1C1E', '#29000000']),
+    colors: new Set(),
     namedColors: new Set(['Color.Transparent']),
-    shadowLiterals: new Set([".shadow({ radius: 28, color: '#29000000', offsetX: 0, offsetY: -8 })"]),
-    reason: 'Profile 不在本批次责任范围内，遗留视觉字面量仅登记不改。'
+    shadowLiterals: new Set(),
+    reason: 'Profile 允许透明系统色；业务颜色和阴影必须走 token。'
   },
   'entry/src/main/ets/pages/CaptureEditPage.ets': {
     colors: new Set(),
@@ -117,11 +117,19 @@ if (!tokens.includes('bottomNavigation: { radius: 16, color:')) {
 if (!tokens.includes('editorSheet: { radius: 24, color:')) {
   throw new Error('Tokens.ets is missing the editor sheet shadow token');
 }
+if (!tokens.includes('badge: { radius: 8, color:')) {
+  throw new Error('Tokens.ets is missing the badge shadow token');
+}
+if (!tokens.includes('sheetHandle: { radius: 28, color:')) {
+  throw new Error('Tokens.ets is missing the sheet handle shadow token');
+}
 for (const shadowDeclaration of [
   "appTopBar: { radius: 12, color: '#18000000', offsetX: 0, offsetY: 4 }",
   "bottomNavigation: { radius: 16, color: '#32000000', offsetX: 0, offsetY: 6 }",
   "cameraGlow: { radius: 18, color: '#26000000', offsetX: 0, offsetY: 0 }",
-  "editorSheet: { radius: 24, color: '#12000000', offsetX: 0, offsetY: -6 }"
+  "editorSheet: { radius: 24, color: '#12000000', offsetX: 0, offsetY: -6 }",
+  "badge: { radius: 8, color: '#16000000', offsetX: 0, offsetY: 3 }",
+  "sheetHandle: { radius: 28, color: '#29000000', offsetX: 0, offsetY: -8 }"
 ]) {
   if (!tokens.includes(shadowDeclaration)) {
     throw new Error(`Tokens.ets must preserve exact shadow declaration: ${shadowDeclaration}`);

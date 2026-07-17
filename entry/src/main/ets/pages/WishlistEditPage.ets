@@ -143,12 +143,17 @@ export struct WishlistEditPage {
       const savedItem = this.initialItem === undefined
         ? await this.wishlistRepository.createWishlistItem(this.createInput())
         : await this.wishlistRepository.updateWishlistItem(this.updateInput(this.initialItem.id));
+      this.showSaveToast('心愿已保存');
       this.onSave(savedItem);
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '保存心愿失败';
     } finally {
       this.isSaving = false;
     }
+  }
+
+  private showSaveToast(message: string): void {
+    this.getUIContext().getPromptAction().showToast({ message });
   }
 
   private confirmDeleteWishlistItem(): void {

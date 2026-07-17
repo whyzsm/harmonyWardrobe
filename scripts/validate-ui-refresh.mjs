@@ -99,7 +99,7 @@ const designPageFiles = [
   ['entry/src/main/ets/pages/ProfilePage.ets', 'YibuqueColor', 'YibuqueColor.textPrimary'],
   ['entry/src/main/ets/pages/OutfitsPage.ets', 'YibuqueColor', 'YibuqueColor.textPrimary'],
   ['entry/src/main/ets/pages/CaptureEditPage.ets', 'YibuqueColor', 'YibuqueColor.textPrimary'],
-  ['entry/src/main/ets/pages/StoreVisitPage.ets', 'ACCENT', 'YibuqueColor.brandCyan']
+  ['entry/src/main/ets/pages/StoreVisitPage.ets', 'ACCENT', 'YibuqueColor.actionBlack']
 ];
 
 for (const [file, accentToken, expectedColor] of designPageFiles) {

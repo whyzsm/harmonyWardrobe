@@ -89,6 +89,10 @@ struct Index {
     this.showMainRoute(mainTab, createDefaultAppRouteParams());
   }
 
+  private shouldShowBottomNavigation(): boolean {
+    return this.activeRoute.kind === AppRouteKind.Main && !this.featureNestedContentVisible;
+  }
+
   private returnToCaptureSource(): void {
     const params = this.copyCurrentRouteParams();
     params.capturePhotoUris = [];
@@ -503,7 +507,7 @@ struct Index {
         .height('100%')
         .backgroundColor(YibuqueColor.bgDefault)
 
-        if (this.activeRoute.kind === AppRouteKind.Main && !this.featureNestedContentVisible) {
+        if (this.shouldShowBottomNavigation()) {
           BottomNavigationBar({
             selected: this.activeRoute.mainTab,
             onSelectWardrobe: () => {

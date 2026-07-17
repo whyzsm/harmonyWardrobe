@@ -276,12 +276,17 @@ export struct ClothingEditPage {
       const savedItem = this.initialItem === undefined
         ? await this.clothingRepository.createClothing(this.createInput())
         : await this.clothingRepository.updateClothing(this.updateInput(this.initialItem.id));
+      this.showSaveToast('衣物已保存');
       this.onSave(savedItem);
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '保存衣物失败';
     } finally {
       this.isSaving = false;
     }
+  }
+
+  private showSaveToast(message: string): void {
+    this.getUIContext().getPromptAction().showToast({ message });
   }
 
   @Builder
