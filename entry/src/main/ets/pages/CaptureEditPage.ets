@@ -404,27 +404,27 @@ export struct CaptureEditPage {
             if (mode === '单品') {
               SymbolGlyph($r('sys.symbol.shirt'))
                 .fontSize(17)
-                .fontColor([this.captureMode === mode ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
+                .fontColor([this.captureMode === mode ? YibuqueColor.selectionAccent : YibuqueColor.textSecondary])
             } else if (mode === '试穿') {
               SymbolGlyph($r('sys.symbol.hanger_and_towels'))
                 .fontSize(17)
-                .fontColor([this.captureMode === mode ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
+                .fontColor([this.captureMode === mode ? YibuqueColor.selectionAccent : YibuqueColor.textSecondary])
             } else {
               SymbolGlyph($r('sys.symbol.bag'))
                 .fontSize(17)
-                .fontColor([this.captureMode === mode ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
+                .fontColor([this.captureMode === mode ? YibuqueColor.selectionAccent : YibuqueColor.textSecondary])
             }
 
             Text(mode)
               .fontSize(12)
               .fontWeight(this.captureMode === mode ? FontWeight.Regular : FontWeight.Regular)
-              .fontColor(this.captureMode === mode ? YibuqueColor.textInverse : YibuqueColor.textSecondary)
+              .fontColor(this.captureMode === mode ? YibuqueColor.selectionAccent : YibuqueColor.textSecondary)
           }
           .height(44)
           .padding({ left: 13, right: 15 })
-          .backgroundColor(this.captureMode === mode ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
+          .backgroundColor(this.captureMode === mode ? YibuqueColor.selectionAccentSurface : YibuqueColor.cardSoftGray)
           .borderRadius(YibuqueRadius.xxxl)
-          .border({ width: 1, color: this.captureMode === mode ? YibuqueColor.borderStrong : YibuqueColor.borderMedium })
+          .border({ width: 1, color: this.captureMode === mode ? YibuqueColor.selectionAccent : YibuqueColor.borderMedium })
           .onClick(() => {
             this.selectMode(mode);
           })
@@ -491,11 +491,11 @@ export struct CaptureEditPage {
             .height(46)
             .fontSize(13)
             .fontWeight(this.category === option.value ? FontWeight.Regular : FontWeight.Regular)
-            .fontColor(this.category === option.value ? YibuqueColor.textInverse : YibuqueColor.textSecondary)
+            .fontColor(this.category === option.value ? YibuqueColor.selectionAccent : YibuqueColor.textSecondary)
             .textAlign(TextAlign.Center)
-            .backgroundColor(this.category === option.value ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
+            .backgroundColor(this.category === option.value ? YibuqueColor.selectionAccentSurface : YibuqueColor.cardSoftGray)
             .borderRadius(YibuqueRadius.md)
-            .border({ width: 1, color: this.category === option.value ? YibuqueColor.borderStrong : YibuqueColor.borderMedium })
+            .border({ width: 1, color: this.category === option.value ? YibuqueColor.selectionAccent : YibuqueColor.borderMedium })
             .onClick(() => {
               this.category = option.value;
             })

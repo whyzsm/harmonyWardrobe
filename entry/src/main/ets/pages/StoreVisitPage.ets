@@ -25,8 +25,9 @@ const TEXT_META = YibuqueColor.textTertiary;
 const BORDER = YibuqueColor.borderMedium;
 const BORDER_SOFT = YibuqueColor.borderLight;
 const SURFACE_WARM = YibuqueColor.cardSoftGray;
-const ACCENT = YibuqueColor.actionBlack;
-const ACCENT_SOFT = YibuqueColor.cardSurface;
+const PRIMARY_ACTION = YibuqueColor.actionBlack;
+const ACCENT = YibuqueColor.selectionAccent;
+const ACCENT_SOFT = YibuqueColor.selectionAccentSurface;
 
 @Component
 export struct StoreVisitPage {
@@ -358,15 +359,15 @@ export struct StoreVisitPage {
               Text(filter.label)
                 .fontSize(12)
                 .fontWeight(this.selectedStatus === filter.value ? FontWeight.Regular : FontWeight.Regular)
-                .fontColor(this.selectedStatus === filter.value ? YibuqueColor.textInverse : TEXT_MUTED)
+                .fontColor(this.selectedStatus === filter.value ? ACCENT : TEXT_MUTED)
             }
             .height(44)
             .padding({ left: 12, right: 15 })
             .justifyContent(FlexAlign.Center)
             .alignItems(VerticalAlign.Center)
-            .backgroundColor(this.selectedStatus === filter.value ? TEXT_PRIMARY : SURFACE_WARM)
+            .backgroundColor(this.selectedStatus === filter.value ? ACCENT_SOFT : SURFACE_WARM)
             .borderRadius(YibuqueRadius.xxxl)
-            .border({ width: 1, color: this.selectedStatus === filter.value ? TEXT_PRIMARY : BORDER })
+            .border({ width: 1, color: this.selectedStatus === filter.value ? ACCENT : BORDER })
             .onClick(() => {
               this.selectStatus(filter);
             })
@@ -390,15 +391,15 @@ export struct StoreVisitPage {
     if (status === 'all') {
       SymbolGlyph($r('sys.symbol.square_grid_2x2'))
         .fontSize(17)
-        .fontColor([this.selectedStatus === status ? YibuqueColor.textInverse : TEXT_MUTED])
+        .fontColor([this.selectedStatus === status ? ACCENT : TEXT_MUTED])
     } else if (status === 'visited') {
       SymbolGlyph($r('sys.symbol.store_fill'))
         .fontSize(17)
-        .fontColor([this.selectedStatus === status ? YibuqueColor.textInverse : TEXT_MUTED])
+        .fontColor([this.selectedStatus === status ? ACCENT : TEXT_MUTED])
     } else if (status === 'wantToVisit') {
       SymbolGlyph($r('sys.symbol.heart'))
         .fontSize(17)
-        .fontColor([this.selectedStatus === status ? YibuqueColor.textInverse : TEXT_MUTED])
+        .fontColor([this.selectedStatus === status ? ACCENT : TEXT_MUTED])
     } else {
       SymbolGlyph($r('sys.symbol.arrow_clockwise'))
         .fontSize(17)
@@ -596,7 +597,7 @@ export struct StoreVisitPage {
         .fontSize(13)
         .fontWeight(FontWeight.Regular)
         .fontColor(YibuqueColor.textInverse)
-        .backgroundColor(TEXT_PRIMARY)
+            .backgroundColor(PRIMARY_ACTION)
         .borderRadius(YibuqueRadius.xxl)
         .onClick(() => {
           this.loadStoreVisits();

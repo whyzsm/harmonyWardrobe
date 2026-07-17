@@ -36,17 +36,17 @@ export struct OutfitPicker {
 
             Text(outfit.id === this.selectedOutfitId ? '已选' : '选择')
               .fontSize(13)
-              .fontColor(outfit.id === this.selectedOutfitId ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
+              .fontColor(outfit.id === this.selectedOutfitId ? YibuqueColor.selectionAccent : YibuqueColor.textPrimary)
               .padding({ left: 10, right: 10, top: 6, bottom: 6 })
               .borderRadius(YibuqueRadius.full)
-              .backgroundColor(outfit.id === this.selectedOutfitId ? YibuqueColor.actionBlack : YibuqueColor.cardWhite)
-              .border({ width: 1, color: outfit.id === this.selectedOutfitId ? YibuqueColor.actionBlack : YibuqueColor.borderLight })
+              .backgroundColor(outfit.id === this.selectedOutfitId ? YibuqueColor.selectionAccentSurface : YibuqueColor.cardWhite)
+              .border({ width: 1, color: outfit.id === this.selectedOutfitId ? YibuqueColor.selectionAccent : YibuqueColor.borderLight })
           }
           .width('100%')
           .padding(10)
           .borderRadius(YibuqueRadius.lg)
-          .backgroundColor(YibuqueColor.cardWhite)
-          .border({ width: 1, color: outfit.id === this.selectedOutfitId ? YibuqueColor.actionBlack : YibuqueColor.borderLight })
+          .backgroundColor(outfit.id === this.selectedOutfitId ? YibuqueColor.selectionAccentSurface : YibuqueColor.cardWhite)
+          .border({ width: 1, color: outfit.id === this.selectedOutfitId ? YibuqueColor.selectionAccent : YibuqueColor.borderLight })
           .onClick(() => {
             this.onSelect(outfit.id);
           })

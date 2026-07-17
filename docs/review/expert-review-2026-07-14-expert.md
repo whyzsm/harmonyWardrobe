@@ -177,7 +177,7 @@
 
 ### P2-1 孤儿 / 死代码页与组件
 - **来源**：程维序（功能流程 P2） + 滑如丝（交互动效 P2-7，双专家标记）
-- **位置**：`TodayPage` / `ShoppingPage` / `CalendarPage` / `WishlistEditPage` / `CategoryTabs` / `OutfitCard` / `StoreVisitCard` / `AppTopBar`（全站 0 import 引用）
+- **位置**：`TodayPage` / `ShoppingPage` / `WishlistEditPage` / `CategoryTabs` / `OutfitCard` / `StoreVisitCard` / `AppTopBar`（全站 0 import 引用）
 - **问题**：大量不可达代码滞留构建中，属维护负担；其中 TodayPage 虚构数据是红线地雷（见 P0-4）。
 - **建议**：统一清理或从导航接入；接入前先解决其 P0/P1/P2。
 

@@ -6,9 +6,9 @@
 
 `Yibuque` is a local-first, image-first personal wardrobe and store-visit app. The primary flow starts from the bottom camera, opens a `衣柜 / 逛店 / 穿搭` create destination, and keeps camera or gallery capture available inside the relevant create page.
 
-视觉方向采用轻量白底、浅灰表面、黑色正文和黑色交互强调。页面应以真实照片为主要内容，保持低文字密度、清晰层级和安静的工具感。
+视觉方向采用轻量白底、浅灰表面、黑色正文、蓝色选中强调和黑色主操作。页面应以真实照片为主要内容，保持低文字密度、清晰层级和安静的工具感。
 
-The visual direction uses white backgrounds, light-gray surfaces, black text, and black interaction accents. Real photos remain the primary content, with low text density, clear hierarchy, and a quiet utility-oriented feel.
+The visual direction uses white backgrounds, light-gray surfaces, black text, blue selection accents, and black primary actions. Real photos remain the primary content, with low text density, clear hierarchy, and a quiet utility-oriented feel.
 
 禁止使用旧 Rose VI 的粉色背景、粉色主按钮、粉色阴影或粉色边框。禁止虚构网络同步、预算、商场或用户记录。
 
@@ -36,6 +36,8 @@ export const YibuqueColor = {
   textDisabled: '#B8B8BD',
   textInverse: '#FFFFFF',
   actionBlack: '#1D1D1F',
+  selectionAccent: '#0071E3',
+  selectionAccentSurface: '#EAF3FE',
   brandCyan: '#1D1D1F',
   success: '#16A34A',
   successBg: '#ECFDF3',
@@ -46,9 +48,9 @@ export const YibuqueColor = {
 };
 ```
 
-`actionBlack` 是兼容名称，实际必须为接近黑色的主操作色；`brandCyan` 是兼容名称，当前同样映射为黑色交互色，不再显示蓝色。
+`actionBlack` 是接近黑色的主操作色；`selectionAccent` 和 `selectionAccentSurface` 用于选中筛选项、选中标签、选中模式和链接强调。`brandCyan` 是兼容名称，当前不再使用。
 
-`actionBlack` is a compatibility name and must map to a near-black primary action. `brandCyan` is also a compatibility name and now maps to the same black interaction color instead of blue.
+`actionBlack` is the near-black primary action color. `selectionAccent` and `selectionAccentSurface` are used for selected filters, selected tags, selected modes, and link emphasis. `brandCyan` is retained only as a compatibility name and is not used.
 
 ### 使用规则 / Usage Rules
 
@@ -56,10 +58,10 @@ export const YibuqueColor = {
 - Use `bgDefault` for page backgrounds and `bgGray` or `cardSoftGray` for secondary surfaces.
 - 主标题使用 `textPrimary`；说明和元信息使用 `textSecondary`、`textTertiary`。
 - Use `textPrimary` for headings and `textSecondary` or `textTertiary` for descriptions and metadata.
-- 主操作、当前选中态和链接统一使用 `actionBlack` 或映射为黑色的 `brandCyan`。
-- Use `actionBlack` or the black-mapped `brandCyan` for primary commands, selected states, and links.
-- 普通边框使用 `borderLight` 或 `borderMedium`；强选中边框使用黑色，不使用蓝色。
-- Use `borderLight` or `borderMedium` for regular borders. Strong selected borders use black, never blue.
+- 保存、删除、重试和主卡片使用 `actionBlack`；当前选中态、筛选态和链接使用 `selectionAccent` 及 `selectionAccentSurface`。
+- Use `actionBlack` for save, delete, retry, and primary cards. Use `selectionAccent` and `selectionAccentSurface` for selected, filtered, and link states.
+- 普通边框使用 `borderLight` 或 `borderMedium`；强选中边框使用 `selectionAccent`。
+- Use `borderLight` or `borderMedium` for regular borders. Strong selected borders use `selectionAccent`.
 
 ## 字体与密度 / Typography And Density
 
@@ -98,22 +100,22 @@ Top navigation uses a white or translucent white background, a soft gray divider
 
 ### 底部导航 / Bottom Navigation
 
-底部导航为宽度 90% 的黑色半透明悬浮胶囊，包含衣柜、逛店、相机、套装、我的。中间相机保留现有彩色圆形图标，不显示“拍照”文字；它是本规范中唯一允许保留蓝色的操作入口。
+底部导航为宽度 90% 的黑色半透明悬浮胶囊，包含衣柜、逛店、相机、套装、我的。中间相机保留 `d8daa86` 的橙-蓝-青蓝三段彩色圆形图标，不显示“拍照”文字；它是本规范中唯一允许保留彩色渐变的操作入口。
 
-The bottom navigation is a 90%-wide translucent black floating capsule with wardrobe, store, camera, outfit, and profile entries. Keep the existing colored circular camera icon without a `拍照` label; it is the only action in this system allowed to retain blue.
+The bottom navigation is a 90%-wide translucent black floating capsule with wardrobe, store, camera, outfit, and profile entries. Keep the `d8daa86` orange-blue-cyan gradient camera icon without a `拍照` label; it is the only action in this system allowed to retain a multicolor gradient.
 
 ### 快捷录入 / Quick Capture Sheet
 
-快捷录入弹层使用白色贴底面板、顶部圆角、灰色遮罩和中性阴影；面板底部必须贴到屏幕底部，不能悬浮露出遮罩。标题为“快捷录入”，右侧“取消”使用黑色。
+快捷录入弹层使用白色贴底面板、顶部圆角、灰色遮罩和中性阴影；面板底部必须贴到屏幕底部，不能悬浮露出遮罩。标题为“快捷录入”，右侧“取消”使用蓝色强调色。
 
-The quick capture sheet uses a white bottom-attached panel, rounded top corners, a gray scrim, and a neutral shadow; the panel must reach the bottom edge instead of floating above the scrim. Its title is `快捷录入`, with a black `取消` action.
+The quick capture sheet uses a white bottom-attached panel, rounded top corners, a gray scrim, and a neutral shadow; the panel must reach the bottom edge instead of floating above the scrim. Its title is `快捷录入`, with a blue `取消` action.
 
-- “衣柜”：黑色主卡片、白色衣物系统图标。
-- `衣柜`: black primary card with a white shirt system icon.
-- “逛店”：浅灰卡片、灰色边框、中性灰店铺图标。
-- `逛店`: light-gray card with a gray border and a neutral store icon.
-- “穿搭”：浅灰卡片、灰色边框、中性灰衣架图标。
-- `穿搭`: light-gray card with a gray border and a neutral hanger system icon.
+- “衣柜”：黑色主卡片、深灰图标底板和白色衣物系统图标。
+- `衣柜`: black primary card with a dark-gray icon surface and a white shirt system icon.
+- “逛店”：白色描边卡片、浅蓝图标底板和蓝色店铺图标。
+- `逛店`: white outlined card with a light-blue icon surface and a blue store icon.
+- “穿搭”：白色描边卡片、浅蓝图标底板和蓝色衣架图标。
+- `穿搭`: white outlined card with a light-blue icon surface and a blue hanger icon.
 
 ### 卡片与空态 / Cards And Empty States
 
@@ -156,6 +158,10 @@ Use search, status filters, a route card, and a two-column photo wall. Preserve 
 使用真实衣柜图片、真实单品数量和本地个人数据。未配置预算或商场时必须显示未设置状态，不得虚构记录。
 
 Use real wardrobe photos, real item counts, and local profile data. Show unset states for budget or malls when unavailable; do not invent records.
+
+偏好检查列表中的常用尺码和常逛商圈图标使用 `iconAccent` 蓝色，并放在 `iconAccentSurface` 浅蓝色底上；文字和操作按钮仍使用黑灰色。
+
+Preference-check icons for size, fitting preference, and frequent districts use the blue `iconAccent` token on the light `iconAccentSurface`; text and action buttons remain black and gray.
 
 ### 编辑与搜索页 / Editors And Search
 

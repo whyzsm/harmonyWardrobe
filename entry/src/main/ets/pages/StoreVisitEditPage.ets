@@ -517,11 +517,11 @@ export struct StoreVisitEditPage {
               .layoutWeight(1)
               .fontSize(14)
               .fontWeight(FontWeight.Regular)
-              .fontColor(this.selectedStatus === option.value ? YibuqueColor.textInverse : YibuqueColor.textSecondary)
+              .fontColor(this.selectedStatus === option.value ? YibuqueColor.selectionAccent : YibuqueColor.textSecondary)
               .textAlign(TextAlign.Center)
-              .backgroundColor(this.selectedStatus === option.value ? YibuqueColor.actionBlack : YibuqueColor.transparent)
+              .backgroundColor(this.selectedStatus === option.value ? YibuqueColor.selectionAccentSurface : YibuqueColor.transparent)
               .borderRadius(YibuqueRadius.full)
-              .border({ width: 1, color: this.selectedStatus === option.value ? YibuqueColor.actionBlack : YibuqueColor.borderMedium })
+              .border({ width: 1, color: this.selectedStatus === option.value ? YibuqueColor.selectionAccent : YibuqueColor.borderMedium })
               .onClick(() => {
                 this.selectedStatus = option.value;
               })
@@ -551,14 +551,14 @@ export struct StoreVisitEditPage {
                 Text(tag)
                   .fontSize(14)
                   .fontWeight(FontWeight.Regular)
-                  .fontColor(this.selectedTags.includes(tag) ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
+                  .fontColor(this.selectedTags.includes(tag) ? YibuqueColor.selectionAccent : YibuqueColor.textPrimary)
               }
               .width('100%')
               .height(52)
               .justifyContent(FlexAlign.Center)
-              .backgroundColor(this.selectedTags.includes(tag) ? YibuqueColor.actionBlack : YibuqueColor.transparent)
+              .backgroundColor(this.selectedTags.includes(tag) ? YibuqueColor.selectionAccentSurface : YibuqueColor.transparent)
               .borderRadius(YibuqueRadius.full)
-              .border({ width: 1, color: this.selectedTags.includes(tag) ? YibuqueColor.actionBlack : YibuqueColor.borderMedium })
+              .border({ width: 1, color: this.selectedTags.includes(tag) ? YibuqueColor.selectionAccent : YibuqueColor.borderMedium })
               .onClick(() => {
                 this.toggleFocusTag(tag);
               })
@@ -583,19 +583,19 @@ export struct StoreVisitEditPage {
     if (tag === '试穿') {
       SymbolGlyph($r('sys.symbol.shirt'))
         .fontSize(18)
-        .fontColor([this.selectedTags.includes(tag) ? YibuqueColor.textInverse : YibuqueColor.actionBlack])
+        .fontColor([this.selectedTags.includes(tag) ? YibuqueColor.selectionAccent : YibuqueColor.actionBlack])
     } else if (tag === '想回看') {
       SymbolGlyph($r('sys.symbol.eye'))
         .fontSize(18)
-        .fontColor([this.selectedTags.includes(tag) ? YibuqueColor.textInverse : YibuqueColor.actionBlack])
+        .fontColor([this.selectedTags.includes(tag) ? YibuqueColor.selectionAccent : YibuqueColor.actionBlack])
     } else if (tag === '需比价') {
       SymbolGlyph($r('sys.symbol.creditcard'))
         .fontSize(18)
-        .fontColor([this.selectedTags.includes(tag) ? YibuqueColor.textInverse : YibuqueColor.actionBlack])
+        .fontColor([this.selectedTags.includes(tag) ? YibuqueColor.selectionAccent : YibuqueColor.actionBlack])
     } else {
       SymbolGlyph($r('sys.symbol.bag'))
         .fontSize(18)
-        .fontColor([this.selectedTags.includes(tag) ? YibuqueColor.textInverse : YibuqueColor.actionBlack])
+        .fontColor([this.selectedTags.includes(tag) ? YibuqueColor.selectionAccent : YibuqueColor.actionBlack])
     }
   }
 

@@ -7,10 +7,10 @@ const cameraNavPath = 'entry/src/main/ets/components/BottomNavigationBar.ets';
 
 const exemptions = {
   [cameraNavPath]: {
-    colors: new Set(['#4578FF', '#56D0FF']),
+    colors: new Set(['#F37A59', '#4578FF', '#56D0FF']),
     namedColors: new Set(),
     shadowLiterals: new Set(),
-    reason: '相机入口保留蓝到青蓝渐变。'
+    reason: '相机入口保留 d8daa86 的橙到蓝到青蓝渐变。'
   },
   'entry/src/main/ets/pages/ProfilePage.ets': {
     colors: new Set(),
@@ -137,8 +137,8 @@ for (const shadowDeclaration of [
 }
 
 const navigation = read(cameraNavPath);
-if (!navigation.includes("colors: [['#4578FF', 0], ['#56D0FF', 1]]")) {
-  throw new Error('BottomNavigationBar must keep the explicit camera blue exception');
+if (!navigation.includes("colors: [['#F37A59', 0], ['#4578FF', 0.55], ['#56D0FF', 1]]")) {
+  throw new Error('BottomNavigationBar must keep the d8daa86 camera gradient');
 }
 if (!tokens.includes('micro: 4')) {
   throw new Error('Tokens.ets must preserve the exact 4px skeleton radius token');

@@ -449,12 +449,12 @@ export struct SearchResultsPage {
             Text(scope.label)
               .fontSize(16)
               .fontWeight(FontWeight.Regular)
-              .fontColor(this.selectedScope === scope.key ? YibuqueColor.textPrimary : YibuqueColor.textSecondary)
+              .fontColor(this.selectedScope === scope.key ? YibuqueColor.selectionAccent : YibuqueColor.textSecondary)
 
             Row()
               .width('100%')
               .height(3)
-              .backgroundColor(this.selectedScope === scope.key ? YibuqueColor.actionBlack : YibuqueColor.transparent)
+              .backgroundColor(this.selectedScope === scope.key ? YibuqueColor.selectionAccent : YibuqueColor.transparent)
               .borderRadius(YibuqueRadius.full)
           }
           .width(48)

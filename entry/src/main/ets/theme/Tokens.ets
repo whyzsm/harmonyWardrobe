@@ -37,6 +37,10 @@ export interface YibuqueColorTokens {
   textDisabled: string;
   textInverse: string;
   actionBlack: string;
+  iconAccent: string;
+  iconAccentSurface: string;
+  selectionAccent: string;
+  selectionAccentSurface: string;
   success: string;
   successBg: string;
   danger: string;
@@ -187,6 +191,10 @@ export const YibuqueColor: YibuqueColorTokens = {
   textDisabled: '#B8B8BD',
   textInverse: '#FFFFFF',
   actionBlack: '#1D1D1F',
+  iconAccent: '#0071E3',
+  iconAccentSurface: '#EAF3FE',
+  selectionAccent: '#0071E3',
+  selectionAccentSurface: '#EAF3FE',
   success: '#16A34A',
   successBg: '#ECFDF3',
   danger: '#DC2626',

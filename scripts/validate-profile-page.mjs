@@ -18,12 +18,14 @@ for (const needle of [
   '件单品',
   '次逛店',
   '套搭配',
-  '找尺码、预算、商场、提醒',
   'PreferenceSection',
   '我的偏好',
   '常用尺码',
-  '试穿偏好',
   '常逛商圈',
+  '管理常逛商圈',
+  '常逛地点',
+  '补充地点',
+  'DistrictSheet',
   'BudgetSection',
   '本月逛街预算',
   'ToolSection',
@@ -78,6 +80,26 @@ for (const forbidden of [
   }
 }
 
+for (const forbidden of [
+  'ProfileSearch',
+  'hasSearchResult',
+  'searchQuery',
+  '没找到这项设置',
+  '试穿偏好',
+  'StyleTags',
+  'StyleTag',
+  'fittingPreferenceEnabled',
+  'styleTags',
+  'commuteSelected',
+  'casualSelected',
+  'datingSelected',
+  'walkingSelected'
+]) {
+  if (page.includes(forbidden)) {
+    throw new Error(`ProfilePage must not include removed settings search logic: ${forbidden}`);
+  }
+}
+
 for (const needle of [
   'ProfilePage({',
   'profileRepository: this.runtime.profileRepository',
@@ -95,19 +117,19 @@ for (const needle of [
 }
 
 if (!/\.enabled\(!this\.isSaving && \(action !== 'size' \|\| !this\.isLoading\)\)/.test(page)) {
-  throw new Error('ProfilePage preference action must be disabled while preferences are saving');
+  throw new Error('ProfilePage measurement action must be disabled while preferences are saving');
 }
 
-if (!/StyleTag\(label: string, selected: boolean, key: string\)[\s\S]*?\.enabled\(!this\.isSaving\)/.test(page)) {
-  throw new Error('ProfilePage style preference tags must be disabled while preferences are saving');
+if (!/DistrictChip\(label: string, selected: boolean\)[\s\S]*?\.enabled\(!this\.isSaving\)/.test(page)) {
+  throw new Error('ProfilePage district chips must be disabled while districts are saving');
 }
 
 if (!/ToggleRow\(title: string, subtitle: string, enabled: boolean, action: string\)[\s\S]*?\.enabled\(!this\.isSaving\)/.test(page)) {
   throw new Error('ProfilePage privacy toggle must be disabled while preferences are saving');
 }
 
-if (!/StyleTag\(label: string, selected: boolean, key: string\)[\s\S]*?if \(this\.isSaving\) \{[\s\S]*?return;/.test(page)) {
-  throw new Error('ProfilePage style preference handler must guard rapid clicks while saving');
+if (!/DistrictChip\(label: string, selected: boolean\)[\s\S]*?this\.toggleDistrict\(label\)/.test(page)) {
+  throw new Error('ProfilePage district chips must toggle saved locations');
 }
 
 if (!/ToggleRow\(title: string, subtitle: string, enabled: boolean, action: string\)[\s\S]*?if \(this\.isSaving\) \{[\s\S]*?return;/.test(page)) {

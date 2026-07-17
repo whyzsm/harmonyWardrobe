@@ -4,7 +4,7 @@ Scope: this file applies to the entire repository.
 
 ## Project Context
 
-Harmony Wardrobe is a local-first HarmonyOS Stage wardrobe application. It manages clothing records, outfit templates, daily wear logs, calendar review, shopping wishlist items, and unified search.
+Harmony Wardrobe is a local-first HarmonyOS Stage wardrobe application. It manages clothing records, outfit templates, wear logs, store visits, shopping wishlist items, and unified search.
 
 The app does not depend on network services. Business data is stored in local SQLite tables. Photos are copied into app-local storage by the media layer and referenced from SQLite by local URI/path only.
 

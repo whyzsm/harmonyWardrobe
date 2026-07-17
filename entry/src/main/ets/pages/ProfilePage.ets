@@ -5,6 +5,9 @@ import { StoreRepository } from '../data/repositories/StoreRepository';
 import { UserProfile } from '../domain/profile/ProfileModels';
 import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 
+const DEFAULT_FREQUENT_DISTRICTS: string[] = ['静安嘉里', 'iapm', '小众买手店', 'TX 淮海'];
+const DEFAULT_SELECTED_FREQUENT_DISTRICTS: string[] = ['静安嘉里', 'iapm', '小众买手店'];
+
 function parseOptionalNumber(value: string): number | undefined {
   const trimmed = value.trim();
   if (trimmed.length === 0) {
@@ -27,6 +30,17 @@ function isInvalidOptionalNumber(value: string): boolean {
 
   const parsed = Number(trimmed);
   return !Number.isFinite(parsed) || parsed < 0;
+}
+
+function parseDistrictInput(value: string): string[] {
+  const districts: string[] = [];
+  for (const item of value.split(/[\n,，、]/)) {
+    const district = item.trim();
+    if (district.length > 0 && !districts.includes(district)) {
+      districts.push(district);
+    }
+  }
+  return districts;
 }
 
 function padNumber(value: number): string {
@@ -91,13 +105,10 @@ export struct ProfilePage {
   @State private isSaving: boolean = false;
   @State private errorMessage: string = '';
   @State private savedMessage: string = '';
-  @State private searchQuery: string = '';
   @State private isEditingMeasurements: boolean = false;
-  @State private fittingPreferenceEnabled: boolean = false;
-  @State private commuteSelected: boolean = false;
-  @State private casualSelected: boolean = false;
-  @State private datingSelected: boolean = false;
-  @State private walkingSelected: boolean = false;
+  @State private isEditingDistricts: boolean = false;
+  @State private districtDraft: string[] = [];
+  @State private districtInput: string = '';
   @State private privacyModeEnabled: boolean = false;
   @State private frequentDistricts: string[] = [];
   @State private monthlyBudget: number = -1;
@@ -137,11 +148,6 @@ export struct ProfilePage {
     this.heightCm = displayOptionalNumber(profile.heightCm);
     this.weightKg = displayOptionalNumber(profile.weightKg);
     this.waistCm = displayOptionalNumber(profile.waistCm);
-    this.fittingPreferenceEnabled = profile.fittingPreferenceEnabled;
-    this.commuteSelected = profile.styleTags.includes('通勤');
-    this.casualSelected = profile.styleTags.includes('休闲');
-    this.datingSelected = profile.styleTags.includes('约会');
-    this.walkingSelected = profile.styleTags.includes('好走路');
     this.frequentDistricts = profile.frequentDistricts;
     this.monthlyBudget = profile.monthlyBudget ?? -1;
     this.privacyModeEnabled = profile.privacyModeEnabled;
@@ -205,9 +211,7 @@ export struct ProfilePage {
       const savedProfile = await this.profileRepository.saveProfile({
         heightCm: parseOptionalNumber(this.heightCm),
         weightKg: parseOptionalNumber(this.weightKg),
-        waistCm: parseOptionalNumber(this.waistCm)
-        , fittingPreferenceEnabled: this.fittingPreferenceEnabled,
-        styleTags: this.selectedStyleTags(),
+        waistCm: parseOptionalNumber(this.waistCm),
         frequentDistricts: this.frequentDistricts,
         monthlyBudget: this.monthlyBudget >= 0 ? this.monthlyBudget : undefined,
         privacyModeEnabled: this.privacyModeEnabled
@@ -263,27 +267,70 @@ export struct ProfilePage {
     this.loadProfile();
   }
 
+  private openDistrictEditor(): void {
+    this.districtDraft = this.frequentDistricts.length > 0
+      ? this.frequentDistricts.slice()
+      : DEFAULT_SELECTED_FREQUENT_DISTRICTS.slice();
+    this.districtInput = this.frequentDistricts
+      .filter((district: string) => !DEFAULT_FREQUENT_DISTRICTS.includes(district))
+      .join('、');
+    this.errorMessage = '';
+    this.savedMessage = '';
+    this.isEditingDistricts = true;
+    this.onNestedPageVisibilityChange(true);
+  }
+
+  private closeDistrictEditor(): void {
+    this.isEditingDistricts = false;
+    this.onNestedPageVisibilityChange(false);
+  }
+
+  private cancelDistrictEditor(): void {
+    this.closeDistrictEditor();
+    this.errorMessage = '';
+    this.savedMessage = '';
+    this.loadProfile();
+  }
+
+  private availableDistricts(): string[] {
+    const districts: string[] = DEFAULT_FREQUENT_DISTRICTS.slice();
+    const candidates = this.frequentDistricts.concat(parseDistrictInput(this.districtInput));
+    for (const district of candidates) {
+      if (!districts.includes(district)) {
+        districts.push(district);
+      }
+    }
+    return districts;
+  }
+
+  private toggleDistrict(district: string): void {
+    if (this.isSaving) {
+      return;
+    }
+
+    if (this.districtDraft.includes(district)) {
+      this.districtDraft = this.districtDraft.filter((item: string) => item !== district);
+    } else {
+      this.districtDraft = this.districtDraft.concat([district]);
+    }
+  }
+
+  private async saveDistricts(): Promise<void> {
+    if (this.profileRepository === undefined || this.isSaving) {
+      return;
+    }
+
+    const available = this.availableDistricts();
+    this.frequentDistricts = this.districtDraft.filter((district: string) => available.includes(district));
+    await this.persistPreferences('常逛商圈已保存。');
+    if (this.errorMessage.length === 0) {
+      this.closeDistrictEditor();
+    }
+  }
+
   private showNotice(message: string): void {
     this.errorMessage = '';
     this.savedMessage = message;
-  }
-
-  private selectedStyleTags(): string[] {
-    const tags: string[] = [];
-    if (this.commuteSelected) tags.push('通勤');
-    if (this.casualSelected) tags.push('休闲');
-    if (this.datingSelected) tags.push('约会');
-    if (this.walkingSelected) tags.push('好走路');
-    return tags;
-  }
-
-  private fittingPreferenceSummary(): string {
-    if (!this.fittingPreferenceEnabled) {
-      return '尚未启用';
-    }
-
-    const tags = this.selectedStyleTags();
-    return tags.length > 0 ? tags.join(' · ') : '已启用';
   }
 
   private async persistPreferences(message: string): Promise<void> {
@@ -294,8 +341,6 @@ export struct ProfilePage {
         heightCm: parseOptionalNumber(this.heightCm),
         weightKg: parseOptionalNumber(this.weightKg),
         waistCm: parseOptionalNumber(this.waistCm),
-        fittingPreferenceEnabled: this.fittingPreferenceEnabled,
-        styleTags: this.selectedStyleTags(),
         frequentDistricts: this.frequentDistricts,
         monthlyBudget: this.monthlyBudget >= 0 ? this.monthlyBudget : undefined,
         privacyModeEnabled: this.privacyModeEnabled
@@ -309,22 +354,12 @@ export struct ProfilePage {
     }
   }
 
-  private hasSearchResult(): boolean {
-    const query = this.searchQuery.trim().toLowerCase();
-    if (query.length === 0) {
-      return true;
-    }
-
-    return '尺码 身高 体重 腰围 偏好 商场 商圈 风格 预算 回购 花费 提醒 工具 拍照 逛店 套装 心愿 导出 本地 隐私'.includes(query);
-  }
-
   build() {
     Stack({ alignContent: Alignment.Bottom }) {
       Scroll() {
         Column() {
           this.ProfileHero()
           this.ProfileStats()
-          this.ProfileSearch()
           this.PreferenceSection()
 
           if (this.errorMessage.length > 0 && !this.isEditingMeasurements) {
@@ -347,16 +382,26 @@ export struct ProfilePage {
       .scrollBar(BarState.Off)
       .backgroundColor(YibuqueColor.bgDefault)
 
-      if (this.isEditingMeasurements) {
+      if (this.isEditingMeasurements || this.isEditingDistricts) {
         Column()
           .width('100%')
           .height('100%')
           .backgroundColor(YibuqueColor.scrimLight)
           .onClick(() => {
-            this.cancelMeasurementEditor();
+            if (this.isEditingMeasurements) {
+              this.cancelMeasurementEditor();
+            } else {
+              this.cancelDistrictEditor();
+            }
           })
+      }
 
+      if (this.isEditingMeasurements) {
         this.MeasurementSheet()
+      }
+
+      if (this.isEditingDistricts) {
+        this.DistrictSheet()
       }
     }
     .width('100%')
@@ -392,7 +437,7 @@ export struct ProfilePage {
       }
       .width('100%')
       .height('100%')
-      .opacity(0.76)
+      .opacity(this.wardrobePhotoUris.length > 0 ? 0.76 : 1)
 
       Column() {
         Text('我的衣柜档案')
@@ -400,9 +445,9 @@ export struct ProfilePage {
           .padding({ left: 11, right: 11 })
           .fontSize(12)
           .fontWeight(FontWeight.Regular)
-          .fontColor(YibuqueColor.textInverse)
+          .fontColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
           .textAlign(TextAlign.Center)
-          .backgroundColor(YibuqueColor.glassLight)
+          .backgroundColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.glassLight : YibuqueColor.cardWhite)
           .borderRadius(YibuqueRadius.full)
 
         Blank()
@@ -413,14 +458,14 @@ export struct ProfilePage {
             .fontSize(28)
             .lineHeight(30)
             .fontWeight(FontWeight.Regular)
-            .fontColor(YibuqueColor.textInverse)
+            .fontColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
 
           Text('尺码、预算、常逛商圈和回购提醒，都集中在这里管理。')
             .width(270)
             .fontSize(13)
             .lineHeight(18)
             .fontWeight(FontWeight.Regular)
-            .fontColor(YibuqueColor.glassMedium)
+            .fontColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.glassMedium : YibuqueColor.textSecondary)
             .maxLines(2)
         }
         .width('100%')
@@ -430,11 +475,11 @@ export struct ProfilePage {
       .height('100%')
       .padding(16)
       .alignItems(HorizontalAlign.Start)
-      .backgroundColor(YibuqueColor.scrimMedium)
+      .backgroundColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.scrimMedium : YibuqueColor.transparent)
     }
     .width('100%')
     .height(176)
-    .backgroundColor(YibuqueColor.textPrimary)
+    .backgroundColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.cardWhite : YibuqueColor.iconAccentSurface)
     .borderRadius(YibuqueRadius.sheet)
     .clip(true)
     .shadow(YibuqueShadow.floating)
@@ -457,7 +502,9 @@ export struct ProfilePage {
         .height('100%')
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
-        .backgroundColor(index === 0 ? YibuqueColor.borderLight : YibuqueColor.cardSurface)
+        .backgroundColor(this.wardrobePhotoUris.length > 0
+          ? (index === 0 ? YibuqueColor.cardWhite : YibuqueColor.cardSoftGray)
+          : YibuqueColor.iconAccentSurface)
     }
   }
 
@@ -498,60 +545,6 @@ export struct ProfilePage {
   }
 
   @Builder
-  ProfileSearch() {
-    Column({ space: 14 }) {
-      Row({ space: 9 }) {
-        SymbolGlyph($r('sys.symbol.magnifyingglass'))
-          .fontSize(18)
-          .fontColor([YibuqueColor.textSecondary])
-
-        TextInput({ text: this.searchQuery, placeholder: '找尺码、预算、商场、提醒' })
-          .height(46)
-          .layoutWeight(1)
-          .fontSize(14)
-          .fontWeight(FontWeight.Regular)
-          .fontColor(YibuqueColor.textPrimary)
-          .placeholderColor(YibuqueColor.textTertiary)
-          .backgroundColor(Color.Transparent)
-          .enterKeyType(EnterKeyType.Search)
-          .onChange((value: string) => {
-            this.searchQuery = value;
-          })
-      }
-      .width('100%')
-      .height(48)
-      .padding({ left: 14, right: 14 })
-      .alignItems(VerticalAlign.Center)
-      .backgroundColor(YibuqueColor.bgDefault)
-      .borderRadius(YibuqueRadius.md)
-      .border({ width: 1, color: YibuqueColor.borderMedium })
-
-      if (!this.hasSearchResult()) {
-        Column({ space: 4 }) {
-          Text('没找到这项设置')
-            .width('100%')
-            .fontSize(14)
-            .fontWeight(FontWeight.Regular)
-            .fontColor(YibuqueColor.textPrimary)
-          Text('换个关键词，或从下面的工具入口继续管理。')
-            .width('100%')
-            .fontSize(12)
-            .lineHeight(18)
-            .fontColor(YibuqueColor.textSecondary)
-        }
-        .width('100%')
-        .padding(18)
-        .alignItems(HorizontalAlign.Start)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.xxl)
-        .border({ width: 1, color: YibuqueColor.borderMedium })
-      }
-    }
-    .width('100%')
-    .alignItems(HorizontalAlign.Start)
-  }
-
-  @Builder
   PreferenceSection() {
     Column() {
       this.SectionHeading('我的偏好', '用于推荐和记录')
@@ -559,10 +552,7 @@ export struct ProfilePage {
       Column() {
         this.PreferenceRow('常用尺码', this.measurementSummary, 'size')
         Divider().strokeWidth(1).color(YibuqueColor.borderLight)
-        this.PreferenceRow('试穿偏好', this.fittingPreferenceSummary(), 'preference')
-        Divider().strokeWidth(1).color(YibuqueColor.borderLight)
         this.PreferenceRow('常逛商圈', this.frequentDistricts.length > 0 ? this.frequentDistricts.join(' · ') : '尚未设置', 'shops')
-        this.StyleTags()
       }
       .width('100%')
       .padding(14)
@@ -603,20 +593,16 @@ export struct ProfilePage {
         if (action === 'size') {
           SymbolGlyph($r('sys.symbol.shirt'))
             .fontSize(19)
-            .fontColor([YibuqueColor.actionBlack])
-        } else if (action === 'preference') {
-          SymbolGlyph($r('sys.symbol.heart'))
-            .fontSize(19)
-            .fontColor([YibuqueColor.actionBlack])
+            .fontColor([YibuqueColor.iconAccent])
         } else {
           SymbolGlyph($r('sys.symbol.mappin_and_rectangle'))
             .fontSize(19)
-            .fontColor([YibuqueColor.actionBlack])
+            .fontColor([YibuqueColor.iconAccent])
         }
       }
       .width(44)
       .height(44)
-      .backgroundColor(YibuqueColor.cardSurface)
+      .backgroundColor(YibuqueColor.iconAccentSurface)
       .borderRadius(YibuqueRadius.lg)
 
       Column({ space: 3 }) {
@@ -638,22 +624,31 @@ export struct ProfilePage {
       .alignItems(HorizontalAlign.Start)
 
       if (action === 'shops') {
-        Text(this.frequentDistricts.length > 0 ? `${this.frequentDistricts.length} 个` : '未设置')
+        Button('路线')
+          .height(44)
+          .padding({ left: 13, right: 13 })
           .fontSize(12)
-          .fontColor(YibuqueColor.textSecondary)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textPrimary)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.full)
+          .border({ width: 1, color: YibuqueColor.borderMedium })
+          .enabled(!this.isSaving)
+          .onClick(() => {
+            this.openDistrictEditor();
+          })
       } else {
-      Button(action === 'size' ? (this.isLoading ? '加载中' : '编辑') :
-        (this.fittingPreferenceEnabled ? '已启用' : '未启用'))
+      Button(this.isLoading ? '加载中' : '编辑')
         .height(44)
         .padding({ left: 13, right: 13 })
         .fontSize(12)
         .fontWeight(FontWeight.Regular)
-        .fontColor(action === 'preference' && this.fittingPreferenceEnabled ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
-        .backgroundColor(action === 'preference' && this.fittingPreferenceEnabled ? YibuqueColor.textPrimary : YibuqueColor.cardSoftGray)
+        .fontColor(YibuqueColor.textPrimary)
+        .backgroundColor(YibuqueColor.cardSoftGray)
         .borderRadius(YibuqueRadius.full)
         .border({
           width: 1,
-          color: action === 'preference' && this.fittingPreferenceEnabled ? YibuqueColor.textPrimary : YibuqueColor.borderMedium
+          color: YibuqueColor.borderMedium
         })
         .enabled(!this.isSaving && (action !== 'size' || !this.isLoading))
         .onClick(() => {
@@ -662,9 +657,6 @@ export struct ProfilePage {
           }
           if (action === 'size') {
             this.openMeasurementEditor();
-          } else if (action === 'preference') {
-            this.fittingPreferenceEnabled = !this.fittingPreferenceEnabled;
-            this.persistPreferences('试穿偏好已保存。');
           }
         })
       }
@@ -672,49 +664,6 @@ export struct ProfilePage {
     .width('100%')
     .height(64)
     .alignItems(VerticalAlign.Center)
-  }
-
-  @Builder
-  StyleTags() {
-    Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
-      this.StyleTag('通勤', this.commuteSelected, 'commute')
-      this.StyleTag('休闲', this.casualSelected, 'casual')
-      this.StyleTag('约会', this.datingSelected, 'dating')
-      this.StyleTag('好走路', this.walkingSelected, 'walking')
-    }
-    .width('100%')
-    .padding({ top: 11 })
-  }
-
-  @Builder
-  StyleTag(label: string, selected: boolean, key: string) {
-    Text(label)
-      .constraintSize({ minHeight: 44 })
-      .padding({ left: 12, right: 12 })
-      .margin({ right: 8, bottom: 8 })
-      .fontSize(12)
-      .fontWeight(FontWeight.Regular)
-      .fontColor(selected ? YibuqueColor.textInverse : YibuqueColor.textSecondary)
-      .textAlign(TextAlign.Center)
-      .backgroundColor(selected ? YibuqueColor.textPrimary : YibuqueColor.cardSoftGray)
-      .borderRadius(YibuqueRadius.full)
-      .border({ width: 1, color: selected ? YibuqueColor.textPrimary : YibuqueColor.borderMedium })
-      .enabled(!this.isSaving)
-      .onClick(() => {
-        if (this.isSaving) {
-          return;
-        }
-        if (key === 'commute') {
-          this.commuteSelected = !this.commuteSelected;
-        } else if (key === 'casual') {
-          this.casualSelected = !this.casualSelected;
-        } else if (key === 'dating') {
-          this.datingSelected = !this.datingSelected;
-        } else {
-          this.walkingSelected = !this.walkingSelected;
-        }
-        this.persistPreferences('风格偏好已保存。');
-      })
   }
 
   @Builder
@@ -822,12 +771,14 @@ export struct ProfilePage {
         } else {
           SymbolGlyph($r('sys.symbol.bag'))
             .fontSize(20)
-            .fontColor([YibuqueColor.actionBlack])
+            .fontColor([YibuqueColor.iconAccent])
         }
       }
       .width(40)
       .height(40)
-      .backgroundColor((action === 'outfit' || action === 'wishlist') ? YibuqueColor.cardSurface : YibuqueColor.iconDarkSurface)
+      .backgroundColor(action === 'outfit'
+        ? YibuqueColor.iconAccentSurface
+        : action === 'wishlist' ? YibuqueColor.cardSurface : YibuqueColor.iconDarkSurface)
       .borderRadius(YibuqueRadius.lg)
 
       Blank()
@@ -957,6 +908,147 @@ export struct ProfilePage {
     .height(74)
     .justifyContent(FlexAlign.Center)
     .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  DistrictSheet() {
+    Column() {
+      Row({ space: 12 }) {
+        Column({ space: 4 }) {
+          Text('管理常逛商圈')
+            .width('100%')
+            .fontSize(23)
+            .lineHeight(27)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textPrimary)
+          Text('会同步到逛店记录页，方便快速筛选路线。')
+            .width('100%')
+            .fontSize(12)
+            .lineHeight(17)
+            .fontColor(YibuqueColor.textSecondary)
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
+
+        Button('取消')
+          .height(44)
+          .padding({ left: 0, right: 0 })
+          .fontSize(15)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.iconAccent)
+          .backgroundColor(Color.Transparent)
+          .onClick(() => {
+            this.cancelDistrictEditor();
+          })
+      }
+      .width('100%')
+      .margin({ bottom: 14 })
+      .alignItems(VerticalAlign.Top)
+
+      Column({ space: 13 }) {
+        Text('常逛地点')
+          .width('100%')
+          .fontSize(12)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textPrimary)
+
+        Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+          ForEach(this.availableDistricts(), (district: string) => {
+            this.DistrictChip(district, this.districtDraft.includes(district))
+          }, (district: string) => district)
+        }
+        .width('100%')
+
+        Text('补充地点')
+          .width('100%')
+          .fontSize(12)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textPrimary)
+
+        TextArea({ text: this.districtInput, placeholder: '例如：安福路、长乐路、武康路' })
+          .width('100%')
+          .height(86)
+          .padding(12)
+          .fontSize(14)
+          .fontColor(YibuqueColor.textPrimary)
+          .placeholderColor(YibuqueColor.textTertiary)
+          .backgroundColor(YibuqueColor.bgDefault)
+          .borderRadius(YibuqueRadius.md)
+          .border({ width: 1, color: YibuqueColor.borderMedium })
+          .onChange((value: string) => {
+            this.districtInput = value;
+          })
+      }
+      .width('100%')
+      .padding(13)
+      .alignItems(HorizontalAlign.Start)
+      .backgroundColor(YibuqueColor.cardSoftGray)
+      .borderRadius(YibuqueRadius.xxl)
+      .border({ width: 1, color: YibuqueColor.borderLight })
+
+      Row({ space: 10 }) {
+        Button('稍后')
+          .height(44)
+          .layoutWeight(1)
+          .fontSize(13)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textPrimary)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.full)
+          .border({ width: 1, color: YibuqueColor.borderMedium })
+          .onClick(() => {
+            this.cancelDistrictEditor();
+          })
+
+        Button() {
+          if (this.isSaving) {
+            LoadingProgress()
+              .width(18)
+              .height(18)
+              .color(YibuqueColor.textInverse)
+          } else {
+            Text('保存')
+              .fontSize(13)
+              .fontWeight(FontWeight.Regular)
+              .fontColor(YibuqueColor.textInverse)
+          }
+        }
+          .height(44)
+          .layoutWeight(1)
+          .backgroundColor(YibuqueColor.textPrimary)
+          .borderRadius(YibuqueRadius.full)
+          .enabled(!this.isSaving)
+          .onClick(() => {
+            this.saveDistricts();
+          })
+      }
+      .width('100%')
+      .margin({ top: 14 })
+    }
+    .width('100%')
+    .padding({ left: 20, right: 20, top: 18, bottom: 34 })
+    .alignItems(HorizontalAlign.Start)
+    .backgroundColor(YibuqueColor.bgDefault)
+    .borderRadius({ topLeft: YibuqueRadius.sheet, topRight: YibuqueRadius.sheet, bottomLeft: 0, bottomRight: 0 })
+    .shadow(YibuqueShadow.editorSheet)
+  }
+
+  @Builder
+  DistrictChip(label: string, selected: boolean) {
+    Button(label)
+      .height(40)
+      .padding({ left: 14, right: 14 })
+      .margin({ right: 8, bottom: 8 })
+      .fontSize(13)
+      .fontWeight(FontWeight.Regular)
+      .fontColor(selected ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
+      .backgroundColor(selected ? YibuqueColor.textPrimary : YibuqueColor.bgDefault)
+      .borderRadius(YibuqueRadius.full)
+      .border({ width: 1, color: selected ? YibuqueColor.textPrimary : YibuqueColor.borderMedium })
+      .enabled(!this.isSaving)
+      .onClick(() => {
+        this.toggleDistrict(label);
+      })
   }
 
   @Builder

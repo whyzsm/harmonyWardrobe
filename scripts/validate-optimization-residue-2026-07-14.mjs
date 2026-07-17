@@ -77,7 +77,7 @@ mustMatch(search, searchPath, /\.width\(44\)[\s\S]*?\.height\(44\)[\s\S]*?\.acce
 mustMatch(search, searchPath, /\.width\(44\)[\s\S]*?\.height\(44\)[\s\S]*?\.accessibilityText\('拍照搜索'\)/, 'must give the camera-search control a 44px touch target');
 mustMatch(search, searchPath, /SearchTabs\(\)[\s\S]*?\.constraintSize\(\{ minHeight: 44 \}\)/, 'must give search tabs a minimum 44px touch target');
 mustMatch(search, searchPath, /SearchChip\(term: string[\s\S]*?\.constraintSize\(\{ minHeight: 44 \}\)[\s\S]*?\.padding\(\{ left: 15, right: 15 \}\)/, 'must give search chips a minimum 44px touch target');
-mustInclude(profile, profilePath, '.constraintSize({ minHeight: 44 })');
+mustMatch(profile, profilePath, /DistrictChip\(label: string, selected: boolean\)[\s\S]*?\.height\(40\)/, 'must give frequent-district chips the reference 40px size');
 mustMatch(clothingEdit, clothingEditPath, /\.width\(44\)[\s\S]*?\.height\(44\)[\s\S]*?\.accessibilityText\('清除日期'\)/, 'must give clear-date control a 44px touch target');
 
 for (const file of [

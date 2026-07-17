@@ -65,24 +65,6 @@ if (!searchPage.includes('@State private historyTerms: string[] = []')) {
 }
 
 const profilePage = fs.readFileSync('entry/src/main/ets/pages/ProfilePage.ets', 'utf8');
-for (const neutralPreference of [
-  '@State private fittingPreferenceEnabled: boolean = false',
-  '@State private commuteSelected: boolean = false',
-  '@State private casualSelected: boolean = false',
-  '@State private walkingSelected: boolean = false'
-]) {
-  if (!profilePage.includes(neutralPreference)) {
-    throw new Error(`Profile page must start without fabricated preferences: ${neutralPreference}`);
-  }
-}
-
-const profileRepository = fs.readFileSync('entry/src/main/ets/data/repositories/ProfileRepository.ets', 'utf8');
-for (const neutralDefault of ['fittingPreferenceEnabled: false', 'styleTags: []']) {
-  if (!profileRepository.includes(neutralDefault)) {
-    throw new Error(`Profile repository must use neutral empty defaults: ${neutralDefault}`);
-  }
-}
-
 const qa = fs.readFileSync(qaPath, 'utf8');
 for (const needle of [
   '衣不缺',

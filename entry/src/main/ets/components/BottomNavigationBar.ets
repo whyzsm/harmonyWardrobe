@@ -59,7 +59,7 @@ export struct BottomNavigationBar {
     .height(40)
     .linearGradient({
       angle: 135,
-      colors: [['#4578FF', 0], ['#56D0FF', 1]] // P0-6: 去橙色, 蓝→青蓝渐变(保留蓝色入口设计)
+      colors: [['#F37A59', 0], ['#4578FF', 0.55], ['#56D0FF', 1]]
     })
     .borderRadius(YibuqueRadius.full)
     .shadow(YibuqueShadow.cameraGlow)

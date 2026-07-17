@@ -564,7 +564,7 @@ export struct OutfitsPage {
           .fontWeight(FontWeight.Regular)
           .fontColor(YibuqueColor.textPrimary)
           .textAlign(TextAlign.Center)
-          .backgroundColor(YibuqueColor.cardSurface)
+          .backgroundColor(YibuqueColor.iconAccentSurface)
           .borderRadius(YibuqueRadius.xxl)
       }
       .width('100%')

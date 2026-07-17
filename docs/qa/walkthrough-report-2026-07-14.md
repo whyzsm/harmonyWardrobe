@@ -105,7 +105,7 @@
 | 验收点 | 预期 | 实际 | 结论 | 证据 |
 | --- | --- | --- | --- | --- |
 | 搜索结果类型为用户可理解文案（衣物/美搭/逛店记录/店铺 等） | 上述标签 | `entityTypeLabel`：衣物✓、套装（非「美搭」）、逛店（非「逛店记录」）、店铺✓、穿着、心愿 | 偏差（F7） | `SearchResultsPage.ets:33-53` |
-| 主流程不可见 首页推荐流/日历主入口/逛街主入口/心愿单主入口 | 无主入口 | 底部导航仅 5 项；心愿单经「我的→心愿清单」可达（非主入口）；日历经搜索可达（非主入口） | 通过 | `BottomNavigationBar.ets`；`Index.ets:223-229` |
+| 主流程不可见 首页推荐流/逛街主入口/心愿单主入口 | 无主入口 | 底部导航仅 5 项；心愿单经「我的→心愿清单」可达（非主入口）；穿着记录经搜索进入套装页编辑 | 通过 | `BottomNavigationBar.ets`；`Index.ets` |
 | 可达页面不可见点赞/收藏/评论/关注等社交动作 | 无社交动作 | 全站无此类动作（收藏功能本身亦未实现） | 通过 | 全局检索无社交组件 |
 
 ### 视觉验收
@@ -117,7 +117,7 @@
 | 背景轻、留白足，不呈后台管理风/社交流 | 轻量留白 | 白底、留白充足、无后台管理风 | 通过 | `Tokens.ets:150-173` |
 | 首页精致感来自图片/留白/柔和卡片/轻动效，无大面积粉色/花哨 | 中性克制 | 黑+白+浅灰，无粉色/刻板化图形 | 通过 | 全局 |
 | 主要触达区域高度≥44 | ≥44 | 导航项 52、分类 44、卡片 44、各按钮 44+ | 通过 | 各组件 |
-| 加载/错误/重试/搜索等用户可见文案中文，不出现 loading/error/retry/search 调试词 | 纯中文 | **`ShoppingPage.ets:200` 显示 `loading / 正在加载心愿...`**（可达，经我的→心愿清单）；`CalendarPage.ets:156` 同款文本但该页为孤儿代码不渲染 | 失败（F5，ShoppingPage 实显） | `ShoppingPage.ets:200`；`CalendarPage.ets:156` |
+| 加载/错误/重试/搜索等用户可见文案中文，不出现 loading/error/retry/search 调试词 | 纯中文 | **`ShoppingPage.ets:200` 显示 `loading / 正在加载心愿...`**（可达，经我的→心愿清单） | 失败（F5，ShoppingPage 实显） | `ShoppingPage.ets:200` |
 
 ---
 
@@ -143,7 +143,7 @@
 **F5 — 心愿单页显示调试式英文「loading /」**
 - 位置：`ShoppingPage.ets:200` `Text('loading / 正在加载心愿...')`
 - 说明：违反视觉验收「不出现 loading/error/retry/search 调试式文案」。该页经「我的→心愿清单」可达，属真实用户可见缺陷。
-- 建议：改为纯中文 `正在加载心愿...`，移除 `loading /` 前缀。（`CalendarPage.ets:156` 同款文本但为孤儿页，一并清理。）
+- 建议：改为纯中文 `正在加载心愿...`，移除 `loading /` 前缀。
 
 ### 偏差项（建议对齐基线，非硬阻塞）
 
@@ -168,9 +168,7 @@
 | `components/ClothingCard.ets` | 孤儿 | 衣橱页用 `WardrobeSearchResultCard` |
 | `components/OutfitCard.ets` | 孤儿 | 套装页用 `OutfitWallCard` |
 | `components/StoreVisitCard.ets` | 孤儿 | 逛店页用 `StoreVisitResultCard` |
-| `pages/CalendarPage.ets` | 孤儿 | 日历实际内嵌于 `WardrobePage.CalendarTab`；其 `loading /` 调试文本不会渲染 |
 | `WardrobePage.ets:490-504` `wardrobeSummaryText()` | 死代码 | 定义但未在 `build()` 中调用（与 F4 相关，建议启用或删除） |
-| `WardrobePage.ets` `WardrobePrimaryTabs` Builder | 死代码 | 定义但未在 `build()` 调用（衣橱/美搭/日历子标签未实际呈现） |
 
 ---
 

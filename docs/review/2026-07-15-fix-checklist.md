@@ -9,29 +9,23 @@
 
 ## 批次一 · 让 App 恢复可用（半天内，最优先）
 
-> 只做真正的功能断点。P0-1 与 P0-2 强耦合，**必须一起改**：P0-2 的附带问题（@Prop 不同步到 @State）正是 P0-1 tab 切换机制的一部分，分开改会导致「从搜索跳日历后切不回衣裤」。
+> 只做真正的功能断点。P0-1 与 P0-2 强耦合，**必须一起改**：P0-2 的附带问题（@Prop 不同步到 @State）正是 P0-1 子页切换机制的一部分，分开改会导致「从搜索跳转后无法切回衣物列表」。
 
-- [ ] **B1-1｜P0-1：衣橱二级 Tab 切换条从未渲染**
-  - 文件：`pages/WardrobePage.ets`
-  - 现状核实：`WardrobePrimaryTabs()` 仅在 767 行定义，全文件零调用
-  - 动作：在 `build()` 的 else 主分支（约 609-610 行 `Column` 内、`this.WardrobeSearchHeader()` 之后）调用 `this.WardrobePrimaryTabs()`
-  - 验收：衣橱页能看到「衣裤/美搭/日历」切换条，点击可在三个子页间切换
+- [x] **B1-1｜P0-1：旧衣橱复合子页切换需求已废弃**
+  - 当前处理：衣柜页只保留衣物浏览、搜索、分类和双列瀑布流，不再维护复合子页切换。
+  - 验收：不恢复旧子页组件、状态或入口。
 
-- [ ] **B1-2｜P0-2：穿搭记录搜索结果不关闭搜索遮罩**
-  - 文件：`pages/WardrobePage.ets:592-594`
-  - 现状核实：`onOpenWearLogResult` 只调 `onOpenSearchTarget`，未先置 `showUnifiedSearch = false`（对比 `onClose:603-606`、`onOpenCameraSearch:598-601` 都置了）
-  - 动作：在 `onOpenWearLogResult` 内先执行 `this.showUnifiedSearch = false; this.onNestedPageVisibilityChange(false);` 再跳转
-  - 验收：衣柜页搜索后点穿搭记录结果，搜索页正确消失并跳转
+- [x] **B1-2｜P0-2：穿着记录搜索结果跳转流程已收敛**
+  - 当前处理：搜索遮罩关闭后由 `Index.ets` 统一跳转 `OutfitsPage`，再打开 `WearLogEditPage`。
+  - 验收：点击 WearLog 搜索结果后，搜索页消失并进入独立的穿着记录编辑流程。
 
-- [ ] **B1-3｜P0-2 附带：@Prop 更新不同步到 @State 的 tab 切换机制**
-  - 文件：`pages/WardrobePage.ets`（`selectedWardrobeTab` 赋值逻辑）+ `pages/Index.ets`（WearLog 路由分支）
-  - 现状核实：`selectedWardrobeTab` 仅在 `aboutToAppear` 赋值；WardrobePage 未卸载时 `@Prop initialWardrobeTab` 变更不会同步
-  - 动作：改用可观察机制 —— 新增 `@Prop initialCalendarDate` 或对 `initialWardrobeTab` 加 `@Watch` 回调，在回调里更新 `selectedWardrobeTab` 并定位日期
-  - 验收：从搜索结果跳「日历」子页能正确切到日历并定位到对应日期；之后能切回「衣裤」
+- [x] **B1-3｜P0-2 附带：旧子页路由同步任务已废弃**
+  - 当前处理：不再为已废弃的衣橱复合子页增加路由同步机制；穿着记录统一由独立页面处理。
+  - 验收：从搜索结果跳转后能关闭搜索并进入对应的穿着记录编辑流程。
 
 - [ ] **B1-验收｜整体回归**
-  - 搜索 → 点各类结果（衣物/穿搭/门店/心愿/日历）均能正确关闭搜索并跳转
-  - 衣橱三个子页可自由来回切换
+  - 搜索 → 点各类结果（衣物/穿搭/门店/心愿/穿着记录）均能正确关闭搜索并跳转
+  - 衣柜衣物列表与套装页面可独立进入
 
 ---
 
@@ -76,7 +70,7 @@
   - 验收：无硬编码颜色
 
 - [ ] **B2-7｜P1-11：旧 AppTheme 迁移至 YibuqueColor**
-  - 文件：`ShoppingPage.ets`、`CalendarPage.ets`、`WishlistEditPage.ets`、`WishlistCard.ets`、`SearchBar.ets`
+  - 文件：`WishlistEditPage.ets`、`WishlistCard.ets`、`SearchBar.ets`
   - 动作：`AppTheme.color.*` / `AppTheme.radius.*` → `YibuqueColor` / `YibuqueRadius`
   - 验收：5 文件无 `AppTheme.` 引用
 
@@ -170,9 +164,8 @@
 > 采纳报告 TOP 5，其中 P2-1 已提到批次三。
 
 - [ ] **B4-1｜P2-15：死代码清理**
-  - 文件：`ClothingCard.ets`、`OutfitCard.ets`、`StoreVisitCard.ets`、`CalendarPage.ets`
-  - 注意：CalendarPage 若启用，需补 WearLogEditPage 的 `onDelete` 回调
-  - 验收：无未引用组件；或明确保留并补齐依赖
+  - 文件：`ClothingCard.ets`、`OutfitCard.ets`、`StoreVisitCard.ets`
+  - 验收：旧 UI 死代码不回流；当前页面只保留已接入的组件
 
 - [ ] **B4-2｜P2-6：各 Edit 页保存成功 Toast 反馈**
   - 文件：ClothingEditPage/OutfitEditPage/StoreVisitEditPage/WearLogEditPage/WishlistEditPage
@@ -189,7 +182,7 @@
 
 - [ ] **B4-5｜其余 P2**（按需）
   - P1-15 placeholderColor 改 textTertiary（`ClothingEditPage.ets:451,475,551`）
-  - P1-16 标题字号 30→24（`ShoppingPage.ets:175`、`CalendarPage.ets:131`）
+  - P1-16 旧页面标题字号问题已随页面移除，不纳入当前验收
   - P1-18 SearchBar 高度 44→48
   - P2-2/3/4/8/9/10、P2-11~14/16 见原报告
 

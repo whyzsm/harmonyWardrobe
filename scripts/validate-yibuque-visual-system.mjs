@@ -39,6 +39,10 @@ const design = read(designPath);
 for (const needle of [
   'YibuqueColor',
   'actionBlack',
+  'iconAccent',
+  'iconAccentSurface',
+  'selectionAccent',
+  'selectionAccentSurface',
   'bgBase',
   'bgHeader',
   'cardSurface',
@@ -61,11 +65,11 @@ for (const misleadingToken of ['bgBlueGray', 'bgHeaderBlue', 'cardBlue', 'cardMi
   mustNotInclude(tokens, tokenPath, misleadingToken);
 }
 
-for (const needle of ['#1D1D1F', '#000000', '#F5F5F7', '#F2F2F7', '#FFFFFF']) {
+for (const needle of ['#1D1D1F', '#000000', '#F5F5F7', '#F2F2F7', '#FFFFFF', '#0071E3', '#EAF3FE']) {
   mustInclude(tokens, tokenPath, needle);
 }
 
-for (const needle of ['白灰黑', 'white-gray-black', '图片优先', 'image-first', '衣柜', '逛店', '穿搭']) {
+for (const needle of ['蓝色选中', 'blue selection', '图片优先', 'image-first', '衣柜', '逛店', '穿搭']) {
   mustInclude(design, designPath, needle);
 }
 
@@ -84,20 +88,19 @@ mustInclude(nav, navPath, '#4578FF');
 mustInclude(nav, navPath, '#56D0FF');
 mustNotInclude(nav, navPath, '#735A7CFF');
 
-for (const needle of ['快捷录入', '衣柜', '逛店', '穿搭', 'onOpenWardrobe', 'onOpenStoreVisit', 'onOpenOutfit', "SymbolGlyph($r('sys.symbol.shirt'))", "SymbolGlyph($r('sys.symbol.store_fill'))", "SymbolGlyph($r('sys.symbol.hanger_and_towels'))", 'YibuqueColor.actionBlack']) {
+for (const needle of ['快捷录入', '衣柜', '逛店', '穿搭', 'onOpenWardrobe', 'onOpenStoreVisit', 'onOpenOutfit', "SymbolGlyph($r('sys.symbol.shirt'))", "SymbolGlyph($r('sys.symbol.store_fill'))", "SymbolGlyph($r('sys.symbol.hanger_and_towels'))", 'YibuqueColor.actionBlack', 'YibuqueColor.iconAccent', 'YibuqueColor.iconAccentSurface', 'YibuqueShadow.editorSheet']) {
   mustInclude(quickSheet, quickSheetPath, needle);
 }
 mustInclude(quickSheet, quickSheetPath, '.backgroundColor(YibuqueColor.scrimMedium)');
 mustInclude(quickSheet, quickSheetPath, ".height('100%')\n    .backgroundColor(YibuqueColor.scrimMedium)");
-mustInclude(quickSheet, quickSheetPath, 'Column({ space: 0 })');
-mustInclude(quickSheet, quickSheetPath, 'Divider()');
-mustInclude(quickSheet, quickSheetPath, '.strokeWidth(1)');
-mustInclude(quickSheet, quickSheetPath, '.color(YibuqueColor.borderLight)');
-mustNotInclude(quickSheet, quickSheetPath, ".backgroundColor('#521D1D1F')");
-mustNotInclude(quickSheet, quickSheetPath, 'primary ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray');
-mustNotInclude(quickSheet, quickSheetPath, '.borderRadius(YibuqueRadius.xxl)');
+mustInclude(quickSheet, quickSheetPath, 'Column({ space: 14 })');
+mustInclude(quickSheet, quickSheetPath, 'primary: boolean');
+mustInclude(quickSheet, quickSheetPath, 'primary ? YibuqueColor.actionBlack : YibuqueColor.cardWhite');
+mustInclude(quickSheet, quickSheetPath, '.borderRadius(YibuqueRadius.xxl)');
+mustInclude(quickSheet, quickSheetPath, '.shadow(YibuqueShadow.editorSheet)');
+mustNotInclude(quickSheet, quickSheetPath, 'Divider()');
+mustNotInclude(quickSheet, quickSheetPath, 'Column({ space: 0 })');
 mustNotInclude(quickSheet, quickSheetPath, '.margin({ bottom: 16 })');
-mustNotInclude(quickSheet, quickSheetPath, '.shadow(');
 
 for (const needle of ['#0071E3', '#1D1D1F', '#93C5FD', '#EAF3FE', 'feDropShadow']) {
   mustInclude(icon, iconPath, needle);
@@ -125,7 +128,7 @@ collectEtsFiles('entry/src/main/ets');
 
 for (const forbiddenBlue of ['#0071E3', '#005EB8', '#004E9A', '#EAF3FE', '#EAF4FF', '#EDF6FF', '#4578FF', '#56D0FF']) {
   for (const file of etsFiles) {
-    if (file === navPath) {
+    if (file === navPath || file === tokenPath) {
       continue;
     }
     mustNotInclude(read(file), file, forbiddenBlue);

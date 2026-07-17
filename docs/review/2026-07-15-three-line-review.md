@@ -30,28 +30,22 @@
 
 - **三编辑页选图缺防重入**：滑如丝（P1-1/2/3，交互动效视角）+ 程维序（P1-3，错误处理视角）→ 合并为 1 项
 - **ShoppingPage 搜索框每键跳转**：滑如丝（P1-6）+ 程维序（P2-4）→ 合并为 1 项，取 P1
-- **死代码组件**：滑如丝（P2-9）+ 程维序（P2-2，补充 CalendarPage onDelete 缺失）→ 合并为 1 项
+- **死代码组件**：滑如丝（P2-9）+ 程维序（P2-2）→ 合并为 1 项
 
 ---
 
 ## 二、P0 清单（阻断：功能断点 / 数据真实性违规 / 明显违反设计方向）
 
-### P0-1｜衣橱二级 Tab 切换条定义但从未渲染，日历功能基本不可达
+### P0-1｜旧衣橱复合子页结构已废弃
 - **来源**：滑如丝
-- **文件**：`pages/WardrobePage.ets:767`（定义处）；`build()` 内 608-720 行未调用
-- **问题**：`WardrobePrimaryTabs()` Builder（衣裤/美搭/日历 三级 tab 切换条）已实现含 onClick 逻辑，但 `build()` 中从未调用。`selectedWardrobeTab` 初始为 `initialWardrobeTab`（默认 '衣裤'），之后没有任何 UI 能改变它。
-- **影响**：用户在衣橱页无法切换到「日历」或「美搭」子页。日历功能除从搜索结果跳转外完全不可达；一旦从搜索跳到「日历」子页，用户无法切回「衣裤」。
-- **建议修复**：在 `build()` 主分支（约 609 行 `Column` 内、`WardrobeSearchHeader()` 之后）调用 `this.WardrobePrimaryTabs()`。
+- **问题**：原评审针对旧版衣橱复合子页和内部状态切换提出问题。
+- **当前处理**：衣物浏览与穿着记录编辑已经由独立页面承载，本项不再作为当前产品缺陷或验收项。
 
-### P0-2｜穿搭记录搜索结果不关闭搜索遮罩，流程中断
+### P0-2｜穿着记录搜索结果跳转流程
 - **来源**：程维序
 - **文件**：`pages/WardrobePage.ets:592-593`
-- **问题**：点击穿搭记录搜索结果时，`onOpenWearLogResult` 直接调用 `this.onOpenSearchTarget(SearchEntityType.WearLog, id, '')`，但**没有先将 `showUnifiedSearch` 设为 `false`**。对比 `onOpenClothingResult`（行 471-488）会先关闭搜索再打开详情。WearLog 路由设 `selectedMainTab = 'wardrobe'`（已经是 wardrobe，无变化），WardrobePage 不会被卸载，搜索遮罩停留在原处。
-- **影响**：用户在衣柜页搜索后点击穿搭记录结果，**界面无任何变化**，搜索页不消失、不跳转。流程完全中断。
-- **附带问题**：即使搜索遮罩关闭了，`initialWardrobeTab = '日历'` 也不会生效——因为 `selectedWardrobeTab` 仅在 `aboutToAppear` 中赋值，组件未重新创建时 `@Prop` 更新不会同步到 `@State`。
-- **建议修复**：
-  1. `onOpenWearLogResult` 中先关闭搜索：`this.showUnifiedSearch = false; this.onNestedPageVisibilityChange(false);`
-  2. Index.ets 的 WearLog 路由分支中，用 WardrobePage 可观察的机制（如新增 `@Prop initialCalendarDate` 或 `@Watch`）触发 tab 切换和日期定位。
+- **当前口径**：搜索结果关闭后统一跳转到 `OutfitsPage`，并打开 `WearLogEditPage` 处理穿着记录。
+- **当前验收**：点击 WearLog 搜索结果后，搜索遮罩关闭，用户进入独立的穿着记录编辑流程。
 
 ### P0-3｜三个页面自建颜色常量副本，完全绕过 token 系统
 - **来源**：颜守白
@@ -179,7 +173,7 @@
 
 #### P1-11｜多个页面/组件全量使用旧 AppTheme 而非 YibuqueColor
 - **来源**：颜守白
-- **文件**：`ShoppingPage.ets`、`CalendarPage.ets`、`WishlistEditPage.ets`、`WishlistCard.ets`、`SearchBar.ets`
+- **文件**：`WishlistEditPage.ets`、`WishlistCard.ets`、`SearchBar.ets`
 - **问题**：项目已在向 `YibuqueColor` 迁移，但这 5 个文件全量使用旧 `AppTheme.color.*` / `AppTheme.radius.*`。两套 token 系统并存导致颜色值碎片化（如 `AppTheme.color.border=#D2D2D7` vs `YibuqueColor.borderLight=#E8E8ED`）。
 - **建议修复**：统一迁移至 `YibuqueColor` / `YibuqueRadius` / `YibuqueSpacing` 系统。
 
@@ -208,11 +202,9 @@
 - **影响**：用户无法区分占位提示与已输入内容。
 - **建议修复**：改为 `YibuqueColor.textTertiary`（`#86868B`）。
 
-#### P1-16｜ShoppingPage/CalendarPage 标题字号 30 超出规范
+#### P1-16｜旧页面标题字号问题已废弃
 - **来源**：颜守白
-- **文件**：`ShoppingPage.ets:175`、`CalendarPage.ets:131`
-- **问题**：`fontSize(30)` 不匹配任何 token 且超出标题范围（规范「标题 24-28」；`pageTitle: 24`，`display: 36`）。
-- **建议修复**：使用 `YibuqueFontSize.pageTitle`（24）。
+- **当前处理**：原报告针对已移除的遗留页面，相关问题不纳入当前产品验收。
 
 #### P1-17｜YibuqueColor 缺少半透明语义 token
 - **来源**：颜守白
@@ -246,7 +238,6 @@
 | P2-5 | 滑如丝 | WearLogEditPage/CaptureEditPage 日期用纯文本输入，无日期选择器 | `WearLogEditPage.ets:198`、`CaptureEditPage.ets:542` |
 | P2-6 | 滑如丝 | 各 Edit 页保存成功后无 Toast 反馈（除 ProfilePage 外） | ClothingEditPage/OutfitEditPage/StoreVisitEditPage/WearLogEditPage/WishlistEditPage |
 | P2-7 | 滑如丝 | 大量可点击卡片缺 pressed 触感反馈 | WardrobePage/OutfitsPage/StoreVisitPage/ShoppingPage 卡片 |
-| P2-8 | 滑如丝 | MonthCalendar 无月份切换导航 | `components/MonthCalendar.ets` |
 | P2-9 | 滑如丝 | BottomNavigationBar 按压反馈无动画过渡 | `BottomNavigationBar.ets:108` |
 | P2-10 | 滑如丝 | WardrobeSearchTabs 分类标签宽度固定 76vp 可能截断 | `WardrobePage.ets:939` |
 
@@ -263,7 +254,7 @@
 
 | # | 来源 | 问题 | 文件 |
 |---|------|------|------|
-| P2-15 | 滑如丝+程维序 | 死代码组件从未被引用：ClothingCard/OutfitCard/StoreVisitCard/CalendarPage。其中 CalendarPage 的 WearLogEditPage 未提供 onDelete 回调，启用后删除按钮无效 | `components/ClothingCard.ets`、`components/OutfitCard.ets`、`components/StoreVisitCard.ets`、`pages/CalendarPage.ets` |
+| P2-15 | 滑如丝+程维序 | 死代码组件从未被引用：ClothingCard/OutfitCard/StoreVisitCard | `components/ClothingCard.ets`、`components/OutfitCard.ets`、`components/StoreVisitCard.ets` |
 | P2-16 | 滑如丝 | Index.ets 底部导航栏显隐逻辑依赖 7 个布尔状态组合，底层页面交互穿透风险 | `pages/Index.ets:378` |
 
 ### UI 视觉
@@ -334,7 +325,7 @@
 | 维度 | 亮点 |
 |------|------|
 | 功能流程 | 四大约束全部遵守（无网络/无页面 SQL/照片只存 URI/搜索索引派生）；CRUD 全闭环；除 ProfileRepository 外所有写操作在事务中；迁移链 V1→V5 顺序正确且幂等 |
-| UI 视觉 | 无粉色/彩色阴影/蓝色主色；错误红统一 `#DC2626`；QuickCaptureSheet / EmptyState / ClothingCard / MonthCalendar / ClothingPicker 等组件完全 token 化；底部导航结构合规 |
+| UI 视觉 | 无粉色/彩色阴影/蓝色主色；错误红统一 `#DC2626`；QuickCaptureSheet / EmptyState / ClothingCard / ClothingPicker 等组件完全 token 化；底部导航结构合规 |
 | 交互动效 | 衣裤/逛店列表正确使用 WaterFlow + LazyForEach；QuickCaptureSheet 有完整进出动画 + 防重入；ClothingEditPage / StoreVisitEditPage 保存防重入完整；SearchResultsPage 有 searchRequestVersion 竞态保护；删除统一 AlertDialog 二次确认；各列表有 loading/empty/error 三态 |
 
 ---
