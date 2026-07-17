@@ -8,48 +8,46 @@ function readRequired(path) {
   return fs.readFileSync(path, 'utf8');
 }
 
-function mustInclude(source, file, needle) {
-  if (!source.includes(needle)) {
-    throw new Error(`${file} missing ${needle}`);
-  }
-}
-
-function mustNotInclude(source, file, needle) {
-  if (source.includes(needle)) {
-    throw new Error(`${file} must not include ${needle}`);
-  }
-}
-
 const wardrobePath = 'entry/src/main/ets/pages/WardrobePage.ets';
 const indexPath = 'entry/src/main/ets/pages/Index.ets';
+const appRoutePath = 'entry/src/main/ets/app/AppRoute.ets';
 const wardrobe = readRequired(wardrobePath);
 const index = readRequired(indexPath);
+const appRoute = readRequired(appRoutePath);
 
-for (const needle of [
-  'WearLogRepository',
-  'WearLog',
-  'MonthCalendar',
-  'selectedWardrobeTab',
-  '衣橱',
-  '美搭',
-  '日历',
-  'listWearLogDatesForMonth',
-  'listWearLogsByDate',
-  'MonthCalendar({',
-  '今天穿了什么'
+for (const removedFile of [
+  'entry/src/main/ets/pages/CalendarPage.ets',
+  'entry/src/main/ets/components/MonthCalendar.ets'
 ]) {
-  mustInclude(wardrobe, wardrobePath, needle);
+  if (fs.existsSync(removedFile)) {
+    throw new Error(`${removedFile} should be removed with the old wardrobe calendar tab`);
+  }
 }
 
-if (!wardrobe.includes('WearLogEditPage') && !wardrobe.includes('DailyWearLogEditor')) {
-  throw new Error(`${wardrobePath} must expose WearLogEditPage or an embedded daily-log editor`);
+for (const [file, source] of [
+  [wardrobePath, wardrobe],
+  [indexPath, index],
+  [appRoutePath, appRoute]
+]) {
+  for (const forbidden of [
+    'wardrobeTab',
+    'selectedWardrobeTab',
+    'initialWardrobeTab',
+    'WardrobePrimaryTabs',
+    'CalendarTab',
+    'MonthCalendar',
+    'CalendarPage({',
+    "params.wardrobeTab = '日历'",
+    "'日历'"
+  ]) {
+    if (source.includes(forbidden)) {
+      throw new Error(`${file} must not keep old wardrobe calendar tab concept ${forbidden}`);
+    }
+  }
 }
 
-for (const forbidden of [
-  "import { CalendarPage }",
-  'CalendarPage({'
-]) {
-  mustNotInclude(index, indexPath, forbidden);
+if (!/SearchEntityType\.WearLog[\s\S]*?params\.wearLogId = id[\s\S]*?this\.showMainRoute\(AppMainTab\.Outfit, params\)/.test(index)) {
+  throw new Error('Wear-log search results should open through OutfitsPage, not the removed Wardrobe calendar tab');
 }
 
 console.log('PASS');

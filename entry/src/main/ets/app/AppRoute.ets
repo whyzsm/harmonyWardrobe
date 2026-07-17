@@ -18,7 +18,6 @@ export enum AppRouteKind {
 }
 
 export interface AppRouteParams {
-  wardrobeTab: string;
   outfitId: string;
   storeVisitId: string;
   storeQuery: string;
@@ -39,7 +38,6 @@ export interface AppRoute {
 
 export function createDefaultAppRouteParams(): AppRouteParams {
   return {
-    wardrobeTab: '衣裤',
     outfitId: '',
     storeVisitId: '',
     storeQuery: '',

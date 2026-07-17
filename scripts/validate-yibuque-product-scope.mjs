@@ -39,8 +39,26 @@ for (const needle of [
   mustInclude(index, indexPath, needle);
 }
 
-for (const needle of ['衣橱', '美搭', '日历']) {
+for (const needle of [
+  'WardrobeSearchHeader',
+  'WardrobeSearchTabs',
+  'WardrobeWaterFlow',
+  'LazyForEach(this.clothingDataSource'
+]) {
   mustInclude(wardrobe, wardrobePath, needle);
+}
+
+for (const forbidden of [
+  'WardrobePrimaryTabs',
+  'selectedWardrobeTab',
+  'initialWardrobeTab',
+  'CalendarTab',
+  'MonthCalendar',
+  'visibleOutfits',
+  "'日历'",
+  "'美搭'"
+]) {
+  mustNotInclude(wardrobe, wardrobePath, forbidden);
 }
 
 for (const needle of ['衣柜', '逛店', '套装', '我的']) {

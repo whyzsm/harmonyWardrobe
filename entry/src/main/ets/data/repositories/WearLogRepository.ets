@@ -100,13 +100,6 @@ const SELECT_OUTFIT_SNAPSHOT_SQL = `
   ORDER BY items.sort_order ASC
 `;
 
-const SELECT_WEAR_LOG_DATES_FOR_MONTH_SQL = `
-  SELECT DISTINCT worn_date
-  FROM wear_logs
-  WHERE worn_date >= ? AND worn_date < ?
-  ORDER BY worn_date ASC
-`;
-
 interface OutfitSnapshot {
   title: string;
   clothingItemIds: string[];
@@ -205,27 +198,6 @@ function decodeLegacyClothingItemIdsSnapshot(value: string): string[] {
   return ids;
 }
 
-function parseMonthRange(month: string): string[] | undefined {
-  const normalized = month.trim();
-  const match = /^(\d{4})-(\d{2})$/.exec(normalized);
-  if (match === null) {
-    return undefined;
-  }
-
-  const year = Number(match[1]);
-  const monthNumber = Number(match[2]);
-  if (monthNumber < 1 || monthNumber > 12) {
-    return undefined;
-  }
-
-  const start = `${match[1]}-${match[2]}-01`;
-  const nextYear = monthNumber === 12 ? year + 1 : year;
-  const nextMonth = monthNumber === 12 ? 1 : monthNumber + 1;
-  const end = `${nextYear}-${`${nextMonth}`.padStart(2, '0')}-01`;
-
-  return [start, end];
-}
-
 export class WearLogRepository {
   private readonly database: MigrationDatabase;
   private readonly searchRepository: SearchRepository;
@@ -315,39 +287,9 @@ export class WearLogRepository {
     return this.getWearLogByIdInTransaction(id);
   }
 
-  async listWearLogsByDate(wornDate: string): Promise<WearLog[]> {
-    const rows = await this.readWearLogRows(
-      `${BASE_SELECT_WEAR_LOGS_SQL} WHERE worn_date = ? ORDER BY updated_at DESC`,
-      [wornDate]
-    );
-    return this.hydrateWearLogs(rows);
-  }
-
   async listWearLogs(): Promise<WearLog[]> {
     const rows = await this.readWearLogRows(`${BASE_SELECT_WEAR_LOGS_SQL} ORDER BY worn_date DESC, updated_at DESC`);
     return this.hydrateWearLogs(rows);
-  }
-
-  async listWearLogDatesForMonth(month: string): Promise<string[]> {
-    const range = parseMonthRange(month);
-    if (range === undefined) {
-      return [];
-    }
-
-    const resultSet = await this.database.querySql(SELECT_WEAR_LOG_DATES_FOR_MONTH_SQL, range);
-    const dates: string[] = [];
-
-    try {
-      let hasRow = resultSet.goToFirstRow();
-      while (hasRow) {
-        dates.push(resultSet.getString('worn_date'));
-        hasRow = resultSet.goToNextRow();
-      }
-    } finally {
-      resultSet.close();
-    }
-
-    return dates;
   }
 
   private async getWearLogByIdInTransaction(id: string): Promise<WearLog | undefined> {

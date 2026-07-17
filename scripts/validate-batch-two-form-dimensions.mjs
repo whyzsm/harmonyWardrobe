@@ -28,7 +28,7 @@ const clothingPicker = read('entry/src/main/ets/components/ClothingPicker.ets');
 forbidIncludes(clothingEdit, 'ClothingEditPage.ets', '.placeholderColor(YibuqueColor.textPrimary)');
 requireIncludes(wishlist, 'WishlistPage.ets', 'YibuqueFontSize.pageTitle');
 if (fs.existsSync('entry/src/main/ets/pages/CalendarPage.ets')) {
-  throw new Error('CalendarPage.ets should remain removed; calendar UI is owned by WardrobePage');
+  throw new Error('CalendarPage.ets should remain removed; calendar UI has been removed from the current product flow');
 }
 forbidIncludes(wishlist, 'WishlistPage.ets', '.fontSize(30)');
 

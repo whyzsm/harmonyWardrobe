@@ -224,8 +224,23 @@ const pageChecks = [
       'photoPickerAdapter: this.photoPickerAdapter',
       'photoStorage: this.photoStorage',
       'SearchResultsPage({',
-      'searchRepository: this.searchRepository',
-      'OutfitEditPage({'
+      'searchRepository: this.searchRepository'
+    ]
+  },
+  {
+    file: 'entry/src/main/ets/pages/OutfitsPage.ets',
+    needles: [
+      'outfitRepository?: OutfitRepository',
+      'clothingRepository?: ClothingRepository',
+      'wearLogRepository?: WearLogRepository',
+      'photoPickerAdapter?: PhotoPickerAdapter',
+      'photoStorage?: PhotoStorage',
+      'initialWearLogId',
+      'loadOutfits',
+      'listOutfits',
+      'OutfitEditPage({',
+      'WearLogEditPage({',
+      'openWearLogById'
     ]
   },
   {

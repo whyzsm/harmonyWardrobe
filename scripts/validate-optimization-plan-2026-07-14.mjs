@@ -65,10 +65,19 @@ for (const needle of [
   'SearchEntityType.Wishlist',
   'this.openWishlistPage(id)',
   'SearchEntityType.WearLog',
-  "params.wardrobeTab = '日历'",
-  'AppMainTab.Wardrobe'
+  'params.wearLogId = id',
+  'AppMainTab.Outfit'
 ]) {
   requireIncludes(indexPage, needle, 'Index');
+}
+
+for (const forbidden of [
+  "params.wardrobeTab = '日历'",
+  'wardrobeTab',
+  'initialWardrobeTab',
+  'selectedWardrobeTab'
+]) {
+  requireNotIncludes(indexPage, forbidden, 'Index');
 }
 
 for (const needle of [

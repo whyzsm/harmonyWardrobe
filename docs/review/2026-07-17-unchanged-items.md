@@ -3,10 +3,10 @@
 ## 本轮已完成
 
 - 顶层 route/page 分支已统一增加轻量 `TransitionEffect.OPACITY` 页面转场。
-- 本地未跟踪的旧 UI 死代码文件已移除：`ClothingCard.ets`、`OutfitCard.ets`、`StoreVisitCard.ets`、`CalendarPage.ets`。
+- 本地未跟踪的旧 UI 死代码文件已移除：`ClothingCard.ets`、`OutfitCard.ets`、`StoreVisitCard.ets`、`CalendarPage.ets`、`MonthCalendar.ets`。
 - 相关验证脚本已从“维护旧组件内容”调整为“禁止旧组件/孤儿页回归”。
 - 日期选择器策略已明确：购买日期、逛店日期、穿着日期均不允许选择未来日期。
-- 交互验证脚本已覆盖页面转场、日期策略、日历切月、卡片 pressed feedback。
+- 交互验证脚本已覆盖页面转场、日期策略、卡片 pressed feedback，并反向禁止日历 UI 回流。
 
 ## 没有改的地方
 

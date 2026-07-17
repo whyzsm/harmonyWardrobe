@@ -20,7 +20,6 @@ const capture = read('entry/src/main/ets/pages/CaptureEditPage.ets');
 const clothingEdit = read('entry/src/main/ets/pages/ClothingEditPage.ets');
 const wearLog = read('entry/src/main/ets/pages/WearLogEditPage.ets');
 const index = read('entry/src/main/ets/pages/Index.ets');
-const monthCalendar = read('entry/src/main/ets/components/MonthCalendar.ets');
 const wardrobe = read('entry/src/main/ets/pages/WardrobePage.ets');
 const outfits = read('entry/src/main/ets/pages/OutfitsPage.ets');
 const storeVisit = read('entry/src/main/ets/pages/StoreVisitPage.ets');
@@ -54,17 +53,23 @@ if (wearLog.includes("TextInput({ text: this.wornDate")) {
   throw new Error('WearLogEditPage.ets must not keep editable wornDate TextInput');
 }
 
-for (const needle of [
-  'onChangeMonth: (month: string) => void',
-  'adjacentMonth(offset: number)',
-  "SymbolGlyph($r('sys.symbol.chevron_left'))",
-  "SymbolGlyph($r('sys.symbol.chevron_right'))"
-]) {
-  mustInclude(monthCalendar, 'MonthCalendar.ets', needle);
+if (fs.existsSync('entry/src/main/ets/components/MonthCalendar.ets')) {
+  throw new Error('MonthCalendar.ets should remain removed from the current product flow');
 }
 
-mustMatch(wardrobe, 'WardrobePage.ets', /changeCalendarMonth\(month: string\)[\s\S]*?daysInTargetMonth[\s\S]*?Math\.min\(safeDay, daysInTargetMonth\)[\s\S]*?this\.currentMonth = month[\s\S]*?this\.selectedDate = `\$\{month\}-\$\{`\$\{day\}`\.padStart\(2, '0'\)\}`[\s\S]*?this\.loadCalendar\(\)/, 'must reload calendar when changing month while preserving the selected day');
-mustMatch(wardrobe, 'WardrobePage.ets', /MonthCalendar\(\{[\s\S]*?onChangeMonth: \(month: string\) => \{[\s\S]*?this\.changeCalendarMonth\(month\)/, 'must connect MonthCalendar onChangeMonth');
+for (const forbidden of [
+  'MonthCalendar',
+  'changeCalendarMonth',
+  'CalendarTab',
+  'selectedWardrobeTab',
+  'initialWardrobeTab',
+  'selectedDateLogs',
+  'markedDates'
+]) {
+  if (wardrobe.includes(forbidden)) {
+    throw new Error(`WardrobePage.ets must not keep removed calendar interaction ${forbidden}`);
+  }
+}
 
 for (const [file, source, stateName] of [
   ['WardrobePage.ets', wardrobe, 'pressedWardrobeItemId'],

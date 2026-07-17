@@ -3,8 +3,6 @@ import fs from 'node:fs';
 const wardrobe = fs.readFileSync('entry/src/main/ets/pages/WardrobePage.ets', 'utf8');
 
 for (const needle of [
-  '衣裤',
-  '美搭',
   '搜索衣服、裤子、裙子',
   '全部',
   '上衣',
@@ -19,8 +17,7 @@ for (const needle of [
   'FlowItem()',
   ".columnsTemplate('1fr 1fr')",
   '.columnsGap(16)',
-  '.rowsGap(15)',
-  'visibleOutfits'
+  '.rowsGap(15)'
 ]) {
   if (!wardrobe.includes(needle)) {
     throw new Error(`WardrobePage missing ${needle}`);
@@ -39,6 +36,7 @@ for (const forbidden of [
   'wardrobeCardOffset',
   'wardrobeDemoIndexes',
   'WardrobeDemoResultCard',
+  'OutfitResultCard',
   'sys.symbol.list_bullet',
   'sys.symbol.figure_figure_dress',
   "'包袋'",
@@ -48,6 +46,23 @@ for (const forbidden of [
 ]) {
   if (wardrobe.includes(forbidden)) {
     throw new Error(`WardrobePage still contains old wardrobe feed concept ${forbidden}`);
+  }
+}
+
+for (const forbidden of [
+  'WardrobePrimaryTabs',
+  'selectedWardrobeTab',
+  'initialWardrobeTab',
+  'visibleOutfits',
+  'CalendarTab',
+  'MonthCalendar',
+  'listWearLogsByDate',
+  'listWearLogDatesForMonth',
+  "'日历'",
+  "'美搭'"
+]) {
+  if (wardrobe.includes(forbidden)) {
+    throw new Error(`WardrobePage should be clothing-only and omit ${forbidden}`);
   }
 }
 

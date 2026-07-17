@@ -26,10 +26,25 @@ const OUTFIT_SCENE_FILTERS: OutfitSceneFilter[] = [
 const ERROR = YibuqueColor.danger;
 const ERROR_BG = YibuqueColor.cardSoftGray;
 const RECORD_WEAR_ACCESSIBILITY_TEXT = '记录一次穿着';
+function emptyWearLog(): WearLog {
+  return {
+    id: '',
+    outfitTemplateId: undefined,
+    outfitTitleSnapshot: '',
+    clothingItemIdsSnapshot: [],
+    wornDate: '',
+    photoUris: [],
+    placeText: undefined,
+    note: undefined,
+    createdAt: '',
+    updatedAt: ''
+  };
+}
 
 @Component
 export struct OutfitsPage {
   @Prop initialOutfitId: string = '';
+  @Prop @Watch('onInitialWearLogIdChange') initialWearLogId: string = '';
   outfitRepository?: OutfitRepository = undefined;
   clothingRepository?: ClothingRepository = undefined;
   wearLogRepository?: WearLogRepository = undefined;
@@ -42,6 +57,8 @@ export struct OutfitsPage {
   @State private outfitDataSource: ArrayDataSource<OutfitTemplate> = new ArrayDataSource<OutfitTemplate>();
   @State private clothingItems: ClothingItem[] = [];
   @State private selectedOutfitId: string = '';
+  @State private selectedWearLogId: string = '';
+  @State private selectedWearLog: WearLog = emptyWearLog();
   @State private showOutfitEditor: boolean = false;
   @State private showWearLogEditor: boolean = false;
   @State private loading: boolean = false;
@@ -77,6 +94,9 @@ export struct OutfitsPage {
             break;
           }
         }
+      }
+      if (this.initialWearLogId.length > 0) {
+        await this.openWearLogById(this.initialWearLogId);
       }
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '加载套装失败';
@@ -167,6 +187,33 @@ export struct OutfitsPage {
     return undefined;
   }
 
+  private selectedWearLogForEditor(): WearLog | undefined {
+    return this.selectedWearLogId.length > 0 ? this.selectedWearLog : undefined;
+  }
+
+  private onInitialWearLogIdChange(): void {
+    if (this.initialWearLogId.length > 0) {
+      this.openWearLogById(this.initialWearLogId);
+    }
+  }
+
+  private async openWearLogById(wearLogId: string): Promise<void> {
+    if (this.wearLogRepository === undefined) {
+      return;
+    }
+
+    const wearLog = await this.wearLogRepository.getWearLogById(wearLogId);
+    if (wearLog === undefined) {
+      return;
+    }
+
+    this.selectedWearLog = wearLog;
+    this.selectedWearLogId = wearLog.id;
+    this.selectedOutfitId = wearLog.outfitTemplateId ?? '';
+    this.showWearLogEditor = true;
+    this.onNestedPageVisibilityChange(true);
+  }
+
   private onEditOutfit(outfit: OutfitTemplate): void {
     this.selectedOutfitId = outfit.id;
     this.showOutfitEditor = true;
@@ -174,6 +221,8 @@ export struct OutfitsPage {
   }
 
   private onRecordWear(outfit?: OutfitTemplate): void {
+    this.selectedWearLog = emptyWearLog();
+    this.selectedWearLogId = '';
     this.selectedOutfitId = outfit?.id ?? '';
     this.showWearLogEditor = true;
     this.onNestedPageVisibilityChange(true);
@@ -211,6 +260,15 @@ export struct OutfitsPage {
     this.closeOutfitEditor();
   }
 
+  private async deleteWearLog(wearLog: WearLog): Promise<void> {
+    if (this.wearLogRepository === undefined) {
+      throw new Error('穿着记录仓库不可用，请稍后重试');
+    }
+
+    await this.wearLogRepository.deleteWearLog(wearLog.id);
+    this.closeWearLogEditor();
+  }
+
   private closeOutfitEditor(): void {
     this.showOutfitEditor = false;
     this.selectedOutfitId = '';
@@ -219,6 +277,8 @@ export struct OutfitsPage {
 
   private closeWearLogEditor(): void {
     this.showWearLogEditor = false;
+    this.selectedWearLog = emptyWearLog();
+    this.selectedWearLogId = '';
     this.selectedOutfitId = '';
     this.onNestedPageVisibilityChange(false);
   }
@@ -248,6 +308,7 @@ export struct OutfitsPage {
       })
     } else if (this.showWearLogEditor) {
       WearLogEditPage({
+        initialWearLog: this.selectedWearLogForEditor(),
         initialOutfitTemplateId: this.selectedOutfitId,
         outfits: this.outfits,
         wearLogRepository: this.wearLogRepository,
@@ -255,6 +316,9 @@ export struct OutfitsPage {
         photoStorage: this.photoStorage,
         onSave: (_wearLog: WearLog) => {
           this.closeWearLogEditor();
+        },
+        onDelete: async (wearLog: WearLog): Promise<void> => {
+          await this.deleteWearLog(wearLog);
         },
         onCancel: () => {
           this.closeWearLogEditor();

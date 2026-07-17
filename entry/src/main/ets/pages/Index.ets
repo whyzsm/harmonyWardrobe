@@ -66,7 +66,6 @@ struct Index {
   private copyCurrentRouteParams(): AppRouteParams {
     const params = this.activeRoute.params;
     return {
-      wardrobeTab: params.wardrobeTab,
       outfitId: params.outfitId,
       storeVisitId: params.storeVisitId,
       storeQuery: params.storeQuery,
@@ -411,12 +410,9 @@ struct Index {
             WardrobePage({
               clothingRepository: this.runtime.clothingRepository,
               outfitRepository: this.runtime.outfitRepository,
-              wearLogRepository: this.runtime.wearLogRepository,
               searchRepository: this.runtime.searchRepository,
               photoPickerAdapter: this.runtime.photoPickerAdapter,
               photoStorage: this.runtime.photoStorage,
-              initialWardrobeTab: this.activeRoute.params.wardrobeTab,
-              initialWearLogId: this.activeRoute.params.wearLogId,
               onOpenCapture: () => {
                 this.startCameraCapture();
               },
@@ -440,9 +436,8 @@ struct Index {
                   this.openWishlistPage(id);
                 } else if (entityType === SearchEntityType.WearLog) {
                   const params = createDefaultAppRouteParams();
-                  params.wardrobeTab = '日历';
                   params.wearLogId = id;
-                  this.showMainRoute(AppMainTab.Wardrobe, params);
+                  this.showMainRoute(AppMainTab.Outfit, params);
                 } else {
                   this.resetMainRoute(AppMainTab.Profile);
                 }
@@ -466,6 +461,7 @@ struct Index {
           } else if (this.activeRoute.mainTab === AppMainTab.Outfit) {
             OutfitsPage({
               initialOutfitId: this.activeRoute.params.outfitId,
+              initialWearLogId: this.activeRoute.params.wearLogId,
               outfitRepository: this.runtime.outfitRepository,
               clothingRepository: this.runtime.clothingRepository,
               wearLogRepository: this.runtime.wearLogRepository,

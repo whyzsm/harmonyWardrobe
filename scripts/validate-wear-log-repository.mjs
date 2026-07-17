@@ -79,8 +79,6 @@ for (const needle of [
   'deleteWearLog',
   'getWearLogById',
   'listWearLogs',
-  'listWearLogsByDate',
-  'listWearLogDatesForMonth',
   'encodeClothingItemIdsSnapshot',
   'decodeClothingItemIdsSnapshot'
 ]) {
@@ -115,13 +113,10 @@ assertMatches(source, /JSON\.stringify\s*\(\s*clothingItemIds\s*\)/, 'clothing i
 assertMatches(source, /JSON\.parse/, 'clothing item snapshot must be decoded as JSON');
 assertMatches(source, /Array\.isArray/, 'snapshot decode must validate JSON arrays');
 assertMatches(source, /typeof\s+id\s+===\s+['"`]string['"`]/, 'snapshot decode must validate JSON string elements');
-assertMatches(source, /worn_date\s*=\s*\?/i, 'listWearLogsByDate must filter by worn_date');
 assertMatches(source, /listWearLogs\s*\([^)]*\)\s*:\s*Promise<WearLog\[\]>/, 'listWearLogs must expose all logs for startup search index rebuild');
-assertMatches(source, /worn_date\s+>=\s+\?\s+AND\s+worn_date\s+<\s+\?/i, 'listWearLogDatesForMonth must use a bounded date range');
-assertMatches(source, /\^\(\\d\{4\}\)-\(\\d\{2\}\)\$|\\d\{4\}.*\\d\{2\}/, 'listWearLogDatesForMonth must validate YYYY-MM input');
-assertMatches(source, /range\s+===\s+undefined[\s\S]*return\s+\[\]/, 'listWearLogDatesForMonth must reject invalid months');
-assertMatches(source, /SELECT\s+DISTINCT\s+worn_date/i, 'listWearLogDatesForMonth must return distinct dates');
-assertMatches(source, /ORDER\s+BY\s+worn_date\s+ASC/i, 'listWearLogDatesForMonth must order dates');
+assert.equal(source.includes('listWearLogsByDate'), false, 'WearLogRepository must not keep date-only query for the removed calendar UI');
+assert.equal(source.includes('listWearLogDatesForMonth'), false, 'WearLogRepository must not keep month marker query for the removed calendar UI');
+assert.equal(source.includes('SELECT DISTINCT worn_date'), false, 'WearLogRepository must not keep calendar marker SQL');
 assertMatches(source, /upsertDocumentInTransaction\s*\(\s*buildWearLogSearchDocument/i, 'create/update must update search index inside the wear log transaction');
 assertMatches(source, /deleteDocumentInTransaction\s*\(\s*SearchEntityType\.WearLog/i, 'delete must remove wear log search index inside the transaction');
 assertMatches(source, /COALESCE\(\s*place_text,\s*(?:\\?['"]){2}\s*\)/i, 'repository must tolerate nullable place_text values');

@@ -120,7 +120,7 @@ for (const needle of [
 }
 
 const searchInputStart = wardrobePage.indexOf("TextInput({ text: this.searchQuery");
-const searchInputEnd = wardrobePage.indexOf('\n  @Builder\n  WardrobePrimaryTabs', searchInputStart);
+const searchInputEnd = wardrobePage.indexOf('\n  @Builder\n  WardrobeSearchTabs', searchInputStart);
 if (searchInputStart === -1 || searchInputEnd === -1) {
   throw new Error(`${wardrobePagePath} search input block is not locatable`);
 }

@@ -1,47 +1,35 @@
 import fs from 'node:fs';
 
-const pagePath = 'entry/src/main/ets/pages/WardrobePage.ets';
-const calendarPath = 'entry/src/main/ets/components/MonthCalendar.ets';
+const wardrobePath = 'entry/src/main/ets/pages/WardrobePage.ets';
+const removedFiles = [
+  'entry/src/main/ets/pages/CalendarPage.ets',
+  'entry/src/main/ets/components/MonthCalendar.ets'
+];
 
-if (!fs.existsSync(calendarPath)) {
-  throw new Error(`${calendarPath} does not exist`);
-}
-
-if (fs.existsSync('entry/src/main/ets/pages/CalendarPage.ets')) {
-  throw new Error('CalendarPage.ets should be removed; calendar UI is embedded in WardrobePage');
-}
-
-const text = fs.readFileSync(pagePath, 'utf8');
-const calendar = fs.readFileSync(calendarPath, 'utf8');
-
-for (const needle of [
-  'MonthCalendar',
-  'WearLogRepository',
-  'listWearLogDatesForMonth',
-  'listWearLogsByDate',
-  '今天穿了什么？',
-  'openWearLogEditor',
-  'selectedDate',
-  'selectedDateLogs',
-  'markedDates',
-  'ForEach'
-]) {
-  if (!text.includes(needle)) {
-    throw new Error(`WardrobePage calendar tab missing ${needle}`);
+for (const removedFile of removedFiles) {
+  if (fs.existsSync(removedFile)) {
+    throw new Error(`${removedFile} should be removed; calendar UI is no longer part of the product surface`);
   }
 }
 
-for (const needle of [
+const wardrobe = fs.readFileSync(wardrobePath, 'utf8');
+for (const forbidden of [
   'MonthCalendar',
-  'month',
-  'markedDates',
+  'CalendarTab',
+  'WardrobePrimaryTabs',
+  'selectedWardrobeTab',
+  'initialWardrobeTab',
+  'currentMonth',
   'selectedDate',
-  'onSelectDate',
-  'buildCalendarDays',
-  'ForEach'
+  'selectedDateLogs',
+  'markedDates',
+  'listWearLogDatesForMonth',
+  'listWearLogsByDate',
+  "'日历'",
+  '今天穿了什么'
 ]) {
-  if (!calendar.includes(needle)) {
-    throw new Error(`MonthCalendar missing ${needle}`);
+  if (wardrobe.includes(forbidden)) {
+    throw new Error(`${wardrobePath} should not contain removed calendar surface ${forbidden}`);
   }
 }
 

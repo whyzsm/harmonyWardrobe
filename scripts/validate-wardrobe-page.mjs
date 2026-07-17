@@ -16,24 +16,11 @@ for (const needle of [
   'WardrobeSearchTabs',
   'CategoryFilterIcon',
   'WardrobeSearchResultCard',
-  'selectedWardrobeTab',
-  'initialWardrobeTab',
-  "'衣橱'",
-  "'衣裤'",
-  "'美搭'",
-  "'日历'",
-  'WearLogRepository',
-  'MonthCalendar',
-  'WearLogEditPage',
-  'listWearLogDatesForMonth',
-  'listWearLogsByDate',
-  '今天穿了什么',
-  'visibleOutfits',
   'OutfitRepository',
-  'OutfitEditPage',
   'onNestedPageVisibilityChange',
   'WardrobeWaterFlow',
   'WaterFlow()',
+  'LazyForEach(this.clothingDataSource',
   'FlowItem()',
   ".columnsTemplate('1fr 1fr')",
   '.columnsGap(16)',
@@ -53,7 +40,7 @@ for (const needle of [
   'CardCategoryIcon(category: ClothingCategory)',
   '.fontSize(14)',
   '.lineHeight(20)',
-  '.maxLines(2)',
+  '.maxLines(1)',
   '.borderRadius(YibuqueRadius.xxl)',
   'Column({ space: 14 })',
   '.padding({ left: 20, right: 20, top: 14, bottom: 0 })',
@@ -63,7 +50,6 @@ for (const needle of [
   'Row({ space: 10 })',
   '.constraintSize({ minWidth: 76, minHeight: 44 })',
   '点底部相机，选择照片后归类为衣橱',
-  '点底部相机，选择照片后归类为美搭',
   ".height('100%')",
   '.scrollable(ScrollDirection.Horizontal)',
   '.scrollBar(BarState.Off)'
@@ -73,20 +59,8 @@ for (const needle of [
   }
 }
 
-if (!/this\.selectedWardrobeTab === '衣裤'[\s\S]*?this\.WardrobeWaterFlow\(\)/.test(text)) {
-  throw new Error('WardrobePage clothing tab should use the native WaterFlow layout');
-}
-
 if (!/WardrobeWaterFlow\(\)[\s\S]*?WaterFlow\(\)[\s\S]*?LazyForEach\(this\.clothingDataSource[\s\S]*?FlowItem\(\)[\s\S]*?this\.WardrobeSearchResultCard\(item, index\)/.test(text)) {
   throw new Error('Wardrobe waterfall should render clothing cards as lazy native FlowItems');
-}
-
-if (!/initialWardrobeTab[\s\S]*?selectedWardrobeTab\s*=\s*this\.initialWardrobeTab/.test(text)) {
-  throw new Error('WardrobePage must honor the initial tab after capture save');
-}
-
-if (!/this\.selectedWardrobeTab === '美搭'[\s\S]*?Grid\(\)/.test(text)) {
-  throw new Error('WardrobePage outfit tab should render a beauty-match grid');
 }
 
 if (!/Text\('先放入第一件衣服'\)[\s\S]*?\.backgroundColor\(YibuqueColor\.cardSoftGray\)[\s\S]*?\.borderRadius\(YibuqueRadius\.xxl\)[\s\S]*?\.border\(\{ width: 1, color: YibuqueColor\.borderMedium \}\)/.test(text)) {
@@ -119,10 +93,26 @@ for (const forbidden of [
   'OPEN_DESIGN_',
   'SCREENSHOT_NAV_GRAY',
   "'包袋'",
-  "'待同步'"
+  "'待同步'",
+  'selectedWardrobeTab',
+  'initialWardrobeTab',
+  "'衣裤'",
+  "'美搭'",
+  "'日历'",
+  'WearLogRepository',
+  'MonthCalendar',
+  'CalendarTab',
+  'WardrobePrimaryTabs',
+  'WearLogEditPage',
+  'listWearLogDatesForMonth',
+  'listWearLogsByDate',
+  '今天穿了什么',
+  'visibleOutfits',
+  'OutfitEditPage',
+  'OutfitResultCard'
 ]) {
   if (text.includes(forbidden)) {
-    throw new Error(`WardrobePage should follow the search result layout and omit ${forbidden}`);
+    throw new Error(`WardrobePage should be clothing-only and omit ${forbidden}`);
   }
 }
 

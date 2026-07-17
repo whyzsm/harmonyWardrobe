@@ -159,9 +159,9 @@ Use real wardrobe photos, real item counts, and local profile data. Show unset s
 
 ### 编辑与搜索页 / Editors And Search
 
-所有编辑页、搜索结果、日历、选择器和空态必须继承相同白灰黑 token。保存按钮和选中态统一使用黑色，错误使用统一红色。
+所有编辑页、搜索结果、穿着记录、选择器和空态必须继承相同白灰黑 token。保存按钮和选中态统一使用黑色，错误使用统一红色。
 
-All editors, search results, calendars, pickers, and empty states inherit the same white-gray-black tokens. Save buttons and selected states use black, while errors use one consistent red.
+All editors, search results, wear-log surfaces, pickers, and empty states inherit the same white-gray-black tokens. Save buttons and selected states use black, while errors use one consistent red.
 
 ## 交互与数据真实性 / Interaction And Data Integrity
 

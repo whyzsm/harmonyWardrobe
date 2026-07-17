@@ -2,9 +2,9 @@
 
 ## 总览 / Overview
 
-Harmony Wardrobe 是一个本地优先的 HarmonyOS Stage 应用，用于管理衣橱记录、穿搭模板、穿着日志、日历回顾和购物心愿记录。应用把业务数据保存在本地 SQLite 表中，把复制后的照片保存在应用本地存储中，SQLite 只保存本地 URI 或路径引用。
+Harmony Wardrobe 是一个本地优先的 HarmonyOS Stage 应用，用于管理衣柜记录、穿搭模板、穿着日志、逛店记录和购物心愿记录。应用把业务数据保存在本地 SQLite 表中，把复制后的照片保存在应用本地存储中，SQLite 只保存本地 URI 或路径引用。
 
-Harmony Wardrobe is a local-first HarmonyOS Stage app for wardrobe records, outfit templates, wear logs, calendar recall, and wishlist notes. The app keeps business data in local SQLite tables and stores copied photos in app-local storage, with SQLite storing only local URI or path references.
+Harmony Wardrobe is a local-first HarmonyOS Stage app for wardrobe records, outfit templates, wear logs, store visits, and wishlist notes. The app keeps business data in local SQLite tables and stores copied photos in app-local storage, with SQLite storing only local URI or path references.
 
 ## UI 层 / UI Layer
 
