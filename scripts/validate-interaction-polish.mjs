@@ -17,7 +17,9 @@ function mustMatch(source, file, pattern, message) {
 }
 
 const capture = read('entry/src/main/ets/pages/CaptureEditPage.ets');
+const clothingEdit = read('entry/src/main/ets/pages/ClothingEditPage.ets');
 const wearLog = read('entry/src/main/ets/pages/WearLogEditPage.ets');
+const index = read('entry/src/main/ets/pages/Index.ets');
 const monthCalendar = read('entry/src/main/ets/components/MonthCalendar.ets');
 const wardrobe = read('entry/src/main/ets/pages/WardrobePage.ets');
 const outfits = read('entry/src/main/ets/pages/OutfitsPage.ets');
@@ -26,10 +28,17 @@ const storeVisit = read('entry/src/main/ets/pages/StoreVisitPage.ets');
 for (const [file, source, method] of [
   ['CaptureEditPage.ets', capture, 'openPurchaseDatePicker'],
   ['CaptureEditPage.ets', capture, 'openVisitDatePicker'],
+  ['ClothingEditPage.ets', clothingEdit, 'openPurchaseDatePicker'],
   ['WearLogEditPage.ets', wearLog, 'openWornDatePicker']
 ]) {
   mustMatch(source, file, new RegExp(`private ${method}\\(\\): void[\\s\\S]*?showDatePickerDialog`), `${method} must use showDatePickerDialog`);
+  mustMatch(source, file, new RegExp(`private ${method}\\(\\): void[\\s\\S]*?end: new Date\\(\\)`), `${method} must reject future dates`);
   mustMatch(source, file, new RegExp(`${method}\\(\\);`), `${method} must be invoked from the date field`);
+}
+
+const routeTransitionCount = (index.match(/\.transition\(TransitionEffect\.OPACITY\.animation\(\{ duration: 180, curve: Curve\.EaseOut \}\)\)/g) ?? []).length;
+if (routeTransitionCount < 9) {
+  throw new Error(`Index.ets must apply route/page transitions to every top-level page branch, found ${routeTransitionCount}`);
 }
 
 for (const forbidden of [
@@ -64,7 +73,7 @@ for (const [file, source, stateName] of [
 ]) {
   mustInclude(source, file, `@State private ${stateName}: string = '';`);
   mustMatch(source, file, new RegExp(`\\.scale\\(\\{ x: this\\.${stateName} === [\\s\\S]*?0\\.98`), 'must scale pressed cards');
-  mustMatch(source, file, new RegExp(`\\.onTouch\\(\\(event: TouchEvent\\) => \\{[\\s\\S]*?${stateName}`), 'must update pressed state from touch events');
+  mustMatch(source, file, new RegExp(`\\.onTouch\\(\\(event: TouchEvent\\) => \\{[\\s\\S]*?TouchType\\.Down[\\s\\S]*?${stateName}[\\s\\S]*?TouchType\\.Up[\\s\\S]*?TouchType\\.Cancel`), 'must keep pressed state until touch up or cancel');
 }
 
 console.log('PASS');
