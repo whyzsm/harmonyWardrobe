@@ -328,6 +328,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
+              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
           } else if (this.activeRoute.kind === AppRouteKind.OutfitEditor) {
             OutfitEditPage({
               clothingItems: this.activeRoute.params.outfitClothingItems,
@@ -345,6 +346,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
+              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
           } else if (this.activeRoute.kind === AppRouteKind.StoreEditor) {
             StoreVisitEditPage({
               storeRepository: this.runtime.storeRepository,
@@ -358,6 +360,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
+              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
           } else if (this.activeRoute.kind === AppRouteKind.Wishlist) {
             WishlistPage({
               wishlistRepository: this.runtime.wishlistRepository,
@@ -376,6 +379,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
+              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
           } else if (this.activeRoute.kind === AppRouteKind.CaptureEditor) {
             CaptureEditPage({
               initialPhotoUris: this.activeRoute.params.capturePhotoUris,
@@ -402,6 +406,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
+              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
           } else if (this.activeRoute.mainTab === AppMainTab.Wardrobe) {
             WardrobePage({
               clothingRepository: this.runtime.clothingRepository,
@@ -444,6 +449,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
+              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
           } else if (this.activeRoute.mainTab === AppMainTab.Store) {
             StoreVisitPage({
               initialVisitId: this.activeRoute.params.storeVisitId,
@@ -456,6 +462,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
+              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
           } else if (this.activeRoute.mainTab === AppMainTab.Outfit) {
             OutfitsPage({
               initialOutfitId: this.activeRoute.params.outfitId,
@@ -469,6 +476,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
+              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
           } else {
             ProfilePage({
               profileRepository: this.runtime.profileRepository,
@@ -492,6 +500,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
+              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
           }
 
           if (this.quickActionErrorMessage.length > 0) {

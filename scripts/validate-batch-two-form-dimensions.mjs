@@ -20,16 +20,16 @@ function forbidIncludes(source, file, needle) {
 }
 
 const clothingEdit = read('entry/src/main/ets/pages/ClothingEditPage.ets');
-const calendar = read('entry/src/main/ets/pages/CalendarPage.ets');
 const wishlist = read('entry/src/main/ets/pages/WishlistPage.ets');
 const searchBar = read('entry/src/main/ets/components/SearchBar.ets');
 const photoGrid = read('entry/src/main/ets/components/PhotoGrid.ets');
 const clothingPicker = read('entry/src/main/ets/components/ClothingPicker.ets');
 
 forbidIncludes(clothingEdit, 'ClothingEditPage.ets', '.placeholderColor(YibuqueColor.textPrimary)');
-requireIncludes(calendar, 'CalendarPage.ets', 'YibuqueFontSize.pageTitle');
 requireIncludes(wishlist, 'WishlistPage.ets', 'YibuqueFontSize.pageTitle');
-forbidIncludes(calendar, 'CalendarPage.ets', '.fontSize(30)');
+if (fs.existsSync('entry/src/main/ets/pages/CalendarPage.ets')) {
+  throw new Error('CalendarPage.ets should remain removed; calendar UI is owned by WardrobePage');
+}
 forbidIncludes(wishlist, 'WishlistPage.ets', '.fontSize(30)');
 
 requireIncludes(searchBar, 'SearchBar.ets', '.height(48)');

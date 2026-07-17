@@ -21,9 +21,9 @@ function mustNotInclude(text, file, needle) {
 }
 
 const pagePath = 'entry/src/main/ets/pages/OutfitEditPage.ets';
-const cardPath = 'entry/src/main/ets/components/OutfitCard.ets';
+const outfitsPath = 'entry/src/main/ets/pages/OutfitsPage.ets';
 const page = read(pagePath);
-const card = read(cardPath);
+const outfits = read(outfitsPath);
 
 for (const needle of ['创建美搭', '编辑美搭', '保存美搭', '美搭名称', '美搭名称，可不填']) {
   mustInclude(page, pagePath, needle);
@@ -31,11 +31,14 @@ for (const needle of ['创建美搭', '编辑美搭', '保存美搭', '美搭名
 
 mustInclude(page, pagePath, 'this.photoUris.length > 0');
 mustInclude(page, pagePath, 'normalizedTitle');
-mustInclude(card, cardPath, "SymbolGlyph($r('sys.symbol.hanger_and_towels'))");
+mustInclude(outfits, outfitsPath, 'OutfitWallCard');
 
 for (const forbidden of ['创建套装', '编辑套装', '保存套装', '套装名称', "Text('套装')", "Text('美搭')"]) {
   mustNotInclude(page, pagePath, forbidden);
-  mustNotInclude(card, cardPath, forbidden);
+}
+
+if (fs.existsSync('entry/src/main/ets/components/OutfitCard.ets')) {
+  throw new Error('entry/src/main/ets/components/OutfitCard.ets should be removed as dead code');
 }
 
 console.log('PASS');

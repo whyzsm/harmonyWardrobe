@@ -28,7 +28,6 @@ function mustMatch(text, file, pattern, message) {
 const indexPath = 'entry/src/main/ets/pages/Index.ets';
 const quickSheetPath = 'entry/src/main/ets/components/QuickCaptureSheet.ets';
 const wardrobePath = 'entry/src/main/ets/pages/WardrobePage.ets';
-const clothingCardPath = 'entry/src/main/ets/components/ClothingCard.ets';
 const searchPath = 'entry/src/main/ets/pages/SearchResultsPage.ets';
 const outfitsPath = 'entry/src/main/ets/pages/OutfitsPage.ets';
 const storePath = 'entry/src/main/ets/pages/StoreVisitPage.ets';
@@ -38,7 +37,6 @@ const clothingEditPath = 'entry/src/main/ets/pages/ClothingEditPage.ets';
 const index = read(indexPath);
 const quickSheet = read(quickSheetPath);
 const wardrobe = read(wardrobePath);
-const clothingCard = read(clothingCardPath);
 const search = read(searchPath);
 const outfits = read(outfitsPath);
 const store = read(storePath);
@@ -59,8 +57,16 @@ mustInclude(index, indexPath, 'this.activeRoute.kind === AppRouteKind.Main && !t
 
 mustNotInclude(wardrobe, wardrobePath, 'CardHeart()');
 mustNotInclude(wardrobe, wardrobePath, "SymbolGlyph($r('sys.symbol.heart'))");
-mustNotInclude(clothingCard, clothingCardPath, 'setTimeout');
-mustInclude(clothingCard, clothingCardPath, 'animateTo');
+for (const removedFile of [
+  'entry/src/main/ets/components/ClothingCard.ets',
+  'entry/src/main/ets/components/OutfitCard.ets',
+  'entry/src/main/ets/components/StoreVisitCard.ets',
+  'entry/src/main/ets/pages/CalendarPage.ets'
+]) {
+  if (fs.existsSync(removedFile)) {
+    throw new Error(`${removedFile} should be removed instead of maintained as an inactive surface`);
+  }
+}
 
 mustInclude(wardrobe, wardrobePath, 'LazyForEach(this.clothingDataSource');
 mustInclude(outfits, outfitsPath, 'LazyForEach(this.outfitDataSource');

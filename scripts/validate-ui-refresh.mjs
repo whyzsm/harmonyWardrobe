@@ -33,18 +33,15 @@ for (const oldRoseColor of ['#B11B68', '#8E1454', '#7A1048', '#FCE3EF', '#FFF2F8
   forbidIncludes(tokenSource, oldRoseColor, 'legacy rose token');
 }
 
-const componentFiles = [
+for (const removedFile of [
   'entry/src/main/ets/components/ClothingCard.ets',
-  'entry/src/main/ets/components/OutfitCard.ets'
-];
-
-for (const file of componentFiles) {
-  const source = fs.readFileSync(file, 'utf8');
-  requireIncludes(source, 'YibuqueColor', `${file} yibuque colors`);
-  requireIncludes(source, 'YibuqueRadius', `${file} yibuque radius`);
-  forbidIncludes(source, "'#0F766E'", `${file} old teal`);
-  forbidIncludes(source, "'#0F172A'", `${file} old near-black action`);
-  forbidIncludes(source, "'#E2E8F0'", `${file} old slate border`);
+  'entry/src/main/ets/components/OutfitCard.ets',
+  'entry/src/main/ets/components/StoreVisitCard.ets',
+  'entry/src/main/ets/pages/CalendarPage.ets'
+]) {
+  if (fs.existsSync(removedFile)) {
+    fail(`${removedFile} should be removed as unused legacy code`);
+  }
 }
 
 const controlFiles = [
@@ -69,8 +66,7 @@ for (const file of controlFiles) {
 const yibuqueComponentFiles = [
   'entry/src/main/ets/components/AppTopBar.ets',
   'entry/src/main/ets/components/BottomNavigationBar.ets',
-  'entry/src/main/ets/components/QuickCaptureSheet.ets',
-  'entry/src/main/ets/components/StoreVisitCard.ets'
+  'entry/src/main/ets/components/QuickCaptureSheet.ets'
 ];
 
 for (const file of yibuqueComponentFiles) {

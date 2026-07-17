@@ -1,10 +1,14 @@
 import fs from 'node:fs';
 
-const pagePath = 'entry/src/main/ets/pages/CalendarPage.ets';
+const pagePath = 'entry/src/main/ets/pages/WardrobePage.ets';
 const calendarPath = 'entry/src/main/ets/components/MonthCalendar.ets';
 
 if (!fs.existsSync(calendarPath)) {
   throw new Error(`${calendarPath} does not exist`);
+}
+
+if (fs.existsSync('entry/src/main/ets/pages/CalendarPage.ets')) {
+  throw new Error('CalendarPage.ets should be removed; calendar UI is embedded in WardrobePage');
 }
 
 const text = fs.readFileSync(pagePath, 'utf8');
@@ -15,14 +19,15 @@ for (const needle of [
   'WearLogRepository',
   'listWearLogDatesForMonth',
   'listWearLogsByDate',
-  '补录穿着',
+  '今天穿了什么？',
+  'openWearLogEditor',
   'selectedDate',
   'selectedDateLogs',
   'markedDates',
   'ForEach'
 ]) {
   if (!text.includes(needle)) {
-    throw new Error(`CalendarPage missing ${needle}`);
+    throw new Error(`WardrobePage calendar tab missing ${needle}`);
   }
 }
 

@@ -26,14 +26,22 @@ const userFacingFiles = [
   'entry/src/main/ets/components/AppTopBar.ets',
   'entry/src/main/ets/components/BottomNavigationBar.ets',
   'entry/src/main/ets/components/QuickCaptureSheet.ets',
-  'entry/src/main/ets/components/ClothingCard.ets',
-  'entry/src/main/ets/components/OutfitCard.ets',
   'entry/src/main/ets/components/OutfitPicker.ets',
   'entry/src/main/ets/components/EmptyState.ets',
   'entry/src/main/ets/components/PhotoGrid.ets',
-  'entry/src/main/ets/components/StoreVisitCard.ets',
   'entry/src/main/ets/components/MonthCalendar.ets'
 ];
+
+for (const removedFile of [
+  'entry/src/main/ets/components/ClothingCard.ets',
+  'entry/src/main/ets/components/OutfitCard.ets',
+  'entry/src/main/ets/components/StoreVisitCard.ets',
+  'entry/src/main/ets/pages/CalendarPage.ets'
+]) {
+  if (fs.existsSync(removedFile)) {
+    throw new Error(`${removedFile} should be removed as dead code`);
+  }
+}
 
 for (const file of userFacingFiles) {
   const text = read(file);
