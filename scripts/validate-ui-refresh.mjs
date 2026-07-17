@@ -56,7 +56,9 @@ const controlFiles = [
 for (const file of controlFiles) {
   const source = fs.readFileSync(file, 'utf8');
   if (file.endsWith('SearchBar.ets')) {
-    requireIncludes(source, 'AppTheme.color.', `${file} compatibility theme colors`);
+    requireIncludes(source, 'YibuqueColor', `${file} yibuque colors`);
+    requireIncludes(source, 'YibuqueRadius', `${file} yibuque radius`);
+    requireIncludes(source, '.height(48)', `${file} search control height`);
   } else {
     requireIncludes(source, 'YibuqueColor', `${file} yibuque colors`);
   }
@@ -94,9 +96,9 @@ for (const file of mainPageFiles) {
 }
 
 const designPageFiles = [
-  ['entry/src/main/ets/pages/ProfilePage.ets', 'PROFILE_ACCENT', "'#1D1D1F'"],
-  ['entry/src/main/ets/pages/OutfitsPage.ets', 'ACCENT', "'#1D1D1F'"],
-  ['entry/src/main/ets/pages/CaptureEditPage.ets', 'CAPTURE_TEXT', "'#1D1D1F'"],
+  ['entry/src/main/ets/pages/ProfilePage.ets', 'YibuqueColor', 'YibuqueColor.textPrimary'],
+  ['entry/src/main/ets/pages/OutfitsPage.ets', 'YibuqueColor', 'YibuqueColor.textPrimary'],
+  ['entry/src/main/ets/pages/CaptureEditPage.ets', 'YibuqueColor', 'YibuqueColor.textPrimary'],
   ['entry/src/main/ets/pages/StoreVisitPage.ets', 'ACCENT', 'YibuqueColor.brandCyan']
 ];
 

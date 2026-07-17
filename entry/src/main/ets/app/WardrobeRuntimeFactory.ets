@@ -6,6 +6,7 @@ import { v2ClothingPurchaseColumns } from '../data/migrations/V2ClothingPurchase
 import { v3StoreVisitSchema } from '../data/migrations/V3StoreVisitSchema';
 import { v4StoreVisitDetails } from '../data/migrations/V4StoreVisitDetails';
 import { v5ProfilePreferences } from '../data/migrations/V5ProfilePreferences';
+import { v6StoreNormalizedName } from '../data/migrations/V6StoreNormalizedName';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { ProfileRepository } from '../data/repositories/ProfileRepository';
@@ -41,7 +42,8 @@ export class WardrobeRuntimeFactory {
       v2ClothingPurchaseColumns,
       v3StoreVisitSchema,
       v4StoreVisitDetails,
-      v5ProfilePreferences
+      v5ProfilePreferences,
+      v6StoreNormalizedName
     ]);
     await migrationRunner.runMigrations();
 
@@ -56,7 +58,9 @@ export class WardrobeRuntimeFactory {
     const profileRepository = new ProfileRepository(database);
     const searchRepository = new SearchRepository(database, searchIndexMode);
 
-    await SearchIndexBootstrap.rebuild({
+    await SearchIndexBootstrap.ensureReady({
+      database,
+      searchIndexMode,
       searchRepository,
       clothingRepository,
       outfitRepository,

@@ -115,8 +115,10 @@ export class ProfileRepository {
       updatedAt: toIsoDateTime(new Date())
     };
 
-    await this.database.executeSql(UPSERT_PROFILE_SQL, this.profileBindArgs(profile));
-    return profile;
+    return this.database.transaction(async () => {
+      await this.database.executeSql(UPSERT_PROFILE_SQL, this.profileBindArgs(profile));
+      return profile;
+    });
   }
 
   private profileBindArgs(profile: UserProfile): MigrationSqlValue[] {

@@ -64,18 +64,23 @@ for (const needle of [
   'createOutfit',
   'createStoreVisit',
   'createStoreVisitWithOptionalStore',
-  'CAPTURE_TEXT',
-  ".fontColor(this.captureMode === mode ? '#FFFFFF' : CAPTURE_MUTED)",
-  '.backgroundColor(this.captureMode === mode ? CAPTURE_TEXT : CAPTURE_SURFACE)',
-  ".fontColor(this.category === option.value ? '#FFFFFF' : CAPTURE_MUTED)",
-  '.backgroundColor(this.category === option.value ? CAPTURE_TEXT : CAPTURE_SURFACE)',
   'SecondaryPageHeader',
-  'onCancel'
+  'onCancel',
+  "Text('单品名称')",
+  "Text('备注')",
+  "Text('购买店铺')",
+  "Text('价格')",
+  "Text('购买日期')",
+  "Text('购买备注')",
+  "Text('美搭名称')",
+  "Text('店铺名')",
+  "Text('地点')",
+  "Text('逛店日期')"
 ]) {
   mustInclude(text, needle);
 }
 
-for (const legacySelectionColor of ['#8ABBEA', '#82B3EA', '#A8C9ED', 'CAPTURE_ACCENT_SOFT']) {
+for (const legacySelectionColor of ['#8ABBEA', '#82B3EA', '#A8C9ED']) {
   mustNotInclude(text, legacySelectionColor);
 }
 
@@ -85,6 +90,8 @@ mustMatch(text, /generatedStore|storeGeneratedName|generatedStoreVisitName/, 'mu
 mustMatch(text, /canSave\(\)\s*:\s*boolean\s*{[\s\S]*?photoUris\.length\s*>\s*0/, 'save gate must require selected photos');
 mustMatch(text, /this\.photoUris\.length\s*>\s*0\s*\?\s*'保存衣服'\s*:\s*'先添加照片'/, 'wardrobe save button must guide users to add a photo before saving');
 mustMatch(text, /this\.photoUris\s*=\s*\[\s*\.\.\.this\.initialPhotoUris\s*\]/, 'must clone initialPhotoUris before assigning to state');
+mustMatch(text, /private async choosePhotos\(\): Promise<void> {[\s\S]*?if \(this\.isSaving \|\| this\.isChoosingPhotos\)/, 'photo chooser must guard saving and choosing states');
+mustMatch(text, /\.enabled\(!this\.isSaving && !this\.isChoosingPhotos\)/, 'photo chooser entry must be disabled while saving or choosing photos');
 mustMatch(text, /clothingRepository\??:\s*ClothingRepository/, 'must expose ClothingRepository dependency');
 mustMatch(text, /outfitRepository\??:\s*OutfitRepository/, 'must expose OutfitRepository dependency');
 mustMatch(text, /storeRepository\??:\s*StoreRepository/, 'must expose StoreRepository dependency');

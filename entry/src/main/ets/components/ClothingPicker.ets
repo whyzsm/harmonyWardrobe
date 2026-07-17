@@ -73,7 +73,7 @@ export struct ClothingPicker {
             .width(76)
             .height(92)
             .backgroundColor(YibuqueColor.bgGray)
-            .borderRadius(5)
+            .borderRadius(YibuqueRadius.xs)
             .clip(true)
 
             Column({ space: 5 }) {

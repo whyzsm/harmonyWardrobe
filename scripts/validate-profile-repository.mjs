@@ -26,4 +26,8 @@ for (const forbidden of [': any', ': unknown']) {
   }
 }
 
+if (!/async\s+saveProfile\s*\([\s\S]*?return\s+this\.database\.transaction\s*\(\s*async\s*\(\)\s*=>\s*\{[\s\S]*?executeSql\(UPSERT_PROFILE_SQL/.test(text)) {
+  throw new Error(`${file} saveProfile must execute the upsert inside a database transaction`);
+}
+
 console.log('PASS');

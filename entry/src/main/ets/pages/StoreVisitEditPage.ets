@@ -7,7 +7,7 @@ import { StoreVisit, StoreVisitStatus } from '../domain/store/StoreModels';
 import { PhotoSource } from '../media/PhotoModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 import { toIsoDate } from '../utils/date';
 
 interface VisitStatusOption {
@@ -646,6 +646,6 @@ export struct StoreVisitEditPage {
     .width('100%')
     .padding({ left: 20, right: 20, top: 20, bottom: 16 })
     .backgroundColor(YibuqueColor.cardWhite)
-    .shadow({ radius: 24, color: '#12000000', offsetX: 0, offsetY: -6 })
+    .shadow(YibuqueShadow.editorSheet)
   }
 }

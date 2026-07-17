@@ -26,6 +26,8 @@ export interface YibuqueColorTokens {
   cardBlue: string;
   cardMint: string;
   cardSoftGray: string;
+  bottomNavigationSurface: string;
+  searchHeaderSurface: string;
   textPrimary: string;
   textSecondary: string;
   textTertiary: string;
@@ -88,6 +90,7 @@ export interface YibuqueSpacingTokens {
 }
 
 export interface YibuqueRadiusTokens {
+  micro: number;
   xs: number;
   sm: number;
   md: number;
@@ -103,6 +106,10 @@ export interface YibuqueShadowTokens {
   card: ShadowOptions;
   soft: ShadowOptions;
   floating: ShadowOptions;
+  appTopBar: ShadowOptions;
+  bottomNavigation: ShadowOptions;
+  cameraGlow: ShadowOptions;
+  editorSheet: ShadowOptions;
 }
 
 export interface AppThemeRadiusTokens {
@@ -167,6 +174,8 @@ export const YibuqueColor: YibuqueColorTokens = {
   cardBlue: '#F2F2F7',
   cardMint: '#F5F5F7',
   cardSoftGray: '#FBFBFD',
+  bottomNavigationSurface: '#E62D2C2C',
+  searchHeaderSurface: '#F2FBF9F9',
   textPrimary: '#1D1D1F',
   textSecondary: '#6E6E73',
   textTertiary: '#86868B',
@@ -234,6 +243,7 @@ export const YibuqueSpacing: YibuqueSpacingTokens = {
 };
 
 export const YibuqueRadius: YibuqueRadiusTokens = {
+  micro: 4,
   xs: 5,
   sm: 8,
   md: 12,
@@ -248,5 +258,9 @@ export const YibuqueRadius: YibuqueRadiusTokens = {
 export const YibuqueShadow: YibuqueShadowTokens = {
   card: { radius: 20, color: '#14000000', offsetX: 0, offsetY: 6 },
   soft: { radius: 16, color: '#18000000', offsetX: 0, offsetY: 5 },
-  floating: { radius: 24, color: '#26000000', offsetX: 0, offsetY: 8 }
+  floating: { radius: 24, color: '#26000000', offsetX: 0, offsetY: 8 },
+  appTopBar: { radius: 12, color: '#18000000', offsetX: 0, offsetY: 4 },
+  bottomNavigation: { radius: 16, color: '#32000000', offsetX: 0, offsetY: 6 },
+  cameraGlow: { radius: 18, color: '#26000000', offsetX: 0, offsetY: 0 },
+  editorSheet: { radius: 24, color: '#12000000', offsetX: 0, offsetY: -6 }
 };

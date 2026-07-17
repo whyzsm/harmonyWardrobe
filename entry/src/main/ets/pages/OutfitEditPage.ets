@@ -41,6 +41,7 @@ export struct OutfitEditPage {
   @State private photoUris: string[] = [];
   @State private note: string = '';
   @State private isSaving: boolean = false;
+  @State private isChoosingPhotos: boolean = false;
   @State private isDeleting: boolean = false;
   @State private errorMessage: string = '';
 
@@ -56,7 +57,7 @@ export struct OutfitEditPage {
   }
 
   private canSave(): boolean {
-    return !this.isSaving && !this.isDeleting && this.photoUris.length > 0;
+    return !this.isSaving && !this.isChoosingPhotos && !this.isDeleting && this.photoUris.length > 0;
   }
 
   private hasSelectedPhoto(): boolean {
@@ -92,21 +93,37 @@ export struct OutfitEditPage {
   }
 
   private async pickGalleryPhotos(): Promise<void> {
-    if (this.photoPickerAdapter === undefined) {
+    if (this.photoPickerAdapter === undefined || this.isChoosingPhotos || this.isSaving || this.isDeleting) {
       return;
     }
 
-    const sources = await this.photoPickerAdapter.pickFromGallery({ maxSelectNumber: 6 });
-    this.photoUris = this.photoUris.concat(await this.copySourcesToLocalUris(sources));
+    this.isChoosingPhotos = true;
+    this.errorMessage = '';
+    try {
+      const sources = await this.photoPickerAdapter.pickFromGallery({ maxSelectNumber: 6 });
+      this.photoUris = this.photoUris.concat(await this.copySourcesToLocalUris(sources));
+    } catch (error) {
+      this.errorMessage = error instanceof Error ? error.message : '选择照片失败';
+    } finally {
+      this.isChoosingPhotos = false;
+    }
   }
 
   private async capturePhoto(): Promise<void> {
-    if (this.photoPickerAdapter === undefined) {
+    if (this.photoPickerAdapter === undefined || this.isChoosingPhotos || this.isSaving || this.isDeleting) {
       return;
     }
 
-    const source = await this.photoPickerAdapter.captureFromCamera();
-    this.photoUris = this.photoUris.concat(await this.copySourcesToLocalUris([source]));
+    this.isChoosingPhotos = true;
+    this.errorMessage = '';
+    try {
+      const source = await this.photoPickerAdapter.captureFromCamera();
+      this.photoUris = this.photoUris.concat(await this.copySourcesToLocalUris([source]));
+    } catch (error) {
+      this.errorMessage = error instanceof Error ? error.message : '拍照失败';
+    } finally {
+      this.isChoosingPhotos = false;
+    }
   }
 
   private createInput(): CreateOutfitInput {
@@ -262,6 +279,7 @@ export struct OutfitEditPage {
     .height(48)
     .backgroundColor(YibuqueColor.glassStrong)
     .borderRadius(YibuqueRadius.full)
+    .enabled(!this.isChoosingPhotos && !this.isSaving && !this.isDeleting)
     .accessibilityText('拍照')
     .onClick(() => {
       this.capturePhoto();
@@ -284,6 +302,7 @@ export struct OutfitEditPage {
     .justifyContent(FlexAlign.Center)
     .backgroundColor(YibuqueColor.cardWhite)
     .borderRadius(YibuqueRadius.full)
+    .enabled(!this.isChoosingPhotos && !this.isSaving && !this.isDeleting)
     .accessibilityText('选择照片')
     .onClick(() => {
       this.pickGalleryPhotos();

@@ -7,7 +7,7 @@ import { SearchEntityType } from '../domain/search/SearchModels';
 import { WishlistItem } from '../domain/wishlist/WishlistModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
+import { YibuqueColor, YibuqueFontSize, YibuqueRadius } from '../theme/Tokens';
 import { SearchResultsPage } from './SearchResultsPage';
 import { WishlistEditPage } from './WishlistEditPage';
 
@@ -208,7 +208,7 @@ export struct WishlistPage {
 
         Column({ space: 4 }) {
           Text('心仪单品')
-            .fontSize(30)
+            .fontSize(YibuqueFontSize.pageTitle)
             .fontWeight(FontWeight.Regular)
             .fontColor(YibuqueColor.textPrimary)
 
@@ -260,7 +260,9 @@ export struct WishlistPage {
         placeholder: '搜索心仪单品、门店、备注',
         onChange: (value: string) => {
           this.searchQuery = value;
-          this.openUnifiedSearch(value);
+        },
+        onSubmit: () => {
+          this.openUnifiedSearch(this.searchQuery);
         }
       })
 

@@ -23,9 +23,11 @@ for (const path of [
   }
 }
 
-const legacySearchBar = fs.readFileSync('entry/src/main/ets/components/SearchBar.ets', 'utf8');
-if (!legacySearchBar.includes('AppTheme')) {
-  throw new Error('SearchBar should keep compatibility theme usage until it is migrated');
+const searchBar = fs.readFileSync('entry/src/main/ets/components/SearchBar.ets', 'utf8');
+for (const needle of ['YibuqueColor', 'YibuqueRadius', '.height(48)']) {
+  if (!searchBar.includes(needle)) {
+    throw new Error(`SearchBar missing ${needle}`);
+  }
 }
 
 console.log('PASS');

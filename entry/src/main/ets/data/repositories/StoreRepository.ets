@@ -18,18 +18,20 @@ const INSERT_STORE_SQL = `
   INSERT INTO stores (
     id,
     name,
+    normalized_name,
     district_or_address,
     note,
     created_at,
     updated_at
   )
-  VALUES (?, ?, ?, ?, ?, ?)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
 `;
 
 const UPDATE_STORE_SQL = `
   UPDATE stores
   SET
     name = ?,
+    normalized_name = ?,
     district_or_address = ?,
     note = ?,
     updated_at = ?
@@ -61,6 +63,19 @@ const SELECT_STORE_BY_ID_SQL = `
     updated_at
   FROM stores
   WHERE id = ?
+`;
+
+const SELECT_STORE_BY_NAME_SQL = `
+  SELECT
+    id,
+    name,
+    COALESCE(district_or_address, '') AS district_or_address,
+    COALESCE(note, '') AS note,
+    created_at,
+    updated_at
+  FROM stores
+  WHERE normalized_name = ?
+  LIMIT 1
 `;
 
 const BASE_LIST_STORES_SQL = `
@@ -335,11 +350,12 @@ export class StoreRepository {
         updatedAt: toIsoDateTime(new Date())
       };
 
-      await this.database.executeSql(UPDATE_STORE_SQL, [
-        store.name,
-        store.districtOrAddress ?? null,
-        store.note ?? null,
-        store.updatedAt,
+    await this.database.executeSql(UPDATE_STORE_SQL, [
+      store.name,
+      normalizeSearchText(store.name),
+      store.districtOrAddress ?? null,
+      store.note ?? null,
+      store.updatedAt,
         store.id
       ]);
       await this.replaceStorePhotoRows(store.id, store.photoUris);
@@ -514,15 +530,9 @@ export class StoreRepository {
       return undefined;
     }
 
-    const rows = await this.readStoreRows(BASE_LIST_STORES_SQL);
+    const rows = await this.readStoreRows(SELECT_STORE_BY_NAME_SQL, [normalized]);
     const stores = await this.hydrateStores(rows);
-    for (const store of stores) {
-      if (normalizeSearchText(store.name) === normalized) {
-        return store;
-      }
-    }
-
-    return undefined;
+    return stores[0];
   }
 
   private async getStoreByIdInTransaction(id: string): Promise<Store | undefined> {
@@ -541,6 +551,7 @@ export class StoreRepository {
     return [
       store.id,
       store.name,
+      normalizeSearchText(store.name),
       store.districtOrAddress ?? null,
       store.note ?? null,
       store.createdAt,

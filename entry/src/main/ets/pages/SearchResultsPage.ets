@@ -427,7 +427,7 @@ export struct SearchResultsPage {
     }
     .width('100%')
     .padding({ left: 20, right: 20, top: 4, bottom: 12 })
-    .backgroundColor('#F2FBF9F9') // 保留: 带暖调半透明底(FBF9F9), 无精确 token(glassStrong 为纯白 #F2FFFFFF)
+    .backgroundColor(YibuqueColor.searchHeaderSurface)
   }
 
   @Builder
@@ -682,12 +682,12 @@ export struct SearchResultsPage {
                 .width('72%')
                 .height(14)
                 .backgroundColor(YibuqueColor.borderLight)
-                .borderRadius(YibuqueRadius.xs) // 近似: 原 4 无精确 token, xs(5)最接近
+                .borderRadius(YibuqueRadius.micro)
               Row()
                 .width('46%')
                 .height(11)
                 .backgroundColor(YibuqueColor.borderLight)
-                .borderRadius(YibuqueRadius.xs) // 近似: 原 4 无精确 token, xs(5)最接近
+                .borderRadius(YibuqueRadius.micro)
             }
             .layoutWeight(1)
             .alignItems(HorizontalAlign.Start)

@@ -169,7 +169,7 @@ export struct CaptureEditPage {
   }
 
   private async choosePhotos(): Promise<void> {
-    if (this.isChoosingPhotos) {
+    if (this.isSaving || this.isChoosingPhotos) {
       return;
     }
     this.isChoosingPhotos = true;
@@ -287,7 +287,7 @@ export struct CaptureEditPage {
             .backgroundColor(YibuqueColor.cardSoftGray)
             .borderRadius(YibuqueRadius.xxxl)
             .border({ width: 1, color: YibuqueColor.borderMedium })
-            .enabled(!this.isChoosingPhotos)
+            .enabled(!this.isSaving && !this.isChoosingPhotos)
             .onClick(() => {
               this.choosePhotos();
             })
@@ -468,89 +468,130 @@ export struct CaptureEditPage {
 
   @Builder
   NameField() {
-    Row({ space: 9 }) {
-      SymbolGlyph($r('sys.symbol.shirt'))
-        .fontSize(18)
-        .fontColor([YibuqueColor.textSecondary])
+    Column({ space: 6 }) {
+      Text('单品名称')
+        .fontSize(13)
+        .fontColor(YibuqueColor.textSecondary)
 
-      TextInput({ text: this.name, placeholder: this.generatedClothingName() })
-        .layoutWeight(1)
-        .height(46)
-        .fontSize(14)
-        .fontColor(YibuqueColor.textPrimary)
-        .placeholderColor(YibuqueColor.textTertiary)
-        .backgroundColor(Color.Transparent)
-        .onChange((value: string) => {
-          this.name = value;
-        })
+      Row({ space: 9 }) {
+        SymbolGlyph($r('sys.symbol.shirt'))
+          .fontSize(18)
+          .fontColor([YibuqueColor.textSecondary])
+
+        TextInput({ text: this.name, placeholder: this.generatedClothingName() })
+          .layoutWeight(1)
+          .height(46)
+          .fontSize(14)
+          .fontColor(YibuqueColor.textPrimary)
+          .placeholderColor(YibuqueColor.textTertiary)
+          .backgroundColor(Color.Transparent)
+          .onChange((value: string) => {
+            this.name = value;
+          })
+      }
+      .width('100%')
+      .height(48)
+      .padding({ left: 14, right: 10 })
+      .border({ width: 1, color: YibuqueColor.borderMedium })
+      .borderRadius(YibuqueRadius.md)
+      .backgroundColor(YibuqueColor.bgDefault)
     }
     .width('100%')
-    .height(48)
-    .padding({ left: 14, right: 10 })
-    .border({ width: 1, color: YibuqueColor.borderMedium })
-    .borderRadius(YibuqueRadius.md)
-    .backgroundColor(YibuqueColor.bgDefault)
   }
 
   @Builder
   NoteInput() {
-    TextArea({ text: this.note, placeholder: '颜色、尺码、在哪里买的…' })
-      .width('100%')
-      .height(82)
-      .padding({ left: 14, right: 14, top: 10, bottom: 10 })
-      .fontSize(14)
-      .fontColor(YibuqueColor.textPrimary)
-      .placeholderColor(YibuqueColor.textTertiary)
-      .backgroundColor(YibuqueColor.bgDefault)
-      .borderRadius(YibuqueRadius.md)
-      .border({ width: 1, color: YibuqueColor.borderMedium })
-      .onChange((value: string) => {
-        this.note = value;
-      })
+    Column({ space: 6 }) {
+      Text('备注')
+        .fontSize(13)
+        .fontColor(YibuqueColor.textSecondary)
+
+      TextArea({ text: this.note, placeholder: '颜色、尺码、在哪里买的…' })
+        .width('100%')
+        .height(82)
+        .padding({ left: 14, right: 14, top: 10, bottom: 10 })
+        .fontSize(14)
+        .fontColor(YibuqueColor.textPrimary)
+        .placeholderColor(YibuqueColor.textTertiary)
+        .backgroundColor(YibuqueColor.bgDefault)
+        .borderRadius(YibuqueRadius.md)
+        .border({ width: 1, color: YibuqueColor.borderMedium })
+        .onChange((value: string) => {
+          this.note = value;
+        })
+    }
+    .width('100%')
   }
 
   @Builder
   PurchaseFields() {
     Column({ space: 10 }) {
-      TextInput({ text: this.storeName, placeholder: '购买店铺（选填）' })
-        .height(48)
-        .fontSize(14)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.md)
-        .onChange((value: string) => {
-          this.storeName = value;
-        })
+      Column({ space: 6 }) {
+        Text('购买店铺')
+          .fontSize(13)
+          .fontColor(YibuqueColor.textSecondary)
 
-      Row({ space: 10 }) {
-        TextInput({ text: this.price, placeholder: '价格' })
-          .layoutWeight(1)
+        TextInput({ text: this.storeName, placeholder: '购买店铺（选填）' })
           .height(48)
           .fontSize(14)
           .backgroundColor(YibuqueColor.cardSoftGray)
           .borderRadius(YibuqueRadius.md)
           .onChange((value: string) => {
-            this.price = value;
-          })
-
-        TextInput({ text: this.purchaseDate, placeholder: '购买日期' })
-          .layoutWeight(1)
-          .height(48)
-          .fontSize(14)
-          .backgroundColor(YibuqueColor.cardSoftGray)
-          .borderRadius(YibuqueRadius.md)
-          .onChange((value: string) => {
-            this.purchaseDate = value;
+            this.storeName = value;
           })
       }
+      .width('100%')
 
-      TextInput({ text: this.purchaseNote, placeholder: '购买备注' })
-        .height(48)
-        .fontSize(14)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.md)
-        .onChange((value: string) => {
-          this.purchaseNote = value;
-        })
+      Row({ space: 10 }) {
+        Column({ space: 6 }) {
+          Text('价格')
+            .fontSize(13)
+            .fontColor(YibuqueColor.textSecondary)
+
+          TextInput({ text: this.price, placeholder: '价格' })
+            .height(48)
+            .fontSize(14)
+            .backgroundColor(YibuqueColor.cardSoftGray)
+            .borderRadius(YibuqueRadius.md)
+            .onChange((value: string) => {
+              this.price = value;
+            })
+        }
+        .layoutWeight(1)
+
+        Column({ space: 6 }) {
+          Text('购买日期')
+            .fontSize(13)
+            .fontColor(YibuqueColor.textSecondary)
+
+          TextInput({ text: this.purchaseDate, placeholder: '购买日期' })
+            .height(48)
+            .fontSize(14)
+            .backgroundColor(YibuqueColor.cardSoftGray)
+            .borderRadius(YibuqueRadius.md)
+            .onChange((value: string) => {
+              this.purchaseDate = value;
+            })
+        }
+        .layoutWeight(1)
+      }
+      .width('100%')
+
+      Column({ space: 6 }) {
+        Text('购买备注')
+          .fontSize(13)
+          .fontColor(YibuqueColor.textSecondary)
+
+        TextInput({ text: this.purchaseNote, placeholder: '购买备注' })
+          .height(48)
+          .fontSize(14)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.md)
+          .onChange((value: string) => {
+            this.purchaseNote = value;
+          })
+      }
+      .width('100%')
     }
     .width('100%')
   }
@@ -558,14 +599,21 @@ export struct CaptureEditPage {
   @Builder
   OutfitFields() {
     Column({ space: 10 }) {
-      TextInput({ text: this.outfitTitle, placeholder: this.generatedOutfitTitle() })
-        .height(48)
-        .fontSize(14)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.md)
-        .onChange((value: string) => {
-          this.outfitTitle = value;
-        })
+      Column({ space: 6 }) {
+        Text('美搭名称')
+          .fontSize(13)
+          .fontColor(YibuqueColor.textSecondary)
+
+        TextInput({ text: this.outfitTitle, placeholder: this.generatedOutfitTitle() })
+          .height(48)
+          .fontSize(14)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.md)
+          .onChange((value: string) => {
+            this.outfitTitle = value;
+          })
+      }
+      .width('100%')
 
       ClothingPicker({
         items: this.clothingItems,
@@ -581,32 +629,53 @@ export struct CaptureEditPage {
   @Builder
   StoreFields() {
     Column({ space: 10 }) {
-      TextInput({ text: this.storeName, placeholder: this.generatedStoreVisitName() })
-        .height(48)
-        .fontSize(14)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.md)
-        .onChange((value: string) => {
-          this.storeName = value;
-        })
+      Column({ space: 6 }) {
+        Text('店铺名')
+          .fontSize(13)
+          .fontColor(YibuqueColor.textSecondary)
 
-      TextInput({ text: this.districtOrAddress, placeholder: '商场、商圈或地址' })
-        .height(48)
-        .fontSize(14)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.md)
-        .onChange((value: string) => {
-          this.districtOrAddress = value;
-        })
+        TextInput({ text: this.storeName, placeholder: this.generatedStoreVisitName() })
+          .height(48)
+          .fontSize(14)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.md)
+          .onChange((value: string) => {
+            this.storeName = value;
+          })
+      }
+      .width('100%')
 
-      TextInput({ text: this.visitDate, placeholder: '逛店日期 YYYY-MM-DD' })
-        .height(48)
-        .fontSize(14)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.md)
-        .onChange((value: string) => {
-          this.visitDate = value;
-        })
+      Column({ space: 6 }) {
+        Text('地点')
+          .fontSize(13)
+          .fontColor(YibuqueColor.textSecondary)
+
+        TextInput({ text: this.districtOrAddress, placeholder: '商场、商圈或地址' })
+          .height(48)
+          .fontSize(14)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.md)
+          .onChange((value: string) => {
+            this.districtOrAddress = value;
+          })
+      }
+      .width('100%')
+
+      Column({ space: 6 }) {
+        Text('逛店日期')
+          .fontSize(13)
+          .fontColor(YibuqueColor.textSecondary)
+
+        TextInput({ text: this.visitDate, placeholder: '逛店日期 YYYY-MM-DD' })
+          .height(48)
+          .fontSize(14)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.md)
+          .onChange((value: string) => {
+            this.visitDate = value;
+          })
+      }
+      .width('100%')
     }
     .width('100%')
   }

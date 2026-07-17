@@ -84,7 +84,7 @@ for (const forbidden of ['store_visit_cover', 'debug://']) {
   }
 }
 
-if (!/ActionRow\(\)[\s\S]*?保存记录[\s\S]*?width\('100%'\)[\s\S]*?padding\(\{ left: 20, right: 20, top: 20, bottom: 16 \}\)[\s\S]*?offsetY: -6/.test(text)) {
+if (!/ActionRow\(\)[\s\S]*?保存记录[\s\S]*?width\('100%'\)[\s\S]*?padding\(\{ left: 20, right: 20, top: 20, bottom: 16 \}\)[\s\S]*?shadow\(YibuqueShadow\.editorSheet\)/.test(text)) {
   throw new Error(`${file} must use the fixed single-save action area`);
 }
 

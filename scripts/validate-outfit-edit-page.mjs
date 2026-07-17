@@ -56,7 +56,7 @@ for (const needle of [
   }
 }
 
-if (!/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?return\s+!this\.isSaving\s*&&\s*!this\.isDeleting\s*&&\s*this\.photoUris\.length\s*>\s*0/.test(editPage)) {
+if (!/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?return\s+!this\.isSaving\s*&&\s*!this\.isChoosingPhotos\s*&&\s*!this\.isDeleting\s*&&\s*this\.photoUris\.length\s*>\s*0/.test(editPage)) {
   throw new Error('OutfitEditPage save gate must require at least one photo and block concurrent deletes');
 }
 
@@ -87,7 +87,7 @@ for (const needle of [
   'Image(',
   'coverPhotoUri',
   'clothingCategoryLabel',
-  "borderRadius(5)",
+  'borderRadius(YibuqueRadius.xs)',
   "SymbolGlyph($r('sys.symbol.checkmark_circle_fill'))",
   'YibuqueColor.actionBlack'
 ]) {
@@ -111,12 +111,51 @@ for (const forbidden of [
   }
 }
 
-if (!/PhotoSelector\(\)[\s\S]*?Image\(this\.photoUris\[0\]\)[\s\S]*?\.aspectRatio\(530 \/ 386\)[\s\S]*?\.borderRadius\(24\)/.test(editPage)) {
+if (!/PhotoSelector\(\)[\s\S]*?Image\(this\.photoUris\[0\]\)[\s\S]*?\.aspectRatio\(530 \/ 386\)[\s\S]*?\.borderRadius\(YibuqueRadius\.sheet\)/.test(editPage)) {
   throw new Error('OutfitEditPage photo area must match the store editor hero layout');
 }
 
 if (!/Column\(\{ space: 8 \}\)[\s\S]*?\.width\('100%'\)[\s\S]*?\.padding\(\{ left: 24, right: 24, bottom: 24 \}\)/.test(editPage)) {
   throw new Error('OutfitEditPage photo overlay must be pinned to the image left edge');
+}
+
+if (!/@State private isChoosingPhotos: boolean = false;/.test(editPage)) {
+  throw new Error('OutfitEditPage must track photo picker re-entry while choosing photos');
+}
+
+function readAsyncMethod(source, name) {
+  const start = source.indexOf(`private async ${name}(): Promise<void> {`);
+  if (start < 0) {
+    throw new Error(`OutfitEditPage missing ${name}`);
+  }
+  const end = source.indexOf('\n  private ', start + 1);
+  return source.slice(start, end < 0 ? source.length : end);
+}
+
+for (const [name, fallbackMessage] of [
+  ['pickGalleryPhotos', '选择照片失败'],
+  ['capturePhoto', '拍照失败']
+]) {
+  const method = readAsyncMethod(editPage, name);
+  if (!method.includes('this.photoPickerAdapter === undefined || this.isChoosingPhotos || this.isSaving || this.isDeleting')) {
+    throw new Error(`OutfitEditPage ${name} must reject concurrent photo operations and saves`);
+  }
+  for (const needle of [
+    'this.isChoosingPhotos = true;',
+    'try {',
+    'catch (error) {',
+    `error instanceof Error ? error.message : '${fallbackMessage}'`,
+    'finally {',
+    'this.isChoosingPhotos = false;'
+  ]) {
+    if (!method.includes(needle)) {
+      throw new Error(`OutfitEditPage ${name} must use try/catch/finally for photo errors`);
+    }
+  }
+}
+
+if ((editPage.match(/\.enabled\(!this\.isChoosingPhotos && !this\.isSaving && !this\.isDeleting\)/g) ?? []).length < 2) {
+  throw new Error('OutfitEditPage camera and gallery actions must be disabled during photo selection or save');
 }
 
 console.log('PASS');

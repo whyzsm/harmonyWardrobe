@@ -32,6 +32,7 @@ export struct WishlistEditPage {
   @State private price: string = '';
   @State private note: string = '';
   @State private isSaving: boolean = false;
+  @State private isChoosingPhotos: boolean = false;
   @State private isDeleting: boolean = false;
   @State private errorMessage: string = '';
 
@@ -48,7 +49,7 @@ export struct WishlistEditPage {
   }
 
   private canSave(): boolean {
-    return !this.isSaving && !this.isDeleting && this.title.trim().length > 0;
+    return !this.isSaving && !this.isChoosingPhotos && !this.isDeleting && this.title.trim().length > 0;
   }
 
   private wishlistPrice(): number | undefined {
@@ -76,21 +77,37 @@ export struct WishlistEditPage {
   }
 
   private async pickGalleryPhotos(): Promise<void> {
-    if (this.photoPickerAdapter === undefined) {
+    if (this.photoPickerAdapter === undefined || this.isChoosingPhotos || this.isSaving || this.isDeleting) {
       return;
     }
 
-    const sources = await this.photoPickerAdapter.pickFromGallery({ maxSelectNumber: 6 });
-    this.photoUris = this.photoUris.concat(await this.copySourcesToLocalUris(sources));
+    this.isChoosingPhotos = true;
+    this.errorMessage = '';
+    try {
+      const sources = await this.photoPickerAdapter.pickFromGallery({ maxSelectNumber: 6 });
+      this.photoUris = this.photoUris.concat(await this.copySourcesToLocalUris(sources));
+    } catch (error) {
+      this.errorMessage = error instanceof Error ? error.message : '选择照片失败';
+    } finally {
+      this.isChoosingPhotos = false;
+    }
   }
 
   private async capturePhoto(): Promise<void> {
-    if (this.photoPickerAdapter === undefined) {
+    if (this.photoPickerAdapter === undefined || this.isChoosingPhotos || this.isSaving || this.isDeleting) {
       return;
     }
 
-    const source = await this.photoPickerAdapter.captureFromCamera();
-    this.photoUris = this.photoUris.concat(await this.copySourcesToLocalUris([source]));
+    this.isChoosingPhotos = true;
+    this.errorMessage = '';
+    try {
+      const source = await this.photoPickerAdapter.captureFromCamera();
+      this.photoUris = this.photoUris.concat(await this.copySourcesToLocalUris([source]));
+    } catch (error) {
+      this.errorMessage = error instanceof Error ? error.message : '拍照失败';
+    } finally {
+      this.isChoosingPhotos = false;
+    }
   }
 
   private createInput(): CreateWishlistItemInput {
@@ -195,6 +212,7 @@ export struct WishlistEditPage {
             .backgroundColor(YibuqueColor.actionBlack)
             .fontColor(YibuqueColor.textInverse)
             .borderRadius(YibuqueRadius.sm)
+            .enabled(!this.isChoosingPhotos && !this.isSaving && !this.isDeleting)
             .onClick(() => {
               this.pickGalleryPhotos();
             })
@@ -206,6 +224,7 @@ export struct WishlistEditPage {
             .fontColor(YibuqueColor.actionBlack)
             .borderRadius(YibuqueRadius.sm)
             .border({ width: 1, color: YibuqueColor.borderMedium })
+            .enabled(!this.isChoosingPhotos && !this.isSaving && !this.isDeleting)
             .onClick(() => {
               this.capturePhoto();
             })

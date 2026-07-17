@@ -70,10 +70,11 @@ for (const needle of ['衣不缺', '我的', '44', '48', 'profilePressed', '.sca
   mustInclude(topBar, topBarPath, needle);
 }
 
-for (const needle of ['衣柜', '逛店', '套装', '我的', "SymbolGlyph($r('sys.symbol.camera_fill'))", "SymbolGlyph($r('sys.symbol.shirt'))", "SymbolGlyph($r('sys.symbol.store_fill'))", "SymbolGlyph($r('sys.symbol.hanger_and_towels'))", "SymbolGlyph($r('sys.symbol.person'))", ".width('90%')", '#E62D2C2C', 'onSelectOutfit', 'onOpenProfile', 'bottom: 0', 'linearGradient']) {
+for (const needle of ['衣柜', '逛店', '套装', '我的', "SymbolGlyph($r('sys.symbol.camera_fill'))", "SymbolGlyph($r('sys.symbol.shirt'))", "SymbolGlyph($r('sys.symbol.store_fill'))", "SymbolGlyph($r('sys.symbol.hanger_and_towels'))", "SymbolGlyph($r('sys.symbol.person'))", ".width('90%')", 'bottomNavigationSurface', 'bottomNavigation', 'onSelectOutfit', 'onOpenProfile', 'bottom: 0', 'linearGradient']) {
   mustInclude(nav, navPath, needle);
 }
-mustInclude(nav, navPath, '#26000000');
+mustInclude(nav, navPath, '#4578FF');
+mustInclude(nav, navPath, '#56D0FF');
 mustNotInclude(nav, navPath, '#735A7CFF');
 
 for (const needle of ['快捷录入', '衣柜', '逛店', '穿搭', 'onOpenWardrobe', 'onOpenStoreVisit', 'onOpenOutfit', "SymbolGlyph($r('sys.symbol.shirt'))", "SymbolGlyph($r('sys.symbol.store_fill'))", "SymbolGlyph($r('sys.symbol.hanger_and_towels'))", 'YibuqueColor.actionBlack']) {

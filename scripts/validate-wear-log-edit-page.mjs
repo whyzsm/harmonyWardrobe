@@ -53,6 +53,10 @@ if (!/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?wornDate\.trim\(\)\.length\s*>\s*0[\s
   throw new Error('WearLogEditPage save gate must require a date and either a photo or note');
 }
 
+if (!/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?return\s+!this\.isSaving\s*&&\s*!this\.isChoosingPhotos\s*&&\s*!this\.isDeleting/.test(editPage)) {
+  throw new Error('WearLogEditPage save gate must block concurrent photo selection');
+}
+
 for (const forbidden of [
   '选择套装，补充日期、地点、照片和备注。',
   'AppTheme.color.primary',
@@ -76,6 +80,45 @@ for (const needle of [
   if (!picker.includes(needle)) {
     throw new Error(`OutfitPicker missing ${needle}`);
   }
+}
+
+if (!/@State private isChoosingPhotos: boolean = false;/.test(editPage)) {
+  throw new Error('WearLogEditPage must track photo picker re-entry while choosing photos');
+}
+
+function readAsyncMethod(source, name) {
+  const start = source.indexOf(`private async ${name}(): Promise<void> {`);
+  if (start < 0) {
+    throw new Error(`WearLogEditPage missing ${name}`);
+  }
+  const end = source.indexOf('\n  private ', start + 1);
+  return source.slice(start, end < 0 ? source.length : end);
+}
+
+for (const [name, fallbackMessage] of [
+  ['pickGalleryPhotos', '选择照片失败'],
+  ['capturePhoto', '拍照失败']
+]) {
+  const method = readAsyncMethod(editPage, name);
+  if (!method.includes('this.photoPickerAdapter === undefined || this.isChoosingPhotos || this.isSaving || this.isDeleting')) {
+    throw new Error(`WearLogEditPage ${name} must reject concurrent photo operations and saves`);
+  }
+  for (const needle of [
+    'this.isChoosingPhotos = true;',
+    'try {',
+    'catch (error) {',
+    `error instanceof Error ? error.message : '${fallbackMessage}'`,
+    'finally {',
+    'this.isChoosingPhotos = false;'
+  ]) {
+    if (!method.includes(needle)) {
+      throw new Error(`WearLogEditPage ${name} must use try/catch/finally for photo errors`);
+    }
+  }
+}
+
+if ((editPage.match(/\.enabled\(!this\.isChoosingPhotos && !this\.isSaving && !this\.isDeleting\)/g) ?? []).length < 2) {
+  throw new Error('WearLogEditPage camera and gallery actions must be disabled during photo selection or save');
 }
 
 console.log('PASS');

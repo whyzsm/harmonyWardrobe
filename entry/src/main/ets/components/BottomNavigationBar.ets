@@ -41,9 +41,9 @@ export struct BottomNavigationBar {
     .width('90%')
     .height(56)
     .padding({ left: 12, right: 12, top: 2, bottom: 2 })
-    .backgroundColor('#E62D2C2C') // 保留: 深色半透明导航底(ARGB)无匹配 token
+    .backgroundColor(YibuqueColor.bottomNavigationSurface)
     .borderRadius(YibuqueRadius.sheet)
-    .shadow(YibuqueShadow.soft) // 近似: 原 radius16/offsetY6/#32 → soft radius16/offsetY5/#18
+    .shadow(YibuqueShadow.bottomNavigation)
     .alignItems(VerticalAlign.Center)
     .margin({ bottom: 0 })
   }
@@ -62,7 +62,7 @@ export struct BottomNavigationBar {
       colors: [['#4578FF', 0], ['#56D0FF', 1]] // P0-6: 去橙色, 蓝→青蓝渐变(保留蓝色入口设计)
     })
     .borderRadius(YibuqueRadius.full)
-    .shadow({ radius: 18, color: '#26000000', offsetX: 0, offsetY: 0 }) // 保留: offsetY=0 光晕效果, floating(offsetY8)会变投影改变视觉
+    .shadow(YibuqueShadow.cameraGlow)
   }
 
   @Builder

@@ -23,7 +23,7 @@ export struct AppTopBar {
         .height(36)
         .backgroundColor(YibuqueColor.transparent)
         .borderRadius(YibuqueRadius.lg)
-        .shadow(YibuqueShadow.soft) // 近似: 原 radius12/offsetY4/#18 → soft radius16/offsetY5/#18
+        .shadow(YibuqueShadow.appTopBar)
 
         Text('衣不缺')
           .fontSize(20)

@@ -82,7 +82,7 @@ for (const needle of [
   'new ProfileRepository',
   'new SearchRepository',
   'PhotoPickerAdapter.withHarmonyProviders',
-  'SearchIndexBootstrap.rebuild'
+  'SearchIndexBootstrap.ensureReady'
 ]) {
   mustInclude(factory, factoryPath, needle);
 }
@@ -111,9 +111,10 @@ for (const [repositoryName, pattern] of [
 mustMatch(
   factory,
   factoryPath,
-  /await\s+SearchIndexBootstrap\.rebuild\s*\(/,
-  'must explicitly rebuild the search index during startup'
+  /await\s+SearchIndexBootstrap\.ensureReady\s*\(/,
+  'must conditionally ensure the search index during startup'
 );
+mustNotInclude(factory, factoryPath, 'await SearchIndexBootstrap.rebuild');
 mustMatch(
   searchBootstrap,
   searchBootstrapPath,

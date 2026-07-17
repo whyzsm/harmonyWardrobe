@@ -5,11 +5,12 @@ export struct SearchBar {
   @Prop value: string = '';
   @Prop placeholder: string = '搜索';
   onChange: (value: string) => void = () => {};
+  onSubmit: () => void = () => {};
 
   build() {
     TextInput({ text: this.value, placeholder: this.placeholder })
       .width('100%')
-      .height(44)
+      .height(48)
       .padding({ left: YibuqueSpacing.md, right: YibuqueSpacing.md })
       .fontSize(15)
       .fontColor(YibuqueColor.textPrimary)
@@ -19,6 +20,9 @@ export struct SearchBar {
       .border({ width: 1, color: YibuqueColor.borderMedium })
       .onChange((value: string) => {
         this.onChange(value);
+      })
+      .onSubmit(() => {
+        this.onSubmit();
       })
   }
 }

@@ -330,7 +330,7 @@ export struct StoreVisitPage {
             .fontSize(14)
             .fontColor(TEXT_PRIMARY)
             .placeholderColor(YibuqueColor.textTertiary)
-            .backgroundColor(Color.Transparent)
+            .backgroundColor(YibuqueColor.transparent)
             .enterKeyType(EnterKeyType.Search)
             .onChange((value: string) => {
               this.searchQuery = value;

@@ -54,12 +54,12 @@ for (const needle of [
   '.fontSize(14)',
   '.lineHeight(20)',
   '.maxLines(2)',
-  '.borderRadius(18)',
+  '.borderRadius(YibuqueRadius.xxl)',
   'Column({ space: 14 })',
   '.padding({ left: 20, right: 20, top: 14, bottom: 0 })',
   '.enterKeyType(EnterKeyType.Search)',
   '.height(48)',
-  '.borderRadius(12)',
+  '.borderRadius(YibuqueRadius.md)',
   'Row({ space: 10 })',
   '.width(76)',
   '.constraintSize({ minHeight: 44 })',
@@ -90,7 +90,7 @@ if (!/this\.selectedWardrobeTab === '美搭'[\s\S]*?Grid\(\)/.test(text)) {
   throw new Error('WardrobePage outfit tab should render a beauty-match grid');
 }
 
-if (!/Text\('先放入第一件衣服'\)[\s\S]*?\.backgroundColor\(YibuqueColor\.cardSoftGray\)[\s\S]*?\.borderRadius\(18\)[\s\S]*?\.border\(\{ width: 1, color: YibuqueColor\.borderMedium \}\)/.test(text)) {
+if (!/Text\('先放入第一件衣服'\)[\s\S]*?\.backgroundColor\(YibuqueColor\.cardSoftGray\)[\s\S]*?\.borderRadius\(YibuqueRadius\.xxl\)[\s\S]*?\.border\(\{ width: 1, color: YibuqueColor\.borderMedium \}\)/.test(text)) {
   throw new Error('WardrobePage empty panel must match the store-visit empty-state surface');
 }
 

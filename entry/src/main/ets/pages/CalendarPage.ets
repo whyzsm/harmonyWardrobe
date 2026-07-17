@@ -6,7 +6,7 @@ import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { WearLog } from '../domain/wearLog/WearLogModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
+import { YibuqueColor, YibuqueFontSize, YibuqueRadius } from '../theme/Tokens';
 import { monthKey, toIsoDate } from '../utils/date';
 import { WearLogEditPage } from './WearLogEditPage';
 
@@ -128,7 +128,7 @@ export struct CalendarPage {
         Row() {
           Column({ space: 4 }) {
             Text('日历')
-              .fontSize(30)
+              .fontSize(YibuqueFontSize.pageTitle)
               .fontWeight(FontWeight.Regular)
               .fontColor(YibuqueColor.textPrimary)
 

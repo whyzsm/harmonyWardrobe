@@ -55,6 +55,35 @@ if (!/deleteDocumentInTransaction\s*\(\s*SearchEntityType\.Store/.test(text)) {
   throw new Error(`${file} deleteStore must remove the Store search document`);
 }
 
+if (!/const\s+SELECT_STORE_BY_NAME_SQL\s*=\s*`[\s\S]*?WHERE\s+normalized_name\s*=\s*\?[\s\S]*?LIMIT\s+1[\s\S]*?`/.test(text)) {
+  throw new Error(`${file} must define a parameterized indexed normalized-name query`);
+}
+
+const findStoreByNameBody = text.match(/private\s+async\s+findStoreByNameInTransaction[\s\S]*?\n\s*}\n\n\s*private\s+async\s+getStoreByIdInTransaction/);
+if (!findStoreByNameBody) {
+  throw new Error(`${file} missing findStoreByNameInTransaction body`);
+}
+
+if (findStoreByNameBody[0].includes('BASE_LIST_STORES_SQL') || /for\s*\(\s*const\s+store\s+of\s+stores/.test(findStoreByNameBody[0])) {
+  throw new Error(`${file} findStoreByNameInTransaction must not load and filter all stores in JavaScript`);
+}
+
+if (!/readStoreRows\(SELECT_STORE_BY_NAME_SQL\s*,\s*\[\s*normalized\s*\]\)/.test(findStoreByNameBody[0])) {
+  throw new Error(`${file} findStoreByNameInTransaction must bind the normalized name as a SQL parameter`);
+}
+
+if (!/WHERE normalized_name = \?/.test(text)) {
+  throw new Error(`${file} findStoreByNameInTransaction must query the indexed normalized_name column`);
+}
+
+if (!/normalized_name/.test(text) || !/normalizeSearchText\(store\.name\)/.test(text)) {
+  throw new Error(`${file} stores must persist normalized_name from normalizeSearchText(store.name)`);
+}
+
+if (!/hydrateStores\(rows\)/.test(findStoreByNameBody[0])) {
+  throw new Error(`${file} findStoreByNameInTransaction must hydrate the matched store`);
+}
+
 if (/photoStorage\.(copy|save|persist|import|write|ensure)/.test(text)) {
   throw new Error(`${file} must not copy or write photo files directly`);
 }

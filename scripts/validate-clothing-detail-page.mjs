@@ -116,7 +116,7 @@ for (const needle of [
   'export struct SecondaryPageHeader',
   "SymbolGlyph($r('sys.symbol.arrow_left'))",
   "SymbolGlyph($r('sys.symbol.square_and_pencil'))",
-  "backgroundColor('#F2FFFFFF')",
+  'backgroundColor(YibuqueColor.glassStrong)',
   'YibuqueColor.borderLight',
   '.fontSize(20)',
   '.fontWeight(FontWeight.Regular)'

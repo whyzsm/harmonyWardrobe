@@ -655,8 +655,11 @@ export struct ProfilePage {
           width: 1,
           color: action === 'preference' && this.fittingPreferenceEnabled ? YibuqueColor.textPrimary : YibuqueColor.borderMedium
         })
-        .enabled(action !== 'size' || !this.isLoading)
+        .enabled(!this.isSaving && (action !== 'size' || !this.isLoading))
         .onClick(() => {
+          if (this.isSaving) {
+            return;
+          }
           if (action === 'size') {
             this.openMeasurementEditor();
           } else if (action === 'preference') {
@@ -696,7 +699,11 @@ export struct ProfilePage {
       .backgroundColor(selected ? YibuqueColor.textPrimary : YibuqueColor.cardSoftGray)
       .borderRadius(YibuqueRadius.full)
       .border({ width: 1, color: selected ? YibuqueColor.textPrimary : YibuqueColor.borderMedium })
+      .enabled(!this.isSaving)
       .onClick(() => {
+        if (this.isSaving) {
+          return;
+        }
         if (key === 'commute') {
           this.commuteSelected = !this.commuteSelected;
         } else if (key === 'casual') {
@@ -924,7 +931,11 @@ export struct ProfilePage {
       .padding(3)
       .backgroundColor(enabled ? YibuqueColor.textPrimary : YibuqueColor.borderMedium)
       .borderRadius(YibuqueRadius.full)
+      .enabled(!this.isSaving)
       .onClick(() => {
+        if (this.isSaving) {
+          return;
+        }
         if (action === 'privacy') {
           this.privacyModeEnabled = !this.privacyModeEnabled;
           this.persistPreferences('隐私模式已保存。');

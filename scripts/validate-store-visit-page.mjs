@@ -39,7 +39,7 @@ for (const needle of [
   'StoreVisitWaterFlow',
   '暂无照片',
   "columnsTemplate('1fr 1fr')",
-  "borderRadius(18)",
+  'YibuqueRadius.xxl',
   'this.coverPhotoUri(visit).length > 0'
 ]) {
   if (!page.includes(needle)) {
@@ -97,7 +97,7 @@ for (const forbidden of ["{ label: '本地重读'", "value: 'refresh'", '本地�
   }
 }
 
-if (!/EmptyState\(\) \{[\s\S]*?Column\(\{ space: 10 \}\)[\s\S]*?Column\(\{ space: 8 \}\)[\s\S]*?\.fontSize\(36\)[\s\S]*?\.height\(190\)[\s\S]*?\.backgroundColor\(SURFACE_WARM\)[\s\S]*?\.borderRadius\(18\)[\s\S]*?\.border\(\{ width: 1, color: BORDER \}\)[\s\S]*?点底部相机，打开快捷录入里的新增逛店。[\s\S]*?\.fontSize\(15\)[\s\S]*?逛店会按图片记录流排在这里。[\s\S]*?\.fontSize\(12\)[\s\S]*?\.backgroundColor\(PAGE_BACKGROUND\)/.test(page)) {
+if (!/EmptyState\(\) \{[\s\S]*?Column\(\{ space: 10 \}\)[\s\S]*?Column\(\{ space: 8 \}\)[\s\S]*?\.fontSize\(36\)[\s\S]*?\.height\(190\)[\s\S]*?\.backgroundColor\(SURFACE_WARM\)[\s\S]*?\.borderRadius\(YibuqueRadius\.xxl\)[\s\S]*?\.border\(\{ width: 1, color: BORDER \}\)[\s\S]*?点底部相机，打开快捷录入里的新增逛店。[\s\S]*?\.fontSize\(15\)[\s\S]*?逛店会按图片记录流排在这里。[\s\S]*?\.fontSize\(12\)[\s\S]*?\.backgroundColor\(PAGE_BACKGROUND\)/.test(page)) {
   throw new Error('StoreVisitPage empty state must match the wardrobe empty layout');
 }
 

@@ -94,4 +94,24 @@ for (const needle of [
   }
 }
 
+if (!/\.enabled\(!this\.isSaving && \(action !== 'size' \|\| !this\.isLoading\)\)/.test(page)) {
+  throw new Error('ProfilePage preference action must be disabled while preferences are saving');
+}
+
+if (!/StyleTag\(label: string, selected: boolean, key: string\)[\s\S]*?\.enabled\(!this\.isSaving\)/.test(page)) {
+  throw new Error('ProfilePage style preference tags must be disabled while preferences are saving');
+}
+
+if (!/ToggleRow\(title: string, subtitle: string, enabled: boolean, action: string\)[\s\S]*?\.enabled\(!this\.isSaving\)/.test(page)) {
+  throw new Error('ProfilePage privacy toggle must be disabled while preferences are saving');
+}
+
+if (!/StyleTag\(label: string, selected: boolean, key: string\)[\s\S]*?if \(this\.isSaving\) \{[\s\S]*?return;/.test(page)) {
+  throw new Error('ProfilePage style preference handler must guard rapid clicks while saving');
+}
+
+if (!/ToggleRow\(title: string, subtitle: string, enabled: boolean, action: string\)[\s\S]*?if \(this\.isSaving\) \{[\s\S]*?return;/.test(page)) {
+  throw new Error('ProfilePage privacy handler must guard rapid clicks while saving');
+}
+
 console.log('PASS');
