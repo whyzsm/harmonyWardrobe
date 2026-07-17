@@ -33,7 +33,7 @@ mustInclude(page, pagePath, 'this.photoUris.length > 0');
 mustInclude(page, pagePath, 'normalizedTitle');
 mustInclude(outfits, outfitsPath, 'OutfitWallCard');
 
-for (const forbidden of ['创建套装', '编辑套装', '保存套装', '套装名称', "Text('套装')", "Text('美搭')"]) {
+for (const forbidden of ['创建穿搭', '编辑穿搭', '保存穿搭', '穿搭名称', "Text('穿搭')", "Text('美搭')"]) {
   mustNotInclude(page, pagePath, forbidden);
 }
 

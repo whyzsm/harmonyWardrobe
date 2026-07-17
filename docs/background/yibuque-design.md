@@ -58,8 +58,8 @@ export const YibuqueColor = {
 - Use `bgDefault` for page backgrounds and `bgGray` or `cardSoftGray` for secondary surfaces.
 - 主标题使用 `textPrimary`；说明和元信息使用 `textSecondary`、`textTertiary`。
 - Use `textPrimary` for headings and `textSecondary` or `textTertiary` for descriptions and metadata.
-- 保存、删除、重试和主卡片使用 `actionBlack`；当前选中态、筛选态和链接使用 `selectionAccent` 及 `selectionAccentSurface`。
-- Use `actionBlack` for save, delete, retry, and primary cards. Use `selectionAccent` and `selectionAccentSurface` for selected, filtered, and link states.
+- 保存、删除、重试、主卡片以及衣柜/逛店列表的主筛选 Tab 使用 `actionBlack`；其它选中态、筛选态和链接使用 `selectionAccent` 及 `selectionAccentSurface`。
+- Use `actionBlack` for save, delete, retry, primary cards, and the main wardrobe/store filter tabs. Use `selectionAccent` and `selectionAccentSurface` for other selected, filtered, and link states.
 - 普通边框使用 `borderLight` 或 `borderMedium`；强选中边框使用 `selectionAccent`。
 - Use `borderLight` or `borderMedium` for regular borders. Strong selected borders use `selectionAccent`.
 
@@ -100,7 +100,7 @@ Top navigation uses a white or translucent white background, a soft gray divider
 
 ### 底部导航 / Bottom Navigation
 
-底部导航为宽度 90% 的黑色半透明悬浮胶囊，包含衣柜、逛店、相机、套装、我的。中间相机保留 `d8daa86` 的橙-蓝-青蓝三段彩色圆形图标，不显示“拍照”文字；它是本规范中唯一允许保留彩色渐变的操作入口。
+底部导航为宽度 90% 的黑色半透明悬浮胶囊，包含衣柜、逛店、相机、穿搭、我的。中间相机保留 `d8daa86` 的橙-蓝-青蓝三段彩色圆形图标，不显示“拍照”文字；它是本规范中唯一允许保留彩色渐变的操作入口。
 
 The bottom navigation is a 90%-wide translucent black floating capsule with wardrobe, store, camera, outfit, and profile entries. Keep the `d8daa86` orange-blue-cyan gradient camera icon without a `拍照` label; it is the only action in this system allowed to retain a multicolor gradient.
 
@@ -135,9 +135,9 @@ Empty states must explain the next action. When a CTA is needed, use black rathe
 
 Keep search, categories, and the two-column waterfall. Real photos dominate, image radius is 5, and clothing cards do not provide favorite buttons or social actions.
 
-### 套装 / Outfits
+### 穿搭 / Outfits
 
-使用场景筛选、真实衣物数量引导和双列套装墙。每张套装卡可显示两张组合图片，标题与元信息保持紧凑。
+使用场景筛选、真实衣物数量引导和双列穿搭墙。每张穿搭卡可显示两张组合图片，标题与元信息保持紧凑。
 
 Use scene filters, real wardrobe-count guidance, and a two-column outfit wall. Each outfit card may show two combined photos with compact title and metadata.
 

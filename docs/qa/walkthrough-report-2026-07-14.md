@@ -42,7 +42,7 @@
 | 验收点 | 预期 | 实际 | 结论 | 证据 |
 | --- | --- | --- | --- | --- |
 | 首页不自绘状态栏；状态栏下方全宽搜索框；无额外标题/右上角相机 | 系统状态栏 + 全宽搜索框 | 首页（衣橱）仅渲染 `WardrobeSearchHeader` 全宽搜索框，无自绘状态栏、无页面标题 | 通过 | `WardrobePage.ets:723-764`；`Index.ets:174` |
-| 底部深色浮动胶囊：衣柜/逛店/相机/套装/我的；相机只显图标 | 5 项，中间相机无文字 | `BottomNavigationBar` 顺序正确，相机仅 `SymbolGlyph(camera_fill)`，无文字 | 通过 | `BottomNavigationBar.ets:16-39` |
+| 底部深色浮动胶囊：衣柜/逛店/相机/穿搭/我的；相机只显图标 | 5 项，中间相机无文字 | `BottomNavigationBar` 顺序正确，相机仅 `SymbolGlyph(camera_fill)`，无文字 | 通过 | `BottomNavigationBar.ets:16-39` |
 | 点击底部「我的」进入个人信息页 | 进入我的 | 底部 `onOpenProfile` → `ProfilePage` | 通过 | `Index.ets:410-416` |
 | 点击相机打开快捷面板，含「拍照」「从相册选择」 | 面板含两项 | 面板动作标题为「拍一张」「从相册选择」（非基线「拍照」） | 偏差 | `QuickCaptureSheet.ets:71-77`（见 F-偏差1） |
 | 快捷面板动作是大行入口，含标题+说明，触达≥44 | 大行、可点 | `ActionCard` 高 82，图标 44×44 | 通过 | `QuickCaptureSheet.ets:107-155` |
@@ -66,15 +66,15 @@
 | 编辑刚新增衣物，改名称/备注保存后列表回显 | 回显更新 | `upsertClothingItem` 更新列表；编辑页 `updateClothing` 落库 | 通过（代码逻辑） | `WardrobePage.ets:395-414`；`ClothingEditPage.ets:267-285` |
 | 空态引导用户通过底部相机添加 | 相机引导文案 | 空态「先放入第一件衣服…点底部相机，选择照片后归类为衣橱」 | 通过 | `WardrobePage.ets:641-672` |
 
-### 美搭（套装）
+### 美搭（穿搭）
 
 | 验收点 | 预期 | 实际 | 结论 | 证据 |
 | --- | --- | --- | --- | --- |
-| 切到美搭 tab | 套装 tab | 底部「套装」→`OutfitsPage` | 通过 | `Index.ets:322-334` |
+| 切到美搭 tab | 穿搭 tab | 底部「穿搭」→`OutfitsPage` | 通过 | `Index.ets:322-334` |
 | 相机选图归类为美搭，图片必填；名称/关联衣物/备注可空，保存生成默认名 | 归类美搭+图片必填+默认名 | `试穿` 模式→`美搭`；`canSave` 需照片；`generatedOutfitTitle` 默认名 | 通过 | `CaptureEditPage.ets:159-168, 210-221`；`OutfitEditPage.ets:58-69` |
 | 创建页显示「美搭信息（选填）」「美搭名称，可不填」「备注」等中文；黑色胶囊保存 | 中文字段+黑胶囊 | `OutfitEditPage` 含上述字段；保存黑胶囊「保存美搭」 | 通过 | `OutfitEditPage.ets:307-342, 379-400` |
-| 保存后回套装，卡片显示照片或柔和占位 | 回套装+占位 | `onSave→upsertOutfit`；卡片无图显示占位 | 通过 | `OutfitsPage.ets:239-256, 570-597` |
-| 底部显示「套装」，编辑保存流程内继续用美搭/搭配 | 术语一致 | 底部「套装」；编辑页标题「创建/编辑美搭」、保存「保存美搭」 | 通过 | `OutfitEditPage.ets:295-301` |
+| 保存后回穿搭，卡片显示照片或柔和占位 | 回穿搭+占位 | `onSave→upsertOutfit`；卡片无图显示占位 | 通过 | `OutfitsPage.ets:239-256, 570-597` |
+| 底部显示「穿搭」，编辑保存流程内继续用美搭/搭配 | 术语一致 | 底部「穿搭」；编辑页标题「创建/编辑美搭」、保存「保存美搭」 | 通过 | `OutfitEditPage.ets:295-301` |
 
 ### 逛店
 
@@ -94,7 +94,7 @@
 | 验收点 | 预期 | 实际 | 结论 | 证据 |
 | --- | --- | --- | --- | --- |
 | 点击顶部右侧头像/我的 | 入口可达 | 底部「我的」进入（无顶部右侧头像，`AppTopBar` 组件未被引用） | 通过（底部入口） | `Index.ets:335-362`；`AppTopBar.ets`（孤儿） |
-| 页面显示头像占位、身高、体重、腰围 和 设置 | 上述元素 | 头像占位✓；身高/体重/腰围在「常用尺码」浮层内✓；**无独立「设置」入口**（隐私等置于「本地与隐私」） | 偏差（F6） | `ProfilePage.ets:368-442, 958-1055, 873-893` |
+| 页面显示头像占位、身高、体重、腰围 和 设置 | 上述元素 | 头像占位✓；身高/体重/腰围在「常用尺码」浮层内✓；个人页保留本地存储状态，无独立「设置」入口 | 偏差（F6） | `ProfilePage.ets:368-442, 958-1055` |
 | 合法数值保存，退出再进入可回显 | 回显 | `saveProfile`→`profileRepository`；`loadProfile` 重读 | 通过（代码逻辑） | `ProfilePage.ets:199-233, 127-144` |
 | 负数/非数字时字段附近错误提示，保存按钮禁用 | 校验+禁用 | `measurementError` 返回「不能小于 0」/「请输入数字」；按钮 `enabled(!hasInvalidMeasurements)` | 通过 | `ProfilePage.ets:241-255, 1039-1041` |
 | 保存成功显示「已保存个人信息」 | 成功提示 | `savedMessage='已保存个人信息'` | 通过 | `ProfilePage.ets:226` |
@@ -104,8 +104,8 @@
 
 | 验收点 | 预期 | 实际 | 结论 | 证据 |
 | --- | --- | --- | --- | --- |
-| 搜索结果类型为用户可理解文案（衣物/美搭/逛店记录/店铺 等） | 上述标签 | `entityTypeLabel`：衣物✓、套装（非「美搭」）、逛店（非「逛店记录」）、店铺✓、穿着、心愿 | 偏差（F7） | `SearchResultsPage.ets:33-53` |
-| 主流程不可见 首页推荐流/逛街主入口/心愿单主入口 | 无主入口 | 底部导航仅 5 项；心愿单经「我的→心愿清单」可达（非主入口）；穿着记录经搜索进入套装页编辑 | 通过 | `BottomNavigationBar.ets`；`Index.ets` |
+| 搜索结果类型为用户可理解文案（衣物/美搭/逛店记录/店铺 等） | 上述标签 | `entityTypeLabel`：衣物✓、穿搭（非「美搭」）、逛店（非「逛店记录」）、店铺✓、穿着、心愿 | 偏差（F7） | `SearchResultsPage.ets:33-53` |
+| 主流程不可见 首页推荐流/逛街主入口/心愿单主入口 | 无主入口 | 底部导航仅 5 项；心愿单经「我的→心愿清单」可达（非主入口）；穿着记录经搜索进入穿搭页编辑 | 通过 | `BottomNavigationBar.ets`；`Index.ets` |
 | 可达页面不可见点赞/收藏/评论/关注等社交动作 | 无社交动作 | 全站无此类动作（收藏功能本身亦未实现） | 通过 | 全局检索无社交组件 |
 
 ### 视觉验收
@@ -151,9 +151,9 @@
 
 **F3** 衣橱添加保存按钮文案「存入衣柜」而非「保存衣服」——`CaptureEditPage.ets:269`。黑色胶囊已满足，仅文案差异；建议统一为「保存衣服」或直接沿用「存入衣柜」并在脚本中固化措辞。
 
-**F6** 「我的」页无独立「设置」入口——相关项（隐私模式等）在「本地与隐私」区。若脚本要求显式「设置」，建议补充入口或在脚本中确认「本地与隐私」即等价设置区。
+**F6** 「我的」页无独立「设置」入口——当前仅保留「本地存储」状态说明。若脚本要求显式「设置」，建议补充独立入口。
 
-**F7** 搜索结果类型标签用「套装/逛店/穿着/心愿」，基线写「美搭/逛店记录」——`SearchResultsPage.ets:33-53`。底部导航与场景过滤统一用「套装」，内部一致；建议与 QA 脚本措辞对齐或在脚本中确认术语。
+**F7** 搜索结果类型标签用「穿搭/逛店/穿着/心愿」，基线写「美搭/逛店记录」——`SearchResultsPage.ets:33-53`。底部导航与场景过滤统一用「穿搭」，内部一致；建议与 QA 脚本措辞对齐或在脚本中确认术语。
 
 ---
 
@@ -166,7 +166,7 @@
 | `components/AppTopBar.ets` | 孤儿 | 含「衣不缺」标题+我的；未用于任何页面 |
 | `components/CategoryTabs.ets` | 孤儿 | `CaptureEditPage` 内用同名 `@Builder` 而非该组件 |
 | `components/ClothingCard.ets` | 孤儿 | 衣橱页用 `WardrobeSearchResultCard` |
-| `components/OutfitCard.ets` | 孤儿 | 套装页用 `OutfitWallCard` |
+| `components/OutfitCard.ets` | 孤儿 | 穿搭页用 `OutfitWallCard` |
 | `components/StoreVisitCard.ets` | 孤儿 | 逛店页用 `StoreVisitResultCard` |
 | `WardrobePage.ets:490-504` `wardrobeSummaryText()` | 死代码 | 定义但未在 `build()` 中调用（与 F4 相关，建议启用或删除） |
 

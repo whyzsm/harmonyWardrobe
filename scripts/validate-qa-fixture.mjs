@@ -68,7 +68,7 @@ const profilePage = fs.readFileSync('entry/src/main/ets/pages/ProfilePage.ets', 
 const qa = fs.readFileSync(qaPath, 'utf8');
 for (const needle of [
   '衣不缺',
-  '衣柜 / 逛店 / 相机 / 套装 / 我的',
+  '衣柜 / 逛店 / 相机 / 穿搭 / 我的',
   '面板包含 `衣柜`、`逛店`、`穿搭`',
   '拍照',
   '相册入口',

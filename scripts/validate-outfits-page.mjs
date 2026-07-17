@@ -11,7 +11,7 @@ for (const needle of [
   "{ label: '周末'",
   "{ label: '通勤'",
   '从已有单品开始搭配',
-  '先添加衣物再创建套装',
+  '先添加衣物再创建穿搭',
   'OutfitGuideCard',
   'this.clothingItems.length',
   '.padding({ left: 20, right: 20, bottom: 16 })',
@@ -23,11 +23,11 @@ for (const needle of [
   'OutfitWallCard',
   '暂无照片',
   'borderRadius(YibuqueRadius.xs)',
-  '正在加载套装',
+  '正在加载穿搭',
   '重试',
-  '拍照或从相册选图后，按分类收进套装。',
-  '点底部相机，选择照片后归类为套装',
-  '套装会按图片组合流排在这里。'
+  '拍照或从相册选图后，按分类收进穿搭。',
+  '点底部相机，选择照片后归类为穿搭',
+  '穿搭会按图片组合流排在这里。'
 ]) {
   if (!text.includes(needle)) {
     throw new Error(`OutfitsPage missing ${needle}`);
@@ -46,7 +46,7 @@ if (/wardrobe_look_|debug:\/\/|Text\('22°'\)/.test(text)) {
   throw new Error('OutfitsPage must not render sample outfits or hard-coded weather data');
 }
 
-if (/Button\('创建套装'\)/.test(text)) {
+if (/Button\('创建穿搭'\)/.test(text)) {
   throw new Error('OutfitsPage empty state must not render a create-outfit button');
 }
 

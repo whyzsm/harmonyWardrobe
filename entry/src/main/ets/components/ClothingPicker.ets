@@ -95,13 +95,13 @@ export struct ClothingPicker {
                 .width('100%')
                 .fontSize(15)
                 .fontWeight(FontWeight.Regular)
-                .fontColor(YibuqueColor.textPrimary)
+                .fontColor(this.isSelected(item.id) ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
                 .maxLines(2)
                 .textOverflow({ overflow: TextOverflow.Ellipsis })
 
               Text(clothingCategoryLabel(item.category))
                 .fontSize(12)
-                .fontColor(YibuqueColor.textSecondary)
+                .fontColor(this.isSelected(item.id) ? YibuqueColor.textInverse : YibuqueColor.textSecondary)
             }
             .layoutWeight(1)
             .alignItems(HorizontalAlign.Start)
@@ -110,7 +110,7 @@ export struct ClothingPicker {
               Stack({ alignContent: Alignment.Center }) {
                 SymbolGlyph($r('sys.symbol.checkmark_circle_fill'))
                   .fontSize(26)
-                .fontColor([YibuqueColor.selectionAccent])
+                .fontColor([YibuqueColor.textInverse])
               }
               .width(44)
               .height(44)
@@ -131,8 +131,8 @@ export struct ClothingPicker {
           .padding(8)
           .alignItems(VerticalAlign.Center)
           .borderRadius(YibuqueRadius.lg)
-          .backgroundColor(this.isSelected(item.id) ? YibuqueColor.selectionAccentSurface : YibuqueColor.cardSoftGray)
-          .border({ width: this.isSelected(item.id) ? 2 : 1, color: this.isSelected(item.id) ? YibuqueColor.selectionAccent : YibuqueColor.borderLight })
+          .backgroundColor(this.isSelected(item.id) ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
+          .border({ width: this.isSelected(item.id) ? 2 : 1, color: this.isSelected(item.id) ? YibuqueColor.actionBlack : YibuqueColor.borderLight })
           .accessibilityText(`${item.name}，${clothingCategoryLabel(item.category)}，${this.isSelected(item.id) ? '已选择' : '未选择'}`)
           .onClick(() => {
             this.onToggle(item.id);

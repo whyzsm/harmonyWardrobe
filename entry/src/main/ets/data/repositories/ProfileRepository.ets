@@ -15,7 +15,6 @@ const SELECT_PROFILE_SQL = `
     COALESCE(waist_cm, -1) AS waist_cm,
     frequent_districts,
     COALESCE(monthly_budget, -1) AS monthly_budget,
-    privacy_mode_enabled,
     updated_at
   FROM user_profile
   WHERE id = ?
@@ -29,10 +28,9 @@ const UPSERT_PROFILE_SQL = `
     waist_cm,
     frequent_districts,
     monthly_budget,
-    privacy_mode_enabled,
     updated_at
   )
-  VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
 `;
 
 export interface SaveUserProfileInput {
@@ -41,7 +39,6 @@ export interface SaveUserProfileInput {
   waistCm?: number;
   frequentDistricts?: string[];
   monthlyBudget?: number;
-  privacyModeEnabled?: boolean;
 }
 
 function decodeStrings(value: string): string[] {
@@ -83,7 +80,6 @@ export class ProfileRepository {
       if (!resultSet.goToFirstRow()) {
         return {
           frequentDistricts: [],
-          privacyModeEnabled: false,
           updatedAt: ''
         };
       }
@@ -101,7 +97,6 @@ export class ProfileRepository {
       waistCm: normalizeMeasurement(input.waistCm),
       frequentDistricts: input.frequentDistricts ?? [],
       monthlyBudget: normalizeMeasurement(input.monthlyBudget),
-      privacyModeEnabled: input.privacyModeEnabled ?? false,
       updatedAt: toIsoDateTime(new Date())
     };
 
@@ -119,7 +114,6 @@ export class ProfileRepository {
       nullableMeasurement(profile.waistCm),
       JSON.stringify(profile.frequentDistricts),
       nullableMeasurement(profile.monthlyBudget),
-      profile.privacyModeEnabled ? 1 : 0,
       profile.updatedAt
     ];
   }
@@ -131,7 +125,6 @@ export class ProfileRepository {
       waistCm: optionalMeasurement(resultSet.getNumber('waist_cm')),
       frequentDistricts: decodeStrings(resultSet.getString('frequent_districts')),
       monthlyBudget: optionalMeasurement(resultSet.getNumber('monthly_budget')),
-      privacyModeEnabled: resultSet.getNumber('privacy_mode_enabled') === 1,
       updatedAt: resultSet.getString('updated_at')
     };
   }

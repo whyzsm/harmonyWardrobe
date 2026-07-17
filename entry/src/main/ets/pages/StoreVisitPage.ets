@@ -359,15 +359,15 @@ export struct StoreVisitPage {
               Text(filter.label)
                 .fontSize(12)
                 .fontWeight(this.selectedStatus === filter.value ? FontWeight.Regular : FontWeight.Regular)
-                .fontColor(this.selectedStatus === filter.value ? ACCENT : TEXT_MUTED)
+                .fontColor(this.selectedStatus === filter.value ? YibuqueColor.textInverse : TEXT_MUTED)
             }
             .height(44)
             .padding({ left: 12, right: 15 })
             .justifyContent(FlexAlign.Center)
             .alignItems(VerticalAlign.Center)
-            .backgroundColor(this.selectedStatus === filter.value ? ACCENT_SOFT : SURFACE_WARM)
+            .backgroundColor(this.selectedStatus === filter.value ? YibuqueColor.actionBlack : SURFACE_WARM)
             .borderRadius(YibuqueRadius.xxxl)
-            .border({ width: 1, color: this.selectedStatus === filter.value ? ACCENT : BORDER })
+            .border({ width: 1, color: this.selectedStatus === filter.value ? YibuqueColor.actionBlack : BORDER })
             .onClick(() => {
               this.selectStatus(filter);
             })
@@ -391,15 +391,15 @@ export struct StoreVisitPage {
     if (status === 'all') {
       SymbolGlyph($r('sys.symbol.square_grid_2x2'))
         .fontSize(17)
-        .fontColor([this.selectedStatus === status ? ACCENT : TEXT_MUTED])
+        .fontColor([this.selectedStatus === status ? YibuqueColor.textInverse : TEXT_MUTED])
     } else if (status === 'visited') {
       SymbolGlyph($r('sys.symbol.store_fill'))
         .fontSize(17)
-        .fontColor([this.selectedStatus === status ? ACCENT : TEXT_MUTED])
+        .fontColor([this.selectedStatus === status ? YibuqueColor.textInverse : TEXT_MUTED])
     } else if (status === 'wantToVisit') {
       SymbolGlyph($r('sys.symbol.heart'))
         .fontSize(17)
-        .fontColor([this.selectedStatus === status ? ACCENT : TEXT_MUTED])
+        .fontColor([this.selectedStatus === status ? YibuqueColor.textInverse : TEXT_MUTED])
     } else {
       SymbolGlyph($r('sys.symbol.arrow_clockwise'))
         .fontSize(17)

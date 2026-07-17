@@ -387,10 +387,10 @@ export struct ClothingEditPage {
             .layoutWeight(1)
             .fontSize(14)
             .fontWeight(FontWeight.Regular)
-            .fontColor(option.value === this.category ? YibuqueColor.selectionAccent : YibuqueColor.textSecondary)
-            .backgroundColor(option.value === this.category ? YibuqueColor.selectionAccentSurface : YibuqueColor.cardSoftGray)
+            .fontColor(option.value === this.category ? YibuqueColor.textInverse : YibuqueColor.textSecondary)
+            .backgroundColor(option.value === this.category ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
             .borderRadius(YibuqueRadius.md)
-            .border({ width: 1, color: option.value === this.category ? YibuqueColor.selectionAccent : YibuqueColor.borderMedium })
+            .border({ width: 1, color: option.value === this.category ? YibuqueColor.actionBlack : YibuqueColor.borderMedium })
             .onClick(() => {
               this.category = option.value;
             })

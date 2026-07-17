@@ -127,7 +127,7 @@ In `WearLogEditPage.ets`:
 
 - `canSave()` should require only `!isSaving`, a non-empty `wornDate`, and at least one photo or note.
 - Outfit selection remains optional.
-- Copy should use `美搭` or `每日穿搭`, not `套装`.
+- Copy should use `美搭` or `每日穿搭`, not `穿搭`.
 - Use Yibuque tokens for black primary action if touched.
 
 **Step 4: Run validation**

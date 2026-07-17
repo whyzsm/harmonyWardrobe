@@ -129,7 +129,7 @@ const userFacingFiles = [
 
 for (const file of userFacingFiles) {
   const text = read(file);
-  for (const forbidden of ['首页', '逛街', '心愿单', '点赞', '收藏', '评论', '关注', '套装']) {
+  for (const forbidden of ['首页', '逛街', '心愿单', '点赞', '收藏', '评论', '关注', '穿搭']) {
     mustNotInclude(text, file, forbidden);
   }
 }
@@ -160,7 +160,7 @@ Expected: FAIL if any old user-facing copy remains in active flow.
 
 Remove or rename stale user-facing copy in active pages/components:
 
-- `套装` -> `美搭` or `搭配`.
+- `穿搭` -> `美搭` or `搭配`.
 - `逛街` -> `逛店`.
 - Debug placeholders such as `wornDate` or `placeText` -> Chinese field labels.
 - Keep old repository/model names only where they are internal compatibility code and not user-facing.
@@ -613,7 +613,7 @@ Assert:
 
 - Search result categories are `衣物`、`美搭`、`逛店记录`、`店铺`.
 - No user-facing `心愿单` in search UI.
-- No primary copy uses `套装`.
+- No primary copy uses `穿搭`.
 - Existing wishlist index code, if kept, is not exposed as a main result label.
 
 **Step 2: Run test and confirm failure**

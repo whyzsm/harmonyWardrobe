@@ -934,7 +934,7 @@ const index = fs.readFileSync('entry/src/main/ets/pages/Index.ets', 'utf8');
 for (const tab of ['TodayPage', 'WardrobePage', 'OutfitsPage', 'CalendarPage', 'ShoppingPage']) {
   if (!index.includes(tab)) throw new Error(`Index missing ${tab}`);
 }
-for (const label of ['今日', '衣橱', '套装', '日历', '逛街']) {
+for (const label of ['今日', '衣橱', '穿搭', '日历', '逛街']) {
   if (!index.includes(label)) throw new Error(`Index missing nav label ${label}`);
 }
 ```
@@ -1104,7 +1104,7 @@ Create `scripts/validate-outfits-page.mjs`:
 import fs from 'node:fs';
 
 const text = fs.readFileSync('entry/src/main/ets/pages/OutfitsPage.ets', 'utf8');
-for (const needle of ['SearchBar', 'OutfitCard', 'OutfitRepository', '创建套装', '记录一次穿着']) {
+for (const needle of ['SearchBar', 'OutfitCard', 'OutfitRepository', '创建穿搭', '记录一次穿着']) {
   if (!text.includes(needle)) throw new Error(`OutfitsPage missing ${needle}`);
 }
 ```
@@ -1185,7 +1185,7 @@ Create `scripts/validate-today-page.mjs`:
 import fs from 'node:fs';
 
 const text = fs.readFileSync('entry/src/main/ets/pages/TodayPage.ets', 'utf8');
-for (const needle of ['WearLogRepository', 'OutfitRepository', '今天', '选择套装记录今天', '最近套装']) {
+for (const needle of ['WearLogRepository', 'OutfitRepository', '今天', '选择穿搭记录今天', '最近穿搭']) {
   if (!text.includes(needle)) throw new Error(`TodayPage missing ${needle}`);
 }
 ```

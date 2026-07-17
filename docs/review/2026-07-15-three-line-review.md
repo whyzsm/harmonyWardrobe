@@ -232,7 +232,7 @@
 | # | 来源 | 问题 | 文件 |
 |---|------|------|------|
 | P2-1 | 滑如丝 | 多处按钮/可点击元素命中区 < 44×44（35 处，含重试按钮 34vp、补记按钮 38vp、编辑 Text ~20px 等） | WardrobePage/ShoppingPage/StoreVisitPage/OutfitsPage/ClothingDetailPage/ProfilePage/SearchResultsPage 等多处 |
-| P2-2 | 滑如丝 | OutfitsPage 套装元信息文字可点击（记录穿着）但无视觉提示 | `OutfitsPage.ets:551-560` |
+| P2-2 | 滑如丝 | OutfitsPage 穿搭元信息文字可点击（记录穿着）但无视觉提示 | `OutfitsPage.ets:551-560` |
 | P2-3 | 滑如丝 | ProfilePage MeasurementSheet 无进出动画 | `ProfilePage.ets:360-370` |
 | P2-4 | 滑如丝 | ClothingDetailPage 全屏照片预览无过渡动画 | `ClothingDetailPage.ets:589-591` |
 | P2-5 | 滑如丝 | WearLogEditPage/CaptureEditPage 日期用纯文本输入，无日期选择器 | `WearLogEditPage.ets:198`、`CaptureEditPage.ets:542` |

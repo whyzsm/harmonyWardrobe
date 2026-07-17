@@ -25,7 +25,7 @@ for (const needle of [
 }
 
 for (const forbidden of [
-  '搜索衣服、套装、备注',
+  '搜索衣服、穿搭、备注',
   "Text('我的衣柜')",
   'FilterSlidersIcon',
   '一眼看衣服',

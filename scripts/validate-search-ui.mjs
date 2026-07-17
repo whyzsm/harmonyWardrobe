@@ -56,14 +56,14 @@ for (const needle of [
   'matchesInitialScope',
   'availableScopes',
   'search(searchQuery, 100)',
-  "placeholder: '搜索衣服、商场、套装'",
+  "placeholder: '搜索衣服、商场、穿搭'",
   "Text('搜索')",
   "Text('历史记录')",
   "Text('猜你想搜')",
   "'全部'",
   "'衣物'",
   "'逛店'",
-  "'套装'",
+  "'穿搭'",
   "'我的'",
   "SymbolGlyph($r('sys.symbol.arrow_left'))",
   "SymbolGlyph($r('sys.symbol.camera_fill'))",
@@ -98,7 +98,7 @@ if (!/aboutToAppear\(\)[\s\S]*?this\.searchText = this\.query[\s\S]*?this\.activ
   throw new Error('SearchResultsPage must initialize idle/results state from the incoming query');
 }
 
-if (!/SearchHeader\(\)[\s\S]*?TextInput\(\{ text: this\.searchText, placeholder: '搜索衣服、商场、套装' \}\)[\s\S]*?this\.clearSearch\(\)[\s\S]*?this\.onOpenCameraSearch\(\)[\s\S]*?this\.submitSearch\(\)/.test(resultPage)) {
+if (!/SearchHeader\(\)[\s\S]*?TextInput\(\{ text: this\.searchText, placeholder: '搜索衣服、商场、穿搭' \}\)[\s\S]*?this\.clearSearch\(\)[\s\S]*?this\.onOpenCameraSearch\(\)[\s\S]*?this\.submitSearch\(\)/.test(resultPage)) {
   throw new Error('SearchResultsPage must implement the designed search controls');
 }
 

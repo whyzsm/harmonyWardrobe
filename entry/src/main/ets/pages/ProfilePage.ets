@@ -7,6 +7,7 @@ import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 
 const DEFAULT_FREQUENT_DISTRICTS: string[] = ['静安嘉里', 'iapm', '小众买手店', 'TX 淮海'];
 const DEFAULT_SELECTED_FREQUENT_DISTRICTS: string[] = ['静安嘉里', 'iapm', '小众买手店'];
+const COMMON_BUDGETS: number[] = [2400, 3200, 4000, 5200];
 
 function parseOptionalNumber(value: string): number | undefined {
   const trimmed = value.trim();
@@ -30,6 +31,28 @@ function isInvalidOptionalNumber(value: string): boolean {
 
   const parsed = Number(trimmed);
   return !Number.isFinite(parsed) || parsed < 0;
+}
+
+function isCurrentMonth(value?: string): boolean {
+  if (value === undefined || value.trim().length === 0) {
+    return false;
+  }
+
+  const now = new Date();
+  const month = `${now.getFullYear()}-${padNumber(now.getMonth() + 1)}`;
+  return value.trim().startsWith(month);
+}
+
+function formatBudgetAmount(value: number): string {
+  const digits = `${Math.round(Math.max(0, value))}`;
+  let formatted = '';
+  for (let index = 0; index < digits.length; index++) {
+    if (index > 0 && (digits.length - index) % 3 === 0) {
+      formatted += ',';
+    }
+    formatted += digits.charAt(index);
+  }
+  return `¥${formatted}`;
 }
 
 function parseDistrictInput(value: string): string[] {
@@ -80,7 +103,7 @@ function describeMeasurements(profile: UserProfile): string {
 function describeLocalState(profile: UserProfile): string {
   const updatedAt = formatProfileUpdatedAt(profile.updatedAt);
   if (updatedAt.length === 0) {
-    return '衣柜照片、套装和逛店记录都保存在本机。';
+    return '衣柜照片、穿搭和逛店记录都保存在本机。';
   }
 
   return `身形信息更新于 ${updatedAt}，衣柜照片和记录保存在本机。`;
@@ -92,9 +115,6 @@ export struct ProfilePage {
   clothingRepository?: ClothingRepository = undefined;
   storeRepository?: StoreRepository = undefined;
   outfitRepository?: OutfitRepository = undefined;
-  onOpenStoreEditor: () => void = () => {};
-  onOpenCapture: () => void = () => {};
-  onOpenOutfits: () => void = () => {};
   onOpenWishlist: () => void = () => {};
   onNestedPageVisibilityChange: (visible: boolean) => void = (_visible: boolean) => {};
 
@@ -109,11 +129,14 @@ export struct ProfilePage {
   @State private isEditingDistricts: boolean = false;
   @State private districtDraft: string[] = [];
   @State private districtInput: string = '';
-  @State private privacyModeEnabled: boolean = false;
   @State private frequentDistricts: string[] = [];
   @State private monthlyBudget: number = -1;
+  @State private monthlySpent: number = 0;
+  @State private isEditingBudget: boolean = false;
+  @State private budgetDraft: string = '';
+  @State private budgetErrorMessage: string = '';
   @State private measurementSummary: string = '填写身形信息后可用于试穿推荐';
-  @State private localSummary: string = '衣柜照片、套装和逛店记录都保存在本机。';
+  @State private localSummary: string = '衣柜照片、穿搭和逛店记录都保存在本机。';
   @State private wardrobePhotoUris: string[] = [];
   @State private wardrobeItemCount: number = 0;
   @State private storeVisitCount: number = 0;
@@ -150,7 +173,6 @@ export struct ProfilePage {
     this.waistCm = displayOptionalNumber(profile.waistCm);
     this.frequentDistricts = profile.frequentDistricts;
     this.monthlyBudget = profile.monthlyBudget ?? -1;
-    this.privacyModeEnabled = profile.privacyModeEnabled;
     this.measurementSummary = describeMeasurements(profile);
     this.localSummary = describeLocalState(profile);
   }
@@ -180,6 +202,21 @@ export struct ProfilePage {
 
   private async loadActivitySummary(): Promise<void> {
     try {
+      if (this.clothingRepository !== undefined) {
+        const items = await this.clothingRepository.listClothing();
+        let spent = 0;
+        for (const item of items) {
+          const purchasePrice = item.purchaseInfo?.price;
+          const expenseDate = item.purchaseInfo?.purchaseDate ?? item.createdAt;
+          if (purchasePrice !== undefined && Number.isFinite(purchasePrice) &&
+            isCurrentMonth(expenseDate)) {
+            spent += purchasePrice;
+          }
+        }
+        this.monthlySpent = Math.round(spent * 100) / 100;
+      } else {
+        this.monthlySpent = 0;
+      }
       if (this.storeRepository !== undefined) {
         this.storeVisitCount = (await this.storeRepository.listStoreVisits()).length;
       }
@@ -187,6 +224,7 @@ export struct ProfilePage {
         this.outfitCount = (await this.outfitRepository.listOutfits()).length;
       }
     } catch (_error) {
+      this.monthlySpent = 0;
       this.storeVisitCount = 0;
       this.outfitCount = 0;
     }
@@ -213,8 +251,7 @@ export struct ProfilePage {
         weightKg: parseOptionalNumber(this.weightKg),
         waistCm: parseOptionalNumber(this.waistCm),
         frequentDistricts: this.frequentDistricts,
-        monthlyBudget: this.monthlyBudget >= 0 ? this.monthlyBudget : undefined,
-        privacyModeEnabled: this.privacyModeEnabled
+        monthlyBudget: this.monthlyBudget >= 0 ? this.monthlyBudget : undefined
       });
       this.applyProfile(savedProfile);
       this.savedMessage = '已保存个人信息';
@@ -265,6 +302,80 @@ export struct ProfilePage {
     this.errorMessage = '';
     this.savedMessage = '';
     this.loadProfile();
+  }
+
+  private openBudgetEditor(): void {
+    this.budgetDraft = this.monthlyBudget >= 0 ? `${this.monthlyBudget}` : '';
+    this.budgetErrorMessage = '';
+    this.errorMessage = '';
+    this.savedMessage = '';
+    this.isEditingBudget = true;
+    this.onNestedPageVisibilityChange(true);
+  }
+
+  private closeBudgetEditor(): void {
+    this.isEditingBudget = false;
+    this.budgetErrorMessage = '';
+    this.onNestedPageVisibilityChange(false);
+  }
+
+  private cancelBudgetEditor(): void {
+    this.closeBudgetEditor();
+    this.errorMessage = '';
+    this.savedMessage = '';
+  }
+
+  private selectBudget(value: number): void {
+    if (this.isSaving) {
+      return;
+    }
+
+    this.budgetDraft = `${value}`;
+    this.budgetErrorMessage = '';
+  }
+
+  private budgetProgressPercent(): number {
+    if (this.monthlyBudget < 0 || this.monthlyBudget === 0) {
+      return 0;
+    }
+
+    return Math.min(100, Math.round((this.monthlySpent / this.monthlyBudget) * 100));
+  }
+
+  private budgetRemaining(): number {
+    return Math.max(0, this.monthlyBudget - this.monthlySpent);
+  }
+
+  private async saveBudget(): Promise<void> {
+    if (this.profileRepository === undefined || this.isSaving) {
+      return;
+    }
+
+    const amount = parseOptionalNumber(this.budgetDraft);
+    if (amount === undefined || amount < 500) {
+      this.budgetErrorMessage = '预算至少为 ¥500。';
+      return;
+    }
+
+    this.isSaving = true;
+    this.budgetErrorMessage = '';
+    this.errorMessage = '';
+    try {
+      const saved = await this.profileRepository.saveProfile({
+        heightCm: parseOptionalNumber(this.heightCm),
+        weightKg: parseOptionalNumber(this.weightKg),
+        waistCm: parseOptionalNumber(this.waistCm),
+        frequentDistricts: this.frequentDistricts,
+        monthlyBudget: Math.round(amount)
+      });
+      this.applyProfile(saved);
+      this.showNotice('本月预算已保存。');
+      this.closeBudgetEditor();
+    } catch (error) {
+      this.budgetErrorMessage = error instanceof Error ? error.message : '保存预算失败';
+    } finally {
+      this.isSaving = false;
+    }
   }
 
   private openDistrictEditor(): void {
@@ -342,8 +453,7 @@ export struct ProfilePage {
         weightKg: parseOptionalNumber(this.weightKg),
         waistCm: parseOptionalNumber(this.waistCm),
         frequentDistricts: this.frequentDistricts,
-        monthlyBudget: this.monthlyBudget >= 0 ? this.monthlyBudget : undefined,
-        privacyModeEnabled: this.privacyModeEnabled
+        monthlyBudget: this.monthlyBudget >= 0 ? this.monthlyBudget : undefined
       });
       this.applyProfile(saved);
       this.showNotice(message);
@@ -370,8 +480,7 @@ export struct ProfilePage {
           }
 
           this.BudgetSection()
-          this.ToolSection()
-          this.ReminderSection()
+          this.LocalStorageSection()
         }
         .width('100%')
         .padding({ left: 20, right: 20, top: 2, bottom: 132 })
@@ -382,7 +491,7 @@ export struct ProfilePage {
       .scrollBar(BarState.Off)
       .backgroundColor(YibuqueColor.bgDefault)
 
-      if (this.isEditingMeasurements || this.isEditingDistricts) {
+      if (this.isEditingMeasurements || this.isEditingDistricts || this.isEditingBudget) {
         Column()
           .width('100%')
           .height('100%')
@@ -390,8 +499,10 @@ export struct ProfilePage {
           .onClick(() => {
             if (this.isEditingMeasurements) {
               this.cancelMeasurementEditor();
-            } else {
+            } else if (this.isEditingDistricts) {
               this.cancelDistrictEditor();
+            } else {
+              this.cancelBudgetEditor();
             }
           })
       }
@@ -402,6 +513,10 @@ export struct ProfilePage {
 
       if (this.isEditingDistricts) {
         this.DistrictSheet()
+      }
+
+      if (this.isEditingBudget) {
+        this.BudgetSheet()
       }
     }
     .width('100%')
@@ -567,6 +682,26 @@ export struct ProfilePage {
   }
 
   @Builder
+  WishlistSection() {
+    Column() {
+      this.SectionHeading('我的清单', '计划购买')
+
+      Column() {
+        this.PreferenceRow('心愿清单', '记录想买的单品、门店和价格', 'wishlist')
+      }
+      .width('100%')
+      .padding(14)
+      .alignItems(HorizontalAlign.Start)
+      .backgroundColor(YibuqueColor.cardSoftGray)
+      .borderRadius(YibuqueRadius.xxl)
+      .border({ width: 1, color: YibuqueColor.borderLight })
+    }
+    .width('100%')
+    .margin({ top: 14 })
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
   SectionHeading(title: string, meta: string) {
     Row({ space: 12 }) {
       Text(title)
@@ -594,8 +729,12 @@ export struct ProfilePage {
           SymbolGlyph($r('sys.symbol.shirt'))
             .fontSize(19)
             .fontColor([YibuqueColor.iconAccent])
-        } else {
+        } else if (action === 'shops') {
           SymbolGlyph($r('sys.symbol.mappin_and_rectangle'))
+            .fontSize(19)
+            .fontColor([YibuqueColor.iconAccent])
+        } else {
+          SymbolGlyph($r('sys.symbol.heart_fill'))
             .fontSize(19)
             .fontColor([YibuqueColor.iconAccent])
         }
@@ -638,7 +777,7 @@ export struct ProfilePage {
             this.openDistrictEditor();
           })
       } else {
-      Button(this.isLoading ? '加载中' : '编辑')
+      Button(action === 'wishlist' ? '查看' : this.isLoading ? '加载中' : '编辑')
         .height(44)
         .padding({ left: 13, right: 13 })
         .fontSize(12)
@@ -657,6 +796,8 @@ export struct ProfilePage {
           }
           if (action === 'size') {
             this.openMeasurementEditor();
+          } else if (action === 'wishlist') {
+            this.onOpenWishlist();
           }
         })
       }
@@ -679,7 +820,7 @@ export struct ProfilePage {
   @Builder
   BudgetSection() {
     Column() {
-      this.SectionHeading('预算提醒', this.monthlyBudget >= 0 ? `¥${this.monthlyBudget}` : '未设置')
+      this.SectionHeading('预算提醒', this.monthlyBudget >= 0 ? `本月 ${this.budgetProgressPercent()}%` : '未设置')
 
       Column({ space: 12 }) {
         Row({ space: 12 }) {
@@ -690,7 +831,11 @@ export struct ProfilePage {
               .lineHeight(17)
               .fontWeight(FontWeight.Regular)
               .fontColor(YibuqueColor.textPrimary)
-            Text(this.storeVisitCount > 0 ? `已记录 ${this.storeVisitCount} 次逛店，预算尚未设置。` : '预算尚未设置。')
+            Text(this.monthlyBudget >= 0
+              ? (this.budgetRemaining() > 0
+                ? `还可用 ${formatBudgetAmount(this.budgetRemaining())}，适合再留一件主单品。`
+                : '已达到本月预算。')
+              : (this.storeVisitCount > 0 ? `已记录 ${this.storeVisitCount} 次逛店，预算尚未设置。` : '预算尚未设置。'))
               .width('100%')
               .fontSize(12)
               .lineHeight(16)
@@ -699,7 +844,7 @@ export struct ProfilePage {
           .layoutWeight(1)
           .alignItems(HorizontalAlign.Start)
 
-          Text(this.monthlyBudget >= 0 ? `¥${this.monthlyBudget}` : '--')
+          Text(this.monthlyBudget >= 0 ? formatBudgetAmount(this.monthlySpent) : '--')
             .fontSize(20)
             .lineHeight(22)
             .fontWeight(FontWeight.Regular)
@@ -708,11 +853,39 @@ export struct ProfilePage {
         .width('100%')
         .alignItems(VerticalAlign.Top)
 
+        if (this.monthlyBudget >= 0) {
+          Row() {
+            Blank()
+              .width(`${this.budgetProgressPercent()}%`)
+              .height(8)
+              .backgroundColor(YibuqueColor.iconAccent)
+              .borderRadius(YibuqueRadius.full)
+          }
+          .width('100%')
+          .height(8)
+          .backgroundColor(YibuqueColor.borderLight)
+          .borderRadius(YibuqueRadius.full)
+        }
+
         Row({ space: 10 }) {
-          Text('消费记录暂未接入预算统计')
+          Text(this.monthlyBudget >= 0 ? `预算 ${formatBudgetAmount(this.monthlyBudget)}` : '消费记录将用于预算统计')
             .layoutWeight(1)
             .fontSize(12)
             .fontColor(YibuqueColor.textSecondary)
+
+          Button('调整')
+            .height(40)
+            .padding({ left: 18, right: 18 })
+            .fontSize(13)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textPrimary)
+            .backgroundColor(YibuqueColor.bgDefault)
+            .borderRadius(YibuqueRadius.full)
+            .border({ width: 1, color: YibuqueColor.borderMedium })
+            .enabled(!this.isSaving)
+            .onClick(() => {
+              this.openBudgetEditor();
+            })
         }
         .width('100%')
         .alignItems(VerticalAlign.Center)
@@ -730,106 +903,162 @@ export struct ProfilePage {
   }
 
   @Builder
-  ToolSection() {
-    Column() {
-      this.SectionHeading('今天常用', '3 个入口')
-
-      Grid() {
-        GridItem() { this.ToolCard('新增逛店', '记录店铺、试穿和价格', 'store') }
-        GridItem() { this.ToolCard('拍照录入', '把衣物照片补进衣柜', 'capture') }
-        GridItem() { this.ToolCard('套装清单', '按通勤、约会、好走路', 'outfit') }
-        GridItem() { this.ToolCard('心愿清单', '记下想买的心仪好物', 'wishlist') }
-      }
-      .width('100%')
-      .height(218)
-      .columnsTemplate('1fr 1fr')
-      .rowsTemplate('1fr 1fr')
-      .columnsGap(10)
-      .rowsGap(10)
-    }
-    .width('100%')
-    .margin({ top: 14 })
-    .alignItems(HorizontalAlign.Start)
-  }
-
-  @Builder
-  ToolCard(title: string, subtitle: string, action: string) {
-    Column() {
-      Stack({ alignContent: Alignment.Center }) {
-        if (action === 'store') {
-          SymbolGlyph($r('sys.symbol.plus'))
-            .fontSize(22)
-            .fontColor([YibuqueColor.textInverse])
-        } else if (action === 'capture') {
-          SymbolGlyph($r('sys.symbol.camera_fill'))
-            .fontSize(20)
-            .fontColor([YibuqueColor.textInverse])
-        } else if (action === 'wishlist') {
-          SymbolGlyph($r('sys.symbol.heart_fill'))
-            .fontSize(20)
-            .fontColor([YibuqueColor.actionBlack])
-        } else {
-          SymbolGlyph($r('sys.symbol.bag'))
-            .fontSize(20)
-            .fontColor([YibuqueColor.iconAccent])
-        }
-      }
-      .width(40)
+  BudgetChip(value: number, selected: boolean) {
+    Button(formatBudgetAmount(value))
       .height(40)
-      .backgroundColor(action === 'outfit'
-        ? YibuqueColor.iconAccentSurface
-        : action === 'wishlist' ? YibuqueColor.cardSurface : YibuqueColor.iconDarkSurface)
-      .borderRadius(YibuqueRadius.lg)
-
-      Blank()
-
-      Column({ space: 3 }) {
-        Text(title)
-          .width('100%')
-          .fontSize(14)
-          .lineHeight(17)
-          .fontWeight(FontWeight.Regular)
-          .fontColor((action === 'outfit' || action === 'wishlist') ? YibuqueColor.textPrimary : YibuqueColor.textInverse)
-        Text(subtitle)
-          .width('100%')
-          .fontSize((action === 'outfit' || action === 'wishlist') ? 9 : 11)
-          .lineHeight(14)
-          .fontColor((action === 'outfit' || action === 'wishlist') ? YibuqueColor.textSecondary : YibuqueColor.textDisabled)
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-      }
-      .width('100%')
-      .alignItems(HorizontalAlign.Start)
-    }
-    .width('100%')
-    .height('100%')
-    .padding(14)
-    .alignItems(HorizontalAlign.Start)
-    .backgroundColor((action === 'outfit' || action === 'wishlist') ? YibuqueColor.cardSoftGray : YibuqueColor.cardDark)
-    .borderRadius(YibuqueRadius.xxl)
-    .border({ width: (action === 'outfit' || action === 'wishlist') ? 1 : 0, color: YibuqueColor.borderLight })
-    .onClick(() => {
-      if (action === 'store') {
-        this.onOpenStoreEditor();
-      } else if (action === 'capture') {
-        this.onOpenCapture();
-      } else if (action === 'wishlist') {
-        this.onOpenWishlist();
-      } else {
-        this.onOpenOutfits();
-      }
-    })
+      .padding({ left: 16, right: 16 })
+      .margin({ right: 8, bottom: 8 })
+      .fontSize(14)
+      .fontWeight(FontWeight.Regular)
+      .fontColor(selected ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
+      .backgroundColor(selected ? YibuqueColor.textPrimary : YibuqueColor.bgDefault)
+      .borderRadius(YibuqueRadius.full)
+      .border({ width: 1, color: selected ? YibuqueColor.textPrimary : YibuqueColor.borderMedium })
+      .enabled(!this.isSaving)
+      .onClick(() => {
+        this.selectBudget(value);
+      })
   }
 
   @Builder
-  ReminderSection() {
+  BudgetSheet() {
     Column() {
-      this.SectionHeading('本地与隐私', '本地保存正常')
+      Row({ space: 12 }) {
+        Column({ space: 4 }) {
+          Text('调整本月预算')
+            .width('100%')
+            .fontSize(23)
+            .lineHeight(27)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textPrimary)
+          Text('预算提醒会在加入回购或记录购买时出现。')
+            .width('100%')
+            .fontSize(12)
+            .lineHeight(17)
+            .fontColor(YibuqueColor.textSecondary)
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
+
+        Button('取消')
+          .height(44)
+          .padding({ left: 0, right: 0 })
+          .fontSize(15)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.iconAccent)
+          .backgroundColor(Color.Transparent)
+          .onClick(() => {
+            this.cancelBudgetEditor();
+          })
+      }
+      .width('100%')
+      .margin({ bottom: 14 })
+      .alignItems(VerticalAlign.Top)
+
+      Column({ space: 13 }) {
+        Text('常用预算')
+          .width('100%')
+          .fontSize(12)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textPrimary)
+
+        Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+          ForEach(COMMON_BUDGETS, (value: number) => {
+            this.BudgetChip(value, this.budgetDraft === `${value}`)
+          }, (value: number) => `${value}`)
+        }
+        .width('100%')
+
+        Text('自定义金额')
+          .width('100%')
+          .fontSize(12)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textPrimary)
+
+        TextInput({ text: this.budgetDraft, placeholder: '输入预算金额' })
+          .width('100%')
+          .height(48)
+          .padding({ left: 14, right: 14 })
+          .fontSize(14)
+          .fontColor(YibuqueColor.textPrimary)
+          .backgroundColor(YibuqueColor.bgDefault)
+          .borderRadius(YibuqueRadius.md)
+          .border({ width: 1, color: this.budgetErrorMessage.length > 0 ? YibuqueColor.danger : YibuqueColor.borderMedium })
+          .type(InputType.Number)
+          .enabled(!this.isSaving)
+          .onChange((value: string) => {
+            this.budgetDraft = value;
+            this.budgetErrorMessage = '';
+          })
+
+        Text(this.budgetErrorMessage.length > 0 ? this.budgetErrorMessage : '至少 ¥500。保存后会同步更新预算余量和进度条。')
+          .width('100%')
+          .fontSize(12)
+          .lineHeight(17)
+          .fontColor(this.budgetErrorMessage.length > 0 ? YibuqueColor.danger : YibuqueColor.textSecondary)
+      }
+      .width('100%')
+      .padding(13)
+      .alignItems(HorizontalAlign.Start)
+      .backgroundColor(YibuqueColor.cardSoftGray)
+      .borderRadius(YibuqueRadius.xxl)
+      .border({ width: 1, color: YibuqueColor.borderLight })
+
+      Row({ space: 10 }) {
+        Button('稍后')
+          .height(44)
+          .layoutWeight(1)
+          .fontSize(13)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textPrimary)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.full)
+          .border({ width: 1, color: YibuqueColor.borderMedium })
+          .enabled(!this.isSaving)
+          .onClick(() => {
+            this.cancelBudgetEditor();
+          })
+
+        Button() {
+          if (this.isSaving) {
+            LoadingProgress()
+              .width(18)
+              .height(18)
+              .color(YibuqueColor.textInverse)
+          } else {
+            Text('保存')
+              .fontSize(13)
+              .fontWeight(FontWeight.Regular)
+              .fontColor(YibuqueColor.textInverse)
+          }
+        }
+          .height(44)
+          .layoutWeight(1)
+          .backgroundColor(YibuqueColor.textPrimary)
+          .borderRadius(YibuqueRadius.full)
+          .enabled(!this.isSaving)
+          .onClick(() => {
+            this.saveBudget();
+          })
+      }
+      .width('100%')
+      .margin({ top: 14 })
+    }
+    .width('100%')
+    .padding({ left: 20, right: 20, top: 18, bottom: 34 })
+    .alignItems(HorizontalAlign.Start)
+    .backgroundColor(YibuqueColor.bgDefault)
+    .borderRadius({ topLeft: YibuqueRadius.sheet, topRight: YibuqueRadius.sheet, bottomLeft: 0, bottomRight: 0 })
+    .shadow(YibuqueShadow.editorSheet)
+  }
+
+  @Builder
+  LocalStorageSection() {
+    Column() {
+      this.SectionHeading('本地存储', '本地保存正常')
 
       Column() {
         this.LocalStateRow()
-        Divider().strokeWidth(1).color(YibuqueColor.borderLight)
-        this.ToggleRow('隐私模式', '隐藏价格和商场位置，适合给朋友看衣柜。', this.privacyModeEnabled, 'privacy')
       }
       .width('100%')
       .padding(14)
@@ -841,61 +1070,6 @@ export struct ProfilePage {
     .width('100%')
     .margin({ top: 14 })
     .alignItems(HorizontalAlign.Start)
-  }
-
-  @Builder
-  ToggleRow(title: string, subtitle: string, enabled: boolean, action: string) {
-    Row({ space: 12 }) {
-      Column({ space: 3 }) {
-        Text(title)
-          .width('100%')
-          .fontSize(14)
-          .lineHeight(17)
-          .fontWeight(FontWeight.Regular)
-          .fontColor(YibuqueColor.textPrimary)
-        Text(subtitle)
-          .width('100%')
-          .fontSize(12)
-          .lineHeight(16)
-          .fontColor(YibuqueColor.textSecondary)
-          .maxLines(2)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-      }
-      .layoutWeight(1)
-      .alignItems(HorizontalAlign.Start)
-
-      Row() {
-        if (enabled) {
-          Blank().layoutWeight(1)
-        }
-        Circle()
-          .width(26)
-          .height(26)
-          .fill(YibuqueColor.bgDefault)
-          .shadow(YibuqueShadow.soft)
-        if (!enabled) {
-          Blank().layoutWeight(1)
-        }
-      }
-      .width(52)
-      .height(32)
-      .padding(3)
-      .backgroundColor(enabled ? YibuqueColor.textPrimary : YibuqueColor.borderMedium)
-      .borderRadius(YibuqueRadius.full)
-      .enabled(!this.isSaving)
-      .onClick(() => {
-        if (this.isSaving) {
-          return;
-        }
-        if (action === 'privacy') {
-          this.privacyModeEnabled = !this.privacyModeEnabled;
-          this.persistPreferences('隐私模式已保存。');
-        }
-      })
-    }
-    .width('100%')
-    .height(74)
-    .alignItems(VerticalAlign.Center)
   }
 
   @Builder
@@ -1035,20 +1209,32 @@ export struct ProfilePage {
 
   @Builder
   DistrictChip(label: string, selected: boolean) {
-    Button(label)
-      .height(40)
-      .padding({ left: 14, right: 14 })
-      .margin({ right: 8, bottom: 8 })
-      .fontSize(13)
-      .fontWeight(FontWeight.Regular)
-      .fontColor(selected ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
-      .backgroundColor(selected ? YibuqueColor.textPrimary : YibuqueColor.bgDefault)
-      .borderRadius(YibuqueRadius.full)
-      .border({ width: 1, color: selected ? YibuqueColor.textPrimary : YibuqueColor.borderMedium })
-      .enabled(!this.isSaving)
-      .onClick(() => {
-        this.toggleDistrict(label);
-      })
+    Button() {
+      Row({ space: 6 }) {
+        Text(label)
+          .fontSize(13)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(selected ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
+
+        if (selected) {
+          SymbolGlyph($r('sys.symbol.xmark'))
+            .fontSize(11)
+            .fontColor([YibuqueColor.textInverse])
+        }
+      }
+    }
+    .height(40)
+    .padding({ left: 14, right: selected ? 11 : 14 })
+    .margin({ right: 8, bottom: 8 })
+    .fontWeight(FontWeight.Regular)
+    .backgroundColor(selected ? YibuqueColor.textPrimary : YibuqueColor.bgDefault)
+    .borderRadius(YibuqueRadius.full)
+    .border({ width: 1, color: selected ? YibuqueColor.textPrimary : YibuqueColor.borderMedium })
+    .enabled(!this.isSaving)
+    .accessibilityText(`${label}${selected ? '，删除已选地点' : '，选择地点'}`)
+    .onClick(() => {
+      this.toggleDistrict(label);
+    })
   }
 
   @Builder

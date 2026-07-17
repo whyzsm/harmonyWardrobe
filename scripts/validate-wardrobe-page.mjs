@@ -10,8 +10,6 @@ for (const needle of [
   'WardrobeSearchHeader',
   'displayItemMeta',
   '暂无照片',
-  'YibuqueColor.textInverse',
-  'YibuqueColor.actionBlack',
   'YibuqueColor.borderMedium',
   'WardrobeSearchTabs',
   'CategoryFilterIcon',
@@ -76,7 +74,7 @@ if (/WardrobeSearchTabs\(\)[\s\S]*?\.width\(76\)/.test(text)) {
 }
 
 if (!/selectedCategoryLabel === category \? YibuqueColor\.textInverse[\s\S]*?selectedCategoryLabel === category \? YibuqueColor\.actionBlack[\s\S]*?selectedCategoryLabel === category \? YibuqueColor\.actionBlack/.test(text)) {
-  throw new Error('Wardrobe category selection must use tokenized black background and white foreground');
+  throw new Error('Wardrobe category selection must use the black pill and white foreground style');
 }
 
 for (const forbidden of [

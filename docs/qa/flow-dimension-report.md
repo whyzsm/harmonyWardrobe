@@ -27,9 +27,9 @@
 - 结论：**通过（静态）**；真实回显/重启持久化「待真机验证」
 - 证据：`Index.ets:175-188`、`ClothingEditPage.ets:119-125,267-286`、`ClothingRepository.ets:264-283`、`WardrobePage.ets:56-58,321-327`
 
-### J2 核心录入闭环·美搭（穿搭 → 美搭 → 回套装列表回显）
-- 步骤：底部相机 → 快捷面板「穿搭」→ OutfitEditPage → 选图/选关联衣物/填名 → 保存 → 回套装
-- 预期流转：归类为美搭；名称可空（生成默认「美搭 HH-MM…」）；保存回套装且卡片回显
+### J2 核心录入闭环·美搭（穿搭 → 美搭 → 回穿搭列表回显）
+- 步骤：底部相机 → 快捷面板「穿搭」→ OutfitEditPage → 选图/选关联衣物/填名 → 保存 → 回穿搭
+- 预期流转：归类为美搭；名称可空（生成默认「美搭 HH-MM…」）；保存回穿搭且卡片回显
 - 实际流转：
   - QuickCaptureSheet「穿搭」→`openQuickOutfitEditor()`→`AppRouteKind.OutfitEditor`/`AppMainTab.Outfit`（Index.ets:190-205, 331-348）
   - 默认名 `generatedOutfitTitle()`=「美搭 ${time}」（CaptureEditPage.ets:126-128；OutfitEditPage 同口径）
@@ -58,7 +58,7 @@
 
 ### J5 搜索 → 结果 → 详情（四类实体类型文案与跳转）
 - 步骤：衣柜搜索框 → 全局 SearchResultsPage → 看类型文案 → 点结果进对应详情
-- 预期流转：类型文案为 衣物 / 美搭 / 逛店记录 / 店铺；点击衣物→衣物详情，美搭→套装详情，逛店/店铺→逛店详情
+- 预期流转：类型文案为 衣物 / 美搭 / 逛店记录 / 店铺；点击衣物→衣物详情，美搭→穿搭详情，逛店/店铺→逛店详情
 - 实际流转：
   - `entityTypeLabel`：Clothing=衣物、Outfit=美搭、StoreVisit=逛店记录、Store=店铺（SearchResultsPage.ets:34-54）
   - 衣物结果：`onOpenClothingResult`→WardrobePage 内 `openClothingDetail`（WardrobePage.ets:351-312）
@@ -106,10 +106,10 @@
 - 证据：`WardrobePage.ets:385-406`、`StoreVisitPage.ets:554-612`、`SearchResultsPage.ets:334-340,680-745`
 
 ### J10 导航闭环·五标签互相可达 + 当前 tab 选中指示
-- 步骤：底部 衣柜/逛店/相机/套装/我的 互相切换
+- 步骤：底部 衣柜/逛店/相机/穿搭/我的 互相切换
 - 预期流转：四主标签互相可达；当前 tab 有清晰选中指示；相机仅图标无「拍照」文字
 - 实际流转：
-  - `BottomNavigationBar`：`NavItem('wardrobe','衣柜')`/`store','逛店'`/`outfit','套装'`/`profile','我的'` + 中间 `CameraIcon`（无文字）（BottomNavigationBar.ets:16-39,52-66）
+  - `BottomNavigationBar`：`NavItem('wardrobe','衣柜')`/`store','逛店'`/`outfit','穿搭'`/`profile','我的'` + 中间 `CameraIcon`（无文字）（BottomNavigationBar.ets:16-39,52-66）
   - 选中指示：`selected===value` 时图标/文字用 `textInverse`（白），未选用 `textTertiary`（灰）（BottomNavigationBar.ets:73,102）
   - 切换：`onSelectWardrobe/Store/Outfit/Profile`→`resetMainRoute` 到对应 `AppMainTab`（Index.ets:518-535）
 - 结论：**通过（静态）**；选中指示视觉对比度「待真机验证」
@@ -156,7 +156,7 @@
 
 ### J15 旧概念不串场·主流程无 首页/日历/逛街/心愿单 tab；衣柜无二级 tab
 - 步骤：检查底部导航与衣柜页分类
-- 预期流转：主导航仅 衣柜/逛店/相机/套装/我的；衣柜分类仅 全部/上衣/裤装/裙装，无 衣橱/美搭/日历 二级 tab
+- 预期流转：主导航仅 衣柜/逛店/相机/穿搭/我的；衣柜分类仅 全部/上衣/裤装/裙装，无 衣橱/美搭/日历 二级 tab
 - 实际流转：
   - 底部导航确为 5 项，无 首页/日历/逛街/心愿单（BottomNavigationBar.ets:16-39）
   - 衣柜 `WARDROBE_CATEGORY_FILTERS` = 全部/上衣/裤装/裙装（WardrobePage.ets:21-26），`WardrobeSearchTabs` 渲染同上

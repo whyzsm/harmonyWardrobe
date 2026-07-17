@@ -120,7 +120,7 @@ Today 页面：
 
 - 顶部使用紧凑标题和日期，不做大 Hero。
 - 今日穿搭状态用浅蓝信息卡承载，主行动按钮使用 `#4894FE`。
-- 最近套装继续使用两列网格，但卡片更像商品卡，图片优先、标题和件数次之。
+- 最近穿搭继续使用两列网格，但卡片更像商品卡，图片优先、标题和件数次之。
 
 Wardrobe 页面：
 
@@ -130,7 +130,7 @@ Wardrobe 页面：
 
 Outfits 页面：
 
-- 套装卡增加蓝色件数 badge。
+- 穿搭卡增加蓝色件数 badge。
 - “记录一次穿着”作为次级蓝色描边动作，而不是黑色工具按钮。
 - 创建按钮使用主蓝色。
 
@@ -196,7 +196,7 @@ Bottom navigation:
 - `SearchBar.ets`：统一搜索框高度、背景、边框和 placeholder 颜色。
 - `CategoryTabs.ets`：统一 chip 状态。
 - `ClothingCard.ets`：衣物商品卡，负责图片、名称、分类标签。
-- `OutfitCard.ets`：套装商品卡，负责封面、标题、件数 badge。
+- `OutfitCard.ets`：穿搭商品卡，负责封面、标题、件数 badge。
 - `WishlistCard.ets`：心愿单电商列表卡，负责图片、标题、门店、价格。
 - `MonthCalendar.ets`：日期选中态和记录态。
 - 各页面：只组合组件和页面级布局，不复制组件内部视觉规则。

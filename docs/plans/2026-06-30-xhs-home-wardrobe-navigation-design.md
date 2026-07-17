@@ -2,7 +2,7 @@
 
 ## 中文
 
-目标是把当前偏管理工具式的首页和底部导航，改成更接近小红书发现流的移动端体验，同时保留现有衣橱、套装、日历、逛街业务能力。
+目标是把当前偏管理工具式的首页和底部导航，改成更接近小红书发现流的移动端体验，同时保留现有衣橱、穿搭、日历、逛街业务能力。
 
 ## English
 
@@ -10,15 +10,15 @@ The goal is to move the current management-style home screen and bottom navigati
 
 ## 中文
 
-底部导航使用 `首页 / 衣橱 / + / 日历 / 逛街`。`今日` 改名为 `首页`，`衣橱` 保留为普通 tab，`套装` 不再作为底部 tab 出现。中间凸起的 `+` 是快捷操作入口，点击后打开快捷面板，包含 `添加衣服`、`创建套装`、`记录今日`。
+底部导航使用 `首页 / 衣橱 / + / 日历 / 逛街`。`今日` 改名为 `首页`，`衣橱` 保留为普通 tab，`穿搭` 不再作为底部 tab 出现。中间凸起的 `+` 是快捷操作入口，点击后打开快捷面板，包含 `添加衣服`、`创建穿搭`、`记录今日`。
 
 ## English
 
-The bottom navigation uses `首页 / 衣橱 / + / 日历 / 逛街`. `今日` is renamed to `首页`, `衣橱` remains a regular tab, and `套装` is no longer shown as a bottom tab. The raised center `+` is a quick action entry. Tapping it opens a quick action sheet with `添加衣服`, `创建套装`, and `记录今日`.
+The bottom navigation uses `首页 / 衣橱 / + / 日历 / 逛街`. `今日` is renamed to `首页`, `衣橱` remains a regular tab, and `穿搭` is no longer shown as a bottom tab. The raised center `+` is a quick action entry. Tapping it opens a quick action sheet with `添加衣服`, `创建穿搭`, and `记录今日`.
 
 ## 中文
 
-首页采用轻量顶部导航和双列内容流。顶部左侧显示日期或轻量入口，中间显示 `推荐 / 今日 / 灵感`，当前频道用 `#4894FE` 下划线强调，右侧显示搜索入口。主体以双列瀑布流展示今日穿搭、最近套装和最近记录。空态不再使用大块管理卡片，而是使用内容流占位卡。
+首页采用轻量顶部导航和双列内容流。顶部左侧显示日期或轻量入口，中间显示 `推荐 / 今日 / 灵感`，当前频道用 `#4894FE` 下划线强调，右侧显示搜索入口。主体以双列瀑布流展示今日穿搭、最近穿搭和最近记录。空态不再使用大块管理卡片，而是使用内容流占位卡。
 
 ## English
 

@@ -20,7 +20,7 @@
 
 1. **Use existing callbacks and routes.** `QuickCaptureSheet` remains presentation-only. It emits `onOpenWardrobe`, `onOpenStoreVisit`, and `onOpenOutfit`; `Index` maps them to `resetMainRoute` or `openStoreVisitList`.
 
-2. **Use 穿搭 as the visible shortcut label.** The destination is the existing outfit page represented by `AppMainTab.Outfit`; internal page terminology such as 套装/美搭 remains unchanged.
+2. **Use 穿搭 as the visible shortcut label.** The destination is the existing outfit page represented by `AppMainTab.Outfit`; internal page terminology such as 穿搭/美搭 remains unchanged.
 
 3. **Update active contracts, not historical reports.** Current design and QA documents must describe the restored behavior. Dated historical review reports remain historical snapshots.
 

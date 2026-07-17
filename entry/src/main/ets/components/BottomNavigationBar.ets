@@ -35,7 +35,7 @@ export struct BottomNavigationBar {
         this.onOpenCapture();
       })
 
-      this.NavItem('outfit', '套装')
+      this.NavItem('outfit', '穿搭')
       this.NavItem('profile', '我的')
     }
     .width('90%')

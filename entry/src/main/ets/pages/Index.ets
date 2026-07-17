@@ -479,15 +479,6 @@ struct Index {
               clothingRepository: this.runtime.clothingRepository,
               storeRepository: this.runtime.storeRepository,
               outfitRepository: this.runtime.outfitRepository,
-              onOpenStoreEditor: () => {
-                this.openQuickStoreEditor();
-              },
-              onOpenCapture: () => {
-                this.openQuickActions();
-              },
-              onOpenOutfits: () => {
-                this.resetMainRoute(AppMainTab.Outfit);
-              },
               onOpenWishlist: () => {
                 this.openWishlistPage('');
               },

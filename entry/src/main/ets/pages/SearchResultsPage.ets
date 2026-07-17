@@ -25,7 +25,7 @@ const SEARCH_SCOPES: SearchScopeOption[] = [
   { key: 'all', label: '全部' },
   { key: 'clothes', label: '衣物' },
   { key: 'shops', label: '逛店' },
-  { key: 'outfits', label: '套装' },
+  { key: 'outfits', label: '穿搭' },
   { key: 'profile', label: '我的' }
 ];
 
@@ -236,7 +236,7 @@ export struct SearchResultsPage {
 
     const nextQuery = this.searchText.trim();
     if (nextQuery.length === 0) {
-      this.inputErrorMessage = '先输入衣物、商场或套装关键词';
+      this.inputErrorMessage = '先输入衣物、商场或穿搭关键词';
       return;
     }
 
@@ -361,7 +361,7 @@ export struct SearchResultsPage {
         })
 
         Row({ space: 4 }) {
-          TextInput({ text: this.searchText, placeholder: '搜索衣服、商场、套装' })
+          TextInput({ text: this.searchText, placeholder: '搜索衣服、商场、穿搭' })
             .layoutWeight(1)
             .height(46)
             .padding({ left: 14, right: 4 })

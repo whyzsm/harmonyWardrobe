@@ -4,6 +4,5 @@ export interface UserProfile {
   waistCm?: number;
   frequentDistricts: string[];
   monthlyBudget?: number;
-  privacyModeEnabled: boolean;
   updatedAt: string;
 }

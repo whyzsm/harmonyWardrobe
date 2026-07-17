@@ -99,7 +99,7 @@ export struct OutfitsPage {
         await this.openWearLogById(this.initialWearLogId);
       }
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '加载套装失败';
+      this.errorMessage = error instanceof Error ? error.message : '加载穿搭失败';
     } finally {
       this.loading = false;
     }
@@ -336,7 +336,7 @@ export struct OutfitsPage {
               .height(22)
               .color(YibuqueColor.textPrimary)
 
-            Text('正在加载套装...')
+            Text('正在加载穿搭...')
               .fontSize(14)
               .fontColor(YibuqueColor.textSecondary)
           }
@@ -374,10 +374,10 @@ export struct OutfitsPage {
           .justifyContent(FlexAlign.Center)
         } else if (this.outfits.length === 0) {
           Column({ space: 14 }) {
-            this.OutfitEmptyState('还没有套装',
-              '拍照或从相册选图后，按分类收进套装。',
-              '点底部相机，选择照片后归类为套装',
-              '套装会按图片组合流排在这里。')
+            this.OutfitEmptyState('还没有穿搭',
+              '拍照或从相册选图后，按分类收进穿搭。',
+              '点底部相机，选择照片后归类为穿搭',
+              '穿搭会按图片组合流排在这里。')
           }
           .width('100%')
           .layoutWeight(1)
@@ -385,10 +385,10 @@ export struct OutfitsPage {
           .justifyContent(FlexAlign.Start)
         } else if (this.filterOutfits().length === 0) {
           Column({ space: 14 }) {
-            this.OutfitEmptyState('暂时没有这类套装',
-              '当前场景下还没有匹配的套装。',
-              '换一个场景看看，或查看全部套装',
-              '已有套装会继续按图片组合流排在这里。')
+            this.OutfitEmptyState('暂时没有这类穿搭',
+              '当前场景下还没有匹配的穿搭。',
+              '换一个场景看看，或查看全部穿搭',
+              '已有穿搭会继续按图片组合流排在这里。')
 
             Button('查看全部')
               .height(44)
@@ -540,7 +540,7 @@ export struct OutfitsPage {
     Row() {
       Row({ space: 12 }) {
         Column({ space: 2 }) {
-          Text(this.clothingItems.length > 0 ? '从已有单品开始搭配' : '先添加衣物再创建套装')
+          Text(this.clothingItems.length > 0 ? '从已有单品开始搭配' : '先添加衣物再创建穿搭')
             .fontSize(15)
             .fontWeight(FontWeight.Regular)
             .fontColor(YibuqueColor.textPrimary)

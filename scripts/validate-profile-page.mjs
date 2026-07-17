@@ -28,13 +28,21 @@ for (const needle of [
   'DistrictSheet',
   'BudgetSection',
   '本月逛街预算',
-  'ToolSection',
-  '新增逛店',
-  '拍照录入',
-  '套装清单',
-  'ReminderSection',
-  '本地与隐私',
+  'BudgetSheet',
+  'BudgetChip',
+  '调整本月预算',
+  'openBudgetEditor',
+  'saveBudget',
+  'monthlySpent',
+  'budgetProgressPercent',
+  'WishlistSection',
+  '我的清单',
+  '心愿清单',
+  '计划购买',
+  'LocalStorageSection',
+  '本地存储',
   '本地照片与记录',
+  "SymbolGlyph($r('sys.symbol.xmark'))",
   'ProfileRepository',
   'getProfile',
   'saveProfile',
@@ -72,6 +80,11 @@ for (const forbidden of [
   '2,050',
   '3,200',
   '64%',
+  '今天常用',
+  '新增逛店',
+  '拍照录入',
+  '穿搭清单',
+  '消费记录暂未接入预算统计',
   '导出清单',
   '备份衣柜数据'
 ]) {
@@ -93,7 +106,9 @@ for (const forbidden of [
   'commuteSelected',
   'casualSelected',
   'datingSelected',
-  'walkingSelected'
+  'walkingSelected',
+  '隐私模式',
+  'privacyModeEnabled'
 ]) {
   if (page.includes(forbidden)) {
     throw new Error(`ProfilePage must not include removed settings search logic: ${forbidden}`);
@@ -106,9 +121,7 @@ for (const needle of [
   'clothingRepository: this.runtime.clothingRepository',
   'storeRepository: this.runtime.storeRepository',
   'outfitRepository: this.runtime.outfitRepository',
-  'onOpenStoreEditor',
-  'onOpenCapture',
-  'onOpenOutfits',
+  'onOpenWishlist',
   'onNestedPageVisibilityChange'
 ]) {
   if (!index.includes(needle)) {
@@ -124,16 +137,8 @@ if (!/DistrictChip\(label: string, selected: boolean\)[\s\S]*?\.enabled\(!this\.
   throw new Error('ProfilePage district chips must be disabled while districts are saving');
 }
 
-if (!/ToggleRow\(title: string, subtitle: string, enabled: boolean, action: string\)[\s\S]*?\.enabled\(!this\.isSaving\)/.test(page)) {
-  throw new Error('ProfilePage privacy toggle must be disabled while preferences are saving');
-}
-
 if (!/DistrictChip\(label: string, selected: boolean\)[\s\S]*?this\.toggleDistrict\(label\)/.test(page)) {
   throw new Error('ProfilePage district chips must toggle saved locations');
-}
-
-if (!/ToggleRow\(title: string, subtitle: string, enabled: boolean, action: string\)[\s\S]*?if \(this\.isSaving\) \{[\s\S]*?return;/.test(page)) {
-  throw new Error('ProfilePage privacy handler must guard rapid clicks while saving');
 }
 
 console.log('PASS');

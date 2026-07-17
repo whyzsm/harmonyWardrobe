@@ -28,7 +28,7 @@ for (const needle of [
   }
 }
 
-for (const label of ['衣柜', '逛店', '套装', '我的']) {
+for (const label of ['衣柜', '逛店', '穿搭', '我的']) {
   if (!nav.includes(label)) {
     throw new Error(`BottomNavigationBar missing ${label}`);
   }
@@ -174,7 +174,7 @@ for (const forbidden of [
   "BottomTabItem(0, '首页')",
   "BottomTabItem(2, '日历')",
   "BottomTabItem(3, '逛街')",
-  '创建套装',
+  '创建穿搭',
   '记录今日'
 ]) {
   if (index.includes(forbidden)) {

@@ -55,7 +55,7 @@
 
 ### P0-5 QuickCaptureSheet 内容与规范定义偏离
 - 专家：B ｜ 位置：`components/QuickCaptureSheet.ets:60-70`
-- 现象：规范定义"快捷录入"为黑色主卡"拍一张"（白相机图标）+ 浅灰卡"从相册选择"。实际实现是三个**导航入口**「衣柜/逛店/套装」，且无相机图标；真实拍照/相册选择被下沉到各 Edit 页内部。
+- 现象：规范定义"快捷录入"为黑色主卡"拍一张"（白相机图标）+ 浅灰卡"从相册选择"。实际实现是三个**导航入口**「衣柜/逛店/穿搭」，且无相机图标；真实拍照/相册选择被下沉到各 Edit 页内部。
 - 影响：改变了规范核心流程"点底部相机 → 拍一张/从相册选择 → 归类为…"；与"衣不缺"主流程定义不一致。
 - 建议：按规范重建为「拍一张」（黑卡 + `sys.symbol.camera_fill`）与「从相册选择」（浅灰卡 + 灰边 + 中性灰图标底），点击进入 `CaptureEditPage` 并预选模式；或至少对齐为规范两项主操作。
 
@@ -84,7 +84,7 @@
 ### 交互 / 动效
 - **P1-9 全站零转场动画（最大体验短板）**：grep 全工程无任何 `pageTransition`/`animateTo`/`transition(`/`bindSheet`。主 Tab 切换、列表↔详情、列表↔编辑器全部 `if/else if` 整屏瞬切。→ 主内容切换加 `animateTo` 淡入/位移；详情/编辑器叠加用 `.transition` 或统一转场容器；`QuickCaptureSheet` 的 translate 范式可复用。
 - **P1-10 弹层只有进入动画、无退出动画**：`QuickCaptureSheet.onCancel` 直接置 `false` 瞬消失（进入用 `setTimeout 50ms + translate`）；`ClothingDetailPage.PhotoPreviewOverlay` 进入无 `.transition`。→ 退出时用 `animateTo`/`.transition` 同步收起。
-- **P1-11 套装墙 `Grid + ForEach` 未懒加载**：`OutfitsPage.ets:324-338` 与 `WardrobePage.ets:649` 的"美搭"墙用 `Grid+ForEach`，一次性构建全部 item；全工程无 `LazyForEach`。→ 改 `WaterFlow + FlowItem`（与衣橱/逛店一致）或 `Grid + LazyForEach` + `IDataSource`。
+- **P1-11 穿搭墙 `Grid + ForEach` 未懒加载**：`OutfitsPage.ets:324-338` 与 `WardrobePage.ets:649` 的"美搭"墙用 `Grid+ForEach`，一次性构建全部 item；全工程无 `LazyForEach`。→ 改 `WaterFlow + FlowItem`（与衣橱/逛店一致）或 `Grid + LazyForEach` + `IDataSource`。
 - **P1-12 偏好/风格/隐私切换无保存中态与防重入**：`ProfilePage.persistPreferences`（`:289-307`）被 `StyleTag`/`ToggleRow`/`PreferenceRow` 调用，无 `isSaving` 守卫、按钮不禁用、无 loading；快速连点多个风格标签会并发多次 `saveProfile` 写全量 profile。→ 抽取统一 `isSaving` 守卫（与 `saveProfile` 共用），切换期间禁用控件并显示轻量 loading。
 - **P1-13 相册/拍照按钮缺"进行中"防重入**：`StoreVisitEditPage.pickGalleryPhotos/captureStorePhoto` 仅检查 `isSaving`（`:100/:113`），`WearLogEditPage.pickGalleryPhotos/capturePhoto` 连 `isSaving` 都未检查；异步选图期间用户可连点两次拉起选择器。→ 对齐 `CaptureEditPage` 的 `isChoosingPhotos` 守卫，进行中禁用按钮。
 - **P1-14 全局 loading 仅文本，无 `LoadingProgress`**：`WardrobePage.ets:565`、`StoreVisitPage.ets:504`、`OutfitsPage.ets:253`、`ProfilePage`、`SearchResultsPage.ets:642` 等多为 `Text('正在加载…')` 或纯骨架屏。→ 关键首屏加载处加 `LoadingProgress()` 或品牌化 spinner。
@@ -131,7 +131,7 @@
 - 移除"待同步"暗示、补 WishlistEdit 标签（P1-7/8）。
 - 照片复制失败不静默入库非本地 URI（P1-2）。
 - 全站转场动画 + 弹层退出动画（P1-9/10）。
-- 套装墙改懒加载（P1-11）。
+- 穿搭墙改懒加载（P1-11）。
 - 偏好保存统一 `isSaving` + 相册选图加锁 + 全局 `LoadingProgress`（P1-12/13/14）。
 
 **第三优先（P2，打磨）**

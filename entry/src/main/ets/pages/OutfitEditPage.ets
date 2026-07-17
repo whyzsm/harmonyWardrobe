@@ -318,7 +318,7 @@ export struct OutfitEditPage {
     Column() {
       SecondaryPageHeader({
         title: this.initialOutfit === undefined ? '创建美搭' : '编辑美搭',
-        backAccessibilityText: '返回套装',
+        backAccessibilityText: '返回穿搭',
         onBack: () => {
           this.onCancel();
         }

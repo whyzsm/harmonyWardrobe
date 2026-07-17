@@ -7,7 +7,7 @@ TBD - created by archiving change architecture-convergence-2026-07-15. Update Pu
 The application SHALL represent its global main-screen and overlay navigation through a typed route model rather than independent boolean visibility flags.
 
 #### Scenario: Selecting a main tab
-- **WHEN** the user selects 衣柜、逛店、套装 or 我的
+- **WHEN** the user selects 衣柜、逛店、穿搭 or 我的
 - **THEN** the application activates exactly one corresponding main route and clears incompatible global overlays
 
 #### Scenario: Opening a global overlay

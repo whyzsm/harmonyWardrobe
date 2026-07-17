@@ -163,7 +163,7 @@ onOpenWearLogResult(entityId: string) { ... }
 
 **改动 C：底部导航加心愿单入口（推荐方案）**
 
-在 `BottomNavigationBar.ets` 现有的「衣柜/逛店/相机/套装/我的」五个位置中，将「我的」内含心愿单子入口，或在 ProfilePage 内增加「心愿单」区块。
+在 `BottomNavigationBar.ets` 现有的「衣柜/逛店/相机/穿搭/我的」五个位置中，将「我的」内含心愿单子入口，或在 ProfilePage 内增加「心愿单」区块。
 
 **注意**：`WishlistPage.ets` 当前已实现完整功能，`WishlistEditPage.ets` 亦然。接入即可用，改动量主要在 Index.ets 的导航状态管理（约 30-40 行）。
 

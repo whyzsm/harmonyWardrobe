@@ -31,7 +31,7 @@
 
 | 文件 | 审查内容 | 结果 | 本轮修改 |
 | --- | --- | --- | --- |
-| `README.md` | 核心能力和产品边界 | 已是衣物、套装/美搭、穿着记录、逛店、心愿和搜索 | 否 |
+| `README.md` | 核心能力和产品边界 | 已是衣物、穿搭/美搭、穿着记录、逛店、心愿和搜索 | 否 |
 | `docs/architecture.md` | 架构总览和领域/数据层描述 | 已无旧日期回顾能力描述 | 否 |
 | `AGENTS.md` | 项目上下文 | 改为 wear logs、store visits 等当前能力 | 是 |
 | `docs/qa/manual-test-script.md` | 当前手工验收口径 | 删除旧入口和旧复合 tab 描述 | 是 |
@@ -60,16 +60,16 @@
 | 旧口径 | 当前口径 | 影响文件 / 验收 |
 | --- | --- | --- |
 | `WardrobePage` 内部维护衣橱复合子页 | 衣柜页只保留衣物浏览、搜索、分类和双列瀑布流 | `WardrobePage.ets` 删除旧子页状态和复合 tab 组件 |
-| 从搜索 WearLog 进入衣柜复合子页 | 从搜索 WearLog 跳到底部 `套装` 页，并打开 `WearLogEditPage` | `Index.ets` 使用 `params.wearLogId` + `AppMainTab.Outfit` |
+| 从搜索 WearLog 进入衣柜复合子页 | 从搜索 WearLog 跳到底部 `穿搭` 页，并打开 `WearLogEditPage` | `Index.ets` 使用 `params.wearLogId` + `AppMainTab.Outfit` |
 | 旧交互脚本维护月份标记和专用页面 | 交互脚本只验收日期选择器、页面转场和卡片 pressed feedback | 当前脚本禁止已移除的旧页面与旧导航概念回归 |
-| README / architecture 混合旧能力描述 | 当前能力描述为衣物、套装/美搭、穿着记录、逛店、心愿和搜索 | `README.md`、`docs/architecture.md` 已同步 |
+| README / architecture 混合旧能力描述 | 当前能力描述为衣物、穿搭/美搭、穿着记录、逛店、心愿和搜索 | `README.md`、`docs/architecture.md` 已同步 |
 
 ## 保留但迁移的能力
 
 - 穿着记录没有删除。`WearLogRepository` 仍负责创建、更新、删除、按 ID 读取、全量读取和搜索索引维护。
-- `WearLogEditPage` 仍保留，用于套装页中记录或编辑一次穿着。
+- `WearLogEditPage` 仍保留，用于穿搭页中记录或编辑一次穿着。
 - 统一搜索仍支持 WearLog 结果，入口是 `OutfitsPage`。
-- 底部导航仍是 `衣柜 / 逛店 / 相机 / 套装 / 我的`，中间相机仍打开 `衣柜 / 逛店 / 穿搭` 快捷录入。
+- 底部导航仍是 `衣柜 / 逛店 / 相机 / 穿搭 / 我的`，中间相机仍打开 `衣柜 / 逛店 / 穿搭` 快捷录入。
 
 ## 当前仍禁止的旧方向
 
