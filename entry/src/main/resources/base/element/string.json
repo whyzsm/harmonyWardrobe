@@ -11,6 +11,10 @@
     {
       "name": "entry_ability_desc",
       "value": "Harmony Wardrobe main ability"
+    },
+    {
+      "name": "location_permission_reason",
+      "value": "用于获取当前位置的实时温度，帮助选择合适的穿搭。"
     }
   ]
 }

@@ -481,6 +481,7 @@ struct Index {
               clothingRepository: this.runtime.clothingRepository,
               storeRepository: this.runtime.storeRepository,
               outfitRepository: this.runtime.outfitRepository,
+              weatherService: this.runtime.weatherService,
               onOpenWishlist: () => {
                 this.openWishlistPage('');
               },

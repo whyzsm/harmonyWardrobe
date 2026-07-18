@@ -19,6 +19,7 @@ import { SearchIndexBootstrap } from '../data/searchIndex/SearchIndexBootstrap';
 import { HarmonyPhotoFileSystem } from '../media/HarmonyPhotoFileSystem';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
+import { WeatherService } from '../services/WeatherService';
 
 export interface WardrobeRuntimeDependencies {
   database: DatabaseProvider;
@@ -32,6 +33,7 @@ export interface WardrobeRuntimeDependencies {
   searchRepository: SearchRepository;
   photoPickerAdapter: PhotoPickerAdapter;
   photoStorage: PhotoStorage;
+  weatherService: WeatherService;
 }
 
 export class WardrobeRuntimeFactory {
@@ -50,6 +52,7 @@ export class WardrobeRuntimeFactory {
     const searchCapability = await detectSearchCapability(database);
     const searchIndexMode = searchCapability.mode;
     const photoStorage = new PhotoStorage(context.filesDir, new HarmonyPhotoFileSystem());
+    const weatherService = new WeatherService(context);
     const clothingRepository = new ClothingRepository(database, searchIndexMode, photoStorage);
     const outfitRepository = new OutfitRepository(database, searchIndexMode, photoStorage);
     const wearLogRepository = new WearLogRepository(database, searchIndexMode, photoStorage);
@@ -80,7 +83,8 @@ export class WardrobeRuntimeFactory {
       profileRepository,
       searchRepository,
       photoPickerAdapter: PhotoPickerAdapter.withHarmonyProviders(context),
-      photoStorage
+      photoStorage,
+      weatherService
     };
   }
 }

@@ -3,6 +3,7 @@ import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { ProfileRepository } from '../data/repositories/ProfileRepository';
 import { StoreRepository } from '../data/repositories/StoreRepository';
 import { UserProfile } from '../domain/profile/ProfileModels';
+import { WeatherService } from '../services/WeatherService';
 import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 import { userFacingError } from '../utils/userFacingError';
 
@@ -116,6 +117,7 @@ export struct ProfilePage {
   clothingRepository?: ClothingRepository = undefined;
   storeRepository?: StoreRepository = undefined;
   outfitRepository?: OutfitRepository = undefined;
+  weatherService?: WeatherService = undefined;
   onOpenWishlist: () => void = () => {};
   onNestedPageVisibilityChange: (visible: boolean) => void = (_visible: boolean) => {};
 
@@ -142,11 +144,68 @@ export struct ProfilePage {
   @State private wardrobeItemCount: number = 0;
   @State private storeVisitCount: number = 0;
   @State private outfitCount: number = 0;
+  @State private temperatureText: string = '--°';
+  @State private temperatureSummary: string = '获取实时温度';
+  @State private temperatureUpdatedText: string = '';
+  @State private isLoadingTemperature: boolean = false;
+  private temperatureRefreshTimer: number = -1;
 
   aboutToAppear(): void {
     this.loadProfile();
     this.loadWardrobeSummary();
     this.loadActivitySummary();
+    this.startTemperatureRefresh();
+  }
+
+  aboutToDisappear(): void {
+    this.stopTemperatureRefresh();
+    this.onNestedPageVisibilityChange(false);
+  }
+
+  private startTemperatureRefresh(): void {
+    if (this.temperatureRefreshTimer >= 0) {
+      return;
+    }
+
+    this.refreshTemperature();
+    this.temperatureRefreshTimer = setInterval(() => {
+      this.refreshTemperature();
+    }, 15 * 60 * 1000);
+  }
+
+  private stopTemperatureRefresh(): void {
+    if (this.temperatureRefreshTimer < 0) {
+      return;
+    }
+
+    clearInterval(this.temperatureRefreshTimer);
+    this.temperatureRefreshTimer = -1;
+  }
+
+  private async refreshTemperature(): Promise<void> {
+    if (this.weatherService === undefined || this.isLoadingTemperature) {
+      return;
+    }
+
+    this.isLoadingTemperature = true;
+    try {
+      const reading = await this.weatherService.fetchCurrentTemperature();
+      this.temperatureText = `${Math.round(reading.celsius)}°`;
+      this.temperatureSummary = reading.summary.length > 0 ? reading.summary : '实时天气';
+      this.temperatureUpdatedText = this.temperatureUpdateText(reading.updatedAt);
+    } catch (_error) {
+      this.temperatureText = '--°';
+      this.temperatureSummary = '点击重试';
+      this.temperatureUpdatedText = '';
+    } finally {
+      this.isLoadingTemperature = false;
+    }
+  }
+
+  private temperatureUpdateText(updatedAt: Date): string {
+    const hours = updatedAt.getHours().toString().padStart(2, '0');
+    const minutes = updatedAt.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes} 更新`;
   }
 
   private async loadProfile(): Promise<void> {
@@ -555,42 +614,56 @@ export struct ProfilePage {
       .height('100%')
       .opacity(this.wardrobePhotoUris.length > 0 ? 0.76 : 1)
 
-      Column() {
-        Text('我的衣柜档案')
-          .height(30)
-          .padding({ left: 11, right: 11 })
-          .fontSize(12)
-          .fontWeight(FontWeight.Regular)
-          .fontColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
-          .textAlign(TextAlign.Center)
-          .backgroundColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.glassLight : YibuqueColor.cardWhite)
-          .borderRadius(YibuqueRadius.full)
-
-        Blank()
-
-        Column({ space: 6 }) {
-          Text('周末逛店计划')
-            .width('100%')
-            .fontSize(28)
-            .lineHeight(30)
+      Row() {
+        Column() {
+          Text('我的衣柜档案')
+            .height(30)
+            .padding({ left: 11, right: 11 })
+            .fontSize(12)
             .fontWeight(FontWeight.Regular)
             .fontColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
+            .textAlign(TextAlign.Center)
+            .backgroundColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.glassLight : YibuqueColor.cardWhite)
+            .borderRadius(YibuqueRadius.full)
 
-          Text('尺码、预算、常逛商圈和购买备注，都集中在这里管理。')
-            .width(270)
-            .fontSize(13)
-            .lineHeight(18)
-            .fontWeight(FontWeight.Regular)
-            .fontColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.glassMedium : YibuqueColor.textSecondary)
-            .maxLines(2)
+          Blank()
+
+          Column({ space: 6 }) {
+            Text('周末逛店计划')
+              .width('100%')
+              .fontSize(24)
+              .lineHeight(28)
+              .fontWeight(FontWeight.Regular)
+              .fontColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
+              .maxLines(1)
+
+            Text('尺码、预算、常逛商圈和购买备注，都集中在这里管理。')
+              .width('100%')
+              .fontSize(13)
+              .lineHeight(18)
+              .fontWeight(FontWeight.Regular)
+              .fontColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.glassMedium : YibuqueColor.textSecondary)
+              .maxLines(2)
+          }
+          .width('100%')
+          .alignItems(HorizontalAlign.Start)
         }
-        .width('100%')
+        .layoutWeight(11)
+        .height('100%')
+        .padding(16)
         .alignItems(HorizontalAlign.Start)
+
+        Column() {
+          this.TemperatureControl()
+        }
+        .layoutWeight(9)
+        .height('100%')
+        .padding({ left: 6, right: 16 })
+        .justifyContent(FlexAlign.Center)
+        .alignItems(HorizontalAlign.Center)
       }
       .width('100%')
       .height('100%')
-      .padding(16)
-      .alignItems(HorizontalAlign.Start)
       .backgroundColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.scrimMedium : YibuqueColor.transparent)
     }
     .width('100%')
@@ -633,6 +706,45 @@ export struct ProfilePage {
     }
     .width('100%')
     .margin({ top: 10, bottom: 14 })
+  }
+
+  @Builder
+  TemperatureControl() {
+    Button() {
+      Row({ space: 8 }) {
+        SymbolGlyph($r('sys.symbol.thermometer_medium_fill'))
+          .fontSize(20)
+          .fontColor([YibuqueColor.iconAccent])
+
+        Column({ space: 1 }) {
+          Text(this.isLoadingTemperature ? '获取中...' : this.temperatureText)
+            .fontSize(18)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textPrimary)
+            .lineHeight(21)
+
+          Text(this.isLoadingTemperature ? '实时温度' : this.temperatureSummary)
+            .fontSize(11)
+            .fontColor(YibuqueColor.textSecondary)
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+        }
+        .alignItems(HorizontalAlign.Start)
+      }
+    }
+      .width('100%')
+      .height(56)
+      .padding({ left: 12, right: 12 })
+      .backgroundColor(YibuqueColor.cardWhite)
+      .borderRadius(YibuqueRadius.xxl)
+      .border({ width: 1, color: YibuqueColor.borderLight })
+      .enabled(!this.isLoadingTemperature)
+      .accessibilityText(this.isLoadingTemperature
+        ? '正在获取实时温度'
+        : `实时温度 ${this.temperatureText}，${this.temperatureSummary}${this.temperatureUpdatedText.length > 0 ? `，${this.temperatureUpdatedText}` : ''}，点击刷新`)
+      .onClick(() => {
+        this.refreshTemperature();
+      })
   }
 
   @Builder

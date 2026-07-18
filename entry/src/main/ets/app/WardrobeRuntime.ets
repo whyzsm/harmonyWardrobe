@@ -11,6 +11,7 @@ import { WishlistRepository } from '../data/repositories/WishlistRepository';
 import { SearchIndexMode } from '../data/searchIndex/SearchCapability';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
+import { WeatherService } from '../services/WeatherService';
 
 export class WardrobeRuntime {
   readonly database: DatabaseProvider;
@@ -24,6 +25,7 @@ export class WardrobeRuntime {
   readonly searchRepository: SearchRepository;
   readonly photoPickerAdapter: PhotoPickerAdapter;
   readonly photoStorage: PhotoStorage;
+  readonly weatherService: WeatherService;
 
   private constructor(
     database: DatabaseProvider,
@@ -36,7 +38,8 @@ export class WardrobeRuntime {
     profileRepository: ProfileRepository,
     searchRepository: SearchRepository,
     photoPickerAdapter: PhotoPickerAdapter,
-    photoStorage: PhotoStorage
+    photoStorage: PhotoStorage,
+    weatherService: WeatherService
   ) {
     this.database = database;
     this.searchIndexMode = searchIndexMode;
@@ -49,6 +52,7 @@ export class WardrobeRuntime {
     this.searchRepository = searchRepository;
     this.photoPickerAdapter = photoPickerAdapter;
     this.photoStorage = photoStorage;
+    this.weatherService = weatherService;
   }
 
   static async create(context: common.Context): Promise<WardrobeRuntime> {
@@ -65,7 +69,8 @@ export class WardrobeRuntime {
       dependencies.profileRepository,
       dependencies.searchRepository,
       dependencies.photoPickerAdapter,
-      dependencies.photoStorage
+      dependencies.photoStorage,
+      dependencies.weatherService
     );
   }
 }
