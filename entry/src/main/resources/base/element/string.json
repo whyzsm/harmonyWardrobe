@@ -2,15 +2,15 @@
   "string": [
     {
       "name": "app_name",
-      "value": "Harmony Wardrobe"
+      "value": "衣不缺"
     },
     {
       "name": "module_desc",
-      "value": "Harmony Wardrobe entry module"
+      "value": "Yibuque entry module"
     },
     {
       "name": "entry_ability_desc",
-      "value": "Harmony Wardrobe main ability"
+      "value": "Yibuque main ability"
     }
   ]
 }

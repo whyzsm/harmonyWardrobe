@@ -1,6 +1,6 @@
 {
   "app": {
-    "bundleName": "com.harmonywardrobe.app",
+    "bundleName": "io.wardrobe.tiny",
     "vendor": "Harmony Wardrobe",
     "versionCode": 1000000,
     "versionName": "1.0.0",

@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-BUNDLE_NAME="${BUNDLE_NAME:-com.harmonywardrobe.app}"
+BUNDLE_NAME="${BUNDLE_NAME:-io.wardrobe.tiny}"
 ABILITY_NAME="${ABILITY_NAME:-EntryAbility}"
 HAP_PATH="${HAP_PATH:-entry/build/default/outputs/default/entry-default-unsigned.hap}"
 DEVICE_SCREENSHOT_PATH="${DEVICE_SCREENSHOT_PATH:-/data/local/tmp/harmony_wardrobe_emulator_debug.jpeg}"
