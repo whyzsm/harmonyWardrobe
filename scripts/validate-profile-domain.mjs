@@ -8,6 +8,10 @@ for (const needle of [
   'heightCm?: number',
   'weightKg?: number',
   'waistCm?: number',
+  'upperSize?: string',
+  'lowerSize?: string',
+  'shoeSize?: string',
+  'commonBudgets: number[]',
   'updatedAt: string'
 ]) {
   if (!text.includes(needle)) {

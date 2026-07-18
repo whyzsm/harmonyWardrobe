@@ -20,7 +20,7 @@ const interfaceFields = [
   ['entry/src/main/ets/domain/search/SearchModels.ets', 'SearchResult', ['entityType', 'entityId', 'title']],
   ['entry/src/main/ets/domain/store/StoreModels.ets', 'Store', ['id', 'name', 'districtOrAddress', 'photoUris', 'note', 'createdAt', 'updatedAt']],
   ['entry/src/main/ets/domain/store/StoreModels.ets', 'StoreVisit', ['id', 'storeId', 'storeNameSnapshot', 'visitDate', 'photoUris', 'note', 'createdAt', 'updatedAt']],
-  ['entry/src/main/ets/domain/profile/ProfileModels.ets', 'UserProfile', ['heightCm', 'weightKg', 'waistCm', 'updatedAt']]
+  ['entry/src/main/ets/domain/profile/ProfileModels.ets', 'UserProfile', ['heightCm', 'weightKg', 'waistCm', 'commonBudgets', 'updatedAt']]
 ];
 
 for (const [file, needles] of checks) {

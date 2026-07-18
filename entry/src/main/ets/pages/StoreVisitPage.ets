@@ -6,6 +6,7 @@ import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 import { ArrayDataSource } from '../utils/ArrayDataSource';
 import { toIsoDate } from '../utils/date';
 import { userFacingError } from '../utils/userFacingError';
+import { StoreVisitDetailPage } from './StoreVisitDetailPage';
 import { StoreVisitEditPage } from './StoreVisitEditPage';
 
 interface StoreVisitStatusFilter {
@@ -45,6 +46,8 @@ export struct StoreVisitPage {
   @State private selectedStatus: string = 'all';
   @State private showEditor: boolean = false;
   @State private editingVisitId: string = '';
+  @State private showDetail: boolean = false;
+  @State private detailVisitId: string = '';
   @State private loading: boolean = false;
   @State private errorMessage: string = '';
   @State private pressedVisitCardId: string = '';
@@ -70,7 +73,7 @@ export struct StoreVisitPage {
       if (this.initialVisitId.length > 0) {
         for (const visit of this.visits) {
           if (visit.id === this.initialVisitId) {
-            this.openVisitEditor(visit);
+            this.openVisitDetail(visit);
             break;
           }
         }
@@ -142,6 +145,32 @@ export struct StoreVisitPage {
     return undefined;
   }
 
+  private detailVisit(): StoreVisit | undefined {
+    for (const visit of this.visits) {
+      if (visit.id === this.detailVisitId) {
+        return visit;
+      }
+    }
+    return undefined;
+  }
+
+  private detailStatusLabel(): string {
+    const visit = this.detailVisit();
+    return visit === undefined ? '已去' : this.visitBadge(visit);
+  }
+
+  private openVisitDetail(visit: StoreVisit): void {
+    this.detailVisitId = visit.id;
+    this.showDetail = true;
+    this.onEditorVisibilityChange(true);
+  }
+
+  private closeDetail(): void {
+    this.showDetail = false;
+    this.detailVisitId = '';
+    this.onEditorVisibilityChange(false);
+  }
+
   private openVisitEditor(visit: StoreVisit): void {
     this.editingVisitId = visit.id;
     this.showEditor = true;
@@ -151,7 +180,7 @@ export struct StoreVisitPage {
   private closeEditor(): void {
     this.showEditor = false;
     this.editingVisitId = '';
-    this.onEditorVisibilityChange(false);
+    this.onEditorVisibilityChange(this.showDetail);
   }
 
   private selectStatus(filter: StoreVisitStatusFilter): void {
@@ -197,6 +226,10 @@ export struct StoreVisitPage {
     await this.storeRepository.deleteStoreVisit(visit.id);
     this.visits = this.visits.filter((existingVisit: StoreVisit) => existingVisit.id !== visit.id);
     this.refreshStoreVisitDataSource();
+    if (this.detailVisitId === visit.id) {
+      this.showDetail = false;
+      this.detailVisitId = '';
+    }
     this.closeEditor();
   }
 
@@ -289,6 +322,17 @@ export struct StoreVisitPage {
         },
         onCancel: () => {
           this.closeEditor();
+        }
+      })
+    } else if (this.showDetail) {
+      StoreVisitDetailPage({
+        visit: this.detailVisit(),
+        statusLabel: this.detailStatusLabel(),
+        onBack: () => {
+          this.closeDetail();
+        },
+        onEdit: (visit: StoreVisit) => {
+          this.openVisitEditor(visit);
         }
       })
     } else {
@@ -463,9 +507,9 @@ export struct StoreVisitPage {
       }, (visit: StoreVisit) => visit.id)
     }
     .columnsTemplate('1fr 1fr')
-    .columnsGap(13)
-    .rowsGap(18)
-    .padding({ bottom: 96 })
+    .columnsGap(16)
+    .rowsGap(8)
+    .padding({ top: 4, bottom: 56 })
     .width('100%')
     .height('100%')
     .layoutWeight(1)
@@ -474,7 +518,7 @@ export struct StoreVisitPage {
 
   @Builder
   StoreVisitResultCard(visit: StoreVisit, index: number) {
-    Column({ space: 8 }) {
+    Column({ space: 2 }) {
       Stack({ alignContent: Alignment.TopStart }) {
         if (this.coverPhotoUri(visit).length > 0) {
           Image(this.coverPhotoUri(visit))
@@ -550,7 +594,7 @@ export struct StoreVisitPage {
     })
     .accessibilityText(`${visit.storeNameSnapshot}，${this.visitBadge(visit)}，${this.visitMeta(visit)}`)
     .onClick(() => {
-      this.openVisitEditor(visit);
+      this.openVisitDetail(visit);
     })
   }
 

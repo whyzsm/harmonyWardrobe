@@ -7,6 +7,8 @@ import { v3StoreVisitSchema } from '../data/migrations/V3StoreVisitSchema';
 import { v4StoreVisitDetails } from '../data/migrations/V4StoreVisitDetails';
 import { v5ProfilePreferences } from '../data/migrations/V5ProfilePreferences';
 import { v6StoreNormalizedName } from '../data/migrations/V6StoreNormalizedName';
+import { v7ProfileCommonLists } from '../data/migrations/V7ProfileCommonLists';
+import { v8ProfileSizes } from '../data/migrations/V8ProfileSizes';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { ProfileRepository } from '../data/repositories/ProfileRepository';
@@ -19,7 +21,6 @@ import { SearchIndexBootstrap } from '../data/searchIndex/SearchIndexBootstrap';
 import { HarmonyPhotoFileSystem } from '../media/HarmonyPhotoFileSystem';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { WeatherService } from '../services/WeatherService';
 
 export interface WardrobeRuntimeDependencies {
   database: DatabaseProvider;
@@ -33,7 +34,6 @@ export interface WardrobeRuntimeDependencies {
   searchRepository: SearchRepository;
   photoPickerAdapter: PhotoPickerAdapter;
   photoStorage: PhotoStorage;
-  weatherService: WeatherService;
 }
 
 export class WardrobeRuntimeFactory {
@@ -45,14 +45,15 @@ export class WardrobeRuntimeFactory {
       v3StoreVisitSchema,
       v4StoreVisitDetails,
       v5ProfilePreferences,
-      v6StoreNormalizedName
+      v6StoreNormalizedName,
+      v7ProfileCommonLists,
+      v8ProfileSizes
     ]);
     await migrationRunner.runMigrations();
 
     const searchCapability = await detectSearchCapability(database);
     const searchIndexMode = searchCapability.mode;
     const photoStorage = new PhotoStorage(context.filesDir, new HarmonyPhotoFileSystem());
-    const weatherService = new WeatherService(context);
     const clothingRepository = new ClothingRepository(database, searchIndexMode, photoStorage);
     const outfitRepository = new OutfitRepository(database, searchIndexMode, photoStorage);
     const wearLogRepository = new WearLogRepository(database, searchIndexMode, photoStorage);
@@ -83,8 +84,7 @@ export class WardrobeRuntimeFactory {
       profileRepository,
       searchRepository,
       photoPickerAdapter: PhotoPickerAdapter.withHarmonyProviders(context),
-      photoStorage,
-      weatherService
+      photoStorage
     };
   }
 }

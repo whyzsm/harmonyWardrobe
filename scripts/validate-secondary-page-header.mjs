@@ -3,7 +3,9 @@ import fs from 'node:fs';
 const pageFiles = [
   'entry/src/main/ets/pages/CaptureEditPage.ets',
   'entry/src/main/ets/pages/ClothingDetailPage.ets',
+  'entry/src/main/ets/pages/OutfitDetailPage.ets',
   'entry/src/main/ets/pages/ClothingEditPage.ets',
+  'entry/src/main/ets/pages/StoreVisitDetailPage.ets',
   'entry/src/main/ets/pages/OutfitEditPage.ets',
   'entry/src/main/ets/pages/StoreVisitEditPage.ets',
   'entry/src/main/ets/pages/WearLogEditPage.ets',
@@ -130,7 +132,9 @@ for (const file of pageFiles) {
     !source.includes('SecondaryPageHeader({')) {
     throw new Error(`${file} must use the shared secondary page header`);
   }
-  if (!file.endsWith('/ClothingDetailPage.ets')) {
+  if (!file.endsWith('/ClothingDetailPage.ets') &&
+    !file.endsWith('/OutfitDetailPage.ets') &&
+    !file.endsWith('/StoreVisitDetailPage.ets')) {
     assertPinnedRoot(blockAfter(source, 'build()').body, file, 'SecondaryPageHeader({');
   }
 }
@@ -147,6 +151,17 @@ assertPinnedRoot(contentBranch.body, 'ClothingDetailPage content state', 'this.D
 const detailTopBarBody = blockAfter(detailPage, 'DetailTopBar()').body.trimStart();
 if (!detailTopBarBody.startsWith('SecondaryPageHeader({')) {
   throw new Error('ClothingDetailPage DetailTopBar must render SecondaryPageHeader first');
+}
+
+for (const file of [
+  'entry/src/main/ets/pages/OutfitDetailPage.ets',
+  'entry/src/main/ets/pages/StoreVisitDetailPage.ets'
+]) {
+  const source = fs.readFileSync(file, 'utf8');
+  const topBarBody = blockAfter(source, 'DetailTopBar()').body.trimStart();
+  if (!topBarBody.startsWith('SecondaryPageHeader({')) {
+    throw new Error(`${file} DetailTopBar must render SecondaryPageHeader first`);
+  }
 }
 
 console.log('PASS');

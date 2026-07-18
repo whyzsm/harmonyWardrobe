@@ -24,15 +24,19 @@ for (const needle of [
   '常逛商圈',
   '管理常逛商圈',
   '常逛地点',
+  'TX 淮海',
   '补充地点',
   'DistrictSheet',
   'BudgetSection',
-  '本月逛街预算',
+  '本月逛店预算',
   'BudgetSheet',
   'BudgetChip',
   '调整本月预算',
   'openBudgetEditor',
   'saveBudget',
+  'commonBudgets',
+  'removeBudget',
+  'MAX_COMMON_ITEMS',
   'monthlySpent',
   'budgetProgressPercent',
   'WishlistSection',
@@ -52,13 +56,24 @@ for (const needle of [
   'listStoreVisits',
   'OutfitRepository',
   'listOutfits',
-  'wardrobePhotoUris',
   'wardrobeItemCount',
   'storeVisitCount',
   'outfitCount',
+  '本月 ${formatBudgetAmount(this.monthlyBudget)}',
+  'formatBudgetAmount(this.budgetRemaining())',
+  '本月剩余预算',
   '身高',
   '体重',
   '腰围',
+  '常用衣物尺码',
+  '上衣',
+  '裤装',
+  '鞋',
+  'upperSize',
+  'lowerSize',
+  'shoeSize',
+  'SizeField',
+  '保存后会显示在“我的偏好”的常用尺码中。',
   'isSaving',
   'LoadingProgress()',
   'hasInvalidMeasurements',
@@ -86,7 +101,9 @@ for (const forbidden of [
   '穿搭清单',
   '消费记录暂未接入预算统计',
   '导出清单',
-  '备份衣柜数据'
+  '备份衣柜数据',
+  'wardrobePhotoUris',
+  'HeroPhoto'
 ]) {
   if (page.includes(forbidden)) {
     throw new Error(`ProfilePage must not include ${forbidden}`);
@@ -108,7 +125,13 @@ for (const forbidden of [
   'datingSelected',
   'walkingSelected',
   '隐私模式',
-  'privacyModeEnabled'
+  'privacyModeEnabled',
+  'WeatherService',
+  'weatherService',
+  'TemperatureControl',
+  'temperatureText',
+  '实时温度',
+  '天气服务不可用'
 ]) {
   if (page.includes(forbidden)) {
     throw new Error(`ProfilePage must not include removed settings search logic: ${forbidden}`);
@@ -127,6 +150,10 @@ for (const needle of [
   if (!index.includes(needle)) {
     throw new Error(`Index missing ${needle}`);
   }
+}
+
+if (index.includes('weatherService') || index.includes('WeatherService')) {
+  throw new Error('Index must not wire the removed weather service');
 }
 
 if (!/\.enabled\(!this\.isSaving && \(action !== 'size' \|\| !this\.isLoading\)\)/.test(page)) {

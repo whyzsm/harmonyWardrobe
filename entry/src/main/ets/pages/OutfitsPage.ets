@@ -9,6 +9,7 @@ import { PhotoStorage } from '../media/PhotoStorage';
 import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
 import { ArrayDataSource } from '../utils/ArrayDataSource';
 import { userFacingError } from '../utils/userFacingError';
+import { OutfitDetailPage } from './OutfitDetailPage';
 import { OutfitEditPage } from './OutfitEditPage';
 import { WearLogEditPage } from './WearLogEditPage';
 
@@ -19,14 +20,13 @@ interface OutfitSceneFilter {
 
 const OUTFIT_SCENE_FILTERS: OutfitSceneFilter[] = [
   { label: '全部' },
-  { label: '逛街', keywords: ['逛街', '逛店', '试衣', '购物'] },
+  { label: '逛店', keywords: ['逛街', '逛店', '试衣', '购物'] },
   { label: '周末', keywords: ['周末', '休闲', '轻便', '出游'] },
   { label: '通勤', keywords: ['通勤', '上班', '工作', '职场'] }
 ];
 
 const ERROR = YibuqueColor.danger;
 const ERROR_BG = YibuqueColor.cardSoftGray;
-const RECORD_WEAR_ACCESSIBILITY_TEXT = '记录一次穿着';
 function emptyWearLog(): WearLog {
   return {
     id: '',
@@ -58,6 +58,8 @@ export struct OutfitsPage {
   @State private outfitDataSource: ArrayDataSource<OutfitTemplate> = new ArrayDataSource<OutfitTemplate>();
   @State private clothingItems: ClothingItem[] = [];
   @State private selectedOutfitId: string = '';
+  @State private showOutfitDetail: boolean = false;
+  @State private detailOutfitId: string = '';
   @State private selectedWearLogId: string = '';
   @State private selectedWearLog: WearLog = emptyWearLog();
   @State private showOutfitEditor: boolean = false;
@@ -91,7 +93,7 @@ export struct OutfitsPage {
       if (this.initialOutfitId.length > 0) {
         for (const outfit of this.outfits) {
           if (outfit.id === this.initialOutfitId) {
-            this.onEditOutfit(outfit);
+            this.openOutfitDetail(outfit);
             break;
           }
         }
@@ -174,6 +176,12 @@ export struct OutfitsPage {
     return `${this.outfitSceneLabel(outfit)} · ${detail}`;
   }
 
+  private displayOutfitTitle(outfit: OutfitTemplate): string {
+    const autoTitlePattern = /^(穿搭|美搭) \d{2}-\d{2} \d{2}:\d{2}$/;
+    const match = autoTitlePattern.exec(outfit.title.trim());
+    return match === null ? outfit.title : match[1];
+  }
+
   private selectedOutfit(): OutfitTemplate | undefined {
     if (this.selectedOutfitId.length === 0) {
       return undefined;
@@ -185,6 +193,15 @@ export struct OutfitsPage {
       }
     }
 
+    return undefined;
+  }
+
+  private detailOutfit(): OutfitTemplate | undefined {
+    for (const outfit of this.outfits) {
+      if (outfit.id === this.detailOutfitId) {
+        return outfit;
+      }
+    }
     return undefined;
   }
 
@@ -221,12 +238,16 @@ export struct OutfitsPage {
     this.onNestedPageVisibilityChange(true);
   }
 
-  private onRecordWear(outfit?: OutfitTemplate): void {
-    this.selectedWearLog = emptyWearLog();
-    this.selectedWearLogId = '';
-    this.selectedOutfitId = outfit?.id ?? '';
-    this.showWearLogEditor = true;
+  private openOutfitDetail(outfit: OutfitTemplate): void {
+    this.detailOutfitId = outfit.id;
+    this.showOutfitDetail = true;
     this.onNestedPageVisibilityChange(true);
+  }
+
+  private closeOutfitDetail(): void {
+    this.showOutfitDetail = false;
+    this.detailOutfitId = '';
+    this.onNestedPageVisibilityChange(false);
   }
 
   private upsertOutfit(savedOutfit: OutfitTemplate): void {
@@ -258,6 +279,10 @@ export struct OutfitsPage {
     await this.outfitRepository.deleteOutfit(outfit.id);
     this.outfits = this.outfits.filter((existingOutfit: OutfitTemplate) => existingOutfit.id !== outfit.id);
     this.refreshOutfitDataSource();
+    if (this.detailOutfitId === outfit.id) {
+      this.showOutfitDetail = false;
+      this.detailOutfitId = '';
+    }
     this.closeOutfitEditor();
   }
 
@@ -273,7 +298,7 @@ export struct OutfitsPage {
   private closeOutfitEditor(): void {
     this.showOutfitEditor = false;
     this.selectedOutfitId = '';
-    this.onNestedPageVisibilityChange(false);
+    this.onNestedPageVisibilityChange(this.showOutfitDetail);
   }
 
   private closeWearLogEditor(): void {
@@ -281,7 +306,7 @@ export struct OutfitsPage {
     this.selectedWearLog = emptyWearLog();
     this.selectedWearLogId = '';
     this.selectedOutfitId = '';
-    this.onNestedPageVisibilityChange(false);
+    this.onNestedPageVisibilityChange(this.showOutfitDetail);
   }
 
   private retry(): void {
@@ -323,6 +348,17 @@ export struct OutfitsPage {
         },
         onCancel: () => {
           this.closeWearLogEditor();
+        }
+      })
+    } else if (this.showOutfitDetail) {
+      OutfitDetailPage({
+        outfit: this.detailOutfit(),
+        clothingItems: this.clothingItems,
+        onBack: () => {
+          this.closeOutfitDetail();
+        },
+        onEdit: (outfit: OutfitTemplate) => {
+          this.onEditOutfit(outfit);
         }
       })
     } else {
@@ -522,7 +558,7 @@ export struct OutfitsPage {
       SymbolGlyph($r('sys.symbol.hanger_and_towels'))
         .fontSize(17)
         .fontColor([this.selectedFilterLabel === label ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
-    } else if (label === '逛街') {
+    } else if (label === '逛店') {
       SymbolGlyph($r('sys.symbol.bag'))
         .fontSize(17)
         .fontColor([this.selectedFilterLabel === label ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
@@ -590,12 +626,12 @@ export struct OutfitsPage {
       .width('100%')
       .aspectRatio(this.outfitStackAspectRatio(index))
       .onClick(() => {
-        this.onEditOutfit(outfit);
+        this.openOutfitDetail(outfit);
       })
 
       Row({ space: 8 }) {
         Column({ space: 2 }) {
-          Text(outfit.title)
+          Text(this.displayOutfitTitle(outfit))
             .fontSize(14)
             .fontWeight(FontWeight.Regular)
             .fontColor(YibuqueColor.textPrimary)
@@ -603,7 +639,7 @@ export struct OutfitsPage {
             .maxLines(1)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
             .onClick(() => {
-              this.onEditOutfit(outfit);
+              this.openOutfitDetail(outfit);
             })
 
           Text(this.outfitMeta(outfit))
@@ -616,18 +652,6 @@ export struct OutfitsPage {
         .layoutWeight(1)
         .alignItems(HorizontalAlign.Start)
 
-        Button('记录穿着')
-          .height(44)
-          .padding({ left: 10, right: 10 })
-          .fontSize(11)
-          .fontColor(YibuqueColor.textPrimary)
-          .backgroundColor(YibuqueColor.cardSoftGray)
-          .borderRadius(YibuqueRadius.full)
-          .border({ width: 1, color: YibuqueColor.borderMedium })
-          .accessibilityText(RECORD_WEAR_ACCESSIBILITY_TEXT)
-          .onClick(() => {
-            this.onRecordWear(outfit);
-          })
       }
       .width('100%')
       .constraintSize({ minHeight: 44 })

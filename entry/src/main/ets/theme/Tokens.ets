@@ -39,6 +39,7 @@ export interface YibuqueColorTokens {
   actionBlack: string;
   iconAccent: string;
   iconAccentSurface: string;
+  profileHeroSurface: string;
   selectionAccent: string;
   selectionAccentSurface: string;
   success: string;
@@ -193,6 +194,7 @@ export const YibuqueColor: YibuqueColorTokens = {
   actionBlack: '#1D1D1F',
   iconAccent: '#0071E3',
   iconAccentSurface: '#EAF3FE',
+  profileHeroSurface: '#E2EEFC',
   selectionAccent: '#0071E3',
   selectionAccentSurface: '#EAF3FE',
   success: '#16A34A',

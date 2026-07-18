@@ -3,13 +3,13 @@ import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { ProfileRepository } from '../data/repositories/ProfileRepository';
 import { StoreRepository } from '../data/repositories/StoreRepository';
 import { UserProfile } from '../domain/profile/ProfileModels';
-import { WeatherService } from '../services/WeatherService';
 import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 import { userFacingError } from '../utils/userFacingError';
 
 const DEFAULT_FREQUENT_DISTRICTS: string[] = ['静安嘉里', 'iapm', '小众买手店', 'TX 淮海'];
 const DEFAULT_SELECTED_FREQUENT_DISTRICTS: string[] = ['静安嘉里', 'iapm', '小众买手店'];
-const COMMON_BUDGETS: number[] = [2400, 3200, 4000, 5200];
+const DEFAULT_COMMON_BUDGETS: number[] = [2400, 3200, 4000];
+const MAX_COMMON_ITEMS: number = 3;
 
 function parseOptionalNumber(value: string): number | undefined {
   const trimmed = value.trim();
@@ -87,6 +87,20 @@ function formatProfileUpdatedAt(value: string): string {
 }
 
 function describeMeasurements(profile: UserProfile): string {
+  const sizeParts: string[] = [];
+  if (profile.upperSize !== undefined) {
+    sizeParts.push(`上衣 ${profile.upperSize}`);
+  }
+  if (profile.lowerSize !== undefined) {
+    sizeParts.push(`裤装 ${profile.lowerSize}`);
+  }
+  if (profile.shoeSize !== undefined) {
+    sizeParts.push(`鞋 ${profile.shoeSize}`);
+  }
+  if (sizeParts.length > 0) {
+    return sizeParts.join(' · ');
+  }
+
   const parts: string[] = [];
 
   if (profile.heightCm !== undefined) {
@@ -117,13 +131,15 @@ export struct ProfilePage {
   clothingRepository?: ClothingRepository = undefined;
   storeRepository?: StoreRepository = undefined;
   outfitRepository?: OutfitRepository = undefined;
-  weatherService?: WeatherService = undefined;
   onOpenWishlist: () => void = () => {};
   onNestedPageVisibilityChange: (visible: boolean) => void = (_visible: boolean) => {};
 
   @State private heightCm: string = '';
   @State private weightKg: string = '';
   @State private waistCm: string = '';
+  @State private upperSize: string = '';
+  @State private lowerSize: string = '';
+  @State private shoeSize: string = '';
   @State private isLoading: boolean = false;
   @State private isSaving: boolean = false;
   @State private errorMessage: string = '';
@@ -134,78 +150,24 @@ export struct ProfilePage {
   @State private districtInput: string = '';
   @State private frequentDistricts: string[] = [];
   @State private monthlyBudget: number = -1;
+  @State private commonBudgets: number[] = DEFAULT_COMMON_BUDGETS.slice();
   @State private monthlySpent: number = 0;
   @State private isEditingBudget: boolean = false;
   @State private budgetDraft: string = '';
   @State private budgetErrorMessage: string = '';
   @State private measurementSummary: string = '填写身形信息后可用于试穿记录';
   @State private localSummary: string = '衣柜照片、穿搭和逛店记录都保存在本机。';
-  @State private wardrobePhotoUris: string[] = [];
   @State private wardrobeItemCount: number = 0;
   @State private storeVisitCount: number = 0;
   @State private outfitCount: number = 0;
-  @State private temperatureText: string = '--°';
-  @State private temperatureSummary: string = '获取实时温度';
-  @State private temperatureUpdatedText: string = '';
-  @State private isLoadingTemperature: boolean = false;
-  private temperatureRefreshTimer: number = -1;
-
   aboutToAppear(): void {
     this.loadProfile();
     this.loadWardrobeSummary();
     this.loadActivitySummary();
-    this.startTemperatureRefresh();
   }
 
   aboutToDisappear(): void {
-    this.stopTemperatureRefresh();
     this.onNestedPageVisibilityChange(false);
-  }
-
-  private startTemperatureRefresh(): void {
-    if (this.temperatureRefreshTimer >= 0) {
-      return;
-    }
-
-    this.refreshTemperature();
-    this.temperatureRefreshTimer = setInterval(() => {
-      this.refreshTemperature();
-    }, 15 * 60 * 1000);
-  }
-
-  private stopTemperatureRefresh(): void {
-    if (this.temperatureRefreshTimer < 0) {
-      return;
-    }
-
-    clearInterval(this.temperatureRefreshTimer);
-    this.temperatureRefreshTimer = -1;
-  }
-
-  private async refreshTemperature(): Promise<void> {
-    if (this.weatherService === undefined || this.isLoadingTemperature) {
-      return;
-    }
-
-    this.isLoadingTemperature = true;
-    try {
-      const reading = await this.weatherService.fetchCurrentTemperature();
-      this.temperatureText = `${Math.round(reading.celsius)}°`;
-      this.temperatureSummary = reading.summary.length > 0 ? reading.summary : '实时天气';
-      this.temperatureUpdatedText = this.temperatureUpdateText(reading.updatedAt);
-    } catch (_error) {
-      this.temperatureText = '--°';
-      this.temperatureSummary = '点击重试';
-      this.temperatureUpdatedText = '';
-    } finally {
-      this.isLoadingTemperature = false;
-    }
-  }
-
-  private temperatureUpdateText(updatedAt: Date): string {
-    const hours = updatedAt.getHours().toString().padStart(2, '0');
-    const minutes = updatedAt.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes} 更新`;
   }
 
   private async loadProfile(): Promise<void> {
@@ -231,10 +193,52 @@ export struct ProfilePage {
     this.heightCm = displayOptionalNumber(profile.heightCm);
     this.weightKg = displayOptionalNumber(profile.weightKg);
     this.waistCm = displayOptionalNumber(profile.waistCm);
-    this.frequentDistricts = profile.frequentDistricts;
+    this.upperSize = profile.upperSize ?? '';
+    this.lowerSize = profile.lowerSize ?? '';
+    this.shoeSize = profile.shoeSize ?? '';
+    this.frequentDistricts = profile.frequentDistricts.slice(0, MAX_COMMON_ITEMS);
     this.monthlyBudget = profile.monthlyBudget ?? -1;
+    this.commonBudgets = profile.commonBudgets.slice(0, MAX_COMMON_ITEMS);
     this.measurementSummary = describeMeasurements(profile);
     this.localSummary = describeLocalState(profile);
+  }
+
+  private currentMeasurementSummary(): string {
+    const sizeParts: string[] = [];
+    const upperSize = this.upperSize.trim();
+    const lowerSize = this.lowerSize.trim();
+    const shoeSize = this.shoeSize.trim();
+    if (upperSize.length > 0) {
+      sizeParts.push(`上衣 ${upperSize}`);
+    }
+    if (lowerSize.length > 0) {
+      sizeParts.push(`裤装 ${lowerSize}`);
+    }
+    if (shoeSize.length > 0) {
+      sizeParts.push(`鞋 ${shoeSize}`);
+    }
+    if (sizeParts.length > 0) {
+      return sizeParts.join(' · ');
+    }
+
+    const bodyParts: string[] = [];
+    const height = parseOptionalNumber(this.heightCm);
+    const weight = parseOptionalNumber(this.weightKg);
+    const waist = parseOptionalNumber(this.waistCm);
+    if (height !== undefined) {
+      bodyParts.push(`身高 ${height}cm`);
+    }
+    if (weight !== undefined) {
+      bodyParts.push(`体重 ${weight}kg`);
+    }
+    if (waist !== undefined) {
+      bodyParts.push(`腰围 ${waist}cm`);
+    }
+    return bodyParts.length > 0 ? bodyParts.join(' · ') : '填写身形信息后可用于试穿记录';
+  }
+
+  private currentDistrictSummary(): string {
+    return this.frequentDistricts.length > 0 ? this.frequentDistricts.join(' · ') : '尚未设置';
   }
 
   private async loadWardrobeSummary(): Promise<void> {
@@ -244,19 +248,9 @@ export struct ProfilePage {
 
     try {
       const items = await this.clothingRepository.listClothing();
-      const photoUris: string[] = [];
-      for (const item of items) {
-        for (const photoUri of item.photoUris) {
-          if (photoUris.length < 3 && photoUri.length > 0) {
-            photoUris.push(photoUri);
-          }
-        }
-      }
       this.wardrobeItemCount = items.length;
-      this.wardrobePhotoUris = photoUris;
     } catch (_error) {
       this.wardrobeItemCount = 0;
-      this.wardrobePhotoUris = [];
     }
   }
 
@@ -310,8 +304,12 @@ export struct ProfilePage {
         heightCm: parseOptionalNumber(this.heightCm),
         weightKg: parseOptionalNumber(this.weightKg),
         waistCm: parseOptionalNumber(this.waistCm),
+        upperSize: this.upperSize,
+        lowerSize: this.lowerSize,
+        shoeSize: this.shoeSize,
         frequentDistricts: this.frequentDistricts,
-        monthlyBudget: this.monthlyBudget >= 0 ? this.monthlyBudget : undefined
+        monthlyBudget: this.monthlyBudget >= 0 ? this.monthlyBudget : undefined,
+        commonBudgets: this.commonBudgets
       });
       this.applyProfile(savedProfile);
       this.savedMessage = '已保存个人信息';
@@ -383,6 +381,7 @@ export struct ProfilePage {
     this.closeBudgetEditor();
     this.errorMessage = '';
     this.savedMessage = '';
+    this.loadProfile();
   }
 
   private selectBudget(value: number): void {
@@ -391,6 +390,18 @@ export struct ProfilePage {
     }
 
     this.budgetDraft = `${value}`;
+    this.budgetErrorMessage = '';
+  }
+
+  private removeBudget(value: number): void {
+    if (this.isSaving) {
+      return;
+    }
+
+    this.commonBudgets = this.commonBudgets.filter((item: number) => item !== value);
+    if (this.budgetDraft === `${value}`) {
+      this.budgetDraft = '';
+    }
     this.budgetErrorMessage = '';
   }
 
@@ -411,7 +422,8 @@ export struct ProfilePage {
       return;
     }
 
-    const amount = parseOptionalNumber(this.budgetDraft);
+    const inputAmount = parseOptionalNumber(this.budgetDraft);
+    const amount = inputAmount ?? (this.monthlyBudget >= 0 ? this.monthlyBudget : undefined);
     if (amount === undefined || amount < 500) {
       this.budgetErrorMessage = '预算至少为 ¥500。';
       return;
@@ -421,12 +433,20 @@ export struct ProfilePage {
     this.budgetErrorMessage = '';
     this.errorMessage = '';
     try {
+      const nextCommonBudgets = inputAmount === undefined
+        ? this.commonBudgets
+        : [Math.round(amount)].concat(this.commonBudgets.filter((value: number) => value !== Math.round(amount)))
+          .slice(0, MAX_COMMON_ITEMS);
       const saved = await this.profileRepository.saveProfile({
         heightCm: parseOptionalNumber(this.heightCm),
         weightKg: parseOptionalNumber(this.weightKg),
         waistCm: parseOptionalNumber(this.waistCm),
+        upperSize: this.upperSize,
+        lowerSize: this.lowerSize,
+        shoeSize: this.shoeSize,
         frequentDistricts: this.frequentDistricts,
-        monthlyBudget: Math.round(amount)
+        monthlyBudget: Math.round(amount),
+        commonBudgets: nextCommonBudgets
       });
       this.applyProfile(saved);
       this.showNotice('本月预算已保存。');
@@ -442,9 +462,7 @@ export struct ProfilePage {
     this.districtDraft = this.frequentDistricts.length > 0
       ? this.frequentDistricts.slice()
       : DEFAULT_SELECTED_FREQUENT_DISTRICTS.slice();
-    this.districtInput = this.frequentDistricts
-      .filter((district: string) => !DEFAULT_FREQUENT_DISTRICTS.includes(district))
-      .join('、');
+    this.districtInput = '';
     this.errorMessage = '';
     this.savedMessage = '';
     this.isEditingDistricts = true;
@@ -464,8 +482,11 @@ export struct ProfilePage {
   }
 
   private availableDistricts(): string[] {
-    const districts: string[] = DEFAULT_FREQUENT_DISTRICTS.slice();
-    const candidates = this.frequentDistricts.concat(parseDistrictInput(this.districtInput));
+    const districts: string[] = [];
+    const candidates = parseDistrictInput(this.districtInput)
+      .concat(this.districtDraft)
+      .concat(this.frequentDistricts)
+      .concat(DEFAULT_FREQUENT_DISTRICTS);
     for (const district of candidates) {
       if (!districts.includes(district)) {
         districts.push(district);
@@ -482,7 +503,11 @@ export struct ProfilePage {
     if (this.districtDraft.includes(district)) {
       this.districtDraft = this.districtDraft.filter((item: string) => item !== district);
     } else {
-      this.districtDraft = this.districtDraft.concat([district]);
+      const nextDistricts = this.districtDraft.filter((item: string) => item !== district);
+      if (nextDistricts.length >= MAX_COMMON_ITEMS) {
+        nextDistricts.shift();
+      }
+      this.districtDraft = nextDistricts.concat([district]);
     }
   }
 
@@ -491,8 +516,14 @@ export struct ProfilePage {
       return;
     }
 
-    const available = this.availableDistricts();
-    this.frequentDistricts = this.districtDraft.filter((district: string) => available.includes(district));
+    const typedDistricts = parseDistrictInput(this.districtInput);
+    const nextDistricts: string[] = [];
+    for (const district of typedDistricts.concat(this.districtDraft)) {
+      if (!nextDistricts.includes(district) && nextDistricts.length < MAX_COMMON_ITEMS) {
+        nextDistricts.push(district);
+      }
+    }
+    this.frequentDistricts = nextDistricts;
     await this.persistPreferences('常逛商圈已保存。');
     if (this.errorMessage.length === 0) {
       this.closeDistrictEditor();
@@ -512,8 +543,12 @@ export struct ProfilePage {
         heightCm: parseOptionalNumber(this.heightCm),
         weightKg: parseOptionalNumber(this.weightKg),
         waistCm: parseOptionalNumber(this.waistCm),
+        upperSize: this.upperSize,
+        lowerSize: this.lowerSize,
+        shoeSize: this.shoeSize,
         frequentDistricts: this.frequentDistricts,
-        monthlyBudget: this.monthlyBudget >= 0 ? this.monthlyBudget : undefined
+        monthlyBudget: this.monthlyBudget >= 0 ? this.monthlyBudget : undefined,
+        commonBudgets: this.commonBudgets
       });
       this.applyProfile(saved);
       this.showNotice(message);
@@ -588,42 +623,15 @@ export struct ProfilePage {
   ProfileHero() {
     Stack({ alignContent: Alignment.TopStart }) {
       Row() {
-        Stack() {
-          this.HeroPhoto(0)
-        }
-        .height('100%')
-        .layoutWeight(11)
-
-        Column() {
-          Stack() {
-            this.HeroPhoto(1)
-          }
-          .width('100%')
-          .layoutWeight(1)
-
-          Stack() {
-            this.HeroPhoto(2)
-          }
-          .width('100%')
-          .layoutWeight(1)
-        }
-        .height('100%')
-        .layoutWeight(9)
-      }
-      .width('100%')
-      .height('100%')
-      .opacity(this.wardrobePhotoUris.length > 0 ? 0.76 : 1)
-
-      Row() {
         Column() {
           Text('我的衣柜档案')
             .height(30)
             .padding({ left: 11, right: 11 })
             .fontSize(12)
             .fontWeight(FontWeight.Regular)
-            .fontColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
+            .fontColor(YibuqueColor.textPrimary)
             .textAlign(TextAlign.Center)
-            .backgroundColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.glassLight : YibuqueColor.cardWhite)
+            .backgroundColor(YibuqueColor.cardWhite)
             .borderRadius(YibuqueRadius.full)
 
           Blank()
@@ -634,7 +642,7 @@ export struct ProfilePage {
               .fontSize(24)
               .lineHeight(28)
               .fontWeight(FontWeight.Regular)
-              .fontColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
+              .fontColor(YibuqueColor.textPrimary)
               .maxLines(1)
 
             Text('尺码、预算、常逛商圈和购买备注，都集中在这里管理。')
@@ -642,59 +650,27 @@ export struct ProfilePage {
               .fontSize(13)
               .lineHeight(18)
               .fontWeight(FontWeight.Regular)
-              .fontColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.glassMedium : YibuqueColor.textSecondary)
+              .fontColor(YibuqueColor.textSecondary)
               .maxLines(2)
           }
           .width('100%')
           .alignItems(HorizontalAlign.Start)
         }
-        .layoutWeight(11)
+        .layoutWeight(1)
         .height('100%')
         .padding(16)
         .alignItems(HorizontalAlign.Start)
-
-        Column() {
-          this.TemperatureControl()
-        }
-        .layoutWeight(9)
-        .height('100%')
-        .padding({ left: 6, right: 16 })
-        .justifyContent(FlexAlign.Center)
-        .alignItems(HorizontalAlign.Center)
       }
       .width('100%')
       .height('100%')
-      .backgroundColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.scrimMedium : YibuqueColor.transparent)
+      .backgroundColor(YibuqueColor.transparent)
     }
     .width('100%')
     .height(176)
-    .backgroundColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.cardWhite : YibuqueColor.iconAccentSurface)
+    .backgroundColor(YibuqueColor.profileHeroSurface)
     .borderRadius(YibuqueRadius.sheet)
     .clip(true)
     .shadow(YibuqueShadow.floating)
-  }
-
-  @Builder
-  HeroPhoto(index: number) {
-    if (this.wardrobePhotoUris.length > index) {
-      Image(this.wardrobePhotoUris[index])
-        .width('100%')
-        .height('100%')
-        .objectFit(ImageFit.Cover)
-    } else {
-      Column() {
-        SymbolGlyph($r('sys.symbol.hanger_and_towels'))
-          .fontSize(index === 0 ? 34 : 24)
-          .fontColor([YibuqueColor.textTertiary])
-      }
-        .width('100%')
-        .height('100%')
-        .justifyContent(FlexAlign.Center)
-        .alignItems(HorizontalAlign.Center)
-        .backgroundColor(this.wardrobePhotoUris.length > 0
-          ? (index === 0 ? YibuqueColor.cardWhite : YibuqueColor.cardSoftGray)
-          : YibuqueColor.iconAccentSurface)
-    }
   }
 
   @Builder
@@ -706,45 +682,6 @@ export struct ProfilePage {
     }
     .width('100%')
     .margin({ top: 10, bottom: 14 })
-  }
-
-  @Builder
-  TemperatureControl() {
-    Button() {
-      Row({ space: 8 }) {
-        SymbolGlyph($r('sys.symbol.thermometer_medium_fill'))
-          .fontSize(20)
-          .fontColor([YibuqueColor.iconAccent])
-
-        Column({ space: 1 }) {
-          Text(this.isLoadingTemperature ? '获取中...' : this.temperatureText)
-            .fontSize(18)
-            .fontWeight(FontWeight.Regular)
-            .fontColor(YibuqueColor.textPrimary)
-            .lineHeight(21)
-
-          Text(this.isLoadingTemperature ? '实时温度' : this.temperatureSummary)
-            .fontSize(11)
-            .fontColor(YibuqueColor.textSecondary)
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-        }
-        .alignItems(HorizontalAlign.Start)
-      }
-    }
-      .width('100%')
-      .height(56)
-      .padding({ left: 12, right: 12 })
-      .backgroundColor(YibuqueColor.cardWhite)
-      .borderRadius(YibuqueRadius.xxl)
-      .border({ width: 1, color: YibuqueColor.borderLight })
-      .enabled(!this.isLoadingTemperature)
-      .accessibilityText(this.isLoadingTemperature
-        ? '正在获取实时温度'
-        : `实时温度 ${this.temperatureText}，${this.temperatureSummary}${this.temperatureUpdatedText.length > 0 ? `，${this.temperatureUpdatedText}` : ''}，点击刷新`)
-      .onClick(() => {
-        this.refreshTemperature();
-      })
   }
 
   @Builder
@@ -778,9 +715,9 @@ export struct ProfilePage {
       this.SectionHeading('我的偏好', '用于记录和整理')
 
       Column() {
-        this.PreferenceRow('常用尺码', this.measurementSummary, 'size')
+        this.PreferenceRow('常用尺码', '', 'size')
         Divider().strokeWidth(1).color(YibuqueColor.borderLight)
-        this.PreferenceRow('常逛商圈', this.frequentDistricts.length > 0 ? this.frequentDistricts.join(' · ') : '尚未设置', 'shops')
+        this.PreferenceRow('常逛商圈', '', 'shops')
       }
       .width('100%')
       .padding(14)
@@ -864,7 +801,8 @@ export struct ProfilePage {
           .lineHeight(17)
           .fontWeight(FontWeight.Regular)
           .fontColor(YibuqueColor.textPrimary)
-        Text(subtitle)
+        Text(action === 'size' ? this.currentMeasurementSummary() :
+          action === 'shops' ? this.currentDistrictSummary() : subtitle)
           .width('100%')
           .fontSize(12)
           .lineHeight(16)
@@ -933,12 +871,14 @@ export struct ProfilePage {
   @Builder
   BudgetSection() {
     Column() {
-      this.SectionHeading('预算提醒', this.monthlyBudget >= 0 ? `本月 ${this.budgetProgressPercent()}%` : '未设置')
+      this.SectionHeading('预算提醒', this.monthlyBudget >= 0
+        ? `本月 ${formatBudgetAmount(this.monthlyBudget)}`
+        : '未设置')
 
       Column({ space: 12 }) {
         Row({ space: 12 }) {
           Column({ space: 3 }) {
-            Text('本月逛街预算')
+            Text('本月逛店预算')
               .width('100%')
               .fontSize(14)
               .lineHeight(17)
@@ -957,11 +897,14 @@ export struct ProfilePage {
           .layoutWeight(1)
           .alignItems(HorizontalAlign.Start)
 
-          Text(this.monthlyBudget >= 0 ? formatBudgetAmount(this.monthlySpent) : '--')
+          Text(this.monthlyBudget >= 0 ? formatBudgetAmount(this.budgetRemaining()) : '--')
             .fontSize(20)
             .lineHeight(22)
             .fontWeight(FontWeight.Regular)
             .fontColor(YibuqueColor.textPrimary)
+            .accessibilityText(this.monthlyBudget >= 0
+              ? `本月剩余预算 ${formatBudgetAmount(this.budgetRemaining())}`
+              : '尚未设置预算')
         }
         .width('100%')
         .alignItems(VerticalAlign.Top)
@@ -1017,20 +960,44 @@ export struct ProfilePage {
 
   @Builder
   BudgetChip(value: number, selected: boolean) {
-    Button(formatBudgetAmount(value))
-      .height(40)
-      .padding({ left: 16, right: 16 })
-      .margin({ right: 8, bottom: 8 })
-      .fontSize(14)
-      .fontWeight(FontWeight.Regular)
-      .fontColor(selected ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
-      .backgroundColor(selected ? YibuqueColor.textPrimary : YibuqueColor.bgDefault)
-      .borderRadius(YibuqueRadius.full)
-      .border({ width: 1, color: selected ? YibuqueColor.textPrimary : YibuqueColor.borderMedium })
-      .enabled(!this.isSaving)
-      .onClick(() => {
-        this.selectBudget(value);
-      })
+    Row({ space: 0 }) {
+      Button(formatBudgetAmount(value))
+        .height(40)
+        .padding({ left: 16, right: 12 })
+        .fontSize(14)
+        .fontWeight(FontWeight.Regular)
+        .fontColor(selected ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
+        .backgroundColor(Color.Transparent)
+        .borderRadius(0)
+        .border({ width: 0, color: Color.Transparent })
+        .enabled(!this.isSaving)
+        .accessibilityText(`${formatBudgetAmount(value)}，选择预算`)
+        .onClick(() => {
+          this.selectBudget(value);
+        })
+
+      Button() {
+        SymbolGlyph($r('sys.symbol.xmark'))
+          .fontSize(11)
+          .fontColor([selected ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
+      }
+        .width(32)
+        .height(40)
+        .padding({ left: 0, right: 0 })
+        .backgroundColor(Color.Transparent)
+        .borderRadius(0)
+        .border({ width: 0, color: Color.Transparent })
+        .enabled(!this.isSaving)
+        .accessibilityText(`删除常用预算 ${formatBudgetAmount(value)}`)
+        .onClick(() => {
+          this.removeBudget(value);
+        })
+    }
+    .height(40)
+    .backgroundColor(selected ? YibuqueColor.textPrimary : YibuqueColor.bgDefault)
+    .borderRadius(YibuqueRadius.full)
+    .border({ width: 1, color: selected ? YibuqueColor.textPrimary : YibuqueColor.borderMedium })
+    .margin({ right: 8, bottom: 8 })
   }
 
   @Builder
@@ -1076,7 +1043,7 @@ export struct ProfilePage {
           .fontColor(YibuqueColor.textPrimary)
 
         Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
-          ForEach(COMMON_BUDGETS, (value: number) => {
+          ForEach(this.commonBudgets, (value: number) => {
             this.BudgetChip(value, this.budgetDraft === `${value}`)
           }, (value: number) => `${value}`)
         }
@@ -1242,7 +1209,7 @@ export struct ProfilePage {
         Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
           ForEach(this.availableDistricts(), (district: string) => {
             this.DistrictChip(district, this.districtDraft.includes(district))
-          }, (district: string) => district)
+          }, (district: string) => `${district}-${this.districtDraft.includes(district) ? 'selected' : 'available'}`)
         }
         .width('100%')
 
@@ -1393,6 +1360,28 @@ export struct ProfilePage {
       .width('100%')
       .alignItems(VerticalAlign.Top)
 
+      Text('常用衣物尺码')
+        .width('100%')
+        .fontSize(13)
+        .fontWeight(FontWeight.Regular)
+        .fontColor(YibuqueColor.textPrimary)
+        .margin({ top: 16, bottom: 2 })
+
+      Row({ space: 10 }) {
+        this.SizeField('上衣', this.upperSize, '例如 M')
+        this.SizeField('裤装', this.lowerSize, '例如 27')
+        this.SizeField('鞋', this.shoeSize, '例如 38')
+      }
+      .width('100%')
+      .alignItems(VerticalAlign.Top)
+
+      Text('保存后会显示在“我的偏好”的常用尺码中。')
+        .width('100%')
+        .fontSize(12)
+        .lineHeight(17)
+        .fontColor(YibuqueColor.textSecondary)
+        .margin({ top: 8 })
+
       if (this.errorMessage.length > 0) {
         Text(this.errorMessage)
           .width('100%')
@@ -1487,6 +1476,41 @@ export struct ProfilePage {
           .lineHeight(15)
           .fontColor(YibuqueColor.danger)
       }
+    }
+    .layoutWeight(1)
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  SizeField(label: string, value: string, placeholder: string) {
+    Column({ space: 6 }) {
+      Text(label)
+        .width('100%')
+        .fontSize(12)
+        .fontWeight(FontWeight.Regular)
+        .fontColor(YibuqueColor.textPrimary)
+
+      TextInput({ text: value, placeholder: placeholder })
+        .width('100%')
+        .height(44)
+        .fontSize(14)
+        .fontWeight(FontWeight.Regular)
+        .fontColor(YibuqueColor.textPrimary)
+        .placeholderColor(YibuqueColor.textTertiary)
+        .backgroundColor(YibuqueColor.cardSoftGray)
+        .borderRadius(YibuqueRadius.md)
+        .border({ width: 1, color: YibuqueColor.borderMedium })
+        .type(InputType.Normal)
+        .onChange((nextValue: string) => {
+          this.errorMessage = '';
+          if (label === '上衣') {
+            this.upperSize = nextValue;
+          } else if (label === '裤装') {
+            this.lowerSize = nextValue;
+          } else {
+            this.shoeSize = nextValue;
+          }
+        })
     }
     .layoutWeight(1)
     .alignItems(HorizontalAlign.Start)

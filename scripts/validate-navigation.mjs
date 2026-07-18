@@ -103,6 +103,14 @@ if (!/QuickCaptureSheet\(\{[\s\S]*?onOpenWardrobe:\s*\(\) => \{[\s\S]*?this\.ope
   throw new Error('Quick shortcut actions must open the three create editors');
 }
 
+if (!sheet.includes('@Prop selectedCategory: string') || !sheet.includes('isSelectedCategory')) {
+  throw new Error('QuickCaptureSheet must derive the selected action from the active main tab');
+}
+
+if (!/QuickCaptureSheet\(\{[\s\S]*?selectedCategory:\s*this\.activeRoute\.mainTab/.test(index)) {
+  throw new Error('Index must pass the active main tab to QuickCaptureSheet');
+}
+
 for (const needle of [
   '@State private activeRoute: AppRoute = createInitialAppRoute()',
   'AppRouteKind.StoreEditor',

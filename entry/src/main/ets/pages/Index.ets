@@ -481,7 +481,6 @@ struct Index {
               clothingRepository: this.runtime.clothingRepository,
               storeRepository: this.runtime.storeRepository,
               outfitRepository: this.runtime.outfitRepository,
-              weatherService: this.runtime.weatherService,
               onOpenWishlist: () => {
                 this.openWishlistPage('');
               },
@@ -507,31 +506,37 @@ struct Index {
         .backgroundColor(YibuqueColor.bgDefault)
 
         if (this.shouldShowBottomNavigation()) {
-          BottomNavigationBar({
-            selected: this.activeRoute.mainTab,
-            onSelectWardrobe: () => {
-              this.resetMainRoute(AppMainTab.Wardrobe);
-              this.quickActionErrorMessage = '';
-            },
-            onOpenCapture: () => {
-              this.openQuickActions();
-            },
-            onSelectStore: () => {
-              this.openStoreVisitList();
-            },
-            onSelectOutfit: () => {
-              this.resetMainRoute(AppMainTab.Outfit);
-              this.quickActionErrorMessage = '';
-            },
-            onOpenProfile: () => {
-              this.resetMainRoute(AppMainTab.Profile);
-              this.quickActionErrorMessage = '';
-            }
-          })
+          Column() {
+            BottomNavigationBar({
+              selected: this.activeRoute.mainTab,
+              onSelectWardrobe: () => {
+                this.resetMainRoute(AppMainTab.Wardrobe);
+                this.quickActionErrorMessage = '';
+              },
+              onOpenCapture: () => {
+                this.openQuickActions();
+              },
+              onSelectStore: () => {
+                this.openStoreVisitList();
+              },
+              onSelectOutfit: () => {
+                this.resetMainRoute(AppMainTab.Outfit);
+                this.quickActionErrorMessage = '';
+              },
+              onOpenProfile: () => {
+                this.resetMainRoute(AppMainTab.Profile);
+                this.quickActionErrorMessage = '';
+              }
+            })
+          }
+          .width('100%')
+          .padding({ top: 10, bottom: 0 })
+          .alignItems(HorizontalAlign.Center)
         }
 
         if (this.activeRoute.kind === AppRouteKind.QuickCapture) {
           QuickCaptureSheet({
+            selectedCategory: this.activeRoute.mainTab,
             onOpenWardrobe: () => {
               this.openQuickClothingEditor();
             },

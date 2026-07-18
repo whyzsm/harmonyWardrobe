@@ -9,11 +9,18 @@ for (const needle of [
   'saveProfile',
   'user_profile',
   'normalizeMeasurement',
+  'common_budgets',
+  'commonBudgets',
+  'MAX_COMMON_ITEMS',
   'Number.isFinite',
   'value < 0',
+  'value === null',
   'heightCm',
   'weightKg',
-  'waistCm'
+  'waistCm',
+  'upperSize',
+  'lowerSize',
+  'shoeSize'
 ]) {
   if (!text.includes(needle)) {
     throw new Error(`${file} missing ${needle}`);

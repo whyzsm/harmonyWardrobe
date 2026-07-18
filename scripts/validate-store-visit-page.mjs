@@ -37,6 +37,9 @@ for (const needle of [
   'districtOrAddress',
   'note',
   'StoreVisitWaterFlow',
+  'StoreVisitDetailPage',
+  'openVisitDetail',
+  'showDetail',
   '暂无照片',
   "columnsTemplate('1fr 1fr')",
   'YibuqueRadius.xxl',
@@ -109,6 +112,10 @@ for (const forbidden of ['wardrobe_look_', 'designFallbackPhoto', 'debug://']) {
 
 if (!/visitStatus\(visit: StoreVisit\)[\s\S]*?visit\.status !== undefined[\s\S]*?return visit\.status[\s\S]*?legacyWantToVisitRecord/.test(page)) {
   throw new Error('StoreVisitPage must prefer the saved status before legacy note inference');
+}
+
+if (!/StoreVisitResultCard\([\s\S]*?\.onClick\(\(\) => \{[\s\S]*?openVisitDetail\(visit\)/.test(page)) {
+  throw new Error('StoreVisitPage list cards must open the read-only detail page');
 }
 
 for (const forbidden of ['家已试穿', '家想回头看']) {

@@ -7,17 +7,19 @@ for (const needle of [
   'OutfitRepository',
   'OutfitTemplate',
   "{ label: '全部' }",
-  "{ label: '逛街'",
+  "{ label: '逛店'",
   "{ label: '周末'",
   "{ label: '通勤'",
   '从已有单品开始搭配',
   '先添加衣物再创建穿搭',
   'OutfitGuideCard',
+  'OutfitDetailPage',
+  'openOutfitDetail',
+  'showOutfitDetail',
+  'displayOutfitTitle',
   'this.clothingItems.length',
   '.padding({ left: 20, right: 20, bottom: 16 })',
-  '记录一次穿着',
   'filterOutfits',
-  'onRecordWear',
   'onNestedPageVisibilityChange',
   "columnsTemplate('1fr 1fr')",
   'OutfitWallCard',
@@ -31,6 +33,16 @@ for (const needle of [
 ]) {
   if (!text.includes(needle)) {
     throw new Error(`OutfitsPage missing ${needle}`);
+  }
+}
+
+for (const forbidden of [
+  "Button('记录穿着')",
+  'RECORD_WEAR_ACCESSIBILITY_TEXT',
+  'onRecordWear'
+]) {
+  if (text.includes(forbidden)) {
+    throw new Error(`OutfitsPage must hide the card wear action: ${forbidden}`);
   }
 }
 
@@ -48,6 +60,15 @@ if (/wardrobe_look_|debug:\/\/|Text\('22°'\)/.test(text)) {
 
 if (/Button\('创建穿搭'\)/.test(text)) {
   throw new Error('OutfitsPage empty state must not render a create-outfit button');
+}
+
+if (!/OutfitWallCard\([\s\S]*?\.onClick\(\(\) => \{[\s\S]*?openOutfitDetail\(outfit\)/.test(text)) {
+  throw new Error('OutfitsPage list cards must open the read-only detail page');
+}
+
+if (!/private displayOutfitTitle\(outfit: OutfitTemplate\)[\s\S]*?穿搭\|美搭[\s\S]*?return match === null \? outfit\.title : match\[1\]/.test(text) ||
+  !text.includes('Text(this.displayOutfitTitle(outfit))')) {
+  throw new Error('OutfitsPage waterfall titles must hide generated dates without changing custom titles');
 }
 
 if (!/else if \(this\.outfits\.length === 0\) \{[\s\S]*?\.justifyContent\(FlexAlign\.Start\)/.test(text)) {

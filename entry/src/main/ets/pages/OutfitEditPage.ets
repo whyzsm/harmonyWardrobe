@@ -55,7 +55,10 @@ export struct OutfitEditPage {
 
     this.title = this.initialOutfit.title;
     this.clothingItemIds = [...this.initialOutfit.clothingItemIds];
-    this.photoUris = [...this.initialOutfit.photoUris];
+    const selectedPhotoUris = this.firstPhotoUrisForClothingItemIds(this.clothingItemIds);
+    this.photoUris = selectedPhotoUris.length > 0
+      ? selectedPhotoUris
+      : [...this.initialOutfit.photoUris];
     this.note = this.initialOutfit.note ?? '';
   }
 
@@ -72,13 +75,36 @@ export struct OutfitEditPage {
     return trimmedTitle.length > 0 ? trimmedTitle : `穿搭 ${formatTimeForTitle(new Date())}`;
   }
 
+  private firstPhotoUrisForClothingItemIds(ids: string[]): string[] {
+    const photoUris: string[] = [];
+    for (const id of ids) {
+      for (const item of this.clothingItems) {
+        if (item.id !== id || item.photoUris.length === 0) {
+          continue;
+        }
+
+        const photoUri = item.photoUris[0].trim();
+        if (photoUri.length > 0) {
+          photoUris.push(photoUri);
+        }
+        break;
+      }
+    }
+    return photoUris;
+  }
+
   private toggleClothingItem(id: string): void {
+    let nextIds: string[];
     if (this.clothingItemIds.includes(id)) {
-      this.clothingItemIds = this.clothingItemIds.filter((itemId: string) => itemId !== id);
-      return;
+      nextIds = this.clothingItemIds.filter((itemId: string) => itemId !== id);
+    } else {
+      nextIds = this.clothingItemIds.concat([id]);
     }
 
-    this.clothingItemIds = this.clothingItemIds.concat([id]);
+    this.clothingItemIds = nextIds;
+    if (this.initialOutfit !== undefined) {
+      this.photoUris = this.firstPhotoUrisForClothingItemIds(nextIds);
+    }
   }
 
   private async copySourcesToLocalUris(sources: PhotoSource[]): Promise<string[]> {

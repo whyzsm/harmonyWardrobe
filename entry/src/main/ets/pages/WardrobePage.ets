@@ -572,8 +572,8 @@ export struct WardrobePage {
     }
     .columnsTemplate('1fr 1fr')
     .columnsGap(16)
-    .rowsGap(15)
-    .padding({ top: 4, bottom: 92 })
+    .rowsGap(8)
+    .padding({ top: 4, bottom: 56 })
     .width('100%')
     .height('100%')
     .layoutWeight(1)
@@ -582,7 +582,7 @@ export struct WardrobePage {
 
   @Builder
   WardrobeSearchResultCard(item: ClothingItem, index: number) {
-    Column({ space: 6 }) {
+    Column({ space: 2 }) {
       Stack({ alignContent: Alignment.TopStart }) {
         if (this.firstPhotoUri(item).length === 0) {
           Column({ space: 8 }) {

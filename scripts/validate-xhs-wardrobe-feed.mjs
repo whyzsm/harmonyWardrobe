@@ -17,7 +17,7 @@ for (const needle of [
   'FlowItem()',
   ".columnsTemplate('1fr 1fr')",
   '.columnsGap(16)',
-  '.rowsGap(15)'
+  '.rowsGap(8)'
 ]) {
   if (!wardrobe.includes(needle)) {
     throw new Error(`WardrobePage missing ${needle}`);

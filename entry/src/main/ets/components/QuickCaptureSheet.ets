@@ -2,6 +2,7 @@ import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../t
 
 @Component
 export struct QuickCaptureSheet {
+  @Prop selectedCategory: string = 'wardrobe';
   onOpenWardrobe: () => void = () => {};
   onOpenStoreVisit: () => void = () => {};
   onOpenOutfit: () => void = () => {};
@@ -69,15 +70,15 @@ export struct QuickCaptureSheet {
         .height(44)
         .alignItems(VerticalAlign.Center)
 
-        this.ActionCard('衣柜', '新增衣物', 'wardrobe', true, () => {
+        this.ActionCard('衣柜', '新增衣物', 'wardrobe', this.isSelectedCategory('wardrobe'), () => {
           this.onOpenWardrobe();
         })
 
-        this.ActionCard('逛店', '新增逛店记录', 'store', false, () => {
+        this.ActionCard('逛店', '新增逛店记录', 'store', this.isSelectedCategory('store'), () => {
           this.onOpenStoreVisit();
         })
 
-        this.ActionCard('穿搭', '新增穿搭', 'outfit', false, () => {
+        this.ActionCard('穿搭', '新增穿搭', 'outfit', this.isSelectedCategory('outfit'), () => {
           this.onOpenOutfit();
         })
       }
@@ -92,6 +93,13 @@ export struct QuickCaptureSheet {
     .height('100%')
     .backgroundColor(YibuqueColor.scrimMedium)
     .opacity(this.backgroundOpacity)
+  }
+
+  private isSelectedCategory(category: string): boolean {
+    if (this.selectedCategory === 'store' || this.selectedCategory === 'outfit') {
+      return this.selectedCategory === category;
+    }
+    return category === 'wardrobe';
   }
 
   @Builder

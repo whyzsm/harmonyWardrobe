@@ -22,7 +22,7 @@ for (const needle of [
   'FlowItem()',
   ".columnsTemplate('1fr 1fr')",
   '.columnsGap(16)',
-  '.rowsGap(15)',
+  '.rowsGap(8)',
   "placeholder: '搜索衣服、裤子、裙子'",
   "'全部'",
   "'上衣'",

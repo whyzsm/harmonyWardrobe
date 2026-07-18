@@ -28,6 +28,7 @@ for (const needle of [
   'PhotoSelector',
   'hasSelectedPhoto',
   'normalizedTitle',
+  'firstPhotoUrisForClothingItemIds',
   'formatTimeForTitle',
   'pickGalleryPhotos',
   'capturePhoto',
@@ -68,8 +69,16 @@ if (!/this\.clothingItemIds\s*=\s*\[\s*\.\.\.this\.initialOutfit\.clothingItemId
   throw new Error('OutfitEditPage must clone initial clothingItemIds before assigning to state');
 }
 
-if (!/this\.photoUris\s*=\s*\[\s*\.\.\.this\.initialOutfit\.photoUris\s*\]/.test(editPage)) {
-  throw new Error('OutfitEditPage must clone initial photoUris before assigning to state');
+if (!editPage.includes('[...this.initialOutfit.photoUris]')) {
+  throw new Error('OutfitEditPage must clone initial photoUris for the no-associated-item fallback');
+}
+
+if (!/const selectedPhotoUris\s*=\s*this\.firstPhotoUrisForClothingItemIds\(this\.clothingItemIds\)[\s\S]*?this\.photoUris\s*=\s*selectedPhotoUris\.length\s*>\s*0\s*[\s\S]*?\[\.\.\.this\.initialOutfit\.photoUris\s*\]/.test(editPage)) {
+  throw new Error('OutfitEditPage must derive existing outfit photos from the selected clothing items');
+}
+
+if (!/this\.clothingItemIds\s*=\s*nextIds;\s*if\s*\(this\.initialOutfit\s*!==\s*undefined\)\s*{\s*this\.photoUris\s*=\s*this\.firstPhotoUrisForClothingItemIds\(nextIds\);/s.test(editPage)) {
+  throw new Error('OutfitEditPage must synchronize photos when selected clothing items change');
 }
 
 if (editPage.includes('this.title.trim().length > 0 &&')) {
