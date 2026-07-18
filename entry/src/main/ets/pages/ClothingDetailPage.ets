@@ -2,6 +2,7 @@ import { ClothingCategory } from '../domain/clothing/ClothingCategory';
 import { ClothingItem, PurchaseInfo } from '../domain/clothing/ClothingModels';
 import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
+import { userFacingError } from '../utils/userFacingError';
 
 function labelForCategory(category: ClothingCategory): string {
   if (category === ClothingCategory.Pants) {
@@ -200,7 +201,7 @@ export struct ClothingDetailPage {
       await this.onDelete(item);
       this.showDeleteConfirm = false;
     } catch (error) {
-      this.deleteErrorMessage = error instanceof Error ? error.message : '删除衣物失败';
+      this.deleteErrorMessage = userFacingError(error, '删除衣物失败');
     } finally {
       this.isDeleting = false;
     }
@@ -248,25 +249,35 @@ export struct ClothingDetailPage {
   HeroPhoto() {
     Stack({ alignContent: Alignment.BottomStart }) {
       if (this.photoCount() > 0) {
-        Swiper() {
-          ForEach(this.photoUris(), (photoUri: string, index: number) => {
-            Image(photoUri)
-              .width('100%')
-              .height('100%')
-              .objectFit(ImageFit.Cover)
-              .onClick(() => {
-                this.openPhotoPreview(index);
-              })
-          }, (photoUri: string, index: number) => `${photoUri}-${index}`)
+        if (this.photoCount() === 1) {
+          Image(this.photoUriAt(0))
+            .width('100%')
+            .height('100%')
+            .objectFit(ImageFit.Cover)
+            .onClick(() => {
+              this.openPhotoPreview(0);
+            })
+        } else {
+          Swiper() {
+            ForEach(this.photoUris(), (photoUri: string, index: number) => {
+              Image(photoUri)
+                .width('100%')
+                .height('100%')
+                .objectFit(ImageFit.Cover)
+                .onClick(() => {
+                  this.openPhotoPreview(index);
+                })
+            }, (photoUri: string, index: number) => `${photoUri}-${index}`)
+          }
+          .width('100%')
+          .height('100%')
+          .index(this.currentPhotoIndex())
+          .indicator(false)
+          .loop(true)
+          .onChange((index: number) => {
+            this.selectPhoto(index);
+          })
         }
-        .width('100%')
-        .height('100%')
-        .index(this.currentPhotoIndex())
-        .indicator(false)
-        .loop(this.photoCount() > 1)
-        .onChange((index: number) => {
-          this.selectPhoto(index);
-        })
 
       } else {
         Column({ space: YibuqueSpacing.sm }) {
@@ -295,22 +306,29 @@ export struct ClothingDetailPage {
 
   @Builder
   PreviewPhotoSwiper() {
-    Swiper() {
-      ForEach(this.photoUris(), (photoUri: string, index: number) => {
-        Image(photoUri)
-          .width('100%')
-          .height('100%')
-          .objectFit(ImageFit.Contain)
-      }, (photoUri: string, index: number) => `${photoUri}-${index}`)
+    if (this.photoCount() === 1) {
+      Image(this.photoUriAt(0))
+        .width('100%')
+        .height('78%')
+        .objectFit(ImageFit.Contain)
+    } else {
+      Swiper() {
+        ForEach(this.photoUris(), (photoUri: string, index: number) => {
+          Image(photoUri)
+            .width('100%')
+            .height('100%')
+            .objectFit(ImageFit.Contain)
+        }, (photoUri: string, index: number) => `${photoUri}-${index}`)
+      }
+      .width('100%')
+      .height('78%')
+      .index(this.currentPhotoIndex())
+      .indicator(false)
+      .loop(true)
+      .onChange((index: number) => {
+        this.selectPhoto(index);
+      })
     }
-    .width('100%')
-    .height('78%')
-    .index(this.currentPhotoIndex())
-    .indicator(false)
-    .loop(this.photoCount() > 1)
-    .onChange((index: number) => {
-      this.selectPhoto(index);
-    })
   }
 
   @Builder
@@ -535,7 +553,7 @@ export struct ClothingDetailPage {
             .fontWeight(FontWeight.Regular)
             .fontColor(YibuqueColor.textPrimary)
 
-          Text('可能已经被删除，请返回衣橱重新选择。')
+          Text('可能已经被删除，请返回衣柜重新选择。')
             .fontSize(14)
             .fontColor(YibuqueColor.textSecondary)
 

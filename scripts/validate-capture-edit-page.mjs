@@ -48,7 +48,7 @@ for (const needle of [
   '吊牌',
   '选择照片',
   '先添加照片',
-  '保存衣服',
+  '保存衣物',
   '自动识别',
   '刚录入',
   'this.photoUris.slice(0, 3)',
@@ -66,13 +66,13 @@ for (const needle of [
   'createStoreVisitWithOptionalStore',
   'SecondaryPageHeader',
   'onCancel',
-  "Text('单品名称')",
+  "Text('衣物名称')",
   "Text('备注')",
   "Text('购买店铺')",
   "Text('价格')",
   "Text('购买日期')",
   "Text('购买备注')",
-  "Text('美搭名称')",
+  "Text('穿搭名称')",
   "Text('店铺名')",
   "Text('地点')",
   "Text('逛店日期')"
@@ -88,7 +88,7 @@ mustMatch(text, /generated(?:Wardrobe|Clothing|Name)|wardrobeGeneratedName|gener
 mustMatch(text, /generatedOutfit|outfitGeneratedName|generatedOutfitTitle/, 'must generate an outfit fallback title');
 mustMatch(text, /generatedStore|storeGeneratedName|generatedStoreVisitName/, 'must generate a store fallback name');
 mustMatch(text, /canSave\(\)\s*:\s*boolean\s*{[\s\S]*?photoUris\.length\s*>\s*0/, 'save gate must require selected photos');
-mustMatch(text, /this\.photoUris\.length\s*>\s*0\s*\?\s*'保存衣服'\s*:\s*'先添加照片'/, 'wardrobe save button must guide users to add a photo before saving');
+mustMatch(text, /this\.photoUris\.length\s*>\s*0\s*\?\s*'保存衣物'\s*:\s*'先添加照片'/, 'wardrobe save button must guide users to add a photo before saving');
 mustMatch(text, /this\.photoUris\s*=\s*\[\s*\.\.\.this\.initialPhotoUris\s*\]/, 'must clone initialPhotoUris before assigning to state');
 mustMatch(text, /private async choosePhotos\(\): Promise<void> {[\s\S]*?if \(this\.isSaving \|\| this\.isChoosingPhotos\)/, 'photo chooser must guard saving and choosing states');
 mustMatch(text, /\.enabled\(!this\.isSaving && !this\.isChoosingPhotos\)/, 'photo chooser entry must be disabled while saving or choosing photos');

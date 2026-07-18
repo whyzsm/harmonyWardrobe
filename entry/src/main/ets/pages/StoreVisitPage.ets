@@ -5,6 +5,7 @@ import { PhotoStorage } from '../media/PhotoStorage';
 import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 import { ArrayDataSource } from '../utils/ArrayDataSource';
 import { toIsoDate } from '../utils/date';
+import { userFacingError } from '../utils/userFacingError';
 import { StoreVisitEditPage } from './StoreVisitEditPage';
 
 interface StoreVisitStatusFilter {
@@ -75,7 +76,7 @@ export struct StoreVisitPage {
         }
       }
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '加载逛店失败';
+      this.errorMessage = userFacingError(error, '加载逛店失败');
     } finally {
       this.loading = false;
     }
@@ -333,6 +334,7 @@ export struct StoreVisitPage {
             .fontColor(TEXT_PRIMARY)
             .placeholderColor(YibuqueColor.textTertiary)
             .backgroundColor(YibuqueColor.transparent)
+            .accessibilityText('搜索逛店记录')
             .enterKeyType(EnterKeyType.Search)
             .onChange((value: string) => {
               this.searchQuery = value;
@@ -368,6 +370,7 @@ export struct StoreVisitPage {
             .backgroundColor(this.selectedStatus === filter.value ? YibuqueColor.actionBlack : SURFACE_WARM)
             .borderRadius(YibuqueRadius.xxxl)
             .border({ width: 1, color: this.selectedStatus === filter.value ? YibuqueColor.actionBlack : BORDER })
+            .accessibilityText(`${filter.label}${this.selectedStatus === filter.value ? '，已选中' : ''}`)
             .onClick(() => {
               this.selectStatus(filter);
             })
@@ -563,7 +566,7 @@ export struct StoreVisitPage {
         .fontSize(14)
         .fontWeight(FontWeight.Regular)
         .fontColor(TEXT_PRIMARY)
-      Text('相机记录正在从本地衣橱读取。')
+      Text('逛店记录正在从本地衣柜读取。')
         .fontSize(12)
         .fontColor(TEXT_MUTED)
     }
@@ -592,7 +595,7 @@ export struct StoreVisitPage {
       .layoutWeight(1)
       .alignItems(HorizontalAlign.Start)
       Button('重试')
-        .height(36)
+        .height(44)
         .padding({ left: 14, right: 14 })
         .fontSize(13)
         .fontWeight(FontWeight.Regular)

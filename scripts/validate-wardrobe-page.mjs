@@ -47,7 +47,7 @@ for (const needle of [
   '.borderRadius(YibuqueRadius.md)',
   'Row({ space: 10 })',
   '.constraintSize({ minWidth: 76, minHeight: 44 })',
-  '点底部相机，选择照片后归类为衣橱',
+  '点底部相机，选择照片后归类为衣柜',
   ".height('100%')",
   '.scrollable(ScrollDirection.Horizontal)',
   '.scrollBar(BarState.Off)'

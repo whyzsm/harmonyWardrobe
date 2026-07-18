@@ -42,7 +42,7 @@ for (const needle of [
   'ClothingRepository',
   'name',
   'category',
-  'previewPhotoUri',
+  'PhotoCarousel',
   'PhotoHero',
   'ItemDetailCard',
   'CategorySection',
@@ -62,8 +62,9 @@ for (const needle of [
   'normalizedName',
   'formatTimeForName',
   'pickGalleryPhotos',
-  'MAX_CLOTHING_PHOTOS',
-  'pickFromGallery({ maxSelectNumber: MAX_CLOTHING_PHOTOS })',
+  'MAX_USER_PHOTOS',
+  'remainingPhotoSlots',
+  'appendPhotoUris',
   'copyToAppStorage',
   'createClothing',
   'updateClothing',
@@ -176,12 +177,12 @@ if (!/this\.isChoosingPhotos\s*=\s*true[\s\S]*?finally\s*{[\s\S]*?this\.isChoosi
   throw new Error('ClothingEditPage gallery pick must reset isChoosingPhotos in finally');
 }
 
-if (!/const localUris = await this\.copySourcesToLocalUris\(sources\)[\s\S]*?if \(localUris\.length > 0\)[\s\S]*?this\.photoUris = localUris[\s\S]*?this\.previewPhotoUri = localUris\[0\][\s\S]*?else[\s\S]*?照片复制失败，请重试[\s\S]*?this\.photoUris = \[\][\s\S]*?this\.previewPhotoUri = ''/.test(pickGalleryPhotosBody)) {
-  throw new Error('ClothingEditPage must only keep successful local photo URIs and clear failed copies');
+if (!/const availableSlots = remainingPhotoSlots\(this\.photoUris\)[\s\S]*?pickFromGallery\(\{ maxSelectNumber: availableSlots \}\)[\s\S]*?const localUris = await this\.copySourcesToLocalUris\(sources\)[\s\S]*?this\.photoUris = appendPhotoUris\(this\.photoUris, localUris\)/.test(pickGalleryPhotosBody)) {
+  throw new Error('ClothingEditPage must append successful local photo URIs within the shared limit');
 }
 
-if (!/catch\s*\(\s*copyError\s*\)[\s\S]*?照片保存失败[\s\S]*?this\.photoUris = \[\][\s\S]*?this\.previewPhotoUri = ''/.test(pickGalleryPhotosBody)) {
-  throw new Error('ClothingEditPage copy failure must clear photos and show a visible error');
+if (!/catch\s*\(\s*copyError\s*\)[\s\S]*?照片保存失败/.test(pickGalleryPhotosBody)) {
+  throw new Error('ClothingEditPage copy failure must show a visible error');
 }
 
 for (const needle of [

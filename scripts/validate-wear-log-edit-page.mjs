@@ -19,7 +19,10 @@ for (const needle of [
   'PhotoPickerAdapter',
   'PhotoStorage',
   'WearLogRepository',
-  'PhotoGrid',
+  'PhotoCarousel',
+  'MAX_USER_PHOTOS',
+  'remainingPhotoSlots',
+  'appendPhotoUris',
   'wornDate',
   'placeText',
   'note',
@@ -58,12 +61,12 @@ if (!/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?return\s+!this\.isSaving\s*&&\s*!this
 }
 
 for (const forbidden of [
-  '选择穿搭，补充日期、地点、照片和备注。',
+  '记录穿着，补充日期、地点、照片和备注。',
   'AppTheme.color.primary',
   'wornDate /',
   'placeText /',
-  '选择穿搭',
-  '暂无穿搭'
+  '选择美搭',
+  '暂无美搭'
 ]) {
   if (editPage.includes(forbidden) || picker.includes(forbidden)) {
     throw new Error(`WearLog flow should use Yibuque photo-first copy and tokens, not ${forbidden}`);
@@ -107,7 +110,7 @@ for (const [name, fallbackMessage] of [
     'this.isChoosingPhotos = true;',
     'try {',
     'catch (error) {',
-    `error instanceof Error ? error.message : '${fallbackMessage}'`,
+    `this.errorMessage = userFacingError(error, '${fallbackMessage}')`,
     'finally {',
     'this.isChoosingPhotos = false;'
   ]) {

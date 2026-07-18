@@ -4,6 +4,7 @@ import { ProfileRepository } from '../data/repositories/ProfileRepository';
 import { StoreRepository } from '../data/repositories/StoreRepository';
 import { UserProfile } from '../domain/profile/ProfileModels';
 import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
+import { userFacingError } from '../utils/userFacingError';
 
 const DEFAULT_FREQUENT_DISTRICTS: string[] = ['静安嘉里', 'iapm', '小众买手店', 'TX 淮海'];
 const DEFAULT_SELECTED_FREQUENT_DISTRICTS: string[] = ['静安嘉里', 'iapm', '小众买手店'];
@@ -97,7 +98,7 @@ function describeMeasurements(profile: UserProfile): string {
     parts.push(`腰围 ${profile.waistCm}cm`);
   }
 
-  return parts.length === 0 ? '填写身形信息后可用于试穿推荐' : parts.join(' · ');
+  return parts.length === 0 ? '填写身形信息后可用于试穿记录' : parts.join(' · ');
 }
 
 function describeLocalState(profile: UserProfile): string {
@@ -135,7 +136,7 @@ export struct ProfilePage {
   @State private isEditingBudget: boolean = false;
   @State private budgetDraft: string = '';
   @State private budgetErrorMessage: string = '';
-  @State private measurementSummary: string = '填写身形信息后可用于试穿推荐';
+  @State private measurementSummary: string = '填写身形信息后可用于试穿记录';
   @State private localSummary: string = '衣柜照片、穿搭和逛店记录都保存在本机。';
   @State private wardrobePhotoUris: string[] = [];
   @State private wardrobeItemCount: number = 0;
@@ -161,7 +162,7 @@ export struct ProfilePage {
       const profile = await this.profileRepository.getProfile();
       this.applyProfile(profile);
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '加载个人信息失败';
+      this.errorMessage = userFacingError(error, '加载个人信息失败');
     } finally {
       this.isLoading = false;
     }
@@ -257,7 +258,7 @@ export struct ProfilePage {
       this.savedMessage = '已保存个人信息';
       this.closeMeasurementEditor();
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '保存个人信息失败';
+      this.errorMessage = userFacingError(error, '保存个人信息失败');
     } finally {
       this.isSaving = false;
     }
@@ -372,7 +373,7 @@ export struct ProfilePage {
       this.showNotice('本月预算已保存。');
       this.closeBudgetEditor();
     } catch (error) {
-      this.budgetErrorMessage = error instanceof Error ? error.message : '保存预算失败';
+      this.budgetErrorMessage = userFacingError(error, '保存预算失败');
     } finally {
       this.isSaving = false;
     }
@@ -458,7 +459,7 @@ export struct ProfilePage {
       this.applyProfile(saved);
       this.showNotice(message);
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '保存个人偏好失败';
+      this.errorMessage = userFacingError(error, '保存个人偏好失败');
     } finally {
       this.isSaving = false;
     }
@@ -575,7 +576,7 @@ export struct ProfilePage {
             .fontWeight(FontWeight.Regular)
             .fontColor(this.wardrobePhotoUris.length > 0 ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
 
-          Text('尺码、预算、常逛商圈和回购提醒，都集中在这里管理。')
+          Text('尺码、预算、常逛商圈和购买备注，都集中在这里管理。')
             .width(270)
             .fontSize(13)
             .lineHeight(18)
@@ -662,7 +663,7 @@ export struct ProfilePage {
   @Builder
   PreferenceSection() {
     Column() {
-      this.SectionHeading('我的偏好', '用于推荐和记录')
+      this.SectionHeading('我的偏好', '用于记录和整理')
 
       Column() {
         this.PreferenceRow('常用尺码', this.measurementSummary, 'size')
@@ -763,7 +764,7 @@ export struct ProfilePage {
       .alignItems(HorizontalAlign.Start)
 
       if (action === 'shops') {
-        Button('路线')
+        Button('编辑')
           .height(44)
           .padding({ left: 13, right: 13 })
           .fontSize(12)
@@ -931,7 +932,7 @@ export struct ProfilePage {
             .lineHeight(27)
             .fontWeight(FontWeight.Regular)
             .fontColor(YibuqueColor.textPrimary)
-          Text('预算提醒会在加入回购或记录购买时出现。')
+          Text('保存后可以查看本月预算余量。')
             .width('100%')
             .fontSize(12)
             .lineHeight(17)
@@ -991,7 +992,7 @@ export struct ProfilePage {
             this.budgetErrorMessage = '';
           })
 
-        Text(this.budgetErrorMessage.length > 0 ? this.budgetErrorMessage : '至少 ¥500。保存后会同步更新预算余量和进度条。')
+        Text(this.budgetErrorMessage.length > 0 ? this.budgetErrorMessage : '至少 ¥500。保存后会更新本月预算余量和进度条。')
           .width('100%')
           .fontSize(12)
           .lineHeight(17)
@@ -1095,7 +1096,7 @@ export struct ProfilePage {
             .lineHeight(27)
             .fontWeight(FontWeight.Regular)
             .fontColor(YibuqueColor.textPrimary)
-          Text('会同步到逛店记录页，方便快速筛选路线。')
+          Text('保存后可在逛店记录页快速筛选路线。')
             .width('100%')
             .fontSize(12)
             .lineHeight(17)

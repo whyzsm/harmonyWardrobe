@@ -2,7 +2,7 @@ import fs from 'node:fs';
 
 const pages = [
   ['entry/src/main/ets/pages/ClothingEditPage.ets', 'saveClothing', '衣物已保存'],
-  ['entry/src/main/ets/pages/OutfitEditPage.ets', 'saveOutfit', '美搭已保存'],
+  ['entry/src/main/ets/pages/OutfitEditPage.ets', 'saveOutfit', '穿搭已保存'],
   ['entry/src/main/ets/pages/StoreVisitEditPage.ets', 'saveStoreVisit', '逛店记录已保存'],
   ['entry/src/main/ets/pages/WearLogEditPage.ets', 'saveWearLog', '穿着记录已保存'],
   ['entry/src/main/ets/pages/WishlistEditPage.ets', 'saveWishlistItem', '心愿已保存']

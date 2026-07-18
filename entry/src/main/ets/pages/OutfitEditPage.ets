@@ -1,4 +1,5 @@
 import { ClothingPicker } from '../components/ClothingPicker';
+import { PhotoCarousel } from '../components/PhotoCarousel';
 import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import {
   CreateOutfitInput,
@@ -11,6 +12,8 @@ import { PhotoSource } from '../media/PhotoModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
 import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
+import { appendPhotoUris, MAX_USER_PHOTOS, remainingPhotoSlots } from '../utils/photoSelection';
+import { userFacingError } from '../utils/userFacingError';
 
 function optionalText(value: string): string | undefined {
   const trimmed = value.trim();
@@ -66,7 +69,7 @@ export struct OutfitEditPage {
 
   private normalizedTitle(): string {
     const trimmedTitle = this.title.trim();
-    return trimmedTitle.length > 0 ? trimmedTitle : `美搭 ${formatTimeForTitle(new Date())}`;
+    return trimmedTitle.length > 0 ? trimmedTitle : `穿搭 ${formatTimeForTitle(new Date())}`;
   }
 
   private toggleClothingItem(id: string): void {
@@ -100,10 +103,15 @@ export struct OutfitEditPage {
     this.isChoosingPhotos = true;
     this.errorMessage = '';
     try {
-      const sources = await this.photoPickerAdapter.pickFromGallery({ maxSelectNumber: 6 });
-      this.photoUris = this.photoUris.concat(await this.copySourcesToLocalUris(sources));
+      const availableSlots = remainingPhotoSlots(this.photoUris);
+      if (availableSlots === 0) {
+        this.errorMessage = `最多添加 ${MAX_USER_PHOTOS} 张照片。`;
+        return;
+      }
+      const sources = await this.photoPickerAdapter.pickFromGallery({ maxSelectNumber: availableSlots });
+      this.photoUris = appendPhotoUris(this.photoUris, await this.copySourcesToLocalUris(sources));
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '选择照片失败';
+      this.errorMessage = userFacingError(error, '选择照片失败');
     } finally {
       this.isChoosingPhotos = false;
     }
@@ -117,10 +125,14 @@ export struct OutfitEditPage {
     this.isChoosingPhotos = true;
     this.errorMessage = '';
     try {
+      if (remainingPhotoSlots(this.photoUris) === 0) {
+        this.errorMessage = `最多添加 ${MAX_USER_PHOTOS} 张照片。`;
+        return;
+      }
       const source = await this.photoPickerAdapter.captureFromCamera();
-      this.photoUris = this.photoUris.concat(await this.copySourcesToLocalUris([source]));
+      this.photoUris = appendPhotoUris(this.photoUris, await this.copySourcesToLocalUris([source]));
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '拍照失败';
+      this.errorMessage = userFacingError(error, '拍照失败');
     } finally {
       this.isChoosingPhotos = false;
     }
@@ -157,10 +169,10 @@ export struct OutfitEditPage {
       const savedOutfit = this.initialOutfit === undefined
         ? await this.outfitRepository.createOutfit(this.createInput())
         : await this.outfitRepository.updateOutfit(this.updateInput(this.initialOutfit.id));
-      this.showSaveToast('美搭已保存');
+      this.showSaveToast('穿搭已保存');
       this.onSave(savedOutfit);
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '保存美搭失败';
+      this.errorMessage = userFacingError(error, '保存穿搭失败');
     } finally {
       this.isSaving = false;
     }
@@ -177,8 +189,8 @@ export struct OutfitEditPage {
     }
 
     AlertDialog.show({
-      title: '删除美搭',
-      message: '确定要删除这套美搭吗？照片也会一并移除。',
+      title: '删除穿搭',
+      message: '确定要删除这套穿搭吗？照片也会一并移除。',
       primaryButton: {
         value: '取消',
         action: () => {}
@@ -204,7 +216,7 @@ export struct OutfitEditPage {
     try {
       await this.onDelete(outfit);
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '删除美搭失败';
+      this.errorMessage = userFacingError(error, '删除穿搭失败');
     } finally {
       this.isDeleting = false;
     }
@@ -214,10 +226,9 @@ export struct OutfitEditPage {
   PhotoSelector() {
     Stack({ alignContent: Alignment.BottomStart }) {
       if (this.hasSelectedPhoto()) {
-        Image(this.photoUris[0])
+        PhotoCarousel({ photoUris: this.photoUris })
           .width('100%')
           .height('100%')
-          .objectFit(ImageFit.Cover)
       } else {
         Image($r('app.media.default_fashion_cover'))
           .width('100%')
@@ -244,7 +255,7 @@ export struct OutfitEditPage {
         Blank()
 
         Column({ space: 8 }) {
-          Text('记录这套美搭的第一眼')
+          Text('记录这套穿搭的第一眼')
             .fontSize(20)
             .lineHeight(28)
             .fontWeight(FontWeight.Regular)
@@ -270,7 +281,7 @@ export struct OutfitEditPage {
     .borderRadius(YibuqueRadius.sheet)
     .border({ width: 1, color: YibuqueColor.borderLight })
     .clip(true)
-    .accessibilityText(this.hasSelectedPhoto() ? `已选择 ${this.photoUris.length} 张美搭照片` : '添加美搭照片')
+    .accessibilityText(this.hasSelectedPhoto() ? `已选择 ${this.photoUris.length} 张穿搭照片` : '添加穿搭照片')
   }
 
   @Builder
@@ -317,7 +328,7 @@ export struct OutfitEditPage {
   build() {
     Column() {
       SecondaryPageHeader({
-        title: this.initialOutfit === undefined ? '创建美搭' : '编辑美搭',
+        title: this.initialOutfit === undefined ? '创建穿搭' : '编辑穿搭',
         backAccessibilityText: '返回穿搭',
         onBack: () => {
           this.onCancel();
@@ -329,12 +340,12 @@ export struct OutfitEditPage {
         this.PhotoSelector()
 
         Column({ space: YibuqueSpacing.md }) {
-          Text('美搭信息（选填）')
+          Text('穿搭信息（选填）')
             .fontSize(18)
             .fontWeight(FontWeight.Regular)
             .fontColor(YibuqueColor.textPrimary)
 
-          TextInput({ text: this.title, placeholder: '美搭名称，可不填' })
+          TextInput({ text: this.title, placeholder: '穿搭名称，可不填' })
             .height(52)
             .fontSize(16)
             .fontColor(YibuqueColor.textPrimary)
@@ -385,7 +396,7 @@ export struct OutfitEditPage {
                 .height(20)
                 .color(YibuqueColor.textInverse)
             } else {
-              Text('删除美搭')
+              Text('删除穿搭')
                 .fontSize(15)
                 .fontColor(YibuqueColor.textInverse)
             }
@@ -407,7 +418,7 @@ export struct OutfitEditPage {
               .height(20)
               .color(YibuqueColor.textInverse)
           } else {
-            Text(this.hasSelectedPhoto() ? '保存美搭' : '先添加照片')
+            Text(this.hasSelectedPhoto() ? '保存穿搭' : '先添加照片')
               .fontSize(17)
               .fontWeight(FontWeight.Regular)
               .fontColor(YibuqueColor.textInverse)

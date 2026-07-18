@@ -10,6 +10,9 @@ import { PhotoSource } from '../media/PhotoModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
 import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
+import { PhotoCarousel } from '../components/PhotoCarousel';
+import { appendPhotoUris, MAX_USER_PHOTOS, remainingPhotoSlots } from '../utils/photoSelection';
+import { userFacingError } from '../utils/userFacingError';
 
 interface ClothingCategoryOption {
   label: string;
@@ -33,8 +36,6 @@ const LEGACY_HALF_SKIRT_OPTION: ClothingCategoryOption = {
   label: '半裙',
   value: ClothingCategory.HalfSkirt
 };
-const MAX_CLOTHING_PHOTOS = 20;
-
 function labelForCategory(category: ClothingCategory): string {
   for (const option of CATEGORY_OPTIONS) {
     if (option.value === category) {
@@ -90,7 +91,6 @@ export struct ClothingEditPage {
   @State private name: string = '';
   @State private category: ClothingCategory = ClothingCategory.Top;
   @State private photoUris: string[] = [];
-  @State private previewPhotoUri: string = '';
   @State private note: string = '';
   @State private storeName: string = '';
   @State private price: string = '';
@@ -108,7 +108,6 @@ export struct ClothingEditPage {
     this.name = this.initialItem.name;
     this.category = this.initialItem.category;
     this.photoUris = [...this.initialItem.photoUris];
-    this.previewPhotoUri = this.initialItem.photoUris[0] ?? '';
     this.note = this.initialItem.note ?? '';
     this.storeName = this.initialItem.purchaseInfo?.storeName ?? '';
     this.price = this.initialItem.purchaseInfo?.price?.toString() ?? '';
@@ -212,7 +211,12 @@ export struct ClothingEditPage {
     this.isChoosingPhotos = true;
     this.errorMessage = '';
     try {
-      const sources = await this.photoPickerAdapter.pickFromGallery({ maxSelectNumber: MAX_CLOTHING_PHOTOS });
+      const availableSlots = remainingPhotoSlots(this.photoUris);
+      if (availableSlots === 0) {
+        this.errorMessage = `最多添加 ${MAX_USER_PHOTOS} 张照片。`;
+        return;
+      }
+      const sources = await this.photoPickerAdapter.pickFromGallery({ maxSelectNumber: availableSlots });
       if (sources.length === 0) {
         return;
       }
@@ -220,24 +224,19 @@ export struct ClothingEditPage {
       try {
         const localUris = await this.copySourcesToLocalUris(sources);
         if (localUris.length > 0) {
-          this.photoUris = localUris;
-          this.previewPhotoUri = localUris[0];
+          this.photoUris = appendPhotoUris(this.photoUris, localUris);
           if (this.name.trim().length === 0) {
             this.name = this.generatedName();
           }
         } else {
           this.errorMessage = '照片复制失败，请重试';
-          this.photoUris = [];
-          this.previewPhotoUri = '';
         }
       } catch (copyError) {
         const detail = copyError instanceof Error ? copyError.message : '未知错误';
         this.errorMessage = `照片保存失败：${detail}`;
-        this.photoUris = [];
-        this.previewPhotoUri = '';
       }
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '选择照片失败';
+      this.errorMessage = userFacingError(error, '选择照片失败');
     } finally {
       this.isChoosingPhotos = false;
     }
@@ -279,7 +278,7 @@ export struct ClothingEditPage {
       this.showSaveToast('衣物已保存');
       this.onSave(savedItem);
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '保存衣物失败';
+      this.errorMessage = userFacingError(error, '保存衣物失败');
     } finally {
       this.isSaving = false;
     }
@@ -293,10 +292,9 @@ export struct ClothingEditPage {
   PhotoHero() {
     Stack({ alignContent: Alignment.BottomStart }) {
       if (this.hasSelectedPhoto()) {
-        Image(this.previewPhotoUri)
+        PhotoCarousel({ photoUris: this.photoUris })
           .width('100%')
           .height('100%')
-          .objectFit(ImageFit.Cover)
       } else {
         Image($r('app.media.default_fashion_cover'))
           .width('100%')

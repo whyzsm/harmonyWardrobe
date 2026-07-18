@@ -1,5 +1,5 @@
 import { OutfitPicker } from '../components/OutfitPicker';
-import { PhotoGrid } from '../components/PhotoGrid';
+import { PhotoCarousel } from '../components/PhotoCarousel';
 import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import {
   CreateWearLogInput,
@@ -13,6 +13,8 @@ import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
 import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
 import { toIsoDate } from '../utils/date';
+import { appendPhotoUris, MAX_USER_PHOTOS, remainingPhotoSlots } from '../utils/photoSelection';
+import { userFacingError } from '../utils/userFacingError';
 
 function optionalText(value: string): string | undefined {
   const trimmed = value.trim();
@@ -105,10 +107,15 @@ export struct WearLogEditPage {
     this.isChoosingPhotos = true;
     this.errorMessage = '';
     try {
-      const sources = await this.photoPickerAdapter.pickFromGallery({ maxSelectNumber: 6 });
-      this.photoUris = this.photoUris.concat(await this.copySourcesToLocalUris(sources));
+      const availableSlots = remainingPhotoSlots(this.photoUris);
+      if (availableSlots === 0) {
+        this.errorMessage = `最多添加 ${MAX_USER_PHOTOS} 张照片。`;
+        return;
+      }
+      const sources = await this.photoPickerAdapter.pickFromGallery({ maxSelectNumber: availableSlots });
+      this.photoUris = appendPhotoUris(this.photoUris, await this.copySourcesToLocalUris(sources));
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '选择照片失败';
+      this.errorMessage = userFacingError(error, '选择照片失败');
     } finally {
       this.isChoosingPhotos = false;
     }
@@ -122,10 +129,14 @@ export struct WearLogEditPage {
     this.isChoosingPhotos = true;
     this.errorMessage = '';
     try {
+      if (remainingPhotoSlots(this.photoUris) === 0) {
+        this.errorMessage = `最多添加 ${MAX_USER_PHOTOS} 张照片。`;
+        return;
+      }
       const source = await this.photoPickerAdapter.captureFromCamera();
-      this.photoUris = this.photoUris.concat(await this.copySourcesToLocalUris([source]));
+      this.photoUris = appendPhotoUris(this.photoUris, await this.copySourcesToLocalUris([source]));
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '拍照失败';
+      this.errorMessage = userFacingError(error, '拍照失败');
     } finally {
       this.isChoosingPhotos = false;
     }
@@ -167,7 +178,7 @@ export struct WearLogEditPage {
       this.showSaveToast('穿着记录已保存');
       this.onSave(savedWearLog);
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '保存穿着记录失败';
+      this.errorMessage = userFacingError(error, '保存穿着记录失败');
     } finally {
       this.isSaving = false;
     }
@@ -222,7 +233,7 @@ export struct WearLogEditPage {
     try {
       await this.onDelete(wearLog);
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '删除穿着记录失败';
+      this.errorMessage = userFacingError(error, '删除穿着记录失败');
     } finally {
       this.isDeleting = false;
     }
@@ -267,7 +278,17 @@ export struct WearLogEditPage {
             this.openWornDatePicker();
           })
 
-        PhotoGrid({ photoUris: this.photoUris })
+        if (this.photoUris.length > 0) {
+          PhotoCarousel({ photoUris: this.photoUris })
+            .width('100%')
+            .height(220)
+        } else {
+          Image($r('app.media.default_fashion_cover'))
+            .width('100%')
+            .height(220)
+            .objectFit(ImageFit.Cover)
+            .borderRadius(YibuqueRadius.xs)
+        }
 
         Row({ space: 10 }) {
           Button('从相册选择')

@@ -2,6 +2,7 @@ import {
   StoreRepository,
   UpdateStoreVisitWithOptionalStoreInput
 } from '../data/repositories/StoreRepository';
+import { PhotoCarousel } from '../components/PhotoCarousel';
 import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import { StoreVisit, StoreVisitStatus } from '../domain/store/StoreModels';
 import { PhotoSource } from '../media/PhotoModels';
@@ -9,6 +10,8 @@ import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
 import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 import { toIsoDate } from '../utils/date';
+import { appendPhotoUris, MAX_USER_PHOTOS, remainingPhotoSlots } from '../utils/photoSelection';
+import { userFacingError } from '../utils/userFacingError';
 
 interface VisitStatusOption {
   label: string;
@@ -107,14 +110,19 @@ export struct StoreVisitEditPage {
     this.isChoosingPhotos = true;
     this.errorMessage = '';
     try {
-      const sources = await this.photoPickerAdapter.pickFromGallery({ maxSelectNumber: 6 });
+      const availableSlots = remainingPhotoSlots(this.photoUris);
+      if (availableSlots === 0) {
+        this.errorMessage = `最多添加 ${MAX_USER_PHOTOS} 张照片。`;
+        return;
+      }
+      const sources = await this.photoPickerAdapter.pickFromGallery({ maxSelectNumber: availableSlots });
       const localUris = await this.copySourcesToLocalUris(sources);
       if (sources.length > 0 && localUris.length === 0) {
         throw new Error('照片保存服务不可用，请稍后重试');
       }
-      this.photoUris = this.photoUris.concat(localUris);
+      this.photoUris = appendPhotoUris(this.photoUris, localUris);
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '选择照片失败，请重试';
+      this.errorMessage = userFacingError(error, '选择照片失败，请重试');
     } finally {
       this.isChoosingPhotos = false;
     }
@@ -128,14 +136,18 @@ export struct StoreVisitEditPage {
     this.isChoosingPhotos = true;
     this.errorMessage = '';
     try {
+      if (remainingPhotoSlots(this.photoUris) === 0) {
+        this.errorMessage = `最多添加 ${MAX_USER_PHOTOS} 张照片。`;
+        return;
+      }
       const source = await this.photoPickerAdapter.captureFromCamera();
       const localUris = await this.copySourcesToLocalUris([source]);
       if (localUris.length === 0) {
         throw new Error('照片保存服务不可用，请稍后重试');
       }
-      this.photoUris = this.photoUris.concat(localUris);
+      this.photoUris = appendPhotoUris(this.photoUris, localUris);
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '拍照失败，请重试';
+      this.errorMessage = userFacingError(error, '拍照失败，请重试');
     } finally {
       this.isChoosingPhotos = false;
     }
@@ -187,7 +199,7 @@ export struct StoreVisitEditPage {
       this.showSaveToast('逛店记录已保存');
       this.onSave(savedVisit);
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '保存逛店失败';
+      this.errorMessage = userFacingError(error, '保存逛店失败');
     } finally {
       this.isSaving = false;
     }
@@ -231,7 +243,7 @@ export struct StoreVisitEditPage {
     try {
       await this.onDelete(visit);
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '删除逛店记录失败';
+      this.errorMessage = userFacingError(error, '删除逛店记录失败');
     } finally {
       this.isDeleting = false;
     }
@@ -310,10 +322,9 @@ export struct StoreVisitEditPage {
           .height('100%')
           .objectFit(ImageFit.Cover)
       } else {
-        Image(this.photoUris[0])
+        PhotoCarousel({ photoUris: this.photoUris })
           .width('100%')
           .height('100%')
-          .objectFit(ImageFit.Cover)
       }
 
       if (this.photoUris.length > 0) {
@@ -522,6 +533,7 @@ export struct StoreVisitEditPage {
               .backgroundColor(this.selectedStatus === option.value ? YibuqueColor.actionBlack : YibuqueColor.transparent)
               .borderRadius(YibuqueRadius.full)
               .border({ width: 1, color: this.selectedStatus === option.value ? YibuqueColor.actionBlack : YibuqueColor.borderMedium })
+              .accessibilityText(`${option.label}${this.selectedStatus === option.value ? '，已选中' : ''}`)
               .onClick(() => {
                 this.selectedStatus = option.value;
               })
@@ -559,6 +571,7 @@ export struct StoreVisitEditPage {
               .backgroundColor(this.selectedTags.includes(tag) ? YibuqueColor.actionBlack : YibuqueColor.transparent)
               .borderRadius(YibuqueRadius.full)
               .border({ width: 1, color: this.selectedTags.includes(tag) ? YibuqueColor.actionBlack : YibuqueColor.borderMedium })
+              .accessibilityText(`${tag}${this.selectedTags.includes(tag) ? '，已选中' : ''}`)
               .onClick(() => {
                 this.toggleFocusTag(tag);
               })

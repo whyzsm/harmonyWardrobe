@@ -38,17 +38,21 @@ for (const needle of [
   'YibuqueRadius',
   'YibuqueShadow',
   'YibuqueColor.actionBlack',
-  '记录这套美搭的第一眼',
+  'PhotoCarousel',
+  'MAX_USER_PHOTOS',
+  'remainingPhotoSlots',
+  'appendPhotoUris',
+  '记录这套穿搭的第一眼',
   '整体、细节或上身效果都可以',
   '.aspectRatio(530 / 386)',
   'CameraAction',
   'GalleryAction',
   "SymbolGlyph($r('sys.symbol.camera_fill'))",
   "SymbolGlyph($r('sys.symbol.picture'))",
-  '美搭信息（选填）',
-  '美搭名称，可不填',
+  '穿搭信息（选填）',
+  '穿搭名称，可不填',
   '备注',
-  '保存美搭',
+  '保存穿搭',
   '先添加照片'
 ]) {
   if (!editPage.includes(needle)) {
@@ -117,7 +121,7 @@ for (const forbidden of [
   }
 }
 
-if (!/PhotoSelector\(\)[\s\S]*?Image\(this\.photoUris\[0\]\)[\s\S]*?\.aspectRatio\(530 \/ 386\)[\s\S]*?\.borderRadius\(YibuqueRadius\.sheet\)/.test(editPage)) {
+if (!/PhotoSelector\(\)[\s\S]*?PhotoCarousel\(\{ photoUris: this\.photoUris \}\)[\s\S]*?\.aspectRatio\(530 \/ 386\)[\s\S]*?\.borderRadius\(YibuqueRadius\.sheet\)/.test(editPage)) {
   throw new Error('OutfitEditPage photo area must match the store editor hero layout');
 }
 
@@ -150,7 +154,7 @@ for (const [name, fallbackMessage] of [
     'this.isChoosingPhotos = true;',
     'try {',
     'catch (error) {',
-    `error instanceof Error ? error.message : '${fallbackMessage}'`,
+    `this.errorMessage = userFacingError(error, '${fallbackMessage}')`,
     'finally {',
     'this.isChoosingPhotos = false;'
   ]) {

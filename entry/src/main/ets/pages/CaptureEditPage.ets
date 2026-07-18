@@ -7,6 +7,9 @@ import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import { ClothingItem, PurchaseInfo } from '../domain/clothing/ClothingModels';
 import { StoreVisit } from '../domain/store/StoreModels';
 import { toIsoDate } from '../utils/date';
+import { appendPhotoUris, MAX_USER_PHOTOS, remainingPhotoSlots } from '../utils/photoSelection';
+import { userFacingError } from '../utils/userFacingError';
+import { PhotoCarousel } from '../components/PhotoCarousel';
 import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
 
 interface CaptureCategoryOption {
@@ -14,10 +17,21 @@ interface CaptureCategoryOption {
   value: ClothingCategory;
 }
 
+interface CaptureModeOption {
+  label: string;
+  value: string;
+}
+
 const CAPTURE_CATEGORY_OPTIONS: CaptureCategoryOption[] = [
   { label: '上衣', value: ClothingCategory.Top },
   { label: '裤装', value: ClothingCategory.Pants },
   { label: '裙装', value: ClothingCategory.LongSkirt }
+];
+
+const CAPTURE_MODE_OPTIONS: CaptureModeOption[] = [
+  { label: '衣物', value: '单品' },
+  { label: '穿搭', value: '试穿' },
+  { label: '逛店', value: '吊牌' }
 ];
 
 function optionalText(value: string): string | undefined {
@@ -80,7 +94,7 @@ export struct CaptureEditPage {
   clothingRepository?: ClothingRepository = undefined;
   outfitRepository?: OutfitRepository = undefined;
   storeRepository?: StoreRepository = undefined;
-  onChoosePhotos: () => Promise<string[]> = async () => [];
+  onChoosePhotos: (maxSelectNumber: number) => Promise<string[]> = async (_maxSelectNumber: number) => [];
   onSave: (target: string) => void = () => {};
   onCancel: () => void = () => {};
 
@@ -124,7 +138,7 @@ export struct CaptureEditPage {
   }
 
   private generatedOutfitTitle(): string {
-    return `美搭 ${formatTimeLabel(this.captureTimestamp())}`;
+    return `穿搭 ${formatTimeLabel(this.captureTimestamp())}`;
   }
 
   private generatedStoreVisitName(): string {
@@ -217,12 +231,17 @@ export struct CaptureEditPage {
     this.isChoosingPhotos = true;
     this.errorMessage = '';
     try {
-      const selectedPhotoUris = await this.onChoosePhotos();
+      const availableSlots = remainingPhotoSlots(this.photoUris);
+      if (availableSlots === 0) {
+        this.errorMessage = `最多添加 ${MAX_USER_PHOTOS} 张照片。`;
+        return;
+      }
+      const selectedPhotoUris = await this.onChoosePhotos(availableSlots);
       if (selectedPhotoUris.length > 0) {
-        this.photoUris = selectedPhotoUris;
+        this.photoUris = appendPhotoUris(this.photoUris, selectedPhotoUris);
       }
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '选择照片失败，请重试';
+      this.errorMessage = userFacingError(error, '选择照片失败，请重试');
     } finally {
       this.isChoosingPhotos = false;
     }
@@ -285,7 +304,7 @@ export struct CaptureEditPage {
         await this.saveStore();
       }
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '保存失败';
+      this.errorMessage = userFacingError(error, '保存失败');
     } finally {
       this.isSaving = false;
     }
@@ -296,12 +315,12 @@ export struct CaptureEditPage {
       return '保存中...';
     }
     if (this.captureType === '美搭') {
-      return '保存试穿';
+      return '保存穿搭';
     }
     if (this.captureType === '店铺') {
-      return '保存吊牌';
+      return '保存逛店记录';
     }
-    return this.photoUris.length > 0 ? '保存衣服' : '先添加照片';
+    return this.photoUris.length > 0 ? '保存衣物' : '先添加照片';
   }
 
   build() {
@@ -399,36 +418,37 @@ export struct CaptureEditPage {
   ModeTabs() {
     Scroll() {
       Row({ space: 10 }) {
-        ForEach(['单品', '试穿', '吊牌'], (mode: string) => {
+        ForEach(CAPTURE_MODE_OPTIONS, (option: CaptureModeOption) => {
           Row({ space: 7 }) {
-            if (mode === '单品') {
+            if (option.value === '单品') {
               SymbolGlyph($r('sys.symbol.shirt'))
                 .fontSize(17)
-                .fontColor([this.captureMode === mode ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
-            } else if (mode === '试穿') {
+                .fontColor([this.captureMode === option.value ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
+            } else if (option.value === '试穿') {
               SymbolGlyph($r('sys.symbol.hanger_and_towels'))
                 .fontSize(17)
-                .fontColor([this.captureMode === mode ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
+                .fontColor([this.captureMode === option.value ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
             } else {
               SymbolGlyph($r('sys.symbol.bag'))
                 .fontSize(17)
-                .fontColor([this.captureMode === mode ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
+                .fontColor([this.captureMode === option.value ? YibuqueColor.textInverse : YibuqueColor.textSecondary])
             }
 
-            Text(mode)
+            Text(option.label)
               .fontSize(12)
-              .fontWeight(this.captureMode === mode ? FontWeight.Regular : FontWeight.Regular)
-              .fontColor(this.captureMode === mode ? YibuqueColor.textInverse : YibuqueColor.textSecondary)
+              .fontWeight(this.captureMode === option.value ? FontWeight.Regular : FontWeight.Regular)
+              .fontColor(this.captureMode === option.value ? YibuqueColor.textInverse : YibuqueColor.textSecondary)
           }
           .height(44)
           .padding({ left: 13, right: 15 })
-          .backgroundColor(this.captureMode === mode ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
+          .backgroundColor(this.captureMode === option.value ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
           .borderRadius(YibuqueRadius.xxxl)
-          .border({ width: 1, color: this.captureMode === mode ? YibuqueColor.actionBlack : YibuqueColor.borderMedium })
+          .border({ width: 1, color: this.captureMode === option.value ? YibuqueColor.actionBlack : YibuqueColor.borderMedium })
+          .accessibilityText(`${option.label}${this.captureMode === option.value ? '，已选中' : ''}`)
           .onClick(() => {
-            this.selectMode(mode);
+            this.selectMode(option.value);
           })
-        }, (mode: string) => mode)
+        }, (option: CaptureModeOption) => option.value)
       }
     }
     .scrollable(ScrollDirection.Horizontal)
@@ -440,10 +460,9 @@ export struct CaptureEditPage {
   CapturePreview() {
     Stack({ alignContent: Alignment.BottomStart }) {
       if (this.photoUris.length > 0) {
-        Image(this.photoUris[0])
+        PhotoCarousel({ photoUris: this.photoUris })
           .width('100%')
           .height('100%')
-          .objectFit(ImageFit.Cover)
       } else {
         Image($r('app.media.default_fashion_cover'))
           .width('100%')
@@ -496,6 +515,7 @@ export struct CaptureEditPage {
             .backgroundColor(this.category === option.value ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
             .borderRadius(YibuqueRadius.md)
             .border({ width: 1, color: this.category === option.value ? YibuqueColor.actionBlack : YibuqueColor.borderMedium })
+            .accessibilityText(`${option.label}${this.category === option.value ? '，已选中' : ''}`)
             .onClick(() => {
               this.category = option.value;
             })
@@ -511,7 +531,7 @@ export struct CaptureEditPage {
   @Builder
   NameField() {
     Column({ space: 6 }) {
-      Text('单品名称')
+      Text('衣物名称')
         .fontSize(13)
         .fontColor(YibuqueColor.textSecondary)
 
@@ -648,7 +668,7 @@ export struct CaptureEditPage {
   OutfitFields() {
     Column({ space: 10 }) {
       Column({ space: 6 }) {
-        Text('美搭名称')
+        Text('穿搭名称')
           .fontSize(13)
           .fontColor(YibuqueColor.textSecondary)
 

@@ -9,13 +9,13 @@ export struct OutfitPicker {
 
   build() {
     Column({ space: YibuqueSpacing.sm }) {
-      Text('选择美搭')
+      Text('选择穿搭')
         .fontSize(16)
         .fontWeight(FontWeight.Regular)
         .fontColor(YibuqueColor.textPrimary)
 
       if (this.outfits.length === 0) {
-        Text('暂无美搭，可先记录一套美搭。')
+        Text('暂无穿搭，可先记录一套穿搭。')
           .fontSize(14)
           .fontColor(YibuqueColor.textSecondary)
       } else {

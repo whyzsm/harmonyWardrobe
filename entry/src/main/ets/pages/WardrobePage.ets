@@ -8,6 +8,7 @@ import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
 import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 import { ArrayDataSource } from '../utils/ArrayDataSource';
+import { userFacingError } from '../utils/userFacingError';
 import { ClothingDetailPage } from './ClothingDetailPage';
 import { ClothingEditPage } from './ClothingEditPage';
 import { SearchResultsPage } from './SearchResultsPage';
@@ -75,7 +76,7 @@ export struct WardrobePage {
       this.clothingItems = await this.clothingRepository.listClothing();
       this.refreshClothingDataSource();
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '加载衣橱失败';
+      this.errorMessage = userFacingError(error, '加载衣柜失败');
     } finally {
       this.loading = false;
     }
@@ -383,7 +384,7 @@ export struct WardrobePage {
       this.WardrobeSearchHeader()
 
       if (this.loading) {
-        Text('正在加载衣橱...')
+        Text('正在加载衣柜...')
           .fontSize(14)
           .fontColor(YibuqueColor.textSecondary)
       }
@@ -419,7 +420,7 @@ export struct WardrobePage {
               .fontWeight(FontWeight.Regular)
               .fontColor(YibuqueColor.textPrimary)
 
-            Text('拍照或从相册选图后，按分类收进衣橱。')
+            Text('拍照或从相册选图后，按分类收进衣柜。')
               .fontSize(13)
               .fontColor(YibuqueColor.textSecondary)
           }
@@ -431,7 +432,7 @@ export struct WardrobePage {
           .borderRadius(YibuqueRadius.xxl)
           .border({ width: 1, color: YibuqueColor.borderMedium })
 
-          Text('点底部相机，选择照片后归类为衣橱')
+          Text('点底部相机，选择照片后归类为衣柜')
             .fontSize(15)
             .fontColor(YibuqueColor.textPrimary)
 
@@ -518,6 +519,7 @@ export struct WardrobePage {
           .backgroundColor(this.selectedCategoryLabel === category ? YibuqueColor.actionBlack : YibuqueColor.cardWhite)
           .borderRadius(YibuqueRadius.full)
           .border({ width: 1, color: this.selectedCategoryLabel === category ? YibuqueColor.actionBlack : YibuqueColor.borderMedium })
+          .accessibilityText(`${category}${this.selectedCategoryLabel === category ? '，已选中' : ''}`)
           .onClick(() => {
             this.selectedCategoryLabel = category;
             this.refreshClothingDataSource();

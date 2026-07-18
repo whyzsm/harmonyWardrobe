@@ -17,6 +17,8 @@ import { SearchEntityType } from '../domain/search/SearchModels';
 import { StoreVisit } from '../domain/store/StoreModels';
 import { PhotoSource } from '../media/PhotoModels';
 import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
+import { MAX_USER_PHOTOS } from '../utils/photoSelection';
+import { userFacingError } from '../utils/userFacingError';
 import { CaptureEditPage } from './CaptureEditPage';
 import { ClothingEditPage } from './ClothingEditPage';
 import { OutfitEditPage } from './OutfitEditPage';
@@ -59,7 +61,7 @@ struct Index {
       this.runtime = await WardrobeRuntime.create(context);
       this.runtimeReady = true;
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '初始化应用失败';
+      this.errorMessage = userFacingError(error, '初始化应用失败');
     }
   }
 
@@ -197,7 +199,7 @@ struct Index {
     try {
       params.outfitClothingItems = await this.runtime.clothingRepository.listClothing();
     } catch (error) {
-      this.quickActionErrorMessage = error instanceof Error ? error.message : '加载衣物失败';
+      this.quickActionErrorMessage = userFacingError(error, '加载衣物失败');
     }
 
     this.activeRoute = createAppRoute(AppRouteKind.OutfitEditor, AppMainTab.Outfit, params);
@@ -238,7 +240,7 @@ struct Index {
       const photoUris = await this.copySourcesToLocalUris([source]);
       await this.openCaptureEditor(photoUris);
     } catch (error) {
-      this.quickActionErrorMessage = error instanceof Error ? error.message : '拍照失败，请重试';
+      this.quickActionErrorMessage = userFacingError(error, '拍照失败，请重试');
     } finally {
       this.isCapturing = false;
     }
@@ -254,24 +256,24 @@ struct Index {
     this.quickActionErrorMessage = '';
 
     try {
-      const sources = await this.runtime.photoPickerAdapter.pickFromGallery({ maxSelectNumber: 6 });
+      const sources = await this.runtime.photoPickerAdapter.pickFromGallery({ maxSelectNumber: MAX_USER_PHOTOS });
       const photoUris = await this.copySourcesToLocalUris(sources);
       await this.openCaptureEditor(photoUris);
     } catch (error) {
-      this.quickActionErrorMessage = error instanceof Error ? error.message : '选择照片失败，请重试';
+      this.quickActionErrorMessage = userFacingError(error, '选择照片失败，请重试');
     } finally {
       this.isCapturing = false;
     }
   }
 
-  private async pickCapturePhotos(): Promise<string[]> {
+  private async pickCapturePhotos(maxSelectNumber: number): Promise<string[]> {
     if (this.runtime === undefined || this.isCapturing) {
       return [];
     }
 
     this.isCapturing = true;
     try {
-      const sources = await this.runtime.photoPickerAdapter.pickFromGallery({ maxSelectNumber: 6 });
+      const sources = await this.runtime.photoPickerAdapter.pickFromGallery({ maxSelectNumber });
       return await this.copySourcesToLocalUris(sources);
     } finally {
       this.isCapturing = false;
@@ -301,7 +303,7 @@ struct Index {
               this.initializeRuntime();
             })
         } else {
-          Text('正在初始化本地衣橱...')
+          Text('正在初始化本地衣柜...')
             .fontSize(14)
             .fontColor(YibuqueColor.textSecondary)
         }
@@ -387,8 +389,8 @@ struct Index {
               clothingRepository: this.runtime.clothingRepository,
               outfitRepository: this.runtime.outfitRepository,
               storeRepository: this.runtime.storeRepository,
-              onChoosePhotos: async (): Promise<string[]> => {
-                return await this.pickCapturePhotos();
+              onChoosePhotos: async (maxSelectNumber: number): Promise<string[]> => {
+                return await this.pickCapturePhotos(maxSelectNumber);
               },
               onCancel: () => {
                 this.closeCaptureEditor();

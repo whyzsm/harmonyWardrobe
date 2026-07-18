@@ -8,6 +8,7 @@ import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
 import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
 import { ArrayDataSource } from '../utils/ArrayDataSource';
+import { userFacingError } from '../utils/userFacingError';
 import { OutfitEditPage } from './OutfitEditPage';
 import { WearLogEditPage } from './WearLogEditPage';
 
@@ -99,7 +100,7 @@ export struct OutfitsPage {
         await this.openWearLogById(this.initialWearLogId);
       }
     } catch (error) {
-      this.errorMessage = error instanceof Error ? error.message : '加载穿搭失败';
+      this.errorMessage = userFacingError(error, '加载穿搭失败');
     } finally {
       this.loading = false;
     }
@@ -251,7 +252,7 @@ export struct OutfitsPage {
 
   private async deleteOutfit(outfit: OutfitTemplate): Promise<void> {
     if (this.outfitRepository === undefined) {
-      throw new Error('美搭仓库不可用，请稍后重试');
+      throw new Error('穿搭数据不可用，请稍后重试');
     }
 
     await this.outfitRepository.deleteOutfit(outfit.id);
@@ -354,7 +355,7 @@ export struct OutfitsPage {
                 .maxLines(3)
 
               Button('重试')
-                .height(36)
+                .height(44)
                 .fontSize(13)
                 .fontColor(YibuqueColor.textInverse)
                 .backgroundColor(ERROR)
@@ -496,6 +497,7 @@ export struct OutfitsPage {
           .backgroundColor(this.selectedFilterLabel === filter.label ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
           .borderRadius(YibuqueRadius.xxxl)
           .border({ width: 1, color: this.selectedFilterLabel === filter.label ? YibuqueColor.borderStrong : YibuqueColor.borderMedium })
+          .accessibilityText(`${filter.label}${this.selectedFilterLabel === filter.label ? '，已选中' : ''}`)
           .onClick(() => {
             this.selectedFilterLabel = filter.label;
             this.refreshOutfitDataSource();
@@ -547,8 +549,8 @@ export struct OutfitsPage {
             .lineHeight(18)
 
           Text(this.clothingItems.length > 0 ?
-            '选择衣橱里的真实单品，组合适合自己的穿搭。' :
-            '衣橱中有单品后，就可以在这里创建搭配。')
+            '选择衣柜里的真实单品，组合适合自己的穿搭。' :
+            '衣柜中有单品后，就可以在这里创建搭配。')
             .fontSize(12)
             .fontColor(YibuqueColor.textSecondary)
             .maxLines(2)
@@ -592,24 +594,36 @@ export struct OutfitsPage {
       })
 
       Row({ space: 8 }) {
-        Text(outfit.title)
-          .fontSize(14)
-          .fontWeight(FontWeight.Regular)
-          .fontColor(YibuqueColor.textPrimary)
-          .lineHeight(17)
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
-          .layoutWeight(1)
-          .onClick(() => {
-            this.onEditOutfit(outfit);
-          })
+        Column({ space: 2 }) {
+          Text(outfit.title)
+            .fontSize(14)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textPrimary)
+            .lineHeight(17)
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .onClick(() => {
+              this.onEditOutfit(outfit);
+            })
 
-        Text(this.outfitMeta(outfit))
+          Text(this.outfitMeta(outfit))
+            .fontSize(11)
+            .fontColor(YibuqueColor.textTertiary)
+            .lineHeight(15)
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
+
+        Button('记录穿着')
+          .height(44)
+          .padding({ left: 10, right: 10 })
           .fontSize(11)
-          .fontColor(YibuqueColor.textTertiary)
-          .lineHeight(15)
-          .maxLines(1)
-          .textOverflow({ overflow: TextOverflow.Ellipsis })
+          .fontColor(YibuqueColor.textPrimary)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.full)
+          .border({ width: 1, color: YibuqueColor.borderMedium })
           .accessibilityText(RECORD_WEAR_ACCESSIBILITY_TEXT)
           .onClick(() => {
             this.onRecordWear(outfit);

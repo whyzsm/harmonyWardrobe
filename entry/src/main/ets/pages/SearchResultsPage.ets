@@ -7,6 +7,7 @@ import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { SearchEntityType, SearchResult } from '../domain/search/SearchModels';
 import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
 import { ArrayDataSource } from '../utils/ArrayDataSource';
+import { userFacingError } from '../utils/userFacingError';
 
 interface SearchVisualResult {
   entityType: SearchEntityType;
@@ -29,14 +30,14 @@ const SEARCH_SCOPES: SearchScopeOption[] = [
   { key: 'profile', label: '我的' }
 ];
 
-const SEARCH_SUGGESTIONS: string[] = ['连衣裙尺码', '周末快闪店', '黑白针织', '拍照录入', '回购提醒', '小众买手店'];
+const SEARCH_SUGGESTIONS: string[] = ['连衣裙尺码', '周末快闪店', '黑白针织', '拍照录入', '购买记录', '小众买手店'];
 
 function entityTypeLabel(entityType: SearchEntityType): string {
   if (entityType === SearchEntityType.Clothing) {
     return '衣物';
   }
   if (entityType === SearchEntityType.Outfit) {
-    return '美搭';
+    return '穿搭';
   }
   if (entityType === SearchEntityType.StoreVisit) {
     return '逛店记录';
@@ -146,7 +147,7 @@ export struct SearchResultsPage {
       if (requestVersion !== this.searchRequestVersion) {
         return;
       }
-      this.errorMessage = error instanceof Error ? error.message : '搜索失败';
+      this.errorMessage = userFacingError(error, '搜索失败');
       this.visualResults = [];
       this.refreshVisualResultDataSource();
     } finally {
@@ -236,7 +237,7 @@ export struct SearchResultsPage {
 
     const nextQuery = this.searchText.trim();
     if (nextQuery.length === 0) {
-      this.inputErrorMessage = '先输入衣物、商场或穿搭关键词';
+      this.inputErrorMessage = '先输入要查找的关键词';
       return;
     }
 
@@ -303,6 +304,50 @@ export struct SearchResultsPage {
 
   private filteredVisualResults(): SearchVisualResult[] {
     return this.visualResults.filter((result: SearchVisualResult) => this.resultMatchesScope(result));
+  }
+
+  private emptyResultTitle(): string {
+    if (this.initialScope !== undefined) {
+      return `没有找到「${this.activeQuery}」`;
+    }
+
+    if (this.selectedScope === 'clothes') {
+      return '没有找到相关衣物';
+    }
+    if (this.selectedScope === 'shops') {
+      return '没有找到相关逛店记录';
+    }
+    if (this.selectedScope === 'outfits') {
+      return '没有找到相关穿搭';
+    }
+    if (this.selectedScope === 'profile') {
+      return '没有找到相关穿着记录';
+    }
+    return `没有找到「${this.activeQuery}」`;
+  }
+
+  private emptyResultDescription(): string {
+    if (this.initialScope !== undefined) {
+      return '换个关键词，或用拍照录入把这件单品加入衣柜。';
+    }
+
+    if (this.selectedScope === 'clothes') {
+      return '换个衣物名称、分类或备注。';
+    }
+    if (this.selectedScope === 'shops') {
+      return '换个商场、品牌或试穿关键词。';
+    }
+    if (this.selectedScope === 'outfits') {
+      return '换个场景、穿搭名称或备注。';
+    }
+    if (this.selectedScope === 'profile') {
+      return '换个穿着记录或个人关键词。';
+    }
+    return '换个关键词，或用拍照录入把衣物加入衣柜。';
+  }
+
+  private shouldShowCaptureCta(): boolean {
+    return this.initialScope !== undefined || this.selectedScope === 'all' || this.selectedScope === 'clothes';
   }
 
   private refreshVisualResultDataSource(): void {
@@ -460,6 +505,7 @@ export struct SearchResultsPage {
           .width(48)
           .constraintSize({ minHeight: 44 })
           .justifyContent(FlexAlign.End)
+          .accessibilityText(`${scope.label}${this.selectedScope === scope.key ? '，已选中' : ''}`)
           .onClick(() => {
             this.selectedScope = scope.key;
             this.refreshVisualResultDataSource();
@@ -554,27 +600,29 @@ export struct SearchResultsPage {
   ResultsPanel() {
     if (this.filteredVisualResults().length === 0) {
       Column({ space: 10 }) {
-        Text(`没有找到「${this.activeQuery}」`)
+        Text(this.emptyResultTitle())
           .width('100%')
           .fontSize(18)
           .fontWeight(FontWeight.Regular)
           .fontColor(YibuqueColor.textPrimary)
 
-        Text('换个关键词，或用拍照录入把这件单品加入衣柜。')
+        Text(this.emptyResultDescription())
           .width('100%')
           .fontSize(13)
           .fontColor(YibuqueColor.textSecondary)
 
-        Button('拍照录入')
-          .height(44)
-          .fontSize(13)
-          .fontWeight(FontWeight.Regular)
-          .fontColor(YibuqueColor.textInverse)
-          .backgroundColor(YibuqueColor.actionBlack)
-          .borderRadius(YibuqueRadius.full)
-          .onClick(() => {
-            this.onOpenCameraSearch();
-          })
+        if (this.shouldShowCaptureCta()) {
+          Button('拍照录入')
+            .height(44)
+            .fontSize(13)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textInverse)
+            .backgroundColor(YibuqueColor.actionBlack)
+            .borderRadius(YibuqueRadius.full)
+            .onClick(() => {
+              this.onOpenCameraSearch();
+            })
+        }
       }
       .width('100%')
       .layoutWeight(1)

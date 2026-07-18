@@ -56,7 +56,7 @@ for (const needle of [
   "Text('关闭')",
   '.objectFit(ImageFit.Contain)',
   '.indicator(false)',
-  '.loop(this.photoCount() > 1)',
+  '.loop(true)',
   '.onChange((index: number) => {',
   'this.selectPhoto(index)',
   'this.openPhotoPreview(index)',
@@ -69,6 +69,10 @@ for (const needle of [
 
 if ((detail.match(/Swiper\(\)/g) ?? []).length < 2) {
   throw new Error('ClothingDetailPage should use Swiper for both hero and full-screen preview');
+}
+
+if (!/if \(this\.photoCount\(\) === 1\)[\s\S]*?Image\(this\.photoUriAt\(0\)\)/.test(detail)) {
+  throw new Error('ClothingDetailPage must render a static image when only one photo exists');
 }
 
 if (/Image\(this\.firstPhotoUri\(\)\)/.test(detail)) {
