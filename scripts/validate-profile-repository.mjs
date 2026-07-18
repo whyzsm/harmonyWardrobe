@@ -9,11 +9,18 @@ for (const needle of [
   'saveProfile',
   'user_profile',
   'normalizeMeasurement',
+  'PROFILE_HEIGHT_MIN_CM',
+  'PROFILE_HEIGHT_MAX_CM',
+  'PROFILE_WEIGHT_MIN_KG',
+  'PROFILE_WEIGHT_MAX_KG',
+  'PROFILE_WAIST_MIN_CM',
+  'PROFILE_WAIST_MAX_CM',
   'common_budgets',
   'commonBudgets',
   'MAX_COMMON_ITEMS',
   'Number.isFinite',
-  'value < 0',
+  'value < min',
+  'value > max',
   'value === null',
   'heightCm',
   'weightKg',
@@ -35,6 +42,17 @@ for (const forbidden of [': any', ': unknown']) {
 
 if (!/async\s+saveProfile\s*\([\s\S]*?return\s+this\.database\.transaction\s*\(\s*async\s*\(\)\s*=>\s*\{[\s\S]*?executeSql\(UPSERT_PROFILE_SQL/.test(text)) {
   throw new Error(`${file} saveProfile must execute the upsert inside a database transaction`);
+}
+
+for (const [field, minName, maxName] of [
+  ['input.heightCm', 'PROFILE_HEIGHT_MIN_CM', 'PROFILE_HEIGHT_MAX_CM'],
+  ['input.weightKg', 'PROFILE_WEIGHT_MIN_KG', 'PROFILE_WEIGHT_MAX_KG'],
+  ['input.waistCm', 'PROFILE_WAIST_MIN_CM', 'PROFILE_WAIST_MAX_CM']
+]) {
+  const pattern = new RegExp(`normalizeMeasurement\\(${field.replace('.', '\\.')},\\s*${minName},\\s*${maxName}\\)`);
+  if (!pattern.test(text)) {
+    throw new Error(`${file} must normalize ${field} with domain measurement bounds`);
+  }
 }
 
 console.log('PASS');

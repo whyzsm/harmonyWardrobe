@@ -5,6 +5,12 @@ const text = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
 
 for (const needle of [
   'export interface UserProfile',
+  'PROFILE_HEIGHT_MIN_CM',
+  'PROFILE_HEIGHT_MAX_CM',
+  'PROFILE_WEIGHT_MIN_KG',
+  'PROFILE_WEIGHT_MAX_KG',
+  'PROFILE_WAIST_MIN_CM',
+  'PROFILE_WAIST_MAX_CM',
   'heightCm?: number',
   'weightKg?: number',
   'waistCm?: number',

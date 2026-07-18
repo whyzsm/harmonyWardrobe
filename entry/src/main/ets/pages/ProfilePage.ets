@@ -2,7 +2,15 @@ import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { ProfileRepository } from '../data/repositories/ProfileRepository';
 import { StoreRepository } from '../data/repositories/StoreRepository';
-import { UserProfile } from '../domain/profile/ProfileModels';
+import {
+  PROFILE_HEIGHT_MAX_CM,
+  PROFILE_HEIGHT_MIN_CM,
+  PROFILE_WAIST_MAX_CM,
+  PROFILE_WAIST_MIN_CM,
+  PROFILE_WEIGHT_MAX_KG,
+  PROFILE_WEIGHT_MIN_KG,
+  UserProfile
+} from '../domain/profile/ProfileModels';
 import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 import { userFacingError } from '../utils/userFacingError';
 
@@ -10,29 +18,30 @@ const DEFAULT_FREQUENT_DISTRICTS: string[] = ['静安嘉里', 'iapm', '小众买
 const DEFAULT_SELECTED_FREQUENT_DISTRICTS: string[] = ['静安嘉里', 'iapm', '小众买手店'];
 const DEFAULT_COMMON_BUDGETS: number[] = [2400, 3200, 4000];
 const MAX_COMMON_ITEMS: number = 3;
+const GENERIC_NUMBER_MAX: number = 100000000;
 
-function parseOptionalNumber(value: string): number | undefined {
+function parseOptionalNumber(value: string, min: number = 0, max: number = GENERIC_NUMBER_MAX): number | undefined {
   const trimmed = value.trim();
   if (trimmed.length === 0) {
     return undefined;
   }
 
   const parsed = Number(trimmed);
-  return Number.isFinite(parsed) && parsed >= 0 ? parsed : undefined;
+  return Number.isFinite(parsed) && parsed >= min && parsed <= max ? parsed : undefined;
 }
 
 function displayOptionalNumber(value?: number): string {
   return value === undefined ? '' : `${value}`;
 }
 
-function isInvalidOptionalNumber(value: string): boolean {
+function isInvalidOptionalNumber(value: string, min: number = 0, max: number = GENERIC_NUMBER_MAX): boolean {
   const trimmed = value.trim();
   if (trimmed.length === 0) {
     return false;
   }
 
   const parsed = Number(trimmed);
-  return !Number.isFinite(parsed) || parsed < 0;
+  return !Number.isFinite(parsed) || parsed < min || parsed > max;
 }
 
 function isCurrentMonth(value?: string): boolean {
@@ -222,9 +231,9 @@ export struct ProfilePage {
     }
 
     const bodyParts: string[] = [];
-    const height = parseOptionalNumber(this.heightCm);
-    const weight = parseOptionalNumber(this.weightKg);
-    const waist = parseOptionalNumber(this.waistCm);
+    const height = this.parseHeightCm();
+    const weight = this.parseWeightKg();
+    const waist = this.parseWaistCm();
     if (height !== undefined) {
       bodyParts.push(`身高 ${height}cm`);
     }
@@ -291,7 +300,7 @@ export struct ProfilePage {
 
     if (this.hasInvalidMeasurements()) {
       this.savedMessage = '';
-      this.errorMessage = '请检查身高、体重、腰围，只填写 0 以上数字。';
+      this.errorMessage = '请检查身高、体重、腰围，填写合理数字。';
       return;
     }
 
@@ -301,9 +310,9 @@ export struct ProfilePage {
 
     try {
       const savedProfile = await this.profileRepository.saveProfile({
-        heightCm: parseOptionalNumber(this.heightCm),
-        weightKg: parseOptionalNumber(this.weightKg),
-        waistCm: parseOptionalNumber(this.waistCm),
+        heightCm: this.parseHeightCm(),
+        weightKg: this.parseWeightKg(),
+        waistCm: this.parseWaistCm(),
         upperSize: this.upperSize,
         lowerSize: this.lowerSize,
         shoeSize: this.shoeSize,
@@ -322,12 +331,44 @@ export struct ProfilePage {
   }
 
   private hasInvalidMeasurements(): boolean {
-    return isInvalidOptionalNumber(this.heightCm) ||
-      isInvalidOptionalNumber(this.weightKg) ||
-      isInvalidOptionalNumber(this.waistCm);
+    return isInvalidOptionalNumber(this.heightCm, PROFILE_HEIGHT_MIN_CM, PROFILE_HEIGHT_MAX_CM) ||
+      isInvalidOptionalNumber(this.weightKg, PROFILE_WEIGHT_MIN_KG, PROFILE_WEIGHT_MAX_KG) ||
+      isInvalidOptionalNumber(this.waistCm, PROFILE_WAIST_MIN_CM, PROFILE_WAIST_MAX_CM);
   }
 
-  private measurementError(value: string): string {
+  private parseHeightCm(): number | undefined {
+    return parseOptionalNumber(this.heightCm, PROFILE_HEIGHT_MIN_CM, PROFILE_HEIGHT_MAX_CM);
+  }
+
+  private parseWeightKg(): number | undefined {
+    return parseOptionalNumber(this.weightKg, PROFILE_WEIGHT_MIN_KG, PROFILE_WEIGHT_MAX_KG);
+  }
+
+  private parseWaistCm(): number | undefined {
+    return parseOptionalNumber(this.waistCm, PROFILE_WAIST_MIN_CM, PROFILE_WAIST_MAX_CM);
+  }
+
+  private measurementMin(label: string): number {
+    if (label === '身高') {
+      return PROFILE_HEIGHT_MIN_CM;
+    }
+    if (label === '体重') {
+      return PROFILE_WEIGHT_MIN_KG;
+    }
+    return PROFILE_WAIST_MIN_CM;
+  }
+
+  private measurementMax(label: string): number {
+    if (label === '身高') {
+      return PROFILE_HEIGHT_MAX_CM;
+    }
+    if (label === '体重') {
+      return PROFILE_WEIGHT_MAX_KG;
+    }
+    return PROFILE_WAIST_MAX_CM;
+  }
+
+  private measurementError(label: string, value: string, unit: string): string {
     const trimmed = value.trim();
     if (trimmed.length === 0) {
       return '';
@@ -337,8 +378,8 @@ export struct ProfilePage {
     if (!Number.isFinite(parsed)) {
       return '请输入数字';
     }
-    if (parsed < 0) {
-      return '不能小于 0';
+    if (parsed < this.measurementMin(label) || parsed > this.measurementMax(label)) {
+      return `请输入 ${this.measurementMin(label)}-${this.measurementMax(label)}${unit}`;
     }
     return '';
   }
@@ -438,9 +479,9 @@ export struct ProfilePage {
         : [Math.round(amount)].concat(this.commonBudgets.filter((value: number) => value !== Math.round(amount)))
           .slice(0, MAX_COMMON_ITEMS);
       const saved = await this.profileRepository.saveProfile({
-        heightCm: parseOptionalNumber(this.heightCm),
-        weightKg: parseOptionalNumber(this.weightKg),
-        waistCm: parseOptionalNumber(this.waistCm),
+        heightCm: this.parseHeightCm(),
+        weightKg: this.parseWeightKg(),
+        waistCm: this.parseWaistCm(),
         upperSize: this.upperSize,
         lowerSize: this.lowerSize,
         shoeSize: this.shoeSize,
@@ -540,9 +581,9 @@ export struct ProfilePage {
     this.isSaving = true;
     try {
       const saved = await this.profileRepository.saveProfile({
-        heightCm: parseOptionalNumber(this.heightCm),
-        weightKg: parseOptionalNumber(this.weightKg),
-        waistCm: parseOptionalNumber(this.waistCm),
+        heightCm: this.parseHeightCm(),
+        weightKg: this.parseWeightKg(),
+        waistCm: this.parseWaistCm(),
         upperSize: this.upperSize,
         lowerSize: this.lowerSize,
         shoeSize: this.shoeSize,
@@ -1456,7 +1497,7 @@ export struct ProfilePage {
         .placeholderColor(YibuqueColor.textTertiary)
         .backgroundColor(YibuqueColor.cardSoftGray)
         .borderRadius(YibuqueRadius.md)
-        .border({ width: 1, color: this.measurementError(value).length > 0 ? YibuqueColor.danger : YibuqueColor.borderMedium })
+        .border({ width: 1, color: this.measurementError(label, value, unit).length > 0 ? YibuqueColor.danger : YibuqueColor.borderMedium })
         .type(InputType.Number)
         .onChange((nextValue: string) => {
           this.errorMessage = '';
@@ -1469,8 +1510,8 @@ export struct ProfilePage {
           }
         })
 
-      if (this.measurementError(value).length > 0) {
-        Text(this.measurementError(value))
+      if (this.measurementError(label, value, unit).length > 0) {
+        Text(this.measurementError(label, value, unit))
           .width('100%')
           .fontSize(11)
           .lineHeight(15)

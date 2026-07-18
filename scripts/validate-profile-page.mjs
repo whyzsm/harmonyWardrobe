@@ -79,6 +79,16 @@ for (const needle of [
   'hasInvalidMeasurements',
   'measurementError',
   '请输入数字',
+  'PROFILE_HEIGHT_MIN_CM',
+  'PROFILE_HEIGHT_MAX_CM',
+  'PROFILE_WEIGHT_MIN_KG',
+  'PROFILE_WEIGHT_MAX_KG',
+  'PROFILE_WAIST_MIN_CM',
+  'PROFILE_WAIST_MAX_CM',
+  'parseHeightCm',
+  'parseWeightKg',
+  'parseWaistCm',
+  '填写合理数字',
   'bottom: 132'
 ]) {
   if (!page.includes(needle)) {
@@ -166,6 +176,17 @@ if (!/DistrictChip\(label: string, selected: boolean\)[\s\S]*?\.enabled\(!this\.
 
 if (!/DistrictChip\(label: string, selected: boolean\)[\s\S]*?this\.toggleDistrict\(label\)/.test(page)) {
   throw new Error('ProfilePage district chips must toggle saved locations');
+}
+
+for (const [field, minName, maxName] of [
+  ['heightCm', 'PROFILE_HEIGHT_MIN_CM', 'PROFILE_HEIGHT_MAX_CM'],
+  ['weightKg', 'PROFILE_WEIGHT_MIN_KG', 'PROFILE_WEIGHT_MAX_KG'],
+  ['waistCm', 'PROFILE_WAIST_MIN_CM', 'PROFILE_WAIST_MAX_CM']
+]) {
+  const pattern = new RegExp(`isInvalidOptionalNumber\\(this\\.${field},\\s*${minName},\\s*${maxName}\\)`);
+  if (!pattern.test(page)) {
+    throw new Error(`ProfilePage must validate ${field} with domain measurement bounds`);
+  }
 }
 
 console.log('PASS');

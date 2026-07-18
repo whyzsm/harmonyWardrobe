@@ -3,11 +3,20 @@ import {
   MigrationResultSet,
   MigrationSqlValue
 } from '../migrations/Migration';
-import { UserProfile } from '../../domain/profile/ProfileModels';
+import {
+  PROFILE_HEIGHT_MAX_CM,
+  PROFILE_HEIGHT_MIN_CM,
+  PROFILE_WAIST_MAX_CM,
+  PROFILE_WAIST_MIN_CM,
+  PROFILE_WEIGHT_MAX_KG,
+  PROFILE_WEIGHT_MIN_KG,
+  UserProfile
+} from '../../domain/profile/ProfileModels';
 import { toIsoDateTime } from '../../utils/date';
 
 const PROFILE_ID = 'local';
 const MAX_COMMON_ITEMS = 3;
+const GENERIC_MEASUREMENT_MAX = 100000000;
 const DEFAULT_COMMON_BUDGETS: number[] = [2400, 3200, 4000];
 
 const SELECT_PROFILE_SQL = `
@@ -106,16 +115,16 @@ function normalizeNumbers(values?: number[]): number[] {
   return decodeNumbers(JSON.stringify(values ?? []));
 }
 
-function normalizeMeasurement(value?: number): number | undefined {
-  if (value === undefined || !Number.isFinite(value) || value < 0) {
+function normalizeMeasurement(value?: number, min: number = 0, max: number = GENERIC_MEASUREMENT_MAX): number | undefined {
+  if (value === undefined || !Number.isFinite(value) || value < min || value > max) {
     return undefined;
   }
 
   return Math.round(value * 10) / 10;
 }
 
-function optionalMeasurement(value: number): number | undefined {
-  return Number.isFinite(value) && value >= 0 ? value : undefined;
+function optionalMeasurement(value: number, min: number = 0, max: number = GENERIC_MEASUREMENT_MAX): number | undefined {
+  return Number.isFinite(value) && value >= min && value <= max ? value : undefined;
 }
 
 function nullableMeasurement(value?: number): number | null {
@@ -149,9 +158,9 @@ export class ProfileRepository {
 
   async saveProfile(input: SaveUserProfileInput): Promise<UserProfile> {
     const profile: UserProfile = {
-      heightCm: normalizeMeasurement(input.heightCm),
-      weightKg: normalizeMeasurement(input.weightKg),
-      waistCm: normalizeMeasurement(input.waistCm),
+      heightCm: normalizeMeasurement(input.heightCm, PROFILE_HEIGHT_MIN_CM, PROFILE_HEIGHT_MAX_CM),
+      weightKg: normalizeMeasurement(input.weightKg, PROFILE_WEIGHT_MIN_KG, PROFILE_WEIGHT_MAX_KG),
+      waistCm: normalizeMeasurement(input.waistCm, PROFILE_WAIST_MIN_CM, PROFILE_WAIST_MAX_CM),
       upperSize: optionalString(input.upperSize ?? ''),
       lowerSize: optionalString(input.lowerSize ?? ''),
       shoeSize: optionalString(input.shoeSize ?? ''),
@@ -185,9 +194,9 @@ export class ProfileRepository {
 
   private readProfileRow(resultSet: MigrationResultSet): UserProfile {
     return {
-      heightCm: optionalMeasurement(resultSet.getNumber('height_cm')),
-      weightKg: optionalMeasurement(resultSet.getNumber('weight_kg')),
-      waistCm: optionalMeasurement(resultSet.getNumber('waist_cm')),
+      heightCm: optionalMeasurement(resultSet.getNumber('height_cm'), PROFILE_HEIGHT_MIN_CM, PROFILE_HEIGHT_MAX_CM),
+      weightKg: optionalMeasurement(resultSet.getNumber('weight_kg'), PROFILE_WEIGHT_MIN_KG, PROFILE_WEIGHT_MAX_KG),
+      waistCm: optionalMeasurement(resultSet.getNumber('waist_cm'), PROFILE_WAIST_MIN_CM, PROFILE_WAIST_MAX_CM),
       upperSize: optionalString(resultSet.getString('upper_size')),
       lowerSize: optionalString(resultSet.getString('lower_size')),
       shoeSize: optionalString(resultSet.getString('shoe_size')),
