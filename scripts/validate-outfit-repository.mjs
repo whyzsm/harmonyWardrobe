@@ -67,6 +67,7 @@ for (const needle of [
   'buildOutfitSearchDocument',
   'SearchEntityType',
   'OutfitTemplate',
+  'OutfitDisplaySource',
   'WearLog',
   'createId',
   'toIsoDateTime',
@@ -83,6 +84,9 @@ for (const needle of [
 ]) {
   assertIncludes(source, needle);
 }
+
+assertIncludes(source, 'display_source', 'repository must persist the outfit display source');
+assertIncludes(source, 'displaySource', 'repository must hydrate the outfit display source');
 
 for (const method of ['createOutfit', 'updateOutfit', 'deleteOutfit']) {
   assertMatches(

@@ -1,6 +1,9 @@
 import fs from 'node:fs';
 
-const text = fs.readFileSync('entry/src/main/ets/pages/OutfitsPage.ets', 'utf8');
+const outfitsPath = 'entry/src/main/ets/pages/OutfitsPage.ets';
+const detailPath = 'entry/src/main/ets/pages/OutfitDetailPage.ets';
+const text = fs.readFileSync(outfitsPath, 'utf8');
+const detail = fs.readFileSync(detailPath, 'utf8');
 
 for (const needle of [
   'OutfitEmptyState',
@@ -33,8 +36,17 @@ for (const needle of [
   '.padding({ left: 20, right: 20 })',
   'filterOutfits',
   'onNestedPageVisibilityChange',
+  'onInitialOutfitConsumed',
+  'onInitialWearLogConsumed',
   "columnsTemplate('1fr 1fr')",
   'OutfitWallCard',
+  'selectedClothingPhotoUris',
+  'OutfitDisplaySource',
+  'displayPhotoUris',
+  'displayPhotoUriAt',
+  'displayPhotoCount',
+  'SingleOutfitPhoto',
+  'YibuqueColor.overlayDark',
   '暂无照片',
   'borderRadius(YibuqueRadius.xs)',
   '正在加载穿搭',
@@ -100,6 +112,22 @@ if (!/OutfitWallCard\([\s\S]*?\.onClick\(\(\) => \{[\s\S]*?openOutfitDetail\(out
   throw new Error('OutfitsPage list cards must open the read-only detail page');
 }
 
+if (!/private displayPhotoUris\(outfit: OutfitTemplate\): string\[\] \{[\s\S]*?outfit\.displaySource === OutfitDisplaySource\.Wardrobe[\s\S]*?return clothingPhotoUris\.length > 0 \? clothingPhotoUris : outfit\.photoUris;[\s\S]*?return outfit\.photoUris\.length > 0 \? outfit\.photoUris : clothingPhotoUris;/.test(text)) {
+  throw new Error('OutfitsPage display photos must follow the saved display source with fallback');
+}
+
+if (!/OutfitWallCard\(outfit: OutfitTemplate, index: number\)[\s\S]*?if \(this\.displayPhotoCount\(outfit\) > 1\)[\s\S]*?this\.OutfitPhoto\(outfit, 0, 1\.18\)[\s\S]*?this\.OutfitPhoto\(outfit, 1, 0\.92\)[\s\S]*?else \{[\s\S]*?this\.SingleOutfitPhoto\(outfit\)/.test(text)) {
+  throw new Error('OutfitsPage cards must render a single full image for one photo and stacked images only for two or more photos');
+}
+
+if (!/if \(this\.displayPhotoCount\(outfit\) > 2\)[\s\S]*?Text\(`\+\$\{this\.displayPhotoCount\(outfit\) - 2\}`\)[\s\S]*?YibuqueColor\.overlayDark/.test(text)) {
+  throw new Error('OutfitsPage cards must show a compact +N badge for extra display photos');
+}
+
+if (/private photoUriAt\(outfit: OutfitTemplate/.test(text) || /this\.photoUriAt\(outfit/.test(text)) {
+  throw new Error('OutfitsPage must use displayPhotoUriAt instead of the old raw outfit photo accessor');
+}
+
 if (!/private displayOutfitTitle\(outfit: OutfitTemplate\)[\s\S]*?穿搭\|美搭[\s\S]*?return match === null \? outfit\.title : match\[1\]/.test(text) ||
   !text.includes('Text(this.displayOutfitTitle(outfit))')) {
   throw new Error('OutfitsPage waterfall titles must hide generated dates without changing custom titles');
@@ -113,6 +141,26 @@ const emptyStateBuilder = text.match(/OutfitEmptyState\(title: string, descripti
 
 if (!/Column\(\{ space: 10 \}\)[\s\S]*?Column\(\{ space: 8 \}\)[\s\S]*?\.fontSize\(36\)[\s\S]*?\.height\(190\)[\s\S]*?\.backgroundColor\(YibuqueColor\.cardSoftGray\)[\s\S]*?\.borderRadius\(YibuqueRadius\.xxl\)[\s\S]*?\.border\(\{ width: 1, color: YibuqueColor\.borderMedium \}\)[\s\S]*?Text\(guideTitle\)[\s\S]*?\.fontSize\(15\)[\s\S]*?Text\(guideDescription\)[\s\S]*?\.fontSize\(12\)[\s\S]*?\.backgroundColor\(YibuqueColor\.bgDefault\)/.test(emptyStateBuilder)) {
   throw new Error('OutfitsPage empty state must match the wardrobe empty layout');
+}
+
+if (!/private detailPhotoUris\(\): string\[\] \{[\s\S]*?const uploadedPhotoUris = this\.photoUris\(\);[\s\S]*?const clothingPhotoUris = this\.selectedClothingPhotoUris\(\);[\s\S]*?this\.outfit\?\.displaySource === OutfitDisplaySource\.Wardrobe[\s\S]*?return clothingPhotoUris\.length > 0 \? clothingPhotoUris : uploadedPhotoUris;[\s\S]*?return uploadedPhotoUris\.length > 0 \? uploadedPhotoUris : clothingPhotoUris;/.test(detail)) {
+  throw new Error('OutfitDetailPage must follow the saved display source with fallback');
+}
+
+if (!/private displayOutfitTitle\(\): string[\s\S]*?穿搭\|美搭[\s\S]*?Text\(this\.displayOutfitTitle\(\)\)/.test(detail)) {
+  throw new Error('OutfitDetailPage must hide generated date titles');
+}
+
+if (detail.includes('暂未填写备注') || !/private hasNoteText\(\): boolean[\s\S]*?if \(this\.hasNoteText\(\)\)[\s\S]*?Text\(this\.noteText\(\)\)/.test(detail)) {
+  throw new Error('OutfitDetailPage must hide the note block when no note exists');
+}
+
+if (!/onDelete:\s*\(outfit: OutfitTemplate\)[\s\S]*?DeleteAction\(\)[\s\S]*?删除穿搭/.test(detail)) {
+  throw new Error('OutfitDetailPage must own the outfit delete action');
+}
+
+if (!/Text\(`\$\{this\.outfit\?\.clothingItemIds\.length \?\? 0\} 件单品`\)[\s\S]*?fontColor\(YibuqueColor\.iconAccent\)[\s\S]*?backgroundColor\(YibuqueColor\.iconAccentSurface\)[\s\S]*?border\(\{ width: 1, color: YibuqueColor\.iconAccentSurface \}\)/.test(detail)) {
+  throw new Error('OutfitDetailPage item count badge must use the blue accent treatment');
 }
 
 console.log('PASS');

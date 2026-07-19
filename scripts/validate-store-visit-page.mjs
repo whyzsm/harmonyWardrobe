@@ -135,6 +135,14 @@ if (!/Text\(this\.statusLabel\)[\s\S]*?\.fontColor\(YibuqueColor\.iconAccent\)[\
   throw new Error('StoreVisitDetailPage status badge must match the profile blue icon accent style');
 }
 
+if (detail.includes('暂未填写备注') || !/private hasNoteText\(\): boolean[\s\S]*?if \(this\.hasNoteText\(\)\)[\s\S]*?Text\(this\.noteText\(\)\)/.test(detail)) {
+  throw new Error('StoreVisitDetailPage must hide the note block when no note exists');
+}
+
+if (!/onDelete:\s*\(visit: StoreVisit\)[\s\S]*?DeleteAction\(\)[\s\S]*?删除逛店记录/.test(detail)) {
+  throw new Error('StoreVisitDetailPage must own the store visit delete action');
+}
+
 for (const forbidden of ['家已试穿', '家想回头看']) {
   if (page.includes(forbidden)) {
     throw new Error(`StoreVisitPage route summary must not mix status with focus tag copy: ${forbidden}`);

@@ -1,8 +1,9 @@
 import { PhotoCarousel } from '../components/PhotoCarousel';
 import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
-import { OutfitTemplate } from '../domain/outfit/OutfitModels';
+import { OutfitDisplaySource, OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
+import { userFacingError } from '../utils/userFacingError';
 
 @Component
 export struct OutfitDetailPage {
@@ -10,6 +11,10 @@ export struct OutfitDetailPage {
   @Prop clothingItems: ClothingItem[] = [];
   onBack: () => void = () => {};
   onEdit: (outfit: OutfitTemplate) => void = () => {};
+  onDelete: (outfit: OutfitTemplate) => Promise<void> = async (_outfit: OutfitTemplate): Promise<void> => {};
+  @State private showDeleteConfirm: boolean = false;
+  @State private isDeleting: boolean = false;
+  @State private deleteErrorMessage: string = '';
 
   private photoUris(): string[] {
     return this.outfit?.photoUris ?? [];
@@ -37,13 +42,79 @@ export struct OutfitDetailPage {
   }
 
   private detailPhotoUris(): string[] {
+    const uploadedPhotoUris = this.photoUris();
     const clothingPhotoUris = this.selectedClothingPhotoUris();
-    return clothingPhotoUris.length > 0 ? clothingPhotoUris : this.photoUris();
+    if (this.outfit?.displaySource === OutfitDisplaySource.Wardrobe) {
+      return clothingPhotoUris.length > 0 ? clothingPhotoUris : uploadedPhotoUris;
+    }
+
+    return uploadedPhotoUris.length > 0 ? uploadedPhotoUris : clothingPhotoUris;
   }
 
   private noteText(): string {
-    const note = this.outfit?.note?.trim() ?? '';
-    return note.length > 0 ? note : '暂未填写备注';
+    return this.outfit?.note?.trim() ?? '';
+  }
+
+  private hasNoteText(): boolean {
+    return this.noteText().length > 0;
+  }
+
+  private confirmDelete(): void {
+    const outfit = this.outfit;
+    if (outfit === undefined || this.isDeleting) {
+      return;
+    }
+
+    this.showDeleteConfirm = true;
+    AlertDialog.show({
+      title: '删除穿搭',
+      message: '确定要删除这套穿搭吗？照片也会一并移除。',
+      primaryButton: {
+        value: '取消',
+        action: () => {
+          this.showDeleteConfirm = false;
+        }
+      },
+      secondaryButton: {
+        value: '删除',
+        fontColor: YibuqueColor.danger,
+        action: () => {
+          this.deleteCurrentOutfit();
+        }
+      },
+      cancel: () => {
+        this.showDeleteConfirm = false;
+      }
+    });
+  }
+
+  private async deleteCurrentOutfit(): Promise<void> {
+    const outfit = this.outfit;
+    if (outfit === undefined || this.isDeleting) {
+      return;
+    }
+
+    this.isDeleting = true;
+    this.deleteErrorMessage = '';
+    try {
+      await this.onDelete(outfit);
+      this.showDeleteConfirm = false;
+    } catch (error) {
+      this.deleteErrorMessage = userFacingError(error, '删除穿搭失败');
+    } finally {
+      this.isDeleting = false;
+    }
+  }
+
+  private displayOutfitTitle(): string {
+    const title = this.outfit?.title?.trim() ?? '';
+    if (title.length === 0) {
+      return '穿搭详情';
+    }
+
+    const autoTitlePattern = /^(穿搭|美搭) \d{2}-\d{2} \d{2}:\d{2}$/;
+    const match = autoTitlePattern.exec(title);
+    return match === null ? title : match[1];
   }
 
   private photoCountText(): string {
@@ -102,7 +173,7 @@ export struct OutfitDetailPage {
     Column({ space: YibuqueSpacing.md }) {
       Row() {
         Column({ space: 4 }) {
-          Text(this.outfit?.title ?? '穿搭详情')
+          Text(this.displayOutfitTitle())
             .fontSize(22)
             .fontWeight(FontWeight.Regular)
             .fontColor(YibuqueColor.textPrimary)
@@ -120,22 +191,24 @@ export struct OutfitDetailPage {
           .height(34)
           .padding({ left: 14, right: 14 })
           .fontSize(14)
-          .fontColor(YibuqueColor.actionBlack)
+          .fontColor(YibuqueColor.iconAccent)
           .textAlign(TextAlign.Center)
-          .backgroundColor(YibuqueColor.cardSoftGray)
+          .backgroundColor(YibuqueColor.iconAccentSurface)
           .borderRadius(YibuqueRadius.full)
-          .border({ width: 1, color: YibuqueColor.actionBlack })
+          .border({ width: 1, color: YibuqueColor.iconAccentSurface })
       }
       .width('100%')
       .alignItems(VerticalAlign.Center)
 
-      Text(this.noteText())
-        .width('100%')
-        .padding(YibuqueSpacing.md)
-        .fontSize(15)
-        .fontColor(YibuqueColor.textPrimary)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.lg)
+      if (this.hasNoteText()) {
+        Text(this.noteText())
+          .width('100%')
+          .padding(YibuqueSpacing.md)
+          .fontSize(15)
+          .fontColor(YibuqueColor.textPrimary)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.lg)
+      }
     }
     .width('100%')
     .padding(YibuqueSpacing.lg)
@@ -206,6 +279,42 @@ export struct OutfitDetailPage {
     .alignItems(HorizontalAlign.Start)
   }
 
+  @Builder
+  DeleteAction() {
+    Column({ space: YibuqueSpacing.sm }) {
+      Button() {
+        if (this.isDeleting) {
+          LoadingProgress()
+            .width(18)
+            .height(18)
+            .color(YibuqueColor.textInverse)
+        } else {
+          Text('删除穿搭')
+            .fontSize(15)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textInverse)
+        }
+      }
+      .width('100%')
+      .height(46)
+      .enabled(!this.isDeleting && !this.showDeleteConfirm)
+      .backgroundColor(YibuqueColor.danger)
+      .borderRadius(YibuqueRadius.full)
+      .onClick(() => {
+        this.confirmDelete();
+      })
+
+      if (this.deleteErrorMessage.length > 0) {
+        Text(this.deleteErrorMessage)
+          .width('100%')
+          .fontSize(13)
+          .fontColor(YibuqueColor.danger)
+          .textAlign(TextAlign.Center)
+      }
+    }
+    .width('100%')
+  }
+
   build() {
     Column() {
       this.DetailTopBar()
@@ -230,6 +339,7 @@ export struct OutfitDetailPage {
             this.HeroPhoto()
             this.SummaryCard()
             this.ClothingItemsCard()
+            this.DeleteAction()
           }
           .width('100%')
           .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.sm, bottom: YibuqueSpacing.section })

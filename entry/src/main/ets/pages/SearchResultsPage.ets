@@ -429,6 +429,17 @@ export struct SearchResultsPage {
             })
           }
 
+          Stack({ alignContent: Alignment.Center }) {
+            SymbolGlyph($r('sys.symbol.picture'))
+              .fontSize(18)
+              .fontColor([YibuqueColor.textPrimary])
+          }
+          .width(44)
+          .height(44)
+          .accessibilityText('拍照搜索')
+          .onClick(() => {
+            this.onOpenCameraSearch();
+          })
         }
         .layoutWeight(1)
         .height(48)

@@ -40,6 +40,7 @@ export struct StoreVisitPage {
   photoStorage?: PhotoStorage = undefined;
   onEditorVisibilityChange: (visible: boolean) => void = () => {};
   onCreateStoreVisit: () => void = () => {};
+  onInitialVisitConsumed: () => void = () => {};
 
   @State private visits: StoreVisit[] = [];
   @State private storeVisitDataSource: ArrayDataSource<StoreVisit> = new ArrayDataSource<StoreVisit>();
@@ -78,6 +79,7 @@ export struct StoreVisitPage {
             break;
           }
         }
+        this.onInitialVisitConsumed();
       }
     } catch (error) {
       this.errorMessage = userFacingError(error, '加载逛店失败');
@@ -318,9 +320,6 @@ export struct StoreVisitPage {
           this.upsertVisit(visit);
           this.closeEditor();
         },
-        onDelete: async (visit: StoreVisit): Promise<void> => {
-          await this.deleteStoreVisit(visit);
-        },
         onCancel: () => {
           this.closeEditor();
         }
@@ -334,6 +333,9 @@ export struct StoreVisitPage {
         },
         onEdit: (visit: StoreVisit) => {
           this.openVisitEditor(visit);
+        },
+        onDelete: async (visit: StoreVisit): Promise<void> => {
+          await this.deleteStoreVisit(visit);
         }
       })
     } else {

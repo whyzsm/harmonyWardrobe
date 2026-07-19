@@ -3,8 +3,18 @@ import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
 @Component
 export struct PhotoCarousel {
   @Prop photoUris: string[] = [];
+  @Prop @Watch('onActiveIndexChange') activeIndex: number = 0;
+  onSelect: (index: number) => void = () => {};
   @Prop cornerRadius: number = YibuqueRadius.xs;
   @State private selectedIndex: number = 0;
+
+  aboutToAppear(): void {
+    this.selectedIndex = this.normalizeIndex(this.activeIndex);
+  }
+
+  onActiveIndexChange(): void {
+    this.selectedIndex = this.normalizeIndex(this.activeIndex);
+  }
 
   private normalizeIndex(index: number): number {
     if (this.photoUris.length === 0 || index < 0) {
@@ -15,6 +25,7 @@ export struct PhotoCarousel {
 
   private selectPhoto(index: number): void {
     this.selectedIndex = this.normalizeIndex(index);
+    this.onSelect(this.selectedIndex);
   }
 
   build() {

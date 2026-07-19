@@ -80,6 +80,12 @@ for (const forbidden of ['保存并拍照', 'captureAndSaveStoreVisit']) {
   }
 }
 
+for (const forbidden of ['onDelete:', 'isDeleting', 'DeleteAction', 'confirmDeleteStoreVisit', '删除逛店记录']) {
+  if (text.includes(forbidden)) {
+    throw new Error(`${file} must move deletion to the detail page: ${forbidden}`);
+  }
+}
+
 for (const forbidden of ['store_visit_cover', 'debug://']) {
   if (text.includes(forbidden)) {
     throw new Error(`${file} must not include test photo ${forbidden}`);

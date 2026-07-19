@@ -38,7 +38,6 @@ export struct StoreVisitEditPage {
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
   onSave: (visit: StoreVisit) => void = () => {};
-  onDelete: (visit: StoreVisit) => Promise<void> = async (_visit: StoreVisit): Promise<void> => {};
   onCancel: () => void = () => {};
 
   @State private storeName: string = '';
@@ -50,7 +49,6 @@ export struct StoreVisitEditPage {
   @State private photoUris: string[] = [];
   @State private isSaving: boolean = false;
   @State private isChoosingPhotos: boolean = false;
-  @State private isDeleting: boolean = false;
   @State private submitted: boolean = false;
   @State private errorMessage: string = '';
 
@@ -86,7 +84,7 @@ export struct StoreVisitEditPage {
   }
 
   private canSave(): boolean {
-    return !this.isSaving && !this.isChoosingPhotos && !this.isDeleting;
+    return !this.isSaving && !this.isChoosingPhotos;
   }
 
   private async copySourcesToLocalUris(sources: PhotoSource[]): Promise<string[]> {
@@ -209,46 +207,6 @@ export struct StoreVisitEditPage {
     this.getUIContext().getPromptAction().showToast({ message });
   }
 
-  private confirmDeleteStoreVisit(): void {
-    const visit = this.initialVisit;
-    if (visit === undefined || this.isSaving || this.isDeleting) {
-      return;
-    }
-
-    AlertDialog.show({
-      title: '删除逛店记录',
-      message: '确定要删除这条逛店记录吗？照片也会一并移除。',
-      primaryButton: {
-        value: '取消',
-        action: () => {}
-      },
-      secondaryButton: {
-        value: '删除',
-        fontColor: YibuqueColor.danger,
-        action: () => {
-          this.deleteStoreVisit();
-        }
-      }
-    });
-  }
-
-  private async deleteStoreVisit(): Promise<void> {
-    const visit = this.initialVisit;
-    if (visit === undefined || this.isDeleting) {
-      return;
-    }
-
-    this.isDeleting = true;
-    this.errorMessage = '';
-    try {
-      await this.onDelete(visit);
-    } catch (error) {
-      this.errorMessage = userFacingError(error, '删除逛店记录失败');
-    } finally {
-      this.isDeleting = false;
-    }
-  }
-
   build() {
     Stack({ alignContent: Alignment.Bottom }) {
       Column() {
@@ -284,10 +242,6 @@ export struct StoreVisitEditPage {
 
             this.BasicInfoCard()
             this.StatusCard()
-            if (this.initialVisit !== undefined) {
-              this.DeleteAction()
-            }
-
             if (this.errorMessage.length > 0 && !this.isStoreNameInvalid() && !this.isAddressInvalid()) {
               Text(this.errorMessage)
                 .width('100%')
@@ -610,30 +564,6 @@ export struct StoreVisitEditPage {
         .fontSize(18)
         .fontColor([this.selectedTags.includes(tag) ? YibuqueColor.textInverse : YibuqueColor.actionBlack])
     }
-  }
-
-  @Builder
-  DeleteAction() {
-    Button() {
-      if (this.isDeleting) {
-        LoadingProgress()
-          .width(20)
-          .height(20)
-          .color(YibuqueColor.textInverse)
-      } else {
-        Text('删除逛店记录')
-          .fontSize(14)
-          .fontColor(YibuqueColor.textInverse)
-      }
-    }
-    .height(46)
-    .width('100%')
-    .backgroundColor(YibuqueColor.danger)
-    .borderRadius(YibuqueRadius.full)
-    .enabled(!this.isSaving && !this.isDeleting)
-    .onClick(() => {
-      this.confirmDeleteStoreVisit();
-    })
   }
 
   @Builder

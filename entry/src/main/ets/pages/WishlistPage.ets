@@ -29,6 +29,7 @@ export struct WishlistPage {
   onClose: () => void = () => {};
   onBack: () => void = () => {};
   onOpenCapture?: () => void = undefined;
+  onInitialWishlistItemConsumed: () => void = () => {};
 
   @State private searchQuery: string = '';
   @State private wishlistItems: WishlistItem[] = [];
@@ -38,6 +39,7 @@ export struct WishlistPage {
   @State private unifiedSearchQuery: string = '';
   @State private loading: boolean = false;
   @State private errorMessage: string = '';
+  @State private openedFromInitialRoute: boolean = false;
 
   aboutToAppear(): void {
     this.loadWishlistItems();
@@ -58,9 +60,11 @@ export struct WishlistPage {
           if (item.id === this.initialWishlistItemId) {
             this.selectedWishlistItemId = item.id;
             this.showEditor = true;
+            this.openedFromInitialRoute = true;
             break;
           }
         }
+        this.onInitialWishlistItemConsumed();
       }
     } catch (error) {
       this.errorMessage = error instanceof Error ? error.message : '加载心愿失败';
@@ -166,7 +170,7 @@ export struct WishlistPage {
         },
         onCancel: () => {
           this.closeEditor();
-          if (this.initialWishlistItemId.length > 0) {
+          if (this.openedFromInitialRoute) {
             this.onBack();
           }
         }

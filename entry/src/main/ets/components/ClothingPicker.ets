@@ -21,6 +21,8 @@ function clothingCategoryLabel(category: ClothingCategory): string {
 
 @Component
 export struct ClothingPicker {
+  @Prop title: string = '选择衣物';
+  @Prop description: string = '';
   @Prop @Watch('onItemsChange') items: ClothingItem[] = [];
   @Prop selectedIds: string[] = [];
   onToggle: (id: string) => void = () => {};
@@ -48,22 +50,34 @@ export struct ClothingPicker {
 
   build() {
     Column({ space: YibuqueSpacing.sm }) {
-      Row() {
-        Text('选择衣物')
-          .fontSize(16)
-          .fontWeight(FontWeight.Regular)
-          .fontColor(YibuqueColor.textPrimary)
-          .layoutWeight(1)
-
-        if (this.selectedIds.length > 0) {
-          Text(`${this.selectedIds.length} 件已选`)
-            .fontSize(12)
+      Column({ space: 4 }) {
+        Row() {
+          Text(this.title)
+            .fontSize(16)
             .fontWeight(FontWeight.Regular)
-            .fontColor(YibuqueColor.actionBlack)
+            .fontColor(YibuqueColor.textPrimary)
+            .layoutWeight(1)
+
+          if (this.selectedIds.length > 0) {
+            Text(`${this.selectedIds.length} 件已选`)
+              .fontSize(12)
+              .fontWeight(FontWeight.Regular)
+              .fontColor(YibuqueColor.actionBlack)
+          }
+        }
+        .width('100%')
+        .alignItems(VerticalAlign.Center)
+
+        if (this.description.length > 0) {
+          Text(this.description)
+            .width('100%')
+            .fontSize(12)
+            .lineHeight(17)
+            .fontColor(YibuqueColor.textSecondary)
         }
       }
       .width('100%')
-      .alignItems(VerticalAlign.Center)
+      .alignItems(HorizontalAlign.Start)
 
       if (this.items.length === 0) {
         Text('暂无衣物，可先去衣柜添加。')

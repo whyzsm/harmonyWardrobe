@@ -9,6 +9,7 @@ import { SearchIndexMode } from '../searchIndex/SearchCapability';
 import { PhotoStorage } from '../../media/PhotoStorage';
 import { ClothingCategory } from '../../domain/clothing/ClothingCategory';
 import { ClothingItem, PurchaseInfo } from '../../domain/clothing/ClothingModels';
+import { OutfitDisplaySource } from '../../domain/outfit/OutfitModels';
 import {
   buildClothingSearchDocument,
   buildOutfitSearchDocument
@@ -98,6 +99,7 @@ const SELECT_OUTFIT_BY_ID_FOR_SEARCH_SQL = `
     id,
     title,
     COALESCE(note, '') AS note,
+    COALESCE(display_source, 'photo') AS display_source,
     created_at,
     updated_at
   FROM outfit_templates
@@ -153,6 +155,7 @@ interface OutfitSearchRow {
   id: string;
   title: string;
   note?: string;
+  displaySource: OutfitDisplaySource;
   createdAt: string;
   updatedAt: string;
 }
@@ -467,6 +470,7 @@ export class ClothingRepository {
         title: outfit.title,
         photoUris: [],
         clothingItemIds,
+        displaySource: outfit.displaySource,
         note: outfit.note,
         createdAt: outfit.createdAt,
         updatedAt: outfit.updatedAt
@@ -506,6 +510,9 @@ export class ClothingRepository {
         id: resultSet.getString('id'),
         title: resultSet.getString('title'),
         note: optionalString(resultSet.getString('note')),
+        displaySource: resultSet.getString('display_source') === OutfitDisplaySource.Wardrobe
+          ? OutfitDisplaySource.Wardrobe
+          : OutfitDisplaySource.Photo,
         createdAt: resultSet.getString('created_at'),
         updatedAt: resultSet.getString('updated_at')
       };

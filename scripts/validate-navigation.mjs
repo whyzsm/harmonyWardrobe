@@ -7,6 +7,10 @@ const sheetPath = 'entry/src/main/ets/components/QuickCaptureSheet.ets';
 const index = fs.readFileSync(indexPath, 'utf8');
 const nav = fs.readFileSync(navPath, 'utf8');
 const sheet = fs.readFileSync(sheetPath, 'utf8');
+const outfitsPage = fs.readFileSync('entry/src/main/ets/pages/OutfitsPage.ets', 'utf8');
+const wardrobePage = fs.readFileSync('entry/src/main/ets/pages/WardrobePage.ets', 'utf8');
+const storePage = fs.readFileSync('entry/src/main/ets/pages/StoreVisitPage.ets', 'utf8');
+const wishlistPage = fs.readFileSync('entry/src/main/ets/pages/WishlistPage.ets', 'utf8');
 
 function flatCallbackBody(text, callbackName) {
   const match = text.match(new RegExp(`${callbackName}: \\(\\) => \\{([^{}]*)\\}`));
@@ -140,6 +144,48 @@ for (const editor of ['ClothingEditPage({', 'StoreVisitEditPage({', 'OutfitEditP
 
 if (index.includes("this.initialWardrobeTab = '美搭'")) {
   throw new Error('Outfit navigation must not route through WardrobePage internal tabs');
+}
+
+for (const needle of [
+  'private replaceCurrentRouteParams',
+  'private consumeOutfitRoute',
+  'private consumeWearLogRoute',
+  'private consumeStoreVisitRoute',
+  'private consumeWishlistRoute',
+  'onInitialOutfitConsumed',
+  'onInitialWearLogConsumed',
+  'onInitialVisitConsumed',
+  'onInitialWishlistItemConsumed'
+]) {
+  if (!index.includes(needle)) {
+    throw new Error(`Index missing one-time detail route cleanup: ${needle}`);
+  }
+}
+
+for (const [page, callback] of [
+  [outfitsPage, 'onInitialOutfitConsumed'],
+  [outfitsPage, 'onInitialWearLogConsumed'],
+  [storePage, 'onInitialVisitConsumed'],
+  [wishlistPage, 'onInitialWishlistItemConsumed']
+]) {
+  if (!page.includes(callback)) {
+    throw new Error(`Page missing one-time route callback: ${callback}`);
+  }
+}
+
+for (const [page, callback] of [
+  [outfitsPage, 'this.closeUnifiedSearch();\n          this.onOpenSearchTarget'],
+  [wardrobePage, 'this.closeUnifiedSearch();\n          this.onOpenSearchTarget']
+]) {
+  if (!page.includes(callback)) {
+    throw new Error(`Search result navigation must close the current search before routing: ${callback}`);
+  }
+}
+
+for (const page of [outfitsPage, wardrobePage]) {
+  if (!/private close(?:Outfit|Clothing)Detail\(\): void[\s\S]*?showUnifiedSearch = false;/.test(page)) {
+    throw new Error('Detail back navigation must clear stale unified search state');
+  }
 }
 
 for (const symbol of [

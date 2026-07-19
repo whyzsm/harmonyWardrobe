@@ -122,8 +122,11 @@ export struct ClothingDetailPage {
   }
 
   private itemNote(): string {
-    const note = this.item?.note ?? '';
-    return note.length > 0 ? note : '暂未填写备注';
+    return this.item?.note?.trim() ?? '';
+  }
+
+  private hasItemNote(): boolean {
+    return this.itemNote().length > 0;
   }
 
   private photoCountText(): string {
@@ -432,14 +435,16 @@ export struct ClothingDetailPage {
       .width('100%')
       .alignItems(VerticalAlign.Center)
 
-      Text(this.itemNote())
-        .width('100%')
-        .height(72)
-        .padding(YibuqueSpacing.md)
-        .fontSize(15)
-        .fontColor(YibuqueColor.textPrimary)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.lg)
+      if (this.hasItemNote()) {
+        Text(this.itemNote())
+          .width('100%')
+          .height(72)
+          .padding(YibuqueSpacing.md)
+          .fontSize(15)
+          .fontColor(YibuqueColor.textPrimary)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.lg)
+      }
     }
     .width('100%')
     .padding(YibuqueSpacing.lg)
@@ -451,34 +456,27 @@ export struct ClothingDetailPage {
 
   @Builder
   PurchaseCard() {
-    Column({ space: YibuqueSpacing.md }) {
-      Text('购买信息')
-        .fontSize(18)
-        .fontWeight(FontWeight.Regular)
-        .fontColor(YibuqueColor.textPrimary)
+    if (purchaseInfoHasContent(this.purchaseInfo())) {
+      Column({ space: YibuqueSpacing.md }) {
+        Text('购买信息')
+          .fontSize(18)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textPrimary)
 
-      if (purchaseInfoHasContent(this.purchaseInfo())) {
         this.DetailRow('门店', this.purchaseInfo()?.storeName ?? '未记录')
         this.DetailRow('价格', priceText(this.purchaseInfo()?.price) || '未记录')
         this.DetailRow('日期', this.purchaseInfo()?.purchaseDate ?? '未记录')
-        this.DetailRow('备注', this.purchaseInfo()?.note ?? '未记录')
-      } else {
-        Text('暂未填写购买信息')
-          .width('100%')
-          .height(52)
-          .fontSize(14)
-          .fontColor(YibuqueColor.textSecondary)
-          .textAlign(TextAlign.Center)
-          .backgroundColor(YibuqueColor.cardSoftGray)
-          .borderRadius(YibuqueRadius.lg)
+        if ((this.purchaseInfo()?.note?.trim() ?? '').length > 0) {
+          this.DetailRow('备注', this.purchaseInfo()?.note?.trim() ?? '')
+        }
       }
+      .width('100%')
+      .padding(YibuqueSpacing.lg)
+      .backgroundColor(YibuqueColor.cardWhite)
+      .borderRadius(YibuqueRadius.xxl)
+      .shadow(YibuqueShadow.card)
+      .alignItems(HorizontalAlign.Start)
     }
-    .width('100%')
-    .padding(YibuqueSpacing.lg)
-    .backgroundColor(YibuqueColor.cardWhite)
-    .borderRadius(YibuqueRadius.xxl)
-    .shadow(YibuqueShadow.card)
-    .alignItems(HorizontalAlign.Start)
   }
 
   @Builder

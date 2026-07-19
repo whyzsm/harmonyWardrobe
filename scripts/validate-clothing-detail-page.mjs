@@ -103,6 +103,18 @@ if (!/Text\(this\.itemCategoryLabel\(\)\)[\s\S]*?\.fontColor\(YibuqueColor\.icon
   throw new Error('ClothingDetailPage category badge must match the profile blue icon accent style');
 }
 
+if (detail.includes('暂未填写备注') || !/private hasItemNote\(\): boolean[\s\S]*?if \(this\.hasItemNote\(\)\)[\s\S]*?Text\(this\.itemNote\(\)\)/.test(detail)) {
+  throw new Error('ClothingDetailPage must hide the note block when no note exists');
+}
+
+if (detail.includes("this.DetailRow('备注', this.purchaseInfo()?.note ?? '未记录')")) {
+  throw new Error('ClothingDetailPage must hide an empty purchase note row');
+}
+
+if (detail.includes('暂未填写购买信息') || !/PurchaseCard\(\)[\s\S]*?if \(purchaseInfoHasContent\(this\.purchaseInfo\(\)\)\)[\s\S]*?Text\('购买信息'\)/.test(detail)) {
+  throw new Error('ClothingDetailPage must hide the purchase card when no purchase data exists');
+}
+
 for (const needle of [
   'ClothingDetailPage',
   'showClothingDetail',

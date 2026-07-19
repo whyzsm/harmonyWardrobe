@@ -14,6 +14,15 @@ if (!fs.existsSync(pickerPath)) {
 const editPage = fs.readFileSync(editPagePath, 'utf8');
 const picker = fs.readFileSync(pickerPath, 'utf8');
 
+function readPrivateMethod(source, signature) {
+  const start = source.indexOf(signature);
+  if (start < 0) {
+    throw new Error(`OutfitEditPage missing ${signature}`);
+  }
+  const end = source.indexOf('\n  private ', start + 1);
+  return source.slice(start, end < 0 ? source.length : end);
+}
+
 for (const needle of [
   'PhotoPickerAdapter',
   'PhotoStorage',
@@ -27,8 +36,24 @@ for (const needle of [
   'saveOutfit',
   'PhotoSelector',
   'hasSelectedPhoto',
+  'hasDisplayPhoto',
+  'hasRequiredSourcePhoto',
   'normalizedTitle',
-  'firstPhotoUrisForClothingItemIds',
+  'displaySource',
+  'selectedPhotoIndex',
+  'removePhoto',
+  '已选照片',
+  '删除第 ${index + 1} 张照片',
+  'OutfitDisplaySource',
+  'OUTFIT_DISPLAY_SOURCE_PHOTO',
+  'OUTFIT_DISPLAY_SOURCE_WARDROBE',
+  'DisplaySourceSelector',
+  'DisplaySourceTab',
+  '展示内容',
+  '上传照片',
+  '选衣柜单品',
+  'linkedClothingPhotoUris',
+  'displayPhotoUris',
   'formatTimeForTitle',
   'pickGalleryPhotos',
   'capturePhoto',
@@ -43,8 +68,9 @@ for (const needle of [
   'MAX_USER_PHOTOS',
   'remainingPhotoSlots',
   'appendPhotoUris',
-  '记录这套穿搭的第一眼',
+  '上传这套穿搭照片',
   '整体、细节或上身效果都可以',
+  '补充穿搭照片（选填）',
   '.aspectRatio(530 / 386)',
   'CameraAction',
   'GalleryAction',
@@ -52,17 +78,26 @@ for (const needle of [
   "SymbolGlyph($r('sys.symbol.picture'))",
   '穿搭信息（选填）',
   '穿搭名称，可不填',
-  '备注',
+  '小记（选填）',
+  'TextArea({ text: this.note',
+  '记录场景、试穿感受或搭配想法',
   '保存穿搭',
-  '先添加照片'
+  '先添加照片',
+  '先选有照片的衣物',
+  '照片选择能力不可用',
+  '照片保存失败'
 ]) {
   if (!editPage.includes(needle)) {
     throw new Error(`OutfitEditPage missing ${needle}`);
   }
 }
 
-if (!/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?return\s+!this\.isSaving\s*&&\s*!this\.isChoosingPhotos\s*&&\s*!this\.isDeleting\s*&&\s*this\.photoUris\.length\s*>\s*0/.test(editPage)) {
-  throw new Error('OutfitEditPage save gate must require at least one photo and block concurrent deletes');
+if (!/canSave\(\)\s*:\s*boolean\s*{[\s\S]*?return\s+!this\.isSaving\s*&&\s*!this\.isChoosingPhotos\s*&&\s*this\.hasRequiredSourcePhoto\(\)/.test(editPage)) {
+  throw new Error('OutfitEditPage save gate must require the active source mode');
+}
+
+if (!/private hasRequiredSourcePhoto\(\): boolean \{[\s\S]*?this\.displaySource === OUTFIT_DISPLAY_SOURCE_WARDROBE[\s\S]*?return this\.linkedClothingPhotoUris\(\)\.length > 0;[\s\S]*?return this\.hasSelectedPhoto\(\);/.test(editPage)) {
+  throw new Error('OutfitEditPage must validate required photos by the selected source mode');
 }
 
 if (!/this\.clothingItemIds\s*=\s*\[\s*\.\.\.this\.initialOutfit\.clothingItemIds\s*\]/.test(editPage)) {
@@ -70,15 +105,24 @@ if (!/this\.clothingItemIds\s*=\s*\[\s*\.\.\.this\.initialOutfit\.clothingItemId
 }
 
 if (!editPage.includes('[...this.initialOutfit.photoUris]')) {
-  throw new Error('OutfitEditPage must clone initial photoUris for the no-associated-item fallback');
+  throw new Error('OutfitEditPage must clone initial uploaded photoUris without deriving them from wardrobe items');
 }
 
-if (!/const selectedPhotoUris\s*=\s*this\.firstPhotoUrisForClothingItemIds\(this\.clothingItemIds\)[\s\S]*?this\.photoUris\s*=\s*selectedPhotoUris\.length\s*>\s*0\s*[\s\S]*?\[\.\.\.this\.initialOutfit\.photoUris\s*\]/.test(editPage)) {
-  throw new Error('OutfitEditPage must derive existing outfit photos from the selected clothing items');
+if (/firstPhotoUrisForClothingItemIds|selectedPhotoUris/.test(editPage)) {
+  throw new Error('OutfitEditPage must not derive uploaded outfit photos from selected clothing items');
 }
 
-if (!/this\.clothingItemIds\s*=\s*nextIds;\s*if\s*\(this\.initialOutfit\s*!==\s*undefined\)\s*{\s*this\.photoUris\s*=\s*this\.firstPhotoUrisForClothingItemIds\(nextIds\);/s.test(editPage)) {
-  throw new Error('OutfitEditPage must synchronize photos when selected clothing items change');
+if (!/private displayPhotoUris\(\): string\[\] \{[\s\S]*?this\.displaySource === OUTFIT_DISPLAY_SOURCE_WARDROBE[\s\S]*?return clothingPhotoUris\.length > 0 \? clothingPhotoUris : this\.photoUris;[\s\S]*?return this\.photoUris\.length > 0 \? this\.photoUris : clothingPhotoUris;/.test(editPage)) {
+  throw new Error('OutfitEditPage must derive display photos from the persisted display source with fallback');
+}
+
+if (!/ForEach\(this\.photoUris[\s\S]*?this\.removePhoto\(index\)[\s\S]*?this\.selectPhoto\(index\)/.test(editPage)) {
+  throw new Error('OutfitEditPage must expose a selectable uploaded-photo list with per-photo removal');
+}
+
+const toggleClothingItemMethod = readPrivateMethod(editPage, 'private toggleClothingItem(id: string): void {');
+if (/this\.photoUris\s*=/.test(toggleClothingItemMethod)) {
+  throw new Error('OutfitEditPage must not overwrite uploaded photos when wardrobe selection changes');
 }
 
 if (editPage.includes('this.title.trim().length > 0 &&')) {
@@ -92,6 +136,8 @@ if (!/title:\s*this\.normalizedTitle\(\)/.test(editPage)) {
 for (const needle of [
   'ClothingPicker',
   'ClothingItem',
+  '@Prop title: string',
+  '@Prop description: string',
   'selectedIds',
   'onToggle',
   'ForEach',
@@ -130,8 +176,20 @@ for (const forbidden of [
   }
 }
 
-if (!/PhotoSelector\(\)[\s\S]*?PhotoCarousel\(\{ photoUris: this\.photoUris \}\)[\s\S]*?\.aspectRatio\(530 \/ 386\)[\s\S]*?\.borderRadius\(YibuqueRadius\.sheet\)/.test(editPage)) {
+if (!/PhotoSelector\(title: string, description: string\)[\s\S]*?PhotoCarousel\(\{[\s\S]*?photoUris: this\.photoUris[\s\S]*?\}\)[\s\S]*?\.aspectRatio\(530 \/ 386\)[\s\S]*?\.borderRadius\(YibuqueRadius\.sheet\)/.test(editPage)) {
   throw new Error('OutfitEditPage photo area must match the store editor hero layout');
+}
+
+if (!/DisplaySourceSelector\(\)[\s\S]*?this\.DisplaySourceTab\('上传照片'[\s\S]*?this\.DisplaySourceTab\('选衣柜单品'/.test(editPage)) {
+  throw new Error('OutfitEditPage must expose uploaded-photo and wardrobe-item display choices');
+}
+
+if (!/this\.displaySource === OUTFIT_DISPLAY_SOURCE_PHOTO[\s\S]*?this\.PhotoSelector\('上传这套穿搭照片'[\s\S]*?this\.OutfitInfoCard\('关联衣柜单品（选填）'[\s\S]*?else[\s\S]*?this\.OutfitInfoCard\('选择衣柜单品'[\s\S]*?this\.PhotoSelector\('补充穿搭照片（选填）'/.test(editPage)) {
+  throw new Error('OutfitEditPage display choices must reorder photo and wardrobe sections');
+}
+
+if (!/Scroll\(\) \{\s*Column\(\{ space: YibuqueSpacing\.lg \}\) \{[\s\S]*?this\.DisplaySourceSelector\(\)[\s\S]*?\.padding\(\{ left: YibuqueSpacing\.pageX, right: YibuqueSpacing\.pageX, top: YibuqueSpacing\.lg, bottom: YibuqueSpacing\.xxl \}\)/.test(editPage)) {
+  throw new Error('OutfitEditPage editor content must be wrapped in the padded scroll column');
 }
 
 if (!/Column\(\{ space: 8 \}\)[\s\S]*?\.width\('100%'\)[\s\S]*?\.padding\(\{ left: 24, right: 24, bottom: 24 \}\)/.test(editPage)) {
@@ -156,13 +214,14 @@ for (const [name, fallbackMessage] of [
   ['capturePhoto', '拍照失败']
 ]) {
   const method = readAsyncMethod(editPage, name);
-  if (!method.includes('this.photoPickerAdapter === undefined || this.isChoosingPhotos || this.isSaving || this.isDeleting')) {
+  if (!method.includes('this.photoPickerAdapter === undefined || this.isChoosingPhotos || this.isSaving')) {
     throw new Error(`OutfitEditPage ${name} must reject concurrent photo operations and saves`);
   }
   for (const needle of [
     'this.isChoosingPhotos = true;',
     'try {',
     'catch (error) {',
+    '照片保存失败',
     `this.errorMessage = userFacingError(error, '${fallbackMessage}')`,
     'finally {',
     'this.isChoosingPhotos = false;'
@@ -173,8 +232,14 @@ for (const [name, fallbackMessage] of [
   }
 }
 
-if ((editPage.match(/\.enabled\(!this\.isChoosingPhotos && !this\.isSaving && !this\.isDeleting\)/g) ?? []).length < 2) {
+if ((editPage.match(/\.enabled\(!this\.isChoosingPhotos && !this\.isSaving\)/g) ?? []).length < 2) {
   throw new Error('OutfitEditPage camera and gallery actions must be disabled during photo selection or save');
+}
+
+for (const forbidden of ['onDelete:', 'isDeleting', 'DeleteAction', 'confirmDeleteOutfit', '删除穿搭']) {
+  if (editPage.includes(forbidden)) {
+    throw new Error(`OutfitEditPage must move deletion to the detail page: ${forbidden}`);
+  }
 }
 
 console.log('PASS');

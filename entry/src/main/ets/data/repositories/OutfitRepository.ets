@@ -7,7 +7,7 @@ import { DeleteCleanupService } from './DeleteCleanupService';
 import { SearchRepository } from './SearchRepository';
 import { SearchIndexMode } from '../searchIndex/SearchCapability';
 import { PhotoStorage } from '../../media/PhotoStorage';
-import { OutfitTemplate } from '../../domain/outfit/OutfitModels';
+import { OutfitDisplaySource, OutfitTemplate } from '../../domain/outfit/OutfitModels';
 import { WearLog } from '../../domain/wearLog/WearLogModels';
 import { buildOutfitSearchDocument } from '../../domain/search/SearchDocumentBuilder';
 import { SearchEntityType } from '../../domain/search/SearchModels';
@@ -19,10 +19,11 @@ const INSERT_OUTFIT_SQL = `
     id,
     title,
     note,
+    display_source,
     created_at,
     updated_at
   )
-  VALUES (?, ?, ?, ?, ?)
+  VALUES (?, ?, ?, ?, ?, ?)
 `;
 
 const UPDATE_OUTFIT_SQL = `
@@ -30,6 +31,7 @@ const UPDATE_OUTFIT_SQL = `
   SET
     title = ?,
     note = ?,
+    display_source = ?,
     updated_at = ?
   WHERE id = ?
 `;
@@ -62,6 +64,7 @@ const SELECT_OUTFIT_BY_ID_SQL = `
     id,
     title,
     COALESCE(note, '') AS note,
+    COALESCE(display_source, 'photo') AS display_source,
     created_at,
     updated_at
   FROM outfit_templates
@@ -73,6 +76,7 @@ const BASE_LIST_OUTFITS_SQL = `
     id,
     title,
     COALESCE(note, '') AS note,
+    COALESCE(display_source, 'photo') AS display_source,
     created_at,
     updated_at
   FROM outfit_templates
@@ -126,6 +130,7 @@ interface OutfitRow {
   id: string;
   title: string;
   note?: string;
+  displaySource: OutfitDisplaySource;
   createdAt: string;
   updatedAt: string;
 }
@@ -146,6 +151,7 @@ export interface CreateOutfitInput {
   title: string;
   photoUris?: string[];
   clothingItemIds?: string[];
+  displaySource?: OutfitDisplaySource;
   note?: string;
 }
 
@@ -154,6 +160,7 @@ export interface UpdateOutfitInput {
   title: string;
   photoUris?: string[];
   clothingItemIds?: string[];
+  displaySource?: OutfitDisplaySource;
   note?: string;
 }
 
@@ -207,6 +214,18 @@ function normalizeClothingItemIds(clothingItemIds?: string[]): string[] {
   }
 
   return normalized;
+}
+
+function normalizeDisplaySource(displaySource?: OutfitDisplaySource): OutfitDisplaySource {
+  return displaySource === OutfitDisplaySource.Wardrobe
+    ? OutfitDisplaySource.Wardrobe
+    : OutfitDisplaySource.Photo;
+}
+
+function parseDisplaySource(value: string): OutfitDisplaySource {
+  return value === OutfitDisplaySource.Wardrobe
+    ? OutfitDisplaySource.Wardrobe
+    : OutfitDisplaySource.Photo;
 }
 
 function decodeClothingItemIdsSnapshot(value: string): string[] {
@@ -269,6 +288,7 @@ export class OutfitRepository {
         title: input.title.trim(),
         photoUris: normalizePhotoUris(input.photoUris),
         clothingItemIds: normalizeClothingItemIds(input.clothingItemIds),
+        displaySource: normalizeDisplaySource(input.displaySource),
         note: toSqlNullableText(input.note) ?? undefined,
         createdAt: now,
         updatedAt: now
@@ -295,6 +315,7 @@ export class OutfitRepository {
         title: input.title.trim(),
         photoUris: normalizePhotoUris(input.photoUris),
         clothingItemIds: normalizeClothingItemIds(input.clothingItemIds),
+        displaySource: normalizeDisplaySource(input.displaySource ?? existing.displaySource),
         note: toSqlNullableText(input.note) ?? undefined,
         createdAt: existing.createdAt,
         updatedAt: toIsoDateTime(new Date())
@@ -303,6 +324,7 @@ export class OutfitRepository {
       await this.database.executeSql(UPDATE_OUTFIT_SQL, [
         item.title,
         item.note ?? null,
+        item.displaySource,
         item.updatedAt,
         item.id
       ]);
@@ -381,6 +403,7 @@ export class OutfitRepository {
       item.id,
       item.title,
       item.note ?? null,
+      item.displaySource,
       item.createdAt,
       item.updatedAt
     ];
@@ -470,6 +493,7 @@ export class OutfitRepository {
         title: row.title,
         photoUris: await this.readPhotoUris(row.id),
         clothingItemIds: await this.readClothingItemIds(row.id),
+        displaySource: row.displaySource,
         note: row.note,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt
@@ -501,6 +525,7 @@ export class OutfitRepository {
       id: resultSet.getString('id'),
       title: resultSet.getString('title'),
       note: optionalString(resultSet.getString('note')),
+      displaySource: parseDisplaySource(resultSet.getString('display_source')),
       createdAt: resultSet.getString('created_at'),
       updatedAt: resultSet.getString('updated_at')
     };

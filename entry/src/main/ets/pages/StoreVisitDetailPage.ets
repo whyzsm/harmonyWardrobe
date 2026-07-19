@@ -2,6 +2,7 @@ import { PhotoCarousel } from '../components/PhotoCarousel';
 import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import { StoreVisit } from '../domain/store/StoreModels';
 import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
+import { userFacingError } from '../utils/userFacingError';
 
 @Component
 export struct StoreVisitDetailPage {
@@ -9,6 +10,10 @@ export struct StoreVisitDetailPage {
   @Prop statusLabel: string = '已去';
   onBack: () => void = () => {};
   onEdit: (visit: StoreVisit) => void = () => {};
+  onDelete: (visit: StoreVisit) => Promise<void> = async (_visit: StoreVisit): Promise<void> => {};
+  @State private showDeleteConfirm: boolean = false;
+  @State private isDeleting: boolean = false;
+  @State private deleteErrorMessage: string = '';
 
   private photoUris(): string[] {
     return this.visit?.photoUris ?? [];
@@ -25,8 +30,58 @@ export struct StoreVisitDetailPage {
   }
 
   private noteText(): string {
-    const note = this.visit?.note?.trim() ?? '';
-    return note.length > 0 ? note : '暂未填写备注';
+    return this.visit?.note?.trim() ?? '';
+  }
+
+  private hasNoteText(): boolean {
+    return this.noteText().length > 0;
+  }
+
+  private confirmDelete(): void {
+    const visit = this.visit;
+    if (visit === undefined || this.isDeleting) {
+      return;
+    }
+
+    this.showDeleteConfirm = true;
+    AlertDialog.show({
+      title: '删除逛店记录',
+      message: '确定要删除这条逛店记录吗？照片也会一并移除。',
+      primaryButton: {
+        value: '取消',
+        action: () => {
+          this.showDeleteConfirm = false;
+        }
+      },
+      secondaryButton: {
+        value: '删除',
+        fontColor: YibuqueColor.danger,
+        action: () => {
+          this.deleteCurrentVisit();
+        }
+      },
+      cancel: () => {
+        this.showDeleteConfirm = false;
+      }
+    });
+  }
+
+  private async deleteCurrentVisit(): Promise<void> {
+    const visit = this.visit;
+    if (visit === undefined || this.isDeleting) {
+      return;
+    }
+
+    this.isDeleting = true;
+    this.deleteErrorMessage = '';
+    try {
+      await this.onDelete(visit);
+      this.showDeleteConfirm = false;
+    } catch (error) {
+      this.deleteErrorMessage = userFacingError(error, '删除逛店记录失败');
+    } finally {
+      this.isDeleting = false;
+    }
   }
 
   private photoCountText(): string {
@@ -136,13 +191,15 @@ export struct StoreVisitDetailPage {
       this.DetailRow('日期', this.visit?.visitDate ?? '未记录')
       this.DetailRow('标签', this.tagsText())
 
-      Text(this.noteText())
-        .width('100%')
-        .padding(YibuqueSpacing.md)
-        .fontSize(15)
-        .fontColor(YibuqueColor.textPrimary)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.lg)
+      if (this.hasNoteText()) {
+        Text(this.noteText())
+          .width('100%')
+          .padding(YibuqueSpacing.md)
+          .fontSize(15)
+          .fontColor(YibuqueColor.textPrimary)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.lg)
+      }
     }
     .width('100%')
     .padding(YibuqueSpacing.lg)
@@ -150,6 +207,42 @@ export struct StoreVisitDetailPage {
     .borderRadius(YibuqueRadius.xxl)
     .shadow(YibuqueShadow.card)
     .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  DeleteAction() {
+    Column({ space: YibuqueSpacing.sm }) {
+      Button() {
+        if (this.isDeleting) {
+          LoadingProgress()
+            .width(18)
+            .height(18)
+            .color(YibuqueColor.textInverse)
+        } else {
+          Text('删除逛店记录')
+            .fontSize(15)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textInverse)
+        }
+      }
+      .width('100%')
+      .height(46)
+      .enabled(!this.isDeleting && !this.showDeleteConfirm)
+      .backgroundColor(YibuqueColor.danger)
+      .borderRadius(YibuqueRadius.full)
+      .onClick(() => {
+        this.confirmDelete();
+      })
+
+      if (this.deleteErrorMessage.length > 0) {
+        Text(this.deleteErrorMessage)
+          .width('100%')
+          .fontSize(13)
+          .fontColor(YibuqueColor.danger)
+          .textAlign(TextAlign.Center)
+      }
+    }
+    .width('100%')
   }
 
   build() {
@@ -175,6 +268,7 @@ export struct StoreVisitDetailPage {
           Column({ space: YibuqueSpacing.lg }) {
             this.HeroPhoto()
             this.SummaryCard()
+            this.DeleteAction()
           }
           .width('100%')
           .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.sm, bottom: YibuqueSpacing.section })

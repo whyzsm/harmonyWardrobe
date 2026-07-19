@@ -3,7 +3,7 @@ import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { SearchRepository } from '../data/repositories/SearchRepository';
 import { WearLogRepository } from '../data/repositories/WearLogRepository';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
-import { OutfitTemplate } from '../domain/outfit/OutfitModels';
+import { OutfitDisplaySource, OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { SearchEntityType } from '../domain/search/SearchModels';
 import { WearLog } from '../domain/wearLog/WearLogModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
@@ -59,6 +59,8 @@ export struct OutfitsPage {
   onCreateOutfit: () => void = () => {};
   onOpenSearchTarget: (entityType: SearchEntityType, id: string, title: string) => void =
     (_entityType: SearchEntityType, _id: string, _title: string) => {};
+  onInitialOutfitConsumed: () => void = () => {};
+  onInitialWearLogConsumed: () => void = () => {};
   onNestedPageVisibilityChange: (visible: boolean) => void = () => {};
 
   @State private searchQuery: string = '';
@@ -108,9 +110,11 @@ export struct OutfitsPage {
             break;
           }
         }
+        this.onInitialOutfitConsumed();
       }
       if (this.initialWearLogId.length > 0) {
         await this.openWearLogById(this.initialWearLogId);
+        this.onInitialWearLogConsumed();
       }
     } catch (error) {
       this.errorMessage = userFacingError(error, '加载穿搭失败');
@@ -158,8 +162,41 @@ export struct OutfitsPage {
     this.outfitDataSource.setData(this.filterOutfits());
   }
 
-  private photoUriAt(outfit: OutfitTemplate, slot: number): string {
-    return outfit.photoUris.length > slot ? outfit.photoUris[slot] : '';
+  private selectedClothingPhotoUris(outfit: OutfitTemplate): string[] {
+    const photoUris: string[] = [];
+    for (const clothingItemId of outfit.clothingItemIds) {
+      for (const item of this.clothingItems) {
+        if (item.id !== clothingItemId || item.photoUris.length === 0) {
+          continue;
+        }
+
+        const photoUri = item.photoUris[0].trim();
+        if (photoUri.length > 0) {
+          photoUris.push(photoUri);
+        }
+        break;
+      }
+    }
+
+    return photoUris;
+  }
+
+  private displayPhotoUris(outfit: OutfitTemplate): string[] {
+    const clothingPhotoUris = this.selectedClothingPhotoUris(outfit);
+    if (outfit.displaySource === OutfitDisplaySource.Wardrobe) {
+      return clothingPhotoUris.length > 0 ? clothingPhotoUris : outfit.photoUris;
+    }
+
+    return outfit.photoUris.length > 0 ? outfit.photoUris : clothingPhotoUris;
+  }
+
+  private displayPhotoUriAt(outfit: OutfitTemplate, slot: number): string {
+    const photoUris = this.displayPhotoUris(outfit);
+    return photoUris.length > slot ? photoUris[slot] : '';
+  }
+
+  private displayPhotoCount(outfit: OutfitTemplate): number {
+    return this.displayPhotoUris(outfit).length;
   }
 
   private outfitStackAspectRatio(index: number): number {
@@ -228,8 +265,13 @@ export struct OutfitsPage {
 
   private onInitialWearLogIdChange(): void {
     if (this.initialWearLogId.length > 0) {
-      this.openWearLogById(this.initialWearLogId);
+      this.openInitialWearLog(this.initialWearLogId);
     }
+  }
+
+  private async openInitialWearLog(wearLogId: string): Promise<void> {
+    await this.openWearLogById(wearLogId);
+    this.onInitialWearLogConsumed();
   }
 
   private async openWearLogById(wearLogId: string): Promise<void> {
@@ -264,6 +306,7 @@ export struct OutfitsPage {
   private closeOutfitDetail(): void {
     this.showOutfitDetail = false;
     this.detailOutfitId = '';
+    this.showUnifiedSearch = false;
     this.onNestedPageVisibilityChange(false);
   }
 
@@ -376,9 +419,6 @@ export struct OutfitsPage {
           this.upsertOutfit(outfit);
           this.closeOutfitEditor();
         },
-        onDelete: async (outfit: OutfitTemplate): Promise<void> => {
-          await this.deleteOutfit(outfit);
-        },
         onCancel: () => {
           this.closeOutfitEditor();
         }
@@ -410,6 +450,9 @@ export struct OutfitsPage {
         },
         onEdit: (outfit: OutfitTemplate) => {
           this.onEditOutfit(outfit);
+        },
+        onDelete: async (outfit: OutfitTemplate): Promise<void> => {
+          await this.deleteOutfit(outfit);
         }
       })
     } else if (this.showUnifiedSearch) {
@@ -754,9 +797,29 @@ export struct OutfitsPage {
   @Builder
   OutfitWallCard(outfit: OutfitTemplate, index: number) {
     Column({ space: 8 }) {
-      Column({ space: 6 }) {
-        this.OutfitPhoto(outfit, 0, 1.18)
-        this.OutfitPhoto(outfit, 1, 0.92)
+      Stack({ alignContent: Alignment.BottomEnd }) {
+        if (this.displayPhotoCount(outfit) > 1) {
+          Column({ space: 6 }) {
+            this.OutfitPhoto(outfit, 0, 1.18)
+            this.OutfitPhoto(outfit, 1, 0.92)
+          }
+          .width('100%')
+          .height('100%')
+        } else {
+          this.SingleOutfitPhoto(outfit)
+        }
+
+        if (this.displayPhotoCount(outfit) > 2) {
+          Text(`+${this.displayPhotoCount(outfit) - 2}`)
+            .height(26)
+            .padding({ left: 9, right: 9 })
+            .margin({ right: 8, bottom: 8 })
+            .fontSize(12)
+            .fontColor(YibuqueColor.textInverse)
+            .textAlign(TextAlign.Center)
+            .backgroundColor(YibuqueColor.overlayDark)
+            .borderRadius(YibuqueRadius.full)
+        }
       }
       .width('100%')
       .aspectRatio(this.outfitStackAspectRatio(index))
@@ -806,8 +869,37 @@ export struct OutfitsPage {
   }
 
   @Builder
+  SingleOutfitPhoto(outfit: OutfitTemplate) {
+    if (this.displayPhotoUriAt(outfit, 0).length === 0) {
+      Column({ space: 5 }) {
+        SymbolGlyph($r('sys.symbol.picture'))
+          .fontSize(24)
+          .fontColor([YibuqueColor.textSecondary])
+
+        Text('暂无照片')
+          .fontSize(10)
+          .fontColor(YibuqueColor.textTertiary)
+      }
+      .width('100%')
+      .height('100%')
+      .justifyContent(FlexAlign.Center)
+      .alignItems(HorizontalAlign.Center)
+      .backgroundColor(YibuqueColor.cardSoftGray)
+      .borderRadius(YibuqueRadius.xs)
+      .border({ width: 1, color: YibuqueColor.borderLight })
+    } else {
+      Image(this.displayPhotoUriAt(outfit, 0))
+        .width('100%')
+        .height('100%')
+        .objectFit(ImageFit.Cover)
+        .borderRadius(YibuqueRadius.xs)
+        .border({ width: 1, color: YibuqueColor.borderLight })
+    }
+  }
+
+  @Builder
   OutfitPhoto(outfit: OutfitTemplate, slot: number, weight: number) {
-    if (this.photoUriAt(outfit, slot).length === 0) {
+    if (this.displayPhotoUriAt(outfit, slot).length === 0) {
       Column({ space: 5 }) {
         SymbolGlyph($r('sys.symbol.picture'))
           .fontSize(24)
@@ -825,7 +917,7 @@ export struct OutfitsPage {
         .borderRadius(YibuqueRadius.xs)
         .border({ width: 1, color: YibuqueColor.borderLight })
     } else {
-      Image(this.photoUriAt(outfit, slot))
+      Image(this.displayPhotoUriAt(outfit, slot))
         .width('100%')
         .layoutWeight(weight)
         .objectFit(ImageFit.Cover)

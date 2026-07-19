@@ -9,6 +9,7 @@ import { v5ProfilePreferences } from '../data/migrations/V5ProfilePreferences';
 import { v6StoreNormalizedName } from '../data/migrations/V6StoreNormalizedName';
 import { v7ProfileCommonLists } from '../data/migrations/V7ProfileCommonLists';
 import { v8ProfileSizes } from '../data/migrations/V8ProfileSizes';
+import { v9OutfitDisplaySource } from '../data/migrations/V9OutfitDisplaySource';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { ProfileRepository } from '../data/repositories/ProfileRepository';
@@ -47,7 +48,8 @@ export class WardrobeRuntimeFactory {
       v5ProfilePreferences,
       v6StoreNormalizedName,
       v7ProfileCommonLists,
-      v8ProfileSizes
+      v8ProfileSizes,
+      v9OutfitDisplaySource
     ]);
     await migrationRunner.runMigrations();
 

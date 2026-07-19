@@ -86,6 +86,50 @@ struct Index {
     this.featureNestedContentVisible = false;
   }
 
+  private replaceCurrentRouteParams(params: AppRouteParams): void {
+    this.activeRoute = createAppRoute(this.activeRoute.kind, this.activeRoute.mainTab, params);
+  }
+
+  private consumeOutfitRoute(): void {
+    if (this.activeRoute.mainTab !== AppMainTab.Outfit || this.activeRoute.params.outfitId.length === 0) {
+      return;
+    }
+
+    const params = this.copyCurrentRouteParams();
+    params.outfitId = '';
+    this.replaceCurrentRouteParams(params);
+  }
+
+  private consumeWearLogRoute(): void {
+    if (this.activeRoute.mainTab !== AppMainTab.Outfit || this.activeRoute.params.wearLogId.length === 0) {
+      return;
+    }
+
+    const params = this.copyCurrentRouteParams();
+    params.wearLogId = '';
+    this.replaceCurrentRouteParams(params);
+  }
+
+  private consumeStoreVisitRoute(): void {
+    if (this.activeRoute.mainTab !== AppMainTab.Store || this.activeRoute.params.storeVisitId.length === 0) {
+      return;
+    }
+
+    const params = this.copyCurrentRouteParams();
+    params.storeVisitId = '';
+    this.replaceCurrentRouteParams(params);
+  }
+
+  private consumeWishlistRoute(): void {
+    if (this.activeRoute.kind !== AppRouteKind.Wishlist || this.activeRoute.params.wishlistItemId.length === 0) {
+      return;
+    }
+
+    const params = this.copyCurrentRouteParams();
+    params.wishlistItemId = '';
+    this.replaceCurrentRouteParams(params);
+  }
+
   private resetMainRoute(mainTab: AppMainTab): void {
     this.showMainRoute(mainTab, createDefaultAppRouteParams());
   }
@@ -211,16 +255,6 @@ struct Index {
     this.quickActionErrorMessage = '';
   }
 
-  private async handleOutfitDelete(outfit: OutfitTemplate): Promise<void> {
-    const runtime = this.runtime;
-    if (runtime === undefined) {
-      return;
-    }
-
-    await runtime.outfitRepository.deleteOutfit(outfit.id);
-    this.closeQuickOutfitEditor();
-  }
-
   private openStoreVisitList(): void {
     this.resetMainRoute(AppMainTab.Store);
     this.quickActionErrorMessage = '';
@@ -339,9 +373,6 @@ struct Index {
               onSave: (_outfit: OutfitTemplate) => {
                 this.closeQuickOutfitEditor();
               },
-              onDelete: (outfit: OutfitTemplate): Promise<void> => {
-                return this.handleOutfitDelete(outfit);
-              },
               onCancel: () => {
                 this.closeQuickOutfitEditor();
               }
@@ -369,6 +400,9 @@ struct Index {
               photoPickerAdapter: this.runtime.photoPickerAdapter,
               photoStorage: this.runtime.photoStorage,
               initialWishlistItemId: this.activeRoute.params.wishlistItemId,
+              onInitialWishlistItemConsumed: () => {
+                this.consumeWishlistRoute();
+              },
               onClose: () => {
                 this.resetMainRoute(AppMainTab.Profile);
               },
@@ -460,6 +494,9 @@ struct Index {
               onEditorVisibilityChange: (visible: boolean) => {
                 this.featureNestedContentVisible = visible;
               },
+              onInitialVisitConsumed: () => {
+                this.consumeStoreVisitRoute();
+              },
               onCreateStoreVisit: () => {
                 this.openQuickStoreEditor();
               }
@@ -470,6 +507,12 @@ struct Index {
             OutfitsPage({
               initialOutfitId: this.activeRoute.params.outfitId,
               initialWearLogId: this.activeRoute.params.wearLogId,
+              onInitialOutfitConsumed: () => {
+                this.consumeOutfitRoute();
+              },
+              onInitialWearLogConsumed: () => {
+                this.consumeWearLogRoute();
+              },
               outfitRepository: this.runtime.outfitRepository,
               searchRepository: this.runtime.searchRepository,
               clothingRepository: this.runtime.clothingRepository,

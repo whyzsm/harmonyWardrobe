@@ -233,6 +233,7 @@ export struct WardrobePage {
   private closeClothingDetail(): void {
     this.showClothingDetail = false;
     this.detailClothingId = '';
+    this.showUnifiedSearch = false;
     this.onDetailModeChange(false);
     this.onNestedPageVisibilityChange(false);
   }
@@ -284,6 +285,11 @@ export struct WardrobePage {
     this.unifiedSearchQuery = query;
     this.showUnifiedSearch = true;
     this.onNestedPageVisibilityChange(true);
+  }
+
+  private closeUnifiedSearch(): void {
+    this.showUnifiedSearch = false;
+    this.onNestedPageVisibilityChange(false);
   }
 
   private retry(): void {
@@ -354,12 +360,15 @@ export struct WardrobePage {
           this.openClothingSearchResult(id);
         },
         onOpenOutfitResult: (_id: string) => {
+          this.closeUnifiedSearch();
           this.onOpenSearchTarget(SearchEntityType.Outfit, _id, '');
         },
         onOpenStoreResult: (entityType: SearchEntityType, id: string, title: string) => {
+          this.closeUnifiedSearch();
           this.onOpenSearchTarget(entityType, id, title);
         },
         onOpenWishlistResult: (id: string) => {
+          this.closeUnifiedSearch();
           this.onOpenSearchTarget(SearchEntityType.Wishlist, id, '');
         },
         onOpenWearLogResult: (id: string) => {
@@ -368,6 +377,7 @@ export struct WardrobePage {
           this.onOpenSearchTarget(SearchEntityType.WearLog, id, '');
         },
         onOpenProfileResult: (entityType: SearchEntityType, id: string) => {
+          this.closeUnifiedSearch();
           this.onOpenSearchTarget(entityType, id, '');
         },
         onOpenCameraSearch: () => {
