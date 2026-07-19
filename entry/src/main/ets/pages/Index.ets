@@ -418,6 +418,9 @@ struct Index {
               onOpenCapture: () => {
                 this.startCameraCapture();
               },
+              onCreateClothing: () => {
+                this.openQuickClothingEditor();
+              },
               onClothingEditorVisibilityChange: (visible: boolean) => {
                 this.featureNestedContentVisible = visible;
               },
@@ -456,6 +459,9 @@ struct Index {
               photoStorage: this.runtime.photoStorage,
               onEditorVisibilityChange: (visible: boolean) => {
                 this.featureNestedContentVisible = visible;
+              },
+              onCreateStoreVisit: () => {
+                this.openQuickStoreEditor();
               }
             })
               .layoutWeight(1)
@@ -465,10 +471,39 @@ struct Index {
               initialOutfitId: this.activeRoute.params.outfitId,
               initialWearLogId: this.activeRoute.params.wearLogId,
               outfitRepository: this.runtime.outfitRepository,
+              searchRepository: this.runtime.searchRepository,
               clothingRepository: this.runtime.clothingRepository,
               wearLogRepository: this.runtime.wearLogRepository,
               photoPickerAdapter: this.runtime.photoPickerAdapter,
               photoStorage: this.runtime.photoStorage,
+              onOpenCapture: () => {
+                this.startCameraCapture();
+              },
+              onCreateOutfit: () => {
+                this.openQuickOutfitEditor();
+              },
+              onOpenSearchTarget: (entityType: SearchEntityType, id: string, title: string) => {
+                if (entityType === SearchEntityType.Clothing) {
+                  this.resetMainRoute(AppMainTab.Wardrobe);
+                } else if (entityType === SearchEntityType.Outfit) {
+                  const params = createDefaultAppRouteParams();
+                  params.outfitId = id;
+                  this.showMainRoute(AppMainTab.Outfit, params);
+                } else if (entityType === SearchEntityType.Store || entityType === SearchEntityType.StoreVisit) {
+                  const params = createDefaultAppRouteParams();
+                  params.storeVisitId = entityType === SearchEntityType.StoreVisit ? id : '';
+                  params.storeQuery = entityType === SearchEntityType.Store ? title : '';
+                  this.showMainRoute(AppMainTab.Store, params);
+                } else if (entityType === SearchEntityType.Wishlist) {
+                  this.openWishlistPage(id);
+                } else if (entityType === SearchEntityType.WearLog) {
+                  const params = createDefaultAppRouteParams();
+                  params.wearLogId = id;
+                  this.showMainRoute(AppMainTab.Outfit, params);
+                } else {
+                  this.resetMainRoute(AppMainTab.Profile);
+                }
+              },
               onNestedPageVisibilityChange: (visible: boolean) => {
                 this.featureNestedContentVisible = visible;
               }

@@ -35,7 +35,7 @@ resolve_tool() {
 }
 
 COMMAND_LINE_TOOLS="${DEVECO_COMMAND_LINE_TOOLS:-}"
-DEFAULT_DEVECO_SDK_HOME="/Applications/DevEco-Studio.app/Contents/sdk/default"
+DEFAULT_DEVECO_SDK_HOME="/Applications/DevEco-Studio.app/Contents/sdk"
 
 if [[ -z "${DEVECO_SDK_HOME:-}" && -d "$DEFAULT_DEVECO_SDK_HOME" ]]; then
   export DEVECO_SDK_HOME="$DEFAULT_DEVECO_SDK_HOME"

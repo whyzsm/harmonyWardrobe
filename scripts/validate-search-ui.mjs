@@ -61,12 +61,10 @@ for (const needle of [
   "Text('历史记录')",
   "Text('猜你想搜')",
   "'全部'",
-  "'衣物'",
+  "'衣柜'",
   "'逛店'",
   "'穿搭'",
-  "'我的'",
   "SymbolGlyph($r('sys.symbol.arrow_left'))",
-  "SymbolGlyph($r('sys.symbol.camera_fill'))",
   "SymbolGlyph($r('sys.symbol.trash'))",
   'List()',
   'ListItem()',
@@ -76,6 +74,14 @@ for (const needle of [
   if (!resultPage.includes(needle)) {
     throw new Error(`SearchResultsPage missing ${needle}`);
   }
+}
+
+if (!resultPage.includes("{ key: 'clothes', label: '衣柜' }")) {
+  throw new Error('SearchResultsPage must label the clothing scope as 衣柜');
+}
+
+if (resultPage.includes("{ key: 'profile', label: '我的' }") || /selectedScope === 'profile'/.test(resultPage)) {
+  throw new Error('SearchResultsPage must remove the 我的 search scope');
 }
 
 for (const forbidden of [
@@ -98,8 +104,12 @@ if (!/aboutToAppear\(\)[\s\S]*?this\.searchText = this\.query[\s\S]*?this\.activ
   throw new Error('SearchResultsPage must initialize idle/results state from the incoming query');
 }
 
-if (!/SearchHeader\(\)[\s\S]*?TextInput\(\{ text: this\.searchText, placeholder: '搜索衣服、商场、穿搭' \}\)[\s\S]*?this\.clearSearch\(\)[\s\S]*?this\.onOpenCameraSearch\(\)[\s\S]*?this\.submitSearch\(\)/.test(resultPage)) {
+if (!/SearchHeader\(\)[\s\S]*?TextInput\(\{ text: this\.searchText, placeholder: '搜索衣服、商场、穿搭' \}\)[\s\S]*?this\.clearSearch\(\)[\s\S]*?this\.submitSearch\(\)/.test(resultPage)) {
   throw new Error('SearchResultsPage must implement the designed search controls');
+}
+
+if (/SearchHeader\(\)[\s\S]*?sys\.symbol\.camera_fill/.test(resultPage)) {
+  throw new Error('SearchResultsPage must not expose an unavailable camera-search icon');
 }
 
 if (!/IdlePanel\(\)[\s\S]*?historyTerms[\s\S]*?SEARCH_SUGGESTIONS[\s\S]*?this\.submitSearch\(term\)/.test(resultPage)) {
@@ -119,8 +129,8 @@ if (!/const requestVersion = \+\+this\.searchRequestVersion[\s\S]*?requestVersio
   throw new Error('SearchResultsPage must ignore stale asynchronous search responses');
 }
 
-if (!/selectedScope === 'profile'[\s\S]*?SearchEntityType\.WearLog[\s\S]*?SearchEntityType\.Wishlist/.test(resultPage)) {
-  throw new Error('SearchResultsPage profile scope must expose indexed personal results');
+if (!/SearchEntityType\.WearLog[\s\S]*?SearchEntityType\.Wishlist/.test(resultPage)) {
+  throw new Error('SearchResultsPage must retain indexed personal results in the all scope');
 }
 
 if (!/@Prop initialScope\?: SearchEntityType = undefined/.test(resultPage)) {

@@ -34,6 +34,7 @@ export struct WardrobePage {
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
   onOpenCapture: () => void = () => {};
+  onCreateClothing: () => void = () => {};
   onDetailModeChange: (showDetailTopBar: boolean) => void = () => {};
   onClothingEditorVisibilityChange: (visible: boolean) => void = () => {};
   onNestedPageVisibilityChange: (visible: boolean) => void = () => {};
@@ -431,6 +432,10 @@ export struct WardrobePage {
           .backgroundColor(YibuqueColor.cardSoftGray)
           .borderRadius(YibuqueRadius.xxl)
           .border({ width: 1, color: YibuqueColor.borderMedium })
+            .accessibilityText('新增衣物')
+            .onClick(() => {
+              this.onCreateClothing();
+            })
 
           Text('点底部相机，选择照片后归类为衣柜')
             .fontSize(15)
@@ -501,38 +506,34 @@ export struct WardrobePage {
 
   @Builder
   WardrobeSearchTabs() {
-    Scroll() {
-      Row({ space: 10 }) {
-        ForEach(this.categoryLabels(), (category: string) => {
-          Row({ space: 6 }) {
-            this.CategoryFilterIcon(category)
+    Row({ space: 6 }) {
+      ForEach(this.categoryLabels(), (category: string) => {
+        Row({ space: 6 }) {
+          this.CategoryFilterIcon(category)
 
-            Text(category)
-              .fontSize(13)
-              .fontWeight(this.selectedCategoryLabel === category ? FontWeight.Regular : FontWeight.Regular)
-              .fontColor(this.selectedCategoryLabel === category ? YibuqueColor.textInverse : YibuqueColor.textQuaternary)
-          }
-          .constraintSize({ minWidth: 76, minHeight: 44 })
-          .padding({ left: 14, right: 14 })
-          .justifyContent(FlexAlign.Center)
-          .alignItems(VerticalAlign.Center)
-          .backgroundColor(this.selectedCategoryLabel === category ? YibuqueColor.actionBlack : YibuqueColor.cardWhite)
-          .borderRadius(YibuqueRadius.full)
-          .border({ width: 1, color: this.selectedCategoryLabel === category ? YibuqueColor.actionBlack : YibuqueColor.borderMedium })
-          .accessibilityText(`${category}${this.selectedCategoryLabel === category ? '，已选中' : ''}`)
-          .onClick(() => {
-            this.selectedCategoryLabel = category;
-            this.refreshClothingDataSource();
-          })
-        }, (category: string) => category)
-      }
-      .padding({ right: 12 })
-      .alignItems(VerticalAlign.Center)
+          Text(category)
+            .fontSize(13)
+            .fontWeight(this.selectedCategoryLabel === category ? FontWeight.Regular : FontWeight.Regular)
+            .fontColor(this.selectedCategoryLabel === category ? YibuqueColor.textInverse : YibuqueColor.textQuaternary)
+        }
+        .constraintSize({ minWidth: 0, minHeight: 44 })
+        .padding({ left: 8, right: 8 })
+        .layoutWeight(1)
+        .justifyContent(FlexAlign.Center)
+        .alignItems(VerticalAlign.Center)
+        .backgroundColor(this.selectedCategoryLabel === category ? YibuqueColor.actionBlack : YibuqueColor.cardWhite)
+        .borderRadius(YibuqueRadius.full)
+        .border({ width: 1, color: this.selectedCategoryLabel === category ? YibuqueColor.actionBlack : YibuqueColor.borderMedium })
+        .accessibilityText(`${category}${this.selectedCategoryLabel === category ? '，已选中' : ''}`)
+        .onClick(() => {
+          this.selectedCategoryLabel = category;
+          this.refreshClothingDataSource();
+        })
+      }, (category: string) => category)
     }
-    .scrollable(ScrollDirection.Horizontal)
-    .scrollBar(BarState.Off)
     .width('100%')
     .height(44)
+    .alignItems(VerticalAlign.Center)
   }
 
   @Builder

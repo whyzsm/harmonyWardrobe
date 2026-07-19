@@ -99,6 +99,10 @@ if (!/WardrobeSearchResultCard\(item: ClothingItem[\s\S]*?this\.openClothingDeta
   throw new Error('WardrobeSearchResultCard should open the clothing detail page');
 }
 
+if (!/Text\(this\.itemCategoryLabel\(\)\)[\s\S]*?\.fontColor\(YibuqueColor\.iconAccent\)[\s\S]*?\.backgroundColor\(YibuqueColor\.iconAccentSurface\)[\s\S]*?\.border\(\{ width: 1, color: YibuqueColor\.iconAccentSurface \}\)/.test(detail)) {
+  throw new Error('ClothingDetailPage category badge must match the profile blue icon accent style');
+}
+
 for (const needle of [
   'ClothingDetailPage',
   'showClothingDetail',

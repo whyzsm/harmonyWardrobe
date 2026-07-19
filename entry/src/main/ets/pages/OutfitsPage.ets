@@ -1,8 +1,10 @@
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
+import { SearchRepository } from '../data/repositories/SearchRepository';
 import { WearLogRepository } from '../data/repositories/WearLogRepository';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { OutfitTemplate } from '../domain/outfit/OutfitModels';
+import { SearchEntityType } from '../domain/search/SearchModels';
 import { WearLog } from '../domain/wearLog/WearLogModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
@@ -11,6 +13,7 @@ import { ArrayDataSource } from '../utils/ArrayDataSource';
 import { userFacingError } from '../utils/userFacingError';
 import { OutfitDetailPage } from './OutfitDetailPage';
 import { OutfitEditPage } from './OutfitEditPage';
+import { SearchResultsPage } from './SearchResultsPage';
 import { WearLogEditPage } from './WearLogEditPage';
 
 interface OutfitSceneFilter {
@@ -47,12 +50,18 @@ export struct OutfitsPage {
   @Prop initialOutfitId: string = '';
   @Prop @Watch('onInitialWearLogIdChange') initialWearLogId: string = '';
   outfitRepository?: OutfitRepository = undefined;
+  searchRepository?: SearchRepository = undefined;
   clothingRepository?: ClothingRepository = undefined;
   wearLogRepository?: WearLogRepository = undefined;
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
+  onOpenCapture: () => void = () => {};
+  onCreateOutfit: () => void = () => {};
+  onOpenSearchTarget: (entityType: SearchEntityType, id: string, title: string) => void =
+    (_entityType: SearchEntityType, _id: string, _title: string) => {};
   onNestedPageVisibilityChange: (visible: boolean) => void = () => {};
 
+  @State private searchQuery: string = '';
   @State private selectedFilterLabel: string = '全部';
   @State private outfits: OutfitTemplate[] = [];
   @State private outfitDataSource: ArrayDataSource<OutfitTemplate> = new ArrayDataSource<OutfitTemplate>();
@@ -67,6 +76,8 @@ export struct OutfitsPage {
   @State private loading: boolean = false;
   @State private errorMessage: string = '';
   @State private pressedOutfitCardId: string = '';
+  @State private showUnifiedSearch: boolean = false;
+  @State private unifiedSearchQuery: string = '';
 
   aboutToAppear(): void {
     this.loadOutfits();
@@ -120,9 +131,15 @@ export struct OutfitsPage {
 
   private filterOutfits(): OutfitTemplate[] {
     const selectedFilter = this.selectedSceneFilter();
+    const normalizedQuery = this.searchQuery.trim().toLowerCase();
 
     return this.outfits.filter((outfit: OutfitTemplate) => {
       const searchableText = `${outfit.title} ${outfit.note ?? ''}`.toLowerCase();
+      const matchesQuery = normalizedQuery.length === 0 || searchableText.includes(normalizedQuery);
+      if (!matchesQuery) {
+        return false;
+      }
+
       if (selectedFilter?.keywords === undefined) {
         return true;
       }
@@ -313,6 +330,40 @@ export struct OutfitsPage {
     this.loadOutfits();
   }
 
+  private openUnifiedSearch(query: string): void {
+    this.unifiedSearchQuery = query;
+    this.showUnifiedSearch = true;
+    this.onNestedPageVisibilityChange(true);
+  }
+
+  private openSearch(): void {
+    this.openUnifiedSearch(this.searchQuery);
+  }
+
+  private closeUnifiedSearch(): void {
+    this.showUnifiedSearch = false;
+    this.onNestedPageVisibilityChange(false);
+  }
+
+  private async openOutfitSearchResult(id: string): Promise<void> {
+    let targetOutfit: OutfitTemplate | undefined = undefined;
+    for (const outfit of this.outfits) {
+      if (outfit.id === id) {
+        targetOutfit = outfit;
+        break;
+      }
+    }
+
+    if (targetOutfit === undefined && this.outfitRepository !== undefined) {
+      targetOutfit = await this.outfitRepository.getOutfitById(id);
+    }
+
+    if (targetOutfit !== undefined) {
+      this.showUnifiedSearch = false;
+      this.openOutfitDetail(targetOutfit);
+    }
+  }
+
   build() {
     if (this.showOutfitEditor) {
       OutfitEditPage({
@@ -361,8 +412,46 @@ export struct OutfitsPage {
           this.onEditOutfit(outfit);
         }
       })
+    } else if (this.showUnifiedSearch) {
+      SearchResultsPage({
+        query: this.unifiedSearchQuery,
+        searchRepository: this.searchRepository,
+        clothingRepository: this.clothingRepository,
+        outfitRepository: this.outfitRepository,
+        onOpenClothingResult: (id: string) => {
+          this.closeUnifiedSearch();
+          this.onOpenSearchTarget(SearchEntityType.Clothing, id, '');
+        },
+        onOpenOutfitResult: (id: string) => {
+          this.openOutfitSearchResult(id);
+        },
+        onOpenStoreResult: (entityType: SearchEntityType, id: string, title: string) => {
+          this.closeUnifiedSearch();
+          this.onOpenSearchTarget(entityType, id, title);
+        },
+        onOpenWishlistResult: (id: string) => {
+          this.closeUnifiedSearch();
+          this.onOpenSearchTarget(SearchEntityType.Wishlist, id, '');
+        },
+        onOpenWearLogResult: (id: string) => {
+          this.closeUnifiedSearch();
+          this.onOpenSearchTarget(SearchEntityType.WearLog, id, '');
+        },
+        onOpenProfileResult: (entityType: SearchEntityType, id: string) => {
+          this.closeUnifiedSearch();
+          this.onOpenSearchTarget(entityType, id, '');
+        },
+        onOpenCameraSearch: () => {
+          this.closeUnifiedSearch();
+          this.onOpenCapture();
+        },
+        onClose: () => {
+          this.closeUnifiedSearch();
+        }
+      })
     } else {
-      Column({ space: 0 }) {
+      Column({ space: 14 }) {
+        this.OutfitSearchHeader()
         this.FilterStrip()
         this.OutfitGuideCard()
 
@@ -415,6 +504,7 @@ export struct OutfitsPage {
               '拍照或从相册选图后，按分类收进穿搭。',
               '点底部相机，选择照片后归类为穿搭',
               '穿搭会按图片组合流排在这里。')
+
           }
           .width('100%')
           .layoutWeight(1)
@@ -466,6 +556,53 @@ export struct OutfitsPage {
   }
 
   @Builder
+  OutfitSearchHeader() {
+    Column() {
+      Row({ space: 10 }) {
+      Stack({ alignContent: Alignment.Center }) {
+        SymbolGlyph($r('sys.symbol.magnifyingglass'))
+          .fontSize(18)
+          .fontColor([YibuqueColor.textSecondary])
+      }
+      .width(44)
+      .height(46)
+      .accessibilityText('执行搜索')
+      .onClick(() => {
+        this.openSearch();
+      })
+
+      TextInput({ text: this.searchQuery, placeholder: '搜索穿搭、场景、备注' })
+        .height(46)
+        .layoutWeight(1)
+        .fontSize(14)
+        .fontColor(YibuqueColor.textPrimary)
+        .placeholderColor(YibuqueColor.textTertiary)
+        .backgroundColor(YibuqueColor.transparent)
+        .enterKeyType(EnterKeyType.Search)
+        .onChange((value: string) => {
+          this.searchQuery = value;
+          this.refreshOutfitDataSource();
+        })
+        .onClick(() => {
+          this.openSearch();
+        })
+        .onSubmit(() => {
+          this.openSearch();
+        })
+      }
+      .width('100%')
+      .height(48)
+      .padding({ left: 16, right: 14 })
+      .alignItems(VerticalAlign.Center)
+      .backgroundColor(YibuqueColor.cardWhite)
+      .borderRadius(YibuqueRadius.md)
+      .border({ width: 1, color: YibuqueColor.borderMedium })
+    }
+    .width('100%')
+    .padding({ left: 20, right: 20, top: 14 })
+  }
+
+  @Builder
   OutfitEmptyState(title: string, description: string, guideTitle: string, guideDescription: string) {
     Column({ space: 10 }) {
       Column({ space: 8 }) {
@@ -493,6 +630,10 @@ export struct OutfitsPage {
       .backgroundColor(YibuqueColor.cardSoftGray)
       .borderRadius(YibuqueRadius.xxl)
       .border({ width: 1, color: YibuqueColor.borderMedium })
+      .accessibilityText('新增穿搭')
+      .onClick(() => {
+        this.onCreateOutfit();
+      })
 
       Text(guideTitle)
         .fontSize(15)
@@ -515,41 +656,35 @@ export struct OutfitsPage {
 
   @Builder
   FilterStrip() {
-    Scroll() {
-      Row({ space: 10 }) {
-        ForEach(OUTFIT_SCENE_FILTERS, (filter: OutfitSceneFilter) => {
-          Row({ space: 7 }) {
-            this.FilterIcon(filter.label)
+    Row({ space: 6 }) {
+      ForEach(OUTFIT_SCENE_FILTERS, (filter: OutfitSceneFilter) => {
+        Row({ space: 6 }) {
+          this.FilterIcon(filter.label)
 
-            Text(filter.label)
-              .fontSize(12)
-              .fontWeight(this.selectedFilterLabel === filter.label ? FontWeight.Regular : FontWeight.Regular)
-              .fontColor(this.selectedFilterLabel === filter.label ? YibuqueColor.textInverse : YibuqueColor.textSecondary)
-          }
-          .height(44)
-          .padding({ left: 12, right: 15 })
-          .justifyContent(FlexAlign.Center)
-          .alignItems(VerticalAlign.Center)
-          .backgroundColor(this.selectedFilterLabel === filter.label ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
-          .borderRadius(YibuqueRadius.xxxl)
-          .border({ width: 1, color: this.selectedFilterLabel === filter.label ? YibuqueColor.borderStrong : YibuqueColor.borderMedium })
-          .accessibilityText(`${filter.label}${this.selectedFilterLabel === filter.label ? '，已选中' : ''}`)
-          .onClick(() => {
-            this.selectedFilterLabel = filter.label;
-            this.refreshOutfitDataSource();
-          })
-        }, (filter: OutfitSceneFilter) => filter.label)
-
-      }
-      .padding({ right: 20, bottom: 4 })
-      .alignItems(VerticalAlign.Center)
+          Text(filter.label)
+            .fontSize(12)
+            .fontWeight(this.selectedFilterLabel === filter.label ? FontWeight.Regular : FontWeight.Regular)
+            .fontColor(this.selectedFilterLabel === filter.label ? YibuqueColor.textInverse : YibuqueColor.textSecondary)
+        }
+        .constraintSize({ minWidth: 0, minHeight: 44 })
+        .padding({ left: 8, right: 8 })
+        .layoutWeight(1)
+        .justifyContent(FlexAlign.Center)
+        .alignItems(VerticalAlign.Center)
+        .backgroundColor(this.selectedFilterLabel === filter.label ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
+        .borderRadius(YibuqueRadius.xxxl)
+        .border({ width: 1, color: this.selectedFilterLabel === filter.label ? YibuqueColor.borderStrong : YibuqueColor.borderMedium })
+        .accessibilityText(`${filter.label}${this.selectedFilterLabel === filter.label ? '，已选中' : ''}`)
+        .onClick(() => {
+          this.selectedFilterLabel = filter.label;
+          this.refreshOutfitDataSource();
+        })
+      }, (filter: OutfitSceneFilter) => filter.label)
     }
-    .scrollable(ScrollDirection.Horizontal)
-    .scrollBar(BarState.Off)
     .width('100%')
-    .height(50)
-    .margin({ top: 2, bottom: 12 })
-    .padding({ left: 20 })
+    .height(44)
+    .padding({ left: 20, right: 20 })
+    .alignItems(VerticalAlign.Center)
   }
 
   @Builder
@@ -613,7 +748,7 @@ export struct OutfitsPage {
       .border({ width: 1, color: YibuqueColor.borderLight })
     }
     .width('100%')
-    .padding({ left: 20, right: 20, bottom: 16 })
+    .padding({ left: 20, right: 20 })
   }
 
   @Builder

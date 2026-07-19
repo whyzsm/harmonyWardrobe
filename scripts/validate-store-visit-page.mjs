@@ -8,6 +8,7 @@ function read(file) {
 }
 
 const page = read('entry/src/main/ets/pages/StoreVisitPage.ets');
+const detail = read('entry/src/main/ets/pages/StoreVisitDetailPage.ets');
 const index = read('entry/src/main/ets/pages/Index.ets');
 const quickSheet = read('entry/src/main/ets/components/QuickCaptureSheet.ets');
 
@@ -43,11 +44,23 @@ for (const needle of [
   '暂无照片',
   "columnsTemplate('1fr 1fr')",
   'YibuqueRadius.xxl',
-  'this.coverPhotoUri(visit).length > 0'
+  'this.coverPhotoUri(visit).length > 0',
+  'Row({ space: 6 })',
+  '.constraintSize({ minWidth: 0, minHeight: 44 })',
+  '.padding({ left: 8, right: 8 })',
+  '.layoutWeight(1)'
 ]) {
   if (!page.includes(needle)) {
     throw new Error(`StoreVisitPage missing ${needle}`);
   }
+}
+
+if (/StoreVisitControls\(\)[\s\S]*?Scroll\(\)/.test(page)) {
+  throw new Error('StoreVisit status tabs must use the same responsive full-width Row as the wardrobe tabs');
+}
+
+if (!/StoreVisitControls\(\)[\s\S]*?Row\(\{ space: 6 \}\)[\s\S]*?\.width\('100%'\)[\s\S]*?\.height\(44\)/.test(page)) {
+  throw new Error('StoreVisit status tabs must fill the search width with a 44px row');
 }
 
 for (const needle of ['StoreVisitPage({', 'storeRepository: this.runtime.storeRepository']) {
@@ -116,6 +129,10 @@ if (!/visitStatus\(visit: StoreVisit\)[\s\S]*?visit\.status !== undefined[\s\S]*
 
 if (!/StoreVisitResultCard\([\s\S]*?\.onClick\(\(\) => \{[\s\S]*?openVisitDetail\(visit\)/.test(page)) {
   throw new Error('StoreVisitPage list cards must open the read-only detail page');
+}
+
+if (!/Text\(this\.statusLabel\)[\s\S]*?\.fontColor\(YibuqueColor\.iconAccent\)[\s\S]*?\.backgroundColor\(YibuqueColor\.iconAccentSurface\)[\s\S]*?\.border\(\{ width: 1, color: YibuqueColor\.iconAccentSurface \}\)/.test(detail)) {
+  throw new Error('StoreVisitDetailPage status badge must match the profile blue icon accent style');
 }
 
 for (const forbidden of ['家已试穿', '家想回头看']) {

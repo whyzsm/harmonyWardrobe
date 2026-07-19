@@ -89,6 +89,7 @@ for (const needle of [
   'parseWeightKg',
   'parseWaistCm',
   '填写合理数字',
+  '.margin({ top: 14, bottom: 14 })',
   'bottom: 132'
 ]) {
   if (!page.includes(needle)) {

@@ -39,6 +39,7 @@ export struct StoreVisitPage {
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
   onEditorVisibilityChange: (visible: boolean) => void = () => {};
+  onCreateStoreVisit: () => void = () => {};
 
   @State private visits: StoreVisit[] = [];
   @State private storeVisitDataSource: ArrayDataSource<StoreVisit> = new ArrayDataSource<StoreVisit>();
@@ -397,36 +398,32 @@ export struct StoreVisitPage {
       .width('100%')
       .alignItems(VerticalAlign.Center)
 
-      Scroll() {
-        Row({ space: 10 }) {
-          ForEach(STORE_VISIT_STATUS_FILTERS, (filter: StoreVisitStatusFilter) => {
-            Row({ space: 7 }) {
-              this.StatusFilterIcon(filter.value)
-              Text(filter.label)
-                .fontSize(12)
-                .fontWeight(this.selectedStatus === filter.value ? FontWeight.Regular : FontWeight.Regular)
-                .fontColor(this.selectedStatus === filter.value ? YibuqueColor.textInverse : TEXT_MUTED)
-            }
-            .height(44)
-            .padding({ left: 12, right: 15 })
-            .justifyContent(FlexAlign.Center)
-            .alignItems(VerticalAlign.Center)
-            .backgroundColor(this.selectedStatus === filter.value ? YibuqueColor.actionBlack : SURFACE_WARM)
-            .borderRadius(YibuqueRadius.xxxl)
-            .border({ width: 1, color: this.selectedStatus === filter.value ? YibuqueColor.actionBlack : BORDER })
-            .accessibilityText(`${filter.label}${this.selectedStatus === filter.value ? '，已选中' : ''}`)
-            .onClick(() => {
-              this.selectStatus(filter);
-            })
-          }, (filter: StoreVisitStatusFilter) => filter.value)
-        }
-        .padding({ right: 10 })
-        .alignItems(VerticalAlign.Center)
+      Row({ space: 6 }) {
+        ForEach(STORE_VISIT_STATUS_FILTERS, (filter: StoreVisitStatusFilter) => {
+          Row({ space: 6 }) {
+            this.StatusFilterIcon(filter.value)
+            Text(filter.label)
+              .fontSize(12)
+              .fontWeight(this.selectedStatus === filter.value ? FontWeight.Regular : FontWeight.Regular)
+              .fontColor(this.selectedStatus === filter.value ? YibuqueColor.textInverse : TEXT_MUTED)
+          }
+          .constraintSize({ minWidth: 0, minHeight: 44 })
+          .padding({ left: 8, right: 8 })
+          .layoutWeight(1)
+          .justifyContent(FlexAlign.Center)
+          .alignItems(VerticalAlign.Center)
+          .backgroundColor(this.selectedStatus === filter.value ? YibuqueColor.actionBlack : SURFACE_WARM)
+          .borderRadius(YibuqueRadius.xxxl)
+          .border({ width: 1, color: this.selectedStatus === filter.value ? YibuqueColor.actionBlack : BORDER })
+          .accessibilityText(`${filter.label}${this.selectedStatus === filter.value ? '，已选中' : ''}`)
+          .onClick(() => {
+            this.selectStatus(filter);
+          })
+        }, (filter: StoreVisitStatusFilter) => filter.value)
       }
-      .scrollable(ScrollDirection.Horizontal)
-      .scrollBar(BarState.Off)
       .width('100%')
-      .height(48)
+      .height(44)
+      .alignItems(VerticalAlign.Center)
     }
     .width('100%')
     .padding({ bottom: 12 })
@@ -684,6 +681,12 @@ export struct StoreVisitPage {
       .backgroundColor(SURFACE_WARM)
       .borderRadius(YibuqueRadius.xxl)
       .border({ width: 1, color: BORDER })
+      .accessibilityText(this.isSearching() ? '没有找到相关逛店记录' : '新增逛店记录')
+      .onClick(() => {
+        if (!this.isSearching() && this.visits.length === 0) {
+          this.onCreateStoreVisit();
+        }
+      })
 
       Text(this.isSearching() ? '换个关键词，看看其它逛店记录' : this.visits.length === 0 ? '点底部相机，打开快捷录入里的新增逛店。' : '切换状态，看看其他逛店记录。')
         .fontSize(15)

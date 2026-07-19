@@ -24,17 +24,16 @@ interface SearchScopeOption {
 
 const SEARCH_SCOPES: SearchScopeOption[] = [
   { key: 'all', label: '全部' },
-  { key: 'clothes', label: '衣物' },
+  { key: 'clothes', label: '衣柜' },
   { key: 'shops', label: '逛店' },
-  { key: 'outfits', label: '穿搭' },
-  { key: 'profile', label: '我的' }
+  { key: 'outfits', label: '穿搭' }
 ];
 
 const SEARCH_SUGGESTIONS: string[] = ['连衣裙尺码', '周末快闪店', '黑白针织', '拍照录入', '购买记录', '小众买手店'];
 
 function entityTypeLabel(entityType: SearchEntityType): string {
   if (entityType === SearchEntityType.Clothing) {
-    return '衣物';
+    return '衣柜';
   }
   if (entityType === SearchEntityType.Outfit) {
     return '穿搭';
@@ -296,9 +295,6 @@ export struct SearchResultsPage {
     if (this.selectedScope === 'outfits') {
       return result.entityType === SearchEntityType.Outfit;
     }
-    if (this.selectedScope === 'profile') {
-      return result.entityType === SearchEntityType.WearLog || result.entityType === SearchEntityType.Wishlist;
-    }
     return false;
   }
 
@@ -312,16 +308,13 @@ export struct SearchResultsPage {
     }
 
     if (this.selectedScope === 'clothes') {
-      return '没有找到相关衣物';
+      return '没有找到相关衣柜';
     }
     if (this.selectedScope === 'shops') {
       return '没有找到相关逛店记录';
     }
     if (this.selectedScope === 'outfits') {
       return '没有找到相关穿搭';
-    }
-    if (this.selectedScope === 'profile') {
-      return '没有找到相关穿着记录';
     }
     return `没有找到「${this.activeQuery}」`;
   }
@@ -332,16 +325,13 @@ export struct SearchResultsPage {
     }
 
     if (this.selectedScope === 'clothes') {
-      return '换个衣物名称、分类或备注。';
+      return '换个衣柜名称、分类或备注。';
     }
     if (this.selectedScope === 'shops') {
       return '换个商场、品牌或试穿关键词。';
     }
     if (this.selectedScope === 'outfits') {
       return '换个场景、穿搭名称或备注。';
-    }
-    if (this.selectedScope === 'profile') {
-      return '换个穿着记录或个人关键词。';
     }
     return '换个关键词，或用拍照录入把衣物加入衣柜。';
   }
@@ -439,17 +429,6 @@ export struct SearchResultsPage {
             })
           }
 
-          Stack({ alignContent: Alignment.Center }) {
-            SymbolGlyph($r('sys.symbol.camera_fill'))
-              .fontSize(19)
-              .fontColor([YibuqueColor.textSecondary])
-          }
-          .width(44)
-          .height(44)
-          .accessibilityText('拍照搜索')
-          .onClick(() => {
-            this.onOpenCameraSearch();
-          })
         }
         .layoutWeight(1)
         .height(48)

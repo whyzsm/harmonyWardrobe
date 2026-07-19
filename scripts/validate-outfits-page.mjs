@@ -13,12 +13,24 @@ for (const needle of [
   '从已有单品开始搭配',
   '先添加衣物再创建穿搭',
   'OutfitGuideCard',
+  'Column({ space: 14 })',
+  'Row({ space: 6 })',
+  '.constraintSize({ minWidth: 0, minHeight: 44 })',
+  '.padding({ left: 8, right: 8 })',
+  '.layoutWeight(1)',
   'OutfitDetailPage',
+  'OutfitSearchHeader',
+  'SearchRepository',
+  'SearchResultsPage',
+  'searchQuery',
+  'openUnifiedSearch',
+  'onOpenSearchTarget',
+  'onOpenCapture',
   'openOutfitDetail',
   'showOutfitDetail',
   'displayOutfitTitle',
   'this.clothingItems.length',
-  '.padding({ left: 20, right: 20, bottom: 16 })',
+  '.padding({ left: 20, right: 20 })',
   'filterOutfits',
   'onNestedPageVisibilityChange',
   "columnsTemplate('1fr 1fr')",
@@ -36,6 +48,22 @@ for (const needle of [
   }
 }
 
+if (!/private filterOutfits\(\): OutfitTemplate\[\][\s\S]*?normalizedQuery\s*=\s*this\.searchQuery\.trim\(\)\.toLowerCase\(\)[\s\S]*?matchesQuery/.test(text)) {
+  throw new Error('OutfitsPage search must filter outfits by the entered query');
+}
+
+if (!/OutfitSearchHeader\(\)[\s\S]*?TextInput\(\{ text: this\.searchQuery, placeholder: '搜索穿搭、场景、备注' \}\)[\s\S]*?this\.refreshOutfitDataSource\(\)[\s\S]*?this\.openSearch\(\)/.test(text)) {
+  throw new Error('OutfitsPage search header must match the wardrobe search interaction');
+}
+
+if (!/FilterStrip\(\)[\s\S]*?Row\(\{ space: 6 \}\)[\s\S]*?\.layoutWeight\(1\)[\s\S]*?\.height\(44\)[\s\S]*?\.padding\(\{ left: 20, right: 20 \}\)/.test(text)) {
+  throw new Error('OutfitsPage filter strip must keep the same vertical spacing as the wardrobe tabs');
+}
+
+if (!/else if \(this\.showUnifiedSearch\)[\s\S]*?SearchResultsPage\(\{[\s\S]*?searchRepository: this\.searchRepository[\s\S]*?onOpenOutfitResult/.test(text)) {
+  throw new Error('OutfitsPage search must open the unified search results page');
+}
+
 for (const forbidden of [
   "Button('记录穿着')",
   'RECORD_WEAR_ACCESSIBILITY_TEXT',
@@ -50,8 +78,14 @@ if (/OutfitGuideCard\(\)[\s\S]*?\.margin\(\{ left: 20, right: 20, bottom: 16 \}\
   throw new Error('OutfitsPage guide card must use container padding instead of overflowing full-width margins');
 }
 
-if (!/OutfitGuideCard\(\)[\s\S]*?Row\(\)\s*\{[\s\S]*?Row\(\{ space: 12 \}\)[\s\S]*?\.padding\(\{ left: 20, right: 20, bottom: 16 \}\)/.test(text)) {
-  throw new Error('OutfitsPage guide card must align to the waterfall grid horizontal padding');
+const outfitGuideCardBuilder = text.match(/@Builder\n  OutfitGuideCard\(\) \{([\s\S]*?)\n  \}\n\n  @Builder\n  OutfitWallCard/)?.[1] ?? '';
+
+if (!/Row\(\)\s*\{[\s\S]*?Row\(\{ space: 12 \}\)[\s\S]*?\.padding\(\{ left: 20, right: 20 \}\)/.test(outfitGuideCardBuilder)) {
+  throw new Error('OutfitsPage guide card must align to the waterfall grid horizontal padding without extra bottom spacing');
+}
+
+if (/\.padding\(\{ left: 20, right: 20, bottom:/.test(outfitGuideCardBuilder)) {
+  throw new Error('OutfitsPage guide card must not add extra bottom spacing before the empty state');
 }
 
 if (/wardrobe_look_|debug:\/\/|Text\('22°'\)/.test(text)) {

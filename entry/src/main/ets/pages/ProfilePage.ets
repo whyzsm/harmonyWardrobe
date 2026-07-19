@@ -722,7 +722,7 @@ export struct ProfilePage {
       this.StatItem('outfit', '套搭配')
     }
     .width('100%')
-    .margin({ top: 10, bottom: 14 })
+    .margin({ top: 14, bottom: 14 })
   }
 
   @Builder

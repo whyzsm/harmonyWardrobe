@@ -46,10 +46,9 @@ for (const needle of [
   '.height(48)',
   '.borderRadius(YibuqueRadius.md)',
   'Row({ space: 10 })',
-  '.constraintSize({ minWidth: 76, minHeight: 44 })',
+  '.constraintSize({ minWidth: 0, minHeight: 44 })',
   '点底部相机，选择照片后归类为衣柜',
   ".height('100%')",
-  '.scrollable(ScrollDirection.Horizontal)',
   '.scrollBar(BarState.Off)'
 ]) {
   if (!text.includes(needle)) {
@@ -65,8 +64,8 @@ if (!/Text\('先放入第一件衣服'\)[\s\S]*?\.backgroundColor\(YibuqueColor\
   throw new Error('WardrobePage empty panel must match the store-visit empty-state surface');
 }
 
-if (!/WardrobeSearchTabs\(\)[\s\S]*?Scroll\(\)[\s\S]*?Row\(\{ space: 10 \}\)[\s\S]*?ForEach\(this\.categoryLabels\(\)/.test(text)) {
-  throw new Error('Wardrobe search tabs must be wrapped in a horizontal Scroll');
+if (!/WardrobeSearchTabs\(\)[\s\S]*?Row\(\{ space: 6 \}\)[\s\S]*?ForEach\(this\.categoryLabels\(\)/.test(text)) {
+  throw new Error('Wardrobe search tabs must use a responsive full-width Row');
 }
 
 if (/WardrobeSearchTabs\(\)[\s\S]*?\.width\(76\)/.test(text)) {
