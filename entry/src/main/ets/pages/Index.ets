@@ -88,7 +88,7 @@ struct Index {
 
   private transitionToRoute(route: AppRoute): void {
     this.getUIContext().animateTo({
-      duration: 180,
+      duration: 300,
       curve: Curve.EaseOut
     }, () => {
       this.activeRoute = route;

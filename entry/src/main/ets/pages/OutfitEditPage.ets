@@ -570,27 +570,47 @@ export struct OutfitEditPage {
   @Builder
   SaveAction() {
     Row() {
-      Button() {
-        if (this.isSaving) {
+      if (this.isSaving) {
+        Row() {
           LoadingProgress()
             .width(20)
             .height(20)
             .color(YibuqueColor.textInverse)
-        } else {
+        }
+        .height(56)
+        .width('100%')
+        .justifyContent(FlexAlign.Center)
+        .alignItems(VerticalAlign.Center)
+        .backgroundColor(YibuqueColor.actionBlack)
+        .borderRadius(YibuqueRadius.sheet)
+      } else if (this.canSave()) {
+        Button() {
           Text(this.saveButtonLabel())
             .fontSize(17)
             .fontWeight(FontWeight.Regular)
             .fontColor(YibuqueColor.textInverse)
         }
-      }
         .height(56)
         .width('100%')
-        .backgroundColor(this.canSave() ? YibuqueColor.actionBlack : YibuqueColor.textDisabled)
+        .backgroundColor(YibuqueColor.actionBlack)
         .borderRadius(YibuqueRadius.sheet)
-        .enabled(this.canSave())
         .onClick(() => {
           this.saveOutfit();
         })
+      } else {
+        Row() {
+          Text(this.saveButtonLabel())
+            .fontSize(17)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textPrimary)
+        }
+        .height(56)
+        .width('100%')
+        .justifyContent(FlexAlign.Center)
+        .alignItems(VerticalAlign.Center)
+        .backgroundColor(YibuqueColor.textDisabled)
+        .borderRadius(YibuqueRadius.sheet)
+      }
     }
     .width('100%')
     .padding({ left: 20, right: 20, top: 20, bottom: 16 })
@@ -634,6 +654,7 @@ export struct OutfitEditPage {
       .width('100%')
       .layoutWeight(1)
       .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
 
       this.SaveAction()
     }

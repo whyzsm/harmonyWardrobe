@@ -41,7 +41,8 @@ for (const needle of [
   }
 }
 
-if (!/onClose:\s*\(\) => \{[\s\S]*?this\.showUnifiedSearch = false;[\s\S]*?\}/.test(text)) {
+if (!/onClose:\s*\(\) => \{\s*this\.closeUnifiedSearch\(\);\s*\}/.test(text) ||
+  !/private closeUnifiedSearch\(\): void \{\s*this\.animateNestedPageChange\(\(\) => \{\s*this\.showUnifiedSearch = false;\s*\}\);\s*\}/.test(text)) {
   throw new Error('WishlistPage search close must return to the wishlist list');
 }
 

@@ -204,7 +204,7 @@ export struct WardrobePage {
 
   private animateNestedPageChange(change: () => void): void {
     this.getUIContext().animateTo({
-      duration: 180,
+      duration: 300,
       curve: Curve.EaseOut
     }, () => {
       change();

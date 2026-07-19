@@ -59,7 +59,9 @@ export struct WishlistPage {
         for (const item of this.wishlistItems) {
           if (item.id === this.initialWishlistItemId) {
             this.selectedWishlistItemId = item.id;
-            this.showEditor = true;
+            this.animateNestedPageChange(() => {
+              this.showEditor = true;
+            });
             this.openedFromInitialRoute = true;
             break;
           }
@@ -86,14 +88,27 @@ export struct WishlistPage {
     });
   }
 
+  private animateNestedPageChange(change: () => void): void {
+    this.getUIContext().animateTo({
+      duration: 300,
+      curve: Curve.EaseOut
+    }, () => {
+      change();
+    });
+  }
+
   private onCreateWishlistItem(): void {
     this.selectedWishlistItemId = '';
-    this.showEditor = true;
+    this.animateNestedPageChange(() => {
+      this.showEditor = true;
+    });
   }
 
   private onOpenWishlistItem(item: WishlistItem): void {
     this.selectedWishlistItemId = item.id;
-    this.showEditor = true;
+    this.animateNestedPageChange(() => {
+      this.showEditor = true;
+    });
   }
 
   private selectedWishlistItem(): WishlistItem | undefined {
@@ -141,13 +156,26 @@ export struct WishlistPage {
   }
 
   private closeEditor(): void {
-    this.showEditor = false;
-    this.selectedWishlistItemId = '';
+    this.animateNestedPageChange(() => {
+      this.showEditor = false;
+      this.selectedWishlistItemId = '';
+    });
   }
 
   private openUnifiedSearch(query: string): void {
     this.unifiedSearchQuery = query;
-    this.showUnifiedSearch = query.trim().length > 0;
+    if (query.trim().length === 0) {
+      return;
+    }
+    this.animateNestedPageChange(() => {
+      this.showUnifiedSearch = true;
+    });
+  }
+
+  private closeUnifiedSearch(): void {
+    this.animateNestedPageChange(() => {
+      this.showUnifiedSearch = false;
+    });
   }
 
   private retry(): void {
@@ -175,6 +203,7 @@ export struct WishlistPage {
           }
         }
       })
+        .transition(TransitionEffect.OPACITY)
     } else if (this.showUnifiedSearch) {
       SearchResultsPage({
         query: this.unifiedSearchQuery,
@@ -182,19 +211,22 @@ export struct WishlistPage {
         initialScope: SearchEntityType.Wishlist,
         onOpenWishlistResult: (id: string) => {
           this.selectedWishlistItemId = id;
-          this.showUnifiedSearch = false;
-          this.showEditor = true;
+          this.animateNestedPageChange(() => {
+            this.showUnifiedSearch = false;
+            this.showEditor = true;
+          });
         },
         onOpenCameraSearch: () => {
-          this.showUnifiedSearch = false;
+          this.closeUnifiedSearch();
           if (this.onOpenCapture !== undefined) {
             this.onOpenCapture();
           }
         },
         onClose: () => {
-          this.showUnifiedSearch = false;
+          this.closeUnifiedSearch();
         }
       })
+        .transition(TransitionEffect.OPACITY)
     } else {
       Column({ space: 16 }) {
       Row() {
@@ -294,6 +326,7 @@ export struct WishlistPage {
     .padding(20)
     .alignItems(HorizontalAlign.Start)
     .backgroundColor(YibuqueColor.bgGray)
+    .transition(TransitionEffect.OPACITY)
     }
   }
 }

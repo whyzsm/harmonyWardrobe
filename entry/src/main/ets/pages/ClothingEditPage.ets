@@ -572,28 +572,50 @@ export struct ClothingEditPage {
   @Builder
   SaveAction() {
     Column() {
-      Button() {
-        if (this.isSaving) {
+      if (this.isSaving) {
+        Row() {
           LoadingProgress()
             .width(20)
             .height(20)
             .color(YibuqueColor.textInverse)
-        } else {
-          Text(this.hasSelectedPhoto() ? '保存衣物' : '先选择照片')
+        }
+        .width('100%')
+        .height(52)
+        .justifyContent(FlexAlign.Center)
+        .alignItems(VerticalAlign.Center)
+        .backgroundColor(YibuqueColor.actionBlack)
+        .borderRadius(YibuqueRadius.full)
+        .shadow(YibuqueShadow.soft)
+      } else if (this.canSave()) {
+        Button() {
+          Text('保存衣物')
             .fontSize(17)
             .fontWeight(FontWeight.Regular)
             .fontColor(YibuqueColor.textInverse)
         }
-      }
         .width('100%')
         .height(52)
-        .backgroundColor(this.canSave() ? YibuqueColor.actionBlack : YibuqueColor.textDisabled)
+        .backgroundColor(YibuqueColor.actionBlack)
         .borderRadius(YibuqueRadius.full)
-        .enabled(this.canSave())
         .shadow(YibuqueShadow.soft)
         .onClick(() => {
           this.saveClothing();
         })
+      } else {
+        Row() {
+          Text(this.hasSelectedPhoto() ? '保存衣物' : '先选择照片')
+            .fontSize(17)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textPrimary)
+        }
+        .width('100%')
+        .height(52)
+        .justifyContent(FlexAlign.Center)
+        .alignItems(VerticalAlign.Center)
+        .backgroundColor(YibuqueColor.textDisabled)
+        .borderRadius(YibuqueRadius.full)
+        .shadow(YibuqueShadow.soft)
+      }
     }
     .width('100%')
     .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: 16, bottom: 32 })
@@ -631,6 +653,7 @@ export struct ClothingEditPage {
       .width('100%')
       .layoutWeight(1)
       .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
 
       this.SaveAction()
     }

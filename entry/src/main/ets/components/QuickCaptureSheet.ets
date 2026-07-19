@@ -14,7 +14,7 @@ export struct QuickCaptureSheet {
 
   aboutToAppear(): void {
     animateTo({
-      duration: 240,
+      duration: 300,
       curve: Curve.FastOutSlowIn
     }, () => {
       this.backgroundOpacity = 1;
@@ -29,7 +29,7 @@ export struct QuickCaptureSheet {
 
     this.isClosing = true;
     animateTo({
-      duration: 180,
+      duration: 300,
       curve: Curve.FastOutSlowIn,
       onFinish: () => {
         this.onCancel();

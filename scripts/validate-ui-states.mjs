@@ -24,9 +24,13 @@ for (const expectation of pageStateExpectations) {
   }
 }
 
-for (const page of ['ClothingEditPage', 'OutfitEditPage', 'StoreVisitEditPage']) {
+for (const [page, saveControl] of [
+  ['ClothingEditPage', 'else if (this.canSave())'],
+  ['OutfitEditPage', 'else if (this.canSave())'],
+  ['StoreVisitEditPage', 'enabled(this.canSave())']
+]) {
   const text = fs.readFileSync(`entry/src/main/ets/pages/${page}.ets`, 'utf8');
-  for (const needle of ['isSaving', 'errorMessage', 'enabled(this.canSave())']) {
+  for (const needle of ['isSaving', 'errorMessage', saveControl]) {
     if (!text.includes(needle)) {
       throw new Error(`${page} missing save state ${needle}`);
     }

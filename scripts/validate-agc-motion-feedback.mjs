@@ -7,6 +7,11 @@ const profile = fs.readFileSync(profilePath, 'utf8');
 const outfits = fs.readFileSync('entry/src/main/ets/pages/OutfitsPage.ets', 'utf8');
 const wardrobe = fs.readFileSync('entry/src/main/ets/pages/WardrobePage.ets', 'utf8');
 const storeVisit = fs.readFileSync('entry/src/main/ets/pages/StoreVisitPage.ets', 'utf8');
+const wishlist = fs.readFileSync('entry/src/main/ets/pages/WishlistPage.ets', 'utf8');
+const clothingEdit = fs.readFileSync('entry/src/main/ets/pages/ClothingEditPage.ets', 'utf8');
+const outfitEdit = fs.readFileSync('entry/src/main/ets/pages/OutfitEditPage.ets', 'utf8');
+const quickCapture = fs.readFileSync('entry/src/main/ets/components/QuickCaptureSheet.ets', 'utf8');
+const tokens = fs.readFileSync('entry/src/main/ets/theme/Tokens.ets', 'utf8');
 
 function methodSource(source, methodName) {
   const signature = new RegExp(`private (?:async )?${methodName}\\(`).exec(source);
@@ -37,9 +42,9 @@ function matchingBraceEnd(source, bodyStart) {
 
 function assertAnimationHelper(source, file, helperName) {
   const helper = methodSource(source, helperName);
-  const animatedChange = /this\.getUIContext\(\)\.animateTo\(\{\s*duration: 180,\s*curve: Curve\.EaseOut\s*\},\s*\(\) => \{\s*change\(\);\s*\}\);/;
+  const animatedChange = /this\.getUIContext\(\)\.animateTo\(\{\s*duration: 300,\s*curve: Curve\.EaseOut\s*\},\s*\(\) => \{\s*change\(\);\s*\}\);/;
   if (!animatedChange.test(helper)) {
-    throw new Error(`${file} ${helperName} must run changes inside a 180ms UIContext animation`);
+    throw new Error(`${file} ${helperName} must run changes inside a 300ms UIContext animation`);
   }
 }
 
@@ -87,9 +92,66 @@ function builderSource(source, builderName) {
   return source.slice(signature, bodyEnd + 1);
 }
 
+function tokenColor(name) {
+  const match = new RegExp(`${name}:\\s*'(#[0-9A-Fa-f]{6})'`).exec(tokens);
+  if (match === null) {
+    throw new Error(`Tokens missing ${name} color`);
+  }
+  return match[1];
+}
+
+function relativeLuminance(hex) {
+  const channels = [1, 3, 5].map((start) => Number.parseInt(hex.slice(start, start + 2), 16) / 255);
+  const linear = channels.map((channel) => channel <= 0.04045 ? channel / 12.92 :
+    Math.pow((channel + 0.055) / 1.055, 2.4));
+  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+}
+
+function contrastRatio(first, second) {
+  const lighter = Math.max(relativeLuminance(first), relativeLuminance(second));
+  const darker = Math.min(relativeLuminance(first), relativeLuminance(second));
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
 const profileRootScroll = /Scroll\(\) \{[\s\S]*?\.width\('100%'\)\s*\.height\('100%'\)\s*\.scrollBar\(BarState\.Off\)\s*\.edgeEffect\(EdgeEffect\.Spring, \{ alwaysEnabled: true \}\)/;
 if (!profileRootScroll.test(profile)) {
   throw new Error('ProfilePage root Scroll must keep spring feedback enabled at both boundaries');
+}
+
+const editorRootScroll = /Scroll\(\) \{[\s\S]*?\.layoutWeight\(1\)\s*\.scrollBar\(BarState\.Off\)\s*\.edgeEffect\(EdgeEffect\.Spring, \{ alwaysEnabled: true \}\)/;
+for (const [file, source] of [
+  ['ClothingEditPage', clothingEdit],
+  ['OutfitEditPage', outfitEdit]
+]) {
+  if (!editorRootScroll.test(builderSource(source, 'build'))) {
+    throw new Error(`${file} root Scroll must keep spring feedback enabled at both boundaries`);
+  }
+}
+
+for (const [file, source] of [
+  ['ClothingEditPage', clothingEdit],
+  ['OutfitEditPage', outfitEdit]
+]) {
+  const saveAction = builderSource(source, 'SaveAction');
+  const buttonCount = saveAction.match(/Button\(\)/g)?.length ?? 0;
+  if (buttonCount !== 1 || saveAction.includes('.enabled(this.canSave())')) {
+    throw new Error(`${file} disabled save state must not use Button system disabled opacity`);
+  }
+  if (!/else if \(this\.canSave\(\)\) \{\s*Button\(\)/.test(saveAction) ||
+    !saveAction.includes('.fontColor(YibuqueColor.textPrimary)') ||
+    !saveAction.includes('.backgroundColor(YibuqueColor.textDisabled)')) {
+    throw new Error(`${file} must render an independent high-contrast disabled save action`);
+  }
+}
+
+const disabledActionContrast = contrastRatio(tokenColor('textPrimary'), tokenColor('textDisabled'));
+if (disabledActionContrast < 4.5) {
+  throw new Error(`Disabled save action contrast must be at least 4.5:1, found ${disabledActionContrast.toFixed(2)}:1`);
+}
+
+const quickCaptureStructuralDurations = quickCapture.match(/duration: 300,/g) ?? [];
+if (quickCaptureStructuralDurations.length !== 2) {
+  throw new Error('QuickCaptureSheet open and close transitions must both last 300ms');
 }
 
 const topLevelPages = [
@@ -122,7 +184,7 @@ for (let pageIndex = 0; pageIndex < topLevelPages.length; pageIndex++) {
 }
 
 const transitionToRoute = methodSource(index, 'transitionToRoute');
-const animatedRouteAssignment = /this\.getUIContext\(\)\.animateTo\(\{\s*duration: 180,\s*curve: Curve\.EaseOut\s*\},\s*\(\) => \{\s*this\.activeRoute = route;\s*this\.featureNestedContentVisible = false;\s*\}\);/;
+const animatedRouteAssignment = /this\.getUIContext\(\)\.animateTo\(\{\s*duration: 300,\s*curve: Curve\.EaseOut\s*\},\s*\(\) => \{\s*this\.activeRoute = route;\s*this\.featureNestedContentVisible = false;\s*\}\);/;
 if (!animatedRouteAssignment.test(transitionToRoute)) {
   throw new Error('Index activeRoute assignment must stay inside the UIContext animation closure');
 }
@@ -164,7 +226,8 @@ if (index.includes('TransitionEffect.OPACITY.animation(')) {
 for (const [file, source, states] of [
   ['OutfitsPage', outfits, ['showOutfitDetail', 'showOutfitEditor', 'showWearLogEditor', 'showUnifiedSearch']],
   ['WardrobePage', wardrobe, ['showEditor', 'showClothingDetail', 'showUnifiedSearch']],
-  ['StoreVisitPage', storeVisit, ['showEditor', 'showDetail']]
+  ['StoreVisitPage', storeVisit, ['showEditor', 'showDetail']],
+  ['WishlistPage', wishlist, ['showEditor', 'showUnifiedSearch']]
 ]) {
   assertAnimationHelper(source, file, 'animateNestedPageChange');
   assertStateAssignmentsAnimated(source, file, states, 'animateNestedPageChange');
@@ -179,6 +242,8 @@ assertComponentTransitions(wardrobe, 'WardrobePage',
   ['ClothingEditPage', 'ClothingDetailPage', 'SearchResultsPage'], 4);
 assertComponentTransitions(storeVisit, 'StoreVisitPage',
   ['StoreVisitEditPage', 'StoreVisitDetailPage'], 3);
+assertComponentTransitions(wishlist, 'WishlistPage',
+  ['WishlistEditPage', 'SearchResultsPage'], 3);
 
 assertAnimationHelper(profile, 'ProfilePage', 'animateSheetChange');
 assertStateAssignmentsAnimated(profile, 'ProfilePage',
