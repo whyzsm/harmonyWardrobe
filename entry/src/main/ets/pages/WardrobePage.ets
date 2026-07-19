@@ -202,47 +202,68 @@ export struct WardrobePage {
     return undefined;
   }
 
+  private animateNestedPageChange(change: () => void): void {
+    this.getUIContext().animateTo({
+      duration: 180,
+      curve: Curve.EaseOut
+    }, () => {
+      change();
+    });
+  }
+
   private openCreateEditor(): void {
     this.editingClothingId = '';
-    this.showEditor = true;
-    this.onClothingEditorVisibilityChange(true);
-    this.onNestedPageVisibilityChange(true);
+    this.animateNestedPageChange(() => {
+      this.showEditor = true;
+      this.onClothingEditorVisibilityChange(true);
+      this.onNestedPageVisibilityChange(true);
+    });
   }
 
   private openEditEditor(item: ClothingItem): void {
     this.editingClothingId = item.id;
-    this.showEditor = true;
-    this.onClothingEditorVisibilityChange(true);
-    this.onNestedPageVisibilityChange(true);
+    this.animateNestedPageChange(() => {
+      this.showEditor = true;
+      this.onClothingEditorVisibilityChange(true);
+      this.onNestedPageVisibilityChange(true);
+    });
   }
 
   private closeEditor(): void {
-    this.showEditor = false;
-    this.editingClothingId = '';
-    this.onClothingEditorVisibilityChange(false);
-    this.onNestedPageVisibilityChange(this.showClothingDetail);
+    this.animateNestedPageChange(() => {
+      this.showEditor = false;
+      this.editingClothingId = '';
+      this.onClothingEditorVisibilityChange(false);
+      this.onNestedPageVisibilityChange(this.showClothingDetail);
+    });
   }
 
   private openClothingDetail(item: ClothingItem): void {
     this.detailClothingId = item.id;
-    this.showClothingDetail = true;
-    this.onDetailModeChange(true);
-    this.onNestedPageVisibilityChange(true);
+    this.animateNestedPageChange(() => {
+      this.showClothingDetail = true;
+      this.onDetailModeChange(true);
+      this.onNestedPageVisibilityChange(true);
+    });
   }
 
   private closeClothingDetail(): void {
-    this.showClothingDetail = false;
-    this.detailClothingId = '';
-    this.showUnifiedSearch = false;
-    this.onDetailModeChange(false);
-    this.onNestedPageVisibilityChange(false);
+    this.animateNestedPageChange(() => {
+      this.showClothingDetail = false;
+      this.detailClothingId = '';
+      this.showUnifiedSearch = false;
+      this.onDetailModeChange(false);
+      this.onNestedPageVisibilityChange(false);
+    });
   }
 
   private editFromDetail(item: ClothingItem): void {
     this.editingClothingId = item.id;
-    this.showEditor = true;
-    this.onClothingEditorVisibilityChange(true);
-    this.onNestedPageVisibilityChange(true);
+    this.animateNestedPageChange(() => {
+      this.showEditor = true;
+      this.onClothingEditorVisibilityChange(true);
+      this.onNestedPageVisibilityChange(true);
+    });
   }
 
   private onEdit(item: ClothingItem): void {
@@ -283,13 +304,17 @@ export struct WardrobePage {
 
   private openUnifiedSearch(query: string): void {
     this.unifiedSearchQuery = query;
-    this.showUnifiedSearch = true;
-    this.onNestedPageVisibilityChange(true);
+    this.animateNestedPageChange(() => {
+      this.showUnifiedSearch = true;
+      this.onNestedPageVisibilityChange(true);
+    });
   }
 
   private closeUnifiedSearch(): void {
-    this.showUnifiedSearch = false;
-    this.onNestedPageVisibilityChange(false);
+    this.animateNestedPageChange(() => {
+      this.showUnifiedSearch = false;
+      this.onNestedPageVisibilityChange(false);
+    });
   }
 
   private retry(): void {
@@ -314,8 +339,13 @@ export struct WardrobePage {
     }
 
     if (targetItem !== undefined) {
-      this.showUnifiedSearch = false;
-      this.openClothingDetail(targetItem);
+      this.detailClothingId = targetItem.id;
+      this.animateNestedPageChange(() => {
+        this.showUnifiedSearch = false;
+        this.showClothingDetail = true;
+        this.onDetailModeChange(true);
+        this.onNestedPageVisibilityChange(true);
+      });
     }
   }
 
@@ -337,6 +367,7 @@ export struct WardrobePage {
           this.closeEditor();
         }
       })
+        .transition(TransitionEffect.OPACITY)
     } else if (this.showClothingDetail) {
       ClothingDetailPage({
         item: this.detailItem(),
@@ -350,6 +381,7 @@ export struct WardrobePage {
           await this.deleteClothingItem(item);
         }
       })
+        .transition(TransitionEffect.OPACITY)
     } else if (this.showUnifiedSearch) {
       SearchResultsPage({
         query: this.unifiedSearchQuery,
@@ -372,8 +404,7 @@ export struct WardrobePage {
           this.onOpenSearchTarget(SearchEntityType.Wishlist, id, '');
         },
         onOpenWearLogResult: (id: string) => {
-          this.showUnifiedSearch = false;
-          this.onNestedPageVisibilityChange(false);
+          this.closeUnifiedSearch();
           this.onOpenSearchTarget(SearchEntityType.WearLog, id, '');
         },
         onOpenProfileResult: (entityType: SearchEntityType, id: string) => {
@@ -381,15 +412,14 @@ export struct WardrobePage {
           this.onOpenSearchTarget(entityType, id, '');
         },
         onOpenCameraSearch: () => {
-          this.showUnifiedSearch = false;
-          this.onNestedPageVisibilityChange(false);
+          this.closeUnifiedSearch();
           this.onOpenCapture();
         },
         onClose: () => {
-          this.showUnifiedSearch = false;
-          this.onNestedPageVisibilityChange(false);
+          this.closeUnifiedSearch();
         }
       })
+        .transition(TransitionEffect.OPACITY)
     } else {
       Column({ space: 14 }) {
       this.WardrobeSearchHeader()
@@ -468,6 +498,7 @@ export struct WardrobePage {
     .padding({ left: 20, right: 20, top: 14, bottom: 0 })
     .alignItems(HorizontalAlign.Start)
     .backgroundColor(YibuqueColor.cardWhite)
+    .transition(TransitionEffect.OPACITY)
     }
   }
 

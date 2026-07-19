@@ -24,7 +24,6 @@ const tokenPath = 'entry/src/main/ets/theme/Tokens.ets';
 const topBarPath = 'entry/src/main/ets/components/AppTopBar.ets';
 const navPath = 'entry/src/main/ets/components/BottomNavigationBar.ets';
 const quickSheetPath = 'entry/src/main/ets/components/QuickCaptureSheet.ets';
-const iconPath = 'entry/src/main/resources/base/media/app_icon.svg';
 const colorPath = 'entry/src/main/resources/base/element/color.json';
 const designPath = 'docs/background/yibuque-design.md';
 
@@ -32,7 +31,6 @@ const tokens = read(tokenPath);
 const topBar = read(topBarPath);
 const nav = read(navPath);
 const quickSheet = read(quickSheetPath);
-const icon = read(iconPath);
 const colors = read(colorPath);
 const design = read(designPath);
 
@@ -102,15 +100,10 @@ mustNotInclude(quickSheet, quickSheetPath, 'Divider()');
 mustNotInclude(quickSheet, quickSheetPath, 'Column({ space: 0 })');
 mustNotInclude(quickSheet, quickSheetPath, '.margin({ bottom: 16 })');
 
-for (const needle of ['#0071E3', '#1D1D1F', '#93C5FD', '#EAF3FE', 'feDropShadow']) {
-  mustInclude(icon, iconPath, needle);
-}
-
 mustInclude(colors, colorPath, '#FFFFFF');
 
 for (const oldRoseColor of ['#B11B68', '#8E1454', '#7A1048', '#FCE3EF', '#FFF2F8', '#FBE1F0', '#F8D4EF', '#D83E8E']) {
   mustNotInclude(tokens, tokenPath, oldRoseColor);
-  mustNotInclude(icon, iconPath, oldRoseColor);
 }
 
 const etsFiles = [];

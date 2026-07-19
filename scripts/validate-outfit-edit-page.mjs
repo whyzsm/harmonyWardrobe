@@ -120,6 +120,10 @@ if (!/ForEach\(this\.photoUris[\s\S]*?this\.removePhoto\(index\)[\s\S]*?this\.se
   throw new Error('OutfitEditPage must expose a selectable uploaded-photo list with per-photo removal');
 }
 
+if (!/Text\(`已选照片 \$\{this\.photoUris\.length\}\/\$\{MAX_USER_PHOTOS\}`\)[\s\S]*?Scroll\(\) \{[\s\S]*?ForEach\(this\.photoUris[\s\S]*?\.align\(Alignment\.Start\)[\s\S]*?\.scrollable\(ScrollDirection\.Horizontal\)/.test(editPage)) {
+  throw new Error('OutfitEditPage selected-photo strip must align a short photo list to the left');
+}
+
 const toggleClothingItemMethod = readPrivateMethod(editPage, 'private toggleClothingItem(id: string): void {');
 if (/this\.photoUris\s*=/.test(toggleClothingItemMethod)) {
   throw new Error('OutfitEditPage must not overwrite uploaded photos when wardrobe selection changes');
@@ -188,8 +192,13 @@ if (!/this\.displaySource === OUTFIT_DISPLAY_SOURCE_PHOTO[\s\S]*?this\.PhotoSele
   throw new Error('OutfitEditPage display choices must reorder photo and wardrobe sections');
 }
 
-if (!/Scroll\(\) \{\s*Column\(\{ space: YibuqueSpacing\.lg \}\) \{[\s\S]*?this\.DisplaySourceSelector\(\)[\s\S]*?\.padding\(\{ left: YibuqueSpacing\.pageX, right: YibuqueSpacing\.pageX, top: YibuqueSpacing\.lg, bottom: YibuqueSpacing\.xxl \}\)/.test(editPage)) {
+if (!/Scroll\(\) \{\s*Column\(\{ space: YibuqueSpacing\.lg \}\) \{[\s\S]*?this\.DisplaySourceSelector\(\)[\s\S]*?\.padding\(\{ left: YibuqueSpacing\.pageX, right: YibuqueSpacing\.pageX, top: YibuqueSpacing\.lg, bottom: 112 \}\)/.test(editPage)) {
   throw new Error('OutfitEditPage editor content must be wrapped in the padded scroll column');
+}
+
+if (!/SaveAction\(\)[\s\S]*?saveButtonLabel\(\)[\s\S]*?shadow\(YibuqueShadow\.editorSheet\)/.test(editPage) ||
+  !/Scroll\(\)[\s\S]*?\.layoutWeight\(1\)[\s\S]*?this\.SaveAction\(\)/.test(editPage)) {
+  throw new Error('OutfitEditPage must keep the save action fixed below the scrolling content');
 }
 
 if (!/Column\(\{ space: 8 \}\)[\s\S]*?\.width\('100%'\)[\s\S]*?\.padding\(\{ left: 24, right: 24, bottom: 24 \}\)/.test(editPage)) {

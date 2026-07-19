@@ -260,9 +260,14 @@ const pageChecks = [
     needles: [
       'profileRepository?: ProfileRepository',
       'clothingRepository?: ClothingRepository',
+      'storeRepository?: StoreRepository',
+      'outfitRepository?: OutfitRepository',
       'aboutToAppear()',
       'loadProfile',
-      'loadWardrobeSummary',
+      'loadActivitySummary',
+      'getClothingSummary',
+      'getStoreVisitCount',
+      'getOutfitCount',
       'saveProfile'
     ]
   }

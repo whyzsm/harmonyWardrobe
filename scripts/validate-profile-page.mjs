@@ -51,11 +51,12 @@ for (const needle of [
   'getProfile',
   'saveProfile',
   'ClothingRepository',
-  'listClothing',
+  'ClothingSummary',
+  'getClothingSummary',
   'StoreRepository',
-  'listStoreVisits',
+  'getStoreVisitCount',
   'OutfitRepository',
-  'listOutfits',
+  'getOutfitCount',
   'wardrobeItemCount',
   'storeVisitCount',
   'outfitCount',
@@ -95,6 +96,21 @@ for (const needle of [
   if (!page.includes(needle)) {
     throw new Error(`ProfilePage missing ${needle}`);
   }
+}
+
+for (const forbidden of [
+  'loadWardrobeSummary',
+  'listClothing()',
+  'listStoreVisits()',
+  'listOutfits()'
+]) {
+  if (page.includes(forbidden)) {
+    throw new Error(`ProfilePage activity summary must not use full-list loading: ${forbidden}`);
+  }
+}
+
+if (!/getClothingSummary\(currentYearMonth\(\)\)/.test(page)) {
+  throw new Error('ProfilePage must request the lightweight clothing summary for the current month');
 }
 
 for (const forbidden of [

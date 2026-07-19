@@ -21,6 +21,7 @@ for (const needle of [
   'updateStoreVisitWithOptionalStore',
   'UpdateStoreVisitWithOptionalStoreInput',
   'listStoreVisits',
+  'getStoreVisitCount',
   'getStoreVisitById',
   'deleteStoreVisit',
   'store_photos',
@@ -84,6 +85,24 @@ if (!/readStoreRows\(SELECT_STORE_BY_NAME_SQL\s*,\s*\[\s*normalized\s*\]\)/.test
 
 if (!/WHERE normalized_name = \?/.test(text)) {
   throw new Error(`${file} findStoreByNameInTransaction must query the indexed normalized_name column`);
+}
+
+if (!/const\s+COUNT_STORE_VISITS_SQL\s*=\s*['"]SELECT\s+COUNT\s*\(\s*\*\s*\)\s+AS\s+total_count\s+FROM\s+store_visits['"]\s*;/i.test(text)) {
+  throw new Error(`${file} must count store_visits with a lightweight SQLite aggregate`);
+}
+
+const storeVisitCountBody = text.match(/async\s+getStoreVisitCount\s*\(\s*\)\s*:\s*Promise<number>[\s\S]*?\n\s*}\n\n\s*async\s+getStoreVisitById/);
+if (!storeVisitCountBody) {
+  throw new Error(`${file} missing getStoreVisitCount body`);
+}
+if (!/querySql\s*\(\s*COUNT_STORE_VISITS_SQL\s*\)/.test(storeVisitCountBody[0])) {
+  throw new Error(`${file} getStoreVisitCount must execute the aggregate query directly`);
+}
+if (/listStoreVisits|hydrateStoreVisits|readPhotoUris/.test(storeVisitCountBody[0])) {
+  throw new Error(`${file} getStoreVisitCount must not load store-visit objects or photos`);
+}
+if (!/finally\s*{\s*resultSet\.close\s*\(\s*\)/.test(storeVisitCountBody[0])) {
+  throw new Error(`${file} getStoreVisitCount must always close its ResultSet`);
 }
 
 if (!/normalized_name/.test(text) || !/normalizeSearchText\(store\.name\)/.test(text)) {

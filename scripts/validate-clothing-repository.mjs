@@ -76,10 +76,12 @@ for (const needle of [
   'CreateClothingInput',
   'UpdateClothingInput',
   'ListClothingOptions',
+  'ClothingSummary',
   'createClothing',
   'updateClothing',
   'deleteClothing',
   'listClothing',
+  'getClothingSummary',
   'getClothingById',
   'rebuildOutfitSearchDocumentsForClothing'
 ]) {
@@ -139,6 +141,17 @@ assertMatches(source, /buildOutfitSearchDocument\s*\(/, 'affected outfit search 
 assertMatches(source, /WHERE\s+id\s+IN\s+\(\{placeholders\}\)/i, 'affected outfit clothing name lookup must use generated SQL placeholders');
 assertMatches(source, /SELECT_CLOTHING_NAMES_SQL\.replace\s*\(\s*['"`]\{placeholders\}['"`]\s*,\s*placeholders\s*\)/, 'affected outfit clothing name lookup must replace placeholders only, not values');
 assertMatches(source, /getClothingById\s*\([^)]*\)\s*:\s*Promise<ClothingItem\s*\|\s*undefined>/, 'getClothingById must return ClothingItem | undefined');
+assertMatches(source, /getClothingSummary\s*\(\s*yearMonth:\s*string\s*\)\s*:\s*Promise<ClothingSummary>/, 'getClothingSummary must return the lightweight clothing summary');
+assertMatches(source, /COUNT\s*\(\s*\*\s*\)\s+AS\s+total_count/i, 'clothing summary must count clothing_items in SQLite');
+assertMatches(source, /SUM\s*\([\s\S]*purchase_price[\s\S]*\)\s*,\s*0\s*\)\s+AS\s+monthly_spent_cents/i, 'clothing summary must sum stored purchase-price cents in SQLite');
+assertMatches(source, /SUBSTR\s*\(\s*COALESCE\s*\(\s*NULLIF\s*\(\s*purchase_date\s*,\s*['"]{2}\s*\)\s*,\s*created_at\s*\)\s*,\s*1\s*,\s*7\s*\)\s*=\s*\?/i, 'clothing summary must use purchase_date with created_at fallback and bind the requested month');
+assertMatches(source, /querySql\s*\(\s*SELECT_CLOTHING_SUMMARY_SQL\s*,\s*\[\s*yearMonth\s*\]\s*\)/, 'getClothingSummary must execute one parameterized aggregate query');
+assertMatches(source, /monthlySpent:\s*resultSet\.getNumber\s*\(\s*['"]monthly_spent_cents['"]\s*\)\s*\/\s*100/, 'clothing summary must convert stored cents back to the domain amount');
+
+const clothingSummaryBody = source.match(/async\s+getClothingSummary[\s\S]*?\n\s*}\n\n\s*async\s+getClothingById/);
+assert.ok(clothingSummaryBody, 'getClothingSummary body must be present');
+assert.equal(/listClothing|hydrateClothingItems|readPhotoUris/.test(clothingSummaryBody[0]), false, 'getClothingSummary must not load clothing objects or photos');
+assertMatches(clothingSummaryBody[0], /finally\s*{\s*resultSet\.close\s*\(\s*\)/, 'getClothingSummary must always close its ResultSet');
 
 assertOrdered(
   source,

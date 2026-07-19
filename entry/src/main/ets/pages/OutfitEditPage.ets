@@ -407,6 +407,7 @@ export struct OutfitEditPage {
           }
           .width('100%')
           .height(80)
+          .align(Alignment.Start)
           .scrollable(ScrollDirection.Horizontal)
           .scrollBar(BarState.Off)
         }
@@ -566,6 +567,37 @@ export struct OutfitEditPage {
     .alignItems(HorizontalAlign.Start)
   }
 
+  @Builder
+  SaveAction() {
+    Row() {
+      Button() {
+        if (this.isSaving) {
+          LoadingProgress()
+            .width(20)
+            .height(20)
+            .color(YibuqueColor.textInverse)
+        } else {
+          Text(this.saveButtonLabel())
+            .fontSize(17)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textInverse)
+        }
+      }
+        .height(56)
+        .width('100%')
+        .backgroundColor(this.canSave() ? YibuqueColor.actionBlack : YibuqueColor.textDisabled)
+        .borderRadius(YibuqueRadius.sheet)
+        .enabled(this.canSave())
+        .onClick(() => {
+          this.saveOutfit();
+        })
+    }
+    .width('100%')
+    .padding({ left: 20, right: 20, top: 20, bottom: 16 })
+    .backgroundColor(YibuqueColor.cardWhite)
+    .shadow(YibuqueShadow.editorSheet)
+  }
+
   build() {
     Column() {
       SecondaryPageHeader({
@@ -594,35 +626,16 @@ export struct OutfitEditPage {
               .fontColor(YibuqueColor.danger)
           }
 
-          Button() {
-            if (this.isSaving) {
-              LoadingProgress()
-                .width(20)
-                .height(20)
-                .color(YibuqueColor.textInverse)
-            } else {
-              Text(this.saveButtonLabel())
-                .fontSize(17)
-                .fontWeight(FontWeight.Regular)
-                .fontColor(YibuqueColor.textInverse)
-            }
-          }
-            .height(56)
-            .width('100%')
-            .backgroundColor(this.canSave() ? YibuqueColor.actionBlack : YibuqueColor.textDisabled)
-            .borderRadius(YibuqueRadius.full)
-            .enabled(this.canSave())
-            .onClick(() => {
-              this.saveOutfit();
-            })
         }
         .width('100%')
-        .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.lg, bottom: YibuqueSpacing.xxl })
+        .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.lg, bottom: 112 })
         .alignItems(HorizontalAlign.Start)
       }
       .width('100%')
       .layoutWeight(1)
       .scrollBar(BarState.Off)
+
+      this.SaveAction()
     }
     .width('100%')
     .height('100%')

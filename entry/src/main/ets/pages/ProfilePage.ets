@@ -1,4 +1,4 @@
-import { ClothingRepository } from '../data/repositories/ClothingRepository';
+import { ClothingRepository, ClothingSummary } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { ProfileRepository } from '../data/repositories/ProfileRepository';
 import { StoreRepository } from '../data/repositories/StoreRepository';
@@ -44,14 +44,9 @@ function isInvalidOptionalNumber(value: string, min: number = 0, max: number = G
   return !Number.isFinite(parsed) || parsed < min || parsed > max;
 }
 
-function isCurrentMonth(value?: string): boolean {
-  if (value === undefined || value.trim().length === 0) {
-    return false;
-  }
-
+function currentYearMonth(): string {
   const now = new Date();
-  const month = `${now.getFullYear()}-${padNumber(now.getMonth() + 1)}`;
-  return value.trim().startsWith(month);
+  return `${now.getFullYear()}-${padNumber(now.getMonth() + 1)}`;
 }
 
 function formatBudgetAmount(value: number): string {
@@ -171,7 +166,6 @@ export struct ProfilePage {
   @State private outfitCount: number = 0;
   aboutToAppear(): void {
     this.loadProfile();
-    this.loadWardrobeSummary();
     this.loadActivitySummary();
   }
 
@@ -250,43 +244,28 @@ export struct ProfilePage {
     return this.frequentDistricts.length > 0 ? this.frequentDistricts.join(' · ') : '尚未设置';
   }
 
-  private async loadWardrobeSummary(): Promise<void> {
-    if (this.clothingRepository === undefined) {
-      return;
-    }
-
-    try {
-      const items = await this.clothingRepository.listClothing();
-      this.wardrobeItemCount = items.length;
-    } catch (_error) {
-      this.wardrobeItemCount = 0;
-    }
-  }
-
   private async loadActivitySummary(): Promise<void> {
     try {
+      let clothingSummary: ClothingSummary = { totalCount: 0, monthlySpent: 0 };
+      let storeVisitCount = 0;
+      let outfitCount = 0;
+
       if (this.clothingRepository !== undefined) {
-        const items = await this.clothingRepository.listClothing();
-        let spent = 0;
-        for (const item of items) {
-          const purchasePrice = item.purchaseInfo?.price;
-          const expenseDate = item.purchaseInfo?.purchaseDate ?? item.createdAt;
-          if (purchasePrice !== undefined && Number.isFinite(purchasePrice) &&
-            isCurrentMonth(expenseDate)) {
-            spent += purchasePrice;
-          }
-        }
-        this.monthlySpent = Math.round(spent * 100) / 100;
-      } else {
-        this.monthlySpent = 0;
+        clothingSummary = await this.clothingRepository.getClothingSummary(currentYearMonth());
       }
       if (this.storeRepository !== undefined) {
-        this.storeVisitCount = (await this.storeRepository.listStoreVisits()).length;
+        storeVisitCount = await this.storeRepository.getStoreVisitCount();
       }
       if (this.outfitRepository !== undefined) {
-        this.outfitCount = (await this.outfitRepository.listOutfits()).length;
+        outfitCount = await this.outfitRepository.getOutfitCount();
       }
+
+      this.wardrobeItemCount = clothingSummary.totalCount;
+      this.monthlySpent = clothingSummary.monthlySpent;
+      this.storeVisitCount = storeVisitCount;
+      this.outfitCount = outfitCount;
     } catch (_error) {
+      this.wardrobeItemCount = 0;
       this.monthlySpent = 0;
       this.storeVisitCount = 0;
       this.outfitCount = 0;
@@ -384,16 +363,29 @@ export struct ProfilePage {
     return '';
   }
 
+  private animateSheetChange(change: () => void): void {
+    this.getUIContext().animateTo({
+      duration: 180,
+      curve: Curve.EaseOut
+    }, () => {
+      change();
+    });
+  }
+
   private openMeasurementEditor(): void {
-    this.isEditingMeasurements = true;
     this.errorMessage = '';
     this.savedMessage = '';
-    this.onNestedPageVisibilityChange(true);
+    this.animateSheetChange(() => {
+      this.isEditingMeasurements = true;
+      this.onNestedPageVisibilityChange(true);
+    });
   }
 
   private closeMeasurementEditor(): void {
-    this.isEditingMeasurements = false;
-    this.onNestedPageVisibilityChange(false);
+    this.animateSheetChange(() => {
+      this.isEditingMeasurements = false;
+      this.onNestedPageVisibilityChange(false);
+    });
   }
 
   private cancelMeasurementEditor(): void {
@@ -408,14 +400,18 @@ export struct ProfilePage {
     this.budgetErrorMessage = '';
     this.errorMessage = '';
     this.savedMessage = '';
-    this.isEditingBudget = true;
-    this.onNestedPageVisibilityChange(true);
+    this.animateSheetChange(() => {
+      this.isEditingBudget = true;
+      this.onNestedPageVisibilityChange(true);
+    });
   }
 
   private closeBudgetEditor(): void {
-    this.isEditingBudget = false;
+    this.animateSheetChange(() => {
+      this.isEditingBudget = false;
+      this.onNestedPageVisibilityChange(false);
+    });
     this.budgetErrorMessage = '';
-    this.onNestedPageVisibilityChange(false);
   }
 
   private cancelBudgetEditor(): void {
@@ -506,13 +502,17 @@ export struct ProfilePage {
     this.districtInput = '';
     this.errorMessage = '';
     this.savedMessage = '';
-    this.isEditingDistricts = true;
-    this.onNestedPageVisibilityChange(true);
+    this.animateSheetChange(() => {
+      this.isEditingDistricts = true;
+      this.onNestedPageVisibilityChange(true);
+    });
   }
 
   private closeDistrictEditor(): void {
-    this.isEditingDistricts = false;
-    this.onNestedPageVisibilityChange(false);
+    this.animateSheetChange(() => {
+      this.isEditingDistricts = false;
+      this.onNestedPageVisibilityChange(false);
+    });
   }
 
   private cancelDistrictEditor(): void {
@@ -625,6 +625,7 @@ export struct ProfilePage {
       .width('100%')
       .height('100%')
       .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       .backgroundColor(YibuqueColor.bgDefault)
 
       if (this.isEditingMeasurements || this.isEditingDistricts || this.isEditingBudget) {
@@ -632,6 +633,8 @@ export struct ProfilePage {
           .width('100%')
           .height('100%')
           .backgroundColor(YibuqueColor.scrimLight)
+          .hitTestBehavior(HitTestMode.Block)
+          .transition(TransitionEffect.OPACITY)
           .onClick(() => {
             if (this.isEditingMeasurements) {
               this.cancelMeasurementEditor();
@@ -1171,6 +1174,7 @@ export struct ProfilePage {
     .backgroundColor(YibuqueColor.bgDefault)
     .borderRadius({ topLeft: YibuqueRadius.sheet, topRight: YibuqueRadius.sheet, bottomLeft: 0, bottomRight: 0 })
     .shadow(YibuqueShadow.editorSheet)
+    .transition(TransitionEffect.OPACITY)
   }
 
   @Builder
@@ -1326,6 +1330,7 @@ export struct ProfilePage {
     .backgroundColor(YibuqueColor.bgDefault)
     .borderRadius({ topLeft: YibuqueRadius.sheet, topRight: YibuqueRadius.sheet, bottomLeft: 0, bottomRight: 0 })
     .shadow(YibuqueShadow.editorSheet)
+    .transition(TransitionEffect.OPACITY)
   }
 
   @Builder
@@ -1477,6 +1482,7 @@ export struct ProfilePage {
     .backgroundColor(YibuqueColor.bgDefault)
     .borderRadius({ topLeft: YibuqueRadius.sheet, topRight: YibuqueRadius.sheet, bottomLeft: 0, bottomRight: 0 })
     .shadow(YibuqueShadow.sheetHandle)
+    .transition(TransitionEffect.OPACITY)
   }
 
   @Builder

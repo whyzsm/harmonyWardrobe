@@ -39,6 +39,7 @@ const UPDATE_OUTFIT_SQL = `
 const DELETE_OUTFIT_SQL = 'DELETE FROM outfit_templates WHERE id = ?';
 const DELETE_OUTFIT_PHOTOS_SQL = 'DELETE FROM outfit_photos WHERE outfit_id = ?';
 const DELETE_OUTFIT_ITEMS_SQL = 'DELETE FROM outfit_items WHERE outfit_id = ?';
+const COUNT_OUTFITS_SQL = 'SELECT COUNT(*) AS total_count FROM outfit_templates';
 
 const INSERT_OUTFIT_PHOTO_SQL = `
   INSERT INTO outfit_photos (
@@ -349,6 +350,16 @@ export class OutfitRepository {
   async listOutfits(): Promise<OutfitTemplate[]> {
     const rows = await this.readOutfitRows(`${BASE_LIST_OUTFITS_SQL} ORDER BY updated_at DESC`);
     return this.hydrateOutfits(rows);
+  }
+
+  async getOutfitCount(): Promise<number> {
+    const resultSet = await this.database.querySql(COUNT_OUTFITS_SQL);
+
+    try {
+      return resultSet.goToFirstRow() ? resultSet.getNumber('total_count') : 0;
+    } finally {
+      resultSet.close();
+    }
   }
 
   async getOutfitById(id: string): Promise<OutfitTemplate | undefined> {

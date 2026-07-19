@@ -263,6 +263,15 @@ export struct OutfitsPage {
     return this.selectedWearLogId.length > 0 ? this.selectedWearLog : undefined;
   }
 
+  private animateNestedPageChange(change: () => void): void {
+    this.getUIContext().animateTo({
+      duration: 180,
+      curve: Curve.EaseOut
+    }, () => {
+      change();
+    });
+  }
+
   private onInitialWearLogIdChange(): void {
     if (this.initialWearLogId.length > 0) {
       this.openInitialWearLog(this.initialWearLogId);
@@ -287,27 +296,35 @@ export struct OutfitsPage {
     this.selectedWearLog = wearLog;
     this.selectedWearLogId = wearLog.id;
     this.selectedOutfitId = wearLog.outfitTemplateId ?? '';
-    this.showWearLogEditor = true;
-    this.onNestedPageVisibilityChange(true);
+    this.animateNestedPageChange(() => {
+      this.showWearLogEditor = true;
+      this.onNestedPageVisibilityChange(true);
+    });
   }
 
   private onEditOutfit(outfit: OutfitTemplate): void {
     this.selectedOutfitId = outfit.id;
-    this.showOutfitEditor = true;
-    this.onNestedPageVisibilityChange(true);
+    this.animateNestedPageChange(() => {
+      this.showOutfitEditor = true;
+      this.onNestedPageVisibilityChange(true);
+    });
   }
 
   private openOutfitDetail(outfit: OutfitTemplate): void {
     this.detailOutfitId = outfit.id;
-    this.showOutfitDetail = true;
-    this.onNestedPageVisibilityChange(true);
+    this.animateNestedPageChange(() => {
+      this.showOutfitDetail = true;
+      this.onNestedPageVisibilityChange(true);
+    });
   }
 
   private closeOutfitDetail(): void {
-    this.showOutfitDetail = false;
-    this.detailOutfitId = '';
-    this.showUnifiedSearch = false;
-    this.onNestedPageVisibilityChange(false);
+    this.animateNestedPageChange(() => {
+      this.showOutfitDetail = false;
+      this.detailOutfitId = '';
+      this.showUnifiedSearch = false;
+      this.onNestedPageVisibilityChange(false);
+    });
   }
 
   private upsertOutfit(savedOutfit: OutfitTemplate): void {
@@ -340,10 +357,16 @@ export struct OutfitsPage {
     this.outfits = this.outfits.filter((existingOutfit: OutfitTemplate) => existingOutfit.id !== outfit.id);
     this.refreshOutfitDataSource();
     if (this.detailOutfitId === outfit.id) {
-      this.showOutfitDetail = false;
-      this.detailOutfitId = '';
+      this.animateNestedPageChange(() => {
+        this.showOutfitDetail = false;
+        this.detailOutfitId = '';
+        this.showOutfitEditor = false;
+        this.selectedOutfitId = '';
+        this.onNestedPageVisibilityChange(false);
+      });
+    } else {
+      this.closeOutfitEditor();
     }
-    this.closeOutfitEditor();
   }
 
   private async deleteWearLog(wearLog: WearLog): Promise<void> {
@@ -356,17 +379,21 @@ export struct OutfitsPage {
   }
 
   private closeOutfitEditor(): void {
-    this.showOutfitEditor = false;
-    this.selectedOutfitId = '';
-    this.onNestedPageVisibilityChange(this.showOutfitDetail);
+    this.animateNestedPageChange(() => {
+      this.showOutfitEditor = false;
+      this.selectedOutfitId = '';
+      this.onNestedPageVisibilityChange(this.showOutfitDetail);
+    });
   }
 
   private closeWearLogEditor(): void {
-    this.showWearLogEditor = false;
-    this.selectedWearLog = emptyWearLog();
-    this.selectedWearLogId = '';
-    this.selectedOutfitId = '';
-    this.onNestedPageVisibilityChange(this.showOutfitDetail);
+    this.animateNestedPageChange(() => {
+      this.showWearLogEditor = false;
+      this.selectedWearLog = emptyWearLog();
+      this.selectedWearLogId = '';
+      this.selectedOutfitId = '';
+      this.onNestedPageVisibilityChange(this.showOutfitDetail);
+    });
   }
 
   private retry(): void {
@@ -375,8 +402,10 @@ export struct OutfitsPage {
 
   private openUnifiedSearch(query: string): void {
     this.unifiedSearchQuery = query;
-    this.showUnifiedSearch = true;
-    this.onNestedPageVisibilityChange(true);
+    this.animateNestedPageChange(() => {
+      this.showUnifiedSearch = true;
+      this.onNestedPageVisibilityChange(true);
+    });
   }
 
   private openSearch(): void {
@@ -384,8 +413,10 @@ export struct OutfitsPage {
   }
 
   private closeUnifiedSearch(): void {
-    this.showUnifiedSearch = false;
-    this.onNestedPageVisibilityChange(false);
+    this.animateNestedPageChange(() => {
+      this.showUnifiedSearch = false;
+      this.onNestedPageVisibilityChange(false);
+    });
   }
 
   private async openOutfitSearchResult(id: string): Promise<void> {
@@ -402,8 +433,12 @@ export struct OutfitsPage {
     }
 
     if (targetOutfit !== undefined) {
-      this.showUnifiedSearch = false;
-      this.openOutfitDetail(targetOutfit);
+      this.detailOutfitId = targetOutfit.id;
+      this.animateNestedPageChange(() => {
+        this.showUnifiedSearch = false;
+        this.showOutfitDetail = true;
+        this.onNestedPageVisibilityChange(true);
+      });
     }
   }
 
@@ -423,6 +458,7 @@ export struct OutfitsPage {
           this.closeOutfitEditor();
         }
       })
+        .transition(TransitionEffect.OPACITY)
     } else if (this.showWearLogEditor) {
       WearLogEditPage({
         initialWearLog: this.selectedWearLogForEditor(),
@@ -441,6 +477,7 @@ export struct OutfitsPage {
           this.closeWearLogEditor();
         }
       })
+        .transition(TransitionEffect.OPACITY)
     } else if (this.showOutfitDetail) {
       OutfitDetailPage({
         outfit: this.detailOutfit(),
@@ -455,6 +492,7 @@ export struct OutfitsPage {
           await this.deleteOutfit(outfit);
         }
       })
+        .transition(TransitionEffect.OPACITY)
     } else if (this.showUnifiedSearch) {
       SearchResultsPage({
         query: this.unifiedSearchQuery,
@@ -492,6 +530,7 @@ export struct OutfitsPage {
           this.closeUnifiedSearch();
         }
       })
+        .transition(TransitionEffect.OPACITY)
     } else {
       Column({ space: 14 }) {
         this.OutfitSearchHeader()
@@ -595,6 +634,7 @@ export struct OutfitsPage {
       .width('100%')
       .height('100%')
       .backgroundColor(YibuqueColor.bgDefault)
+      .transition(TransitionEffect.OPACITY)
     }
   }
 

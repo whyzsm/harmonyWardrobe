@@ -53,6 +53,19 @@ const DELETE_CLOTHING_SQL = 'DELETE FROM clothing_items WHERE id = ?';
 const DELETE_CLOTHING_PHOTOS_SQL = 'DELETE FROM clothing_photos WHERE clothing_id = ?';
 const DELETE_OUTFIT_ITEMS_BY_CLOTHING_ID_SQL = 'DELETE FROM outfit_items WHERE clothing_id = ?';
 
+const SELECT_CLOTHING_SUMMARY_SQL = `
+  SELECT
+    COUNT(*) AS total_count,
+    COALESCE(SUM(
+      CASE
+        WHEN SUBSTR(COALESCE(NULLIF(purchase_date, ''), created_at), 1, 7) = ?
+        THEN COALESCE(purchase_price, 0)
+        ELSE 0
+      END
+    ), 0) AS monthly_spent_cents
+  FROM clothing_items
+`;
+
 const INSERT_CLOTHING_PHOTO_SQL = `
   INSERT INTO clothing_photos (
     id,
@@ -180,6 +193,11 @@ export interface UpdateClothingInput {
 export interface ListClothingOptions {
   category?: ClothingCategory;
   query?: string;
+}
+
+export interface ClothingSummary {
+  totalCount: number;
+  monthlySpent: number;
 }
 
 function optionalString(value: string): string | undefined {
@@ -355,6 +373,23 @@ export class ClothingRepository {
     const whereSql = whereClauses.length > 0 ? ` WHERE ${whereClauses.join(' AND ')}` : '';
     const rows = await this.readClothingRows(`${BASE_LIST_CLOTHING_SQL}${whereSql} ORDER BY updated_at DESC`, bindArgs);
     return this.hydrateClothingItems(rows);
+  }
+
+  async getClothingSummary(yearMonth: string): Promise<ClothingSummary> {
+    const resultSet = await this.database.querySql(SELECT_CLOTHING_SUMMARY_SQL, [yearMonth]);
+
+    try {
+      if (!resultSet.goToFirstRow()) {
+        return { totalCount: 0, monthlySpent: 0 };
+      }
+
+      return {
+        totalCount: resultSet.getNumber('total_count'),
+        monthlySpent: resultSet.getNumber('monthly_spent_cents') / 100
+      };
+    } finally {
+      resultSet.close();
+    }
   }
 
   async getClothingById(id: string): Promise<ClothingItem | undefined> {

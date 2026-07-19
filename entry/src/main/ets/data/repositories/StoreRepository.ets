@@ -128,6 +128,7 @@ const UPDATE_STORE_VISIT_SQL = `
 
 const DELETE_STORE_VISIT_SQL = 'DELETE FROM store_visits WHERE id = ?';
 const DELETE_STORE_VISIT_PHOTOS_SQL = 'DELETE FROM store_visit_photos WHERE store_visit_id = ?';
+const COUNT_STORE_VISITS_SQL = 'SELECT COUNT(*) AS total_count FROM store_visits';
 
 const INSERT_STORE_VISIT_PHOTO_SQL = `
   INSERT INTO store_visit_photos (
@@ -487,6 +488,16 @@ export class StoreRepository {
   async listStoreVisits(): Promise<StoreVisit[]> {
     const rows = await this.readStoreVisitRows(`${BASE_LIST_STORE_VISITS_SQL} ORDER BY visit_date DESC, updated_at DESC`);
     return this.hydrateStoreVisits(rows);
+  }
+
+  async getStoreVisitCount(): Promise<number> {
+    const resultSet = await this.database.querySql(COUNT_STORE_VISITS_SQL);
+
+    try {
+      return resultSet.goToFirstRow() ? resultSet.getNumber('total_count') : 0;
+    } finally {
+      resultSet.close();
+    }
   }
 
   async getStoreVisitById(id: string): Promise<StoreVisit | undefined> {

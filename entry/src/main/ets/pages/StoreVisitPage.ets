@@ -162,28 +162,45 @@ export struct StoreVisitPage {
     return visit === undefined ? '已去' : this.visitBadge(visit);
   }
 
+  private animateNestedPageChange(change: () => void): void {
+    this.getUIContext().animateTo({
+      duration: 180,
+      curve: Curve.EaseOut
+    }, () => {
+      change();
+    });
+  }
+
   private openVisitDetail(visit: StoreVisit): void {
     this.detailVisitId = visit.id;
-    this.showDetail = true;
-    this.onEditorVisibilityChange(true);
+    this.animateNestedPageChange(() => {
+      this.showDetail = true;
+      this.onEditorVisibilityChange(true);
+    });
   }
 
   private closeDetail(): void {
-    this.showDetail = false;
-    this.detailVisitId = '';
-    this.onEditorVisibilityChange(false);
+    this.animateNestedPageChange(() => {
+      this.showDetail = false;
+      this.detailVisitId = '';
+      this.onEditorVisibilityChange(false);
+    });
   }
 
   private openVisitEditor(visit: StoreVisit): void {
     this.editingVisitId = visit.id;
-    this.showEditor = true;
-    this.onEditorVisibilityChange(true);
+    this.animateNestedPageChange(() => {
+      this.showEditor = true;
+      this.onEditorVisibilityChange(true);
+    });
   }
 
   private closeEditor(): void {
-    this.showEditor = false;
-    this.editingVisitId = '';
-    this.onEditorVisibilityChange(this.showDetail);
+    this.animateNestedPageChange(() => {
+      this.showEditor = false;
+      this.editingVisitId = '';
+      this.onEditorVisibilityChange(this.showDetail);
+    });
   }
 
   private selectStatus(filter: StoreVisitStatusFilter): void {
@@ -230,10 +247,16 @@ export struct StoreVisitPage {
     this.visits = this.visits.filter((existingVisit: StoreVisit) => existingVisit.id !== visit.id);
     this.refreshStoreVisitDataSource();
     if (this.detailVisitId === visit.id) {
-      this.showDetail = false;
-      this.detailVisitId = '';
+      this.animateNestedPageChange(() => {
+        this.showDetail = false;
+        this.detailVisitId = '';
+        this.showEditor = false;
+        this.editingVisitId = '';
+        this.onEditorVisibilityChange(false);
+      });
+    } else {
+      this.closeEditor();
     }
-    this.closeEditor();
   }
 
   private coverPhotoUri(visit: StoreVisit): string {
@@ -324,6 +347,7 @@ export struct StoreVisitPage {
           this.closeEditor();
         }
       })
+        .transition(TransitionEffect.OPACITY)
     } else if (this.showDetail) {
       StoreVisitDetailPage({
         visit: this.detailVisit(),
@@ -338,6 +362,7 @@ export struct StoreVisitPage {
           await this.deleteStoreVisit(visit);
         }
       })
+        .transition(TransitionEffect.OPACITY)
     } else {
       Column() {
         this.StoreVisitControls()
@@ -362,6 +387,7 @@ export struct StoreVisitPage {
       .padding({ left: 20, right: 20, top: 8, bottom: 0 })
       .alignItems(HorizontalAlign.Start)
       .backgroundColor(PAGE_BACKGROUND)
+      .transition(TransitionEffect.OPACITY)
     }
   }
 

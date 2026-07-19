@@ -79,6 +79,7 @@ for (const needle of [
   'updateOutfit',
   'deleteOutfit',
   'listOutfits',
+  'getOutfitCount',
   'getOutfitById',
   'loadRecentWearLogs'
 ]) {
@@ -120,6 +121,13 @@ assertMatches(source, /ORDER\s+BY\s+worn_date\s+DESC/i, 'recent wear logs must o
 assertMatches(source, /LIMIT\s+\?/i, 'recent wear logs must support a limit');
 assertMatches(source, /COALESCE\(\s*note,\s*(?:\\?['"]){2}\s*\)/i, 'repository must tolerate nullable note values');
 assertMatches(source, /COALESCE\(\s*outfit_id,\s*(?:\\?['"]){2}\s*\)\s+AS\s+outfit_id/i, 'recent wear log hook must tolerate nullable outfit_id');
+assertMatches(source, /const\s+COUNT_OUTFITS_SQL\s*=\s*['"]SELECT\s+COUNT\s*\(\s*\*\s*\)\s+AS\s+total_count\s+FROM\s+outfit_templates['"]\s*;/i, 'repository must count outfit_templates with a lightweight SQLite aggregate');
+
+const outfitCountBody = source.match(/async\s+getOutfitCount\s*\(\s*\)\s*:\s*Promise<number>[\s\S]*?\n\s*}\n\n\s*async\s+getOutfitById/);
+assert.ok(outfitCountBody, 'getOutfitCount body must be present');
+assertMatches(outfitCountBody[0], /querySql\s*\(\s*COUNT_OUTFITS_SQL\s*\)/, 'getOutfitCount must execute the aggregate query directly');
+assert.equal(/listOutfits|hydrateOutfits|readPhotoUris|readClothingItemIds/.test(outfitCountBody[0]), false, 'getOutfitCount must not load outfit objects, photos, or clothing relations');
+assertMatches(outfitCountBody[0], /finally\s*{\s*resultSet\.close\s*\(\s*\)/, 'getOutfitCount must always close its ResultSet');
 
 assertOrdered(
   source,

@@ -81,9 +81,23 @@ struct Index {
     };
   }
 
-  private showMainRoute(mainTab: AppMainTab, params: AppRouteParams): void {
-    this.activeRoute = createAppRoute(AppRouteKind.Main, mainTab, params);
+  private setRouteWithoutTransition(route: AppRoute): void {
+    this.activeRoute = route;
     this.featureNestedContentVisible = false;
+  }
+
+  private transitionToRoute(route: AppRoute): void {
+    this.getUIContext().animateTo({
+      duration: 180,
+      curve: Curve.EaseOut
+    }, () => {
+      this.activeRoute = route;
+      this.featureNestedContentVisible = false;
+    });
+  }
+
+  private showMainRoute(mainTab: AppMainTab, params: AppRouteParams): void {
+    this.transitionToRoute(createAppRoute(AppRouteKind.Main, mainTab, params));
   }
 
   private replaceCurrentRouteParams(params: AppRouteParams): void {
@@ -143,31 +157,32 @@ struct Index {
     params.capturePhotoUris = [];
     params.captureCapturedAt = '';
     params.captureClothingItems = [];
-    if (params.quickCaptureSourceRouteKind === AppRouteKind.Wishlist) {
-      this.activeRoute = createAppRoute(AppRouteKind.Wishlist, AppMainTab.Profile, params);
-      this.featureNestedContentVisible = false;
-      return;
-    }
+    const route = params.quickCaptureSourceRouteKind === AppRouteKind.Wishlist ?
+      createAppRoute(AppRouteKind.Wishlist, AppMainTab.Profile, params) :
+      createAppRoute(AppRouteKind.Main, this.activeRoute.mainTab, params);
 
-    this.showMainRoute(this.activeRoute.mainTab, params);
+    if (this.activeRoute.kind === AppRouteKind.CaptureEditor) {
+      this.transitionToRoute(route);
+    } else {
+      this.setRouteWithoutTransition(route);
+    }
   }
 
   private openQuickActions(): void {
     const params = this.copyCurrentRouteParams();
     params.quickCaptureSourceRouteKind = this.activeRoute.kind;
-    this.activeRoute = createAppRoute(
+    this.setRouteWithoutTransition(createAppRoute(
       AppRouteKind.QuickCapture,
       this.activeRoute.mainTab,
       params
-    );
+    ));
     this.quickActionErrorMessage = '';
   }
 
   private openWishlistPage(itemId: string): void {
     const params = createDefaultAppRouteParams();
     params.wishlistItemId = itemId;
-    this.activeRoute = createAppRoute(AppRouteKind.Wishlist, AppMainTab.Profile, params);
-    this.featureNestedContentVisible = false;
+    this.transitionToRoute(createAppRoute(AppRouteKind.Wishlist, AppMainTab.Profile, params));
     this.quickActionErrorMessage = '';
   }
 
@@ -194,8 +209,7 @@ struct Index {
     params.captureClothingItems = await this.runtime.clothingRepository.listClothing();
     params.capturePhotoUris = photoUris;
     params.captureCapturedAt = new Date().toISOString();
-    this.activeRoute = createAppRoute(AppRouteKind.CaptureEditor, this.activeRoute.mainTab, params);
-    this.featureNestedContentVisible = false;
+    this.transitionToRoute(createAppRoute(AppRouteKind.CaptureEditor, this.activeRoute.mainTab, params));
   }
 
   private closeCaptureEditor(): void {
@@ -205,12 +219,11 @@ struct Index {
   }
 
   private openQuickStoreEditor(): void {
-    this.activeRoute = createAppRoute(
+    this.transitionToRoute(createAppRoute(
       AppRouteKind.StoreEditor,
       AppMainTab.Store,
       createDefaultAppRouteParams()
-    );
-    this.featureNestedContentVisible = false;
+    ));
     this.quickActionErrorMessage = '';
   }
 
@@ -219,12 +232,11 @@ struct Index {
   }
 
   private openQuickClothingEditor(): void {
-    this.activeRoute = createAppRoute(
+    this.transitionToRoute(createAppRoute(
       AppRouteKind.ClothingEditor,
       AppMainTab.Wardrobe,
       createDefaultAppRouteParams()
-    );
-    this.featureNestedContentVisible = false;
+    ));
     this.quickActionErrorMessage = '';
   }
 
@@ -246,8 +258,7 @@ struct Index {
       this.quickActionErrorMessage = userFacingError(error, '加载衣物失败');
     }
 
-    this.activeRoute = createAppRoute(AppRouteKind.OutfitEditor, AppMainTab.Outfit, params);
-    this.featureNestedContentVisible = false;
+    this.transitionToRoute(createAppRoute(AppRouteKind.OutfitEditor, AppMainTab.Outfit, params));
   }
 
   private closeQuickOutfitEditor(): void {
@@ -363,7 +374,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
+              .transition(TransitionEffect.OPACITY)
           } else if (this.activeRoute.kind === AppRouteKind.OutfitEditor) {
             OutfitEditPage({
               clothingItems: this.activeRoute.params.outfitClothingItems,
@@ -378,7 +389,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
+              .transition(TransitionEffect.OPACITY)
           } else if (this.activeRoute.kind === AppRouteKind.StoreEditor) {
             StoreVisitEditPage({
               storeRepository: this.runtime.storeRepository,
@@ -392,7 +403,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
+              .transition(TransitionEffect.OPACITY)
           } else if (this.activeRoute.kind === AppRouteKind.Wishlist) {
             WishlistPage({
               wishlistRepository: this.runtime.wishlistRepository,
@@ -414,7 +425,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
+              .transition(TransitionEffect.OPACITY)
           } else if (this.activeRoute.kind === AppRouteKind.CaptureEditor) {
             CaptureEditPage({
               initialPhotoUris: this.activeRoute.params.capturePhotoUris,
@@ -430,7 +441,6 @@ struct Index {
                 this.closeCaptureEditor();
               },
               onSave: (target: string) => {
-                this.closeCaptureEditor();
                 if (target === '店铺') {
                   this.resetMainRoute(AppMainTab.Store);
                 } else if (target === '美搭') {
@@ -441,7 +451,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
+              .transition(TransitionEffect.OPACITY)
           } else if (this.activeRoute.mainTab === AppMainTab.Wardrobe) {
             WardrobePage({
               clothingRepository: this.runtime.clothingRepository,
@@ -483,7 +493,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
+              .transition(TransitionEffect.OPACITY)
           } else if (this.activeRoute.mainTab === AppMainTab.Store) {
             StoreVisitPage({
               initialVisitId: this.activeRoute.params.storeVisitId,
@@ -502,7 +512,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
+              .transition(TransitionEffect.OPACITY)
           } else if (this.activeRoute.mainTab === AppMainTab.Outfit) {
             OutfitsPage({
               initialOutfitId: this.activeRoute.params.outfitId,
@@ -552,7 +562,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
+              .transition(TransitionEffect.OPACITY)
           } else {
             ProfilePage({
               profileRepository: this.runtime.profileRepository,
@@ -567,7 +577,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY.animation({ duration: 180, curve: Curve.EaseOut }))
+              .transition(TransitionEffect.OPACITY)
           }
 
           if (this.quickActionErrorMessage.length > 0) {
