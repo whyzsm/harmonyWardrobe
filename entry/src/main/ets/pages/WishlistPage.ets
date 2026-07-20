@@ -28,7 +28,6 @@ export struct WishlistPage {
   @Prop initialWishlistItemId: string = '';
   onClose: () => void = () => {};
   onBack: () => void = () => {};
-  onOpenCapture?: () => void = undefined;
   onInitialWishlistItemConsumed: () => void = () => {};
 
   @State private searchQuery: string = '';
@@ -224,11 +223,6 @@ export struct WishlistPage {
             this.showUnifiedSearch = false;
             this.showEditor = true;
           });
-        },
-        onOpenCameraSearch: () => {
-          if (this.onOpenCapture !== undefined) {
-            this.onOpenCapture();
-          }
         },
         onClose: () => {
           this.closeUnifiedSearch();

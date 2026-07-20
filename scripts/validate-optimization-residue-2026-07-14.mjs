@@ -74,7 +74,9 @@ mustInclude(outfits, outfitsPath, 'LazyForEach(this.outfitDataSource');
 mustInclude(store, storePath, 'LazyForEach(this.storeVisitDataSource');
 
 mustMatch(search, searchPath, /\.width\(44\)[\s\S]*?\.height\(44\)[\s\S]*?\.accessibilityText\('清空搜索'\)/, 'must give the clear-search control a 44px touch target');
-mustMatch(search, searchPath, /\.width\(44\)[\s\S]*?\.height\(44\)[\s\S]*?\.accessibilityText\('拍照搜索'\)/, 'must give the camera-search control a 44px touch target');
+if (/accessibilityText\('拍照搜索'\)|onOpenCameraSearch|sys\.symbol\.picture/.test(search)) {
+  throw new Error(`${searchPath} must not expose camera/gallery search controls`);
+}
 mustMatch(search, searchPath, /SearchTabs\(\)[\s\S]*?\.constraintSize\(\{ minHeight: 44 \}\)/, 'must give search tabs a minimum 44px touch target');
 mustMatch(search, searchPath, /SearchChip\(term: string[\s\S]*?\.constraintSize\(\{ minHeight: 44 \}\)[\s\S]*?\.padding\(\{ left: 15, right: 15 \}\)/, 'must give search chips a minimum 44px touch target');
 mustMatch(profile, profilePath, /DistrictChip\(label: string, selected: boolean\)[\s\S]*?\.height\(40\)/, 'must give frequent-district chips the reference 40px size');

@@ -428,9 +428,6 @@ struct Index {
               },
               onBack: () => {
                 this.resetMainRoute(AppMainTab.Profile);
-              },
-              onOpenCapture: () => {
-                this.openQuickActions();
               }
             })
               .layoutWeight(1)
@@ -508,6 +505,9 @@ struct Index {
               initialVisitId: this.activeRoute.params.storeVisitId,
               initialSearchQuery: this.activeRoute.params.storeQuery,
               storeRepository: this.runtime.storeRepository,
+              searchRepository: this.runtime.searchRepository,
+              clothingRepository: this.runtime.clothingRepository,
+              outfitRepository: this.runtime.outfitRepository,
               photoPickerAdapter: this.runtime.photoPickerAdapter,
               photoStorage: this.runtime.photoStorage,
               onEditorVisibilityChange: (visible: boolean) => {
@@ -518,6 +518,28 @@ struct Index {
               },
               onCreateStoreVisit: () => {
                 this.openQuickStoreEditor();
+              },
+              onOpenSearchTarget: (entityType: SearchEntityType, id: string, title: string) => {
+                if (entityType === SearchEntityType.Clothing) {
+                  this.resetMainRoute(AppMainTab.Wardrobe);
+                } else if (entityType === SearchEntityType.Outfit) {
+                  const params = createDefaultAppRouteParams();
+                  params.outfitId = id;
+                  this.showMainRoute(AppMainTab.Outfit, params);
+                } else if (entityType === SearchEntityType.Store || entityType === SearchEntityType.StoreVisit) {
+                  const params = createDefaultAppRouteParams();
+                  params.storeVisitId = entityType === SearchEntityType.StoreVisit ? id : '';
+                  params.storeQuery = entityType === SearchEntityType.Store ? title : '';
+                  this.showMainRoute(AppMainTab.Store, params);
+                } else if (entityType === SearchEntityType.Wishlist) {
+                  this.openWishlistPage(id);
+                } else if (entityType === SearchEntityType.WearLog) {
+                  const params = createDefaultAppRouteParams();
+                  params.wearLogId = id;
+                  this.showMainRoute(AppMainTab.Outfit, params);
+                } else {
+                  this.resetMainRoute(AppMainTab.Profile);
+                }
               }
             })
               .layoutWeight(1)

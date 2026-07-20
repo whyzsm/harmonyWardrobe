@@ -259,7 +259,7 @@ if (index.includes('TransitionEffect.OPACITY.animation(')) {
 for (const [file, source, states] of [
   ['OutfitsPage', outfits, ['showOutfitDetail', 'showOutfitEditor', 'showWearLogEditor', 'showUnifiedSearch']],
   ['WardrobePage', wardrobe, ['showEditor', 'showClothingDetail', 'showUnifiedSearch']],
-  ['StoreVisitPage', storeVisit, ['showEditor', 'showDetail']],
+  ['StoreVisitPage', storeVisit, ['showEditor', 'showDetail', 'showUnifiedSearch']],
   ['WishlistPage', wishlist, ['showEditor', 'showUnifiedSearch']]
 ]) {
   assertAnimationHelper(source, file, 'animateNestedPageChange', fullScreenTransition);
@@ -274,7 +274,7 @@ assertComponentTransitions(outfits, 'OutfitsPage',
 assertComponentTransitions(wardrobe, 'WardrobePage',
   ['ClothingEditPage', 'ClothingDetailPage', 'SearchResultsPage'], 4);
 assertComponentTransitions(storeVisit, 'StoreVisitPage',
-  ['StoreVisitEditPage', 'StoreVisitDetailPage'], 3);
+  ['StoreVisitEditPage', 'StoreVisitDetailPage', 'SearchResultsPage'], 4);
 assertComponentTransitions(wishlist, 'WishlistPage',
   ['WishlistEditPage', 'SearchResultsPage'], 3);
 

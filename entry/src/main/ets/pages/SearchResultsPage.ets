@@ -29,7 +29,8 @@ const SEARCH_SCOPES: SearchScopeOption[] = [
   { key: 'outfits', label: '穿搭' }
 ];
 
-const SEARCH_SUGGESTIONS: string[] = ['连衣裙尺码', '周末快闪店', '黑白针织', '拍照录入', '购买记录', '小众买手店'];
+const SEARCH_SUGGESTIONS: string[] = ['连衣裙尺码', '周末快闪店', '黑白针织', '小众买手店'];
+const DEFAULT_SEARCH_TERM = '上衣';
 
 function entityTypeLabel(entityType: SearchEntityType): string {
   if (entityType === SearchEntityType.Clothing) {
@@ -94,7 +95,6 @@ export struct SearchResultsPage {
   onOpenWearLogResult: (id: string) => void = (_id: string) => {};
   onOpenProfileResult: (entityType: SearchEntityType, id: string) => void =
     (_entityType: SearchEntityType, _id: string) => {};
-  onOpenCameraSearch: () => void = () => {};
 
   @State private searchText: string = '';
   @State private activeQuery: string = '';
@@ -109,8 +109,9 @@ export struct SearchResultsPage {
   private searchRequestVersion: number = 0;
 
   aboutToAppear(): void {
-    this.searchText = this.query;
-    this.activeQuery = this.query.trim();
+    const initialQuery = this.query.trim();
+    this.searchText = initialQuery.length > 0 ? this.query : DEFAULT_SEARCH_TERM;
+    this.activeQuery = initialQuery;
     this.selectedScope = this.initialScope ?? 'all';
     if (this.activeQuery.length > 0) {
       this.performSearch(this.activeQuery);
@@ -234,11 +235,9 @@ export struct SearchResultsPage {
       this.searchText = term;
     }
 
-    const nextQuery = this.searchText.trim();
-    if (nextQuery.length === 0) {
-      this.inputErrorMessage = '先输入要查找的关键词';
-      return;
-    }
+    const trimmedQuery = this.searchText.trim();
+    const nextQuery = trimmedQuery.length > 0 ? trimmedQuery : DEFAULT_SEARCH_TERM;
+    this.searchText = nextQuery;
 
     this.activeQuery = nextQuery;
     this.errorMessage = '';
@@ -321,7 +320,7 @@ export struct SearchResultsPage {
 
   private emptyResultDescription(): string {
     if (this.initialScope !== undefined) {
-      return '换个关键词，或用拍照录入把这件单品加入衣柜。';
+      return '换个名称、门店、分类或备注关键词。';
     }
 
     if (this.selectedScope === 'clothes') {
@@ -333,11 +332,7 @@ export struct SearchResultsPage {
     if (this.selectedScope === 'outfits') {
       return '换个场景、穿搭名称或备注。';
     }
-    return '换个关键词，或用拍照录入把衣物加入衣柜。';
-  }
-
-  private shouldShowCaptureCta(): boolean {
-    return this.initialScope !== undefined || this.selectedScope === 'all' || this.selectedScope === 'clothes';
+    return '换个名称、商场、分类或备注关键词。';
   }
 
   private refreshVisualResultDataSource(): void {
@@ -429,17 +424,6 @@ export struct SearchResultsPage {
             })
           }
 
-          Stack({ alignContent: Alignment.Center }) {
-            SymbolGlyph($r('sys.symbol.picture'))
-              .fontSize(18)
-              .fontColor([YibuqueColor.textPrimary])
-          }
-          .width(44)
-          .height(44)
-          .accessibilityText('拍照搜索')
-          .onClick(() => {
-            this.onOpenCameraSearch();
-          })
         }
         .layoutWeight(1)
         .height(48)
@@ -601,18 +585,6 @@ export struct SearchResultsPage {
           .fontSize(13)
           .fontColor(YibuqueColor.textSecondary)
 
-        if (this.shouldShowCaptureCta()) {
-          Button('拍照录入')
-            .height(44)
-            .fontSize(13)
-            .fontWeight(FontWeight.Regular)
-            .fontColor(YibuqueColor.textInverse)
-            .backgroundColor(YibuqueColor.actionBlack)
-            .borderRadius(YibuqueRadius.full)
-            .onClick(() => {
-              this.onOpenCameraSearch();
-            })
-        }
       }
       .width('100%')
       .layoutWeight(1)

@@ -3,9 +3,10 @@ import fs from 'node:fs';
 const resultPagePath = 'entry/src/main/ets/pages/SearchResultsPage.ets';
 const wishlistPagePath = 'entry/src/main/ets/pages/WishlistPage.ets';
 const wardrobePagePath = 'entry/src/main/ets/pages/WardrobePage.ets';
+const storePagePath = 'entry/src/main/ets/pages/StoreVisitPage.ets';
 const indexPagePath = 'entry/src/main/ets/pages/Index.ets';
 
-for (const file of [resultPagePath, wishlistPagePath, wardrobePagePath, indexPagePath]) {
+for (const file of [resultPagePath, wishlistPagePath, wardrobePagePath, storePagePath, indexPagePath]) {
   if (!fs.existsSync(file)) {
     throw new Error(`${file} does not exist`);
   }
@@ -14,6 +15,7 @@ for (const file of [resultPagePath, wishlistPagePath, wardrobePagePath, indexPag
 const resultPage = fs.readFileSync(resultPagePath, 'utf8');
 const wishlistPage = fs.readFileSync(wishlistPagePath, 'utf8');
 const wardrobePage = fs.readFileSync(wardrobePagePath, 'utf8');
+const storePage = fs.readFileSync(storePagePath, 'utf8');
 const indexPage = fs.readFileSync(indexPagePath, 'utf8');
 
 for (const needle of [
@@ -33,6 +35,7 @@ for (const needle of [
   'selectedScope',
   'historyTerms',
   'SEARCH_SUGGESTIONS',
+  'DEFAULT_SEARCH_TERM',
   'submitSearch',
   'clearSearch',
   'clearHistory',
@@ -47,7 +50,6 @@ for (const needle of [
   'onOpenOutfitResult',
   'onOpenStoreResult',
   'onOpenProfileResult',
-  'onOpenCameraSearch',
   'searchRequestVersion',
   'inputErrorMessage',
   'SearchEntityType.WearLog',
@@ -93,23 +95,35 @@ for (const forbidden of [
   'WishlistRepository',
   '旧心愿',
   'entity_type',
-  'entity_id'
+  'entity_id',
+  'onOpenCameraSearch',
+  '拍照搜索',
+  '拍照录入',
+  '购买记录'
 ]) {
   if (resultPage.includes(forbidden)) {
     throw new Error(`SearchResultsPage must not expose old search UI: ${forbidden}`);
   }
 }
 
-if (!/aboutToAppear\(\)[\s\S]*?this\.searchText = this\.query[\s\S]*?this\.activeQuery = this\.query\.trim\(\)/.test(resultPage)) {
-  throw new Error('SearchResultsPage must initialize idle/results state from the incoming query');
+if (!/const DEFAULT_SEARCH_TERM = '上衣'/.test(resultPage)) {
+  throw new Error('SearchResultsPage must default empty searches to 上衣');
+}
+
+if (!/aboutToAppear\(\)[\s\S]*?const initialQuery = this\.query\.trim\(\)[\s\S]*?this\.searchText = initialQuery\.length > 0 \? this\.query : DEFAULT_SEARCH_TERM[\s\S]*?this\.activeQuery = initialQuery/.test(resultPage)) {
+  throw new Error('SearchResultsPage must initialize empty query with the default clothing term');
+}
+
+if (!/submitSearch\(term: string = ''\)[\s\S]*?const trimmedQuery = this\.searchText\.trim\(\)[\s\S]*?const nextQuery = trimmedQuery\.length > 0 \? trimmedQuery : DEFAULT_SEARCH_TERM[\s\S]*?this\.searchText = nextQuery/.test(resultPage)) {
+  throw new Error('SearchResultsPage must submit the default clothing term when the input is empty');
 }
 
 if (!/SearchHeader\(\)[\s\S]*?TextInput\(\{ text: this\.searchText, placeholder: '搜索衣服、商场、穿搭' \}\)[\s\S]*?this\.clearSearch\(\)[\s\S]*?this\.submitSearch\(\)/.test(resultPage)) {
   throw new Error('SearchResultsPage must implement the designed search controls');
 }
 
-if (/SearchHeader\(\)[\s\S]*?sys\.symbol\.camera_fill/.test(resultPage)) {
-  throw new Error('SearchResultsPage must not expose an unavailable camera-search icon');
+if (/SearchHeader\(\)[\s\S]*?sys\.symbol\.(camera_fill|picture)/.test(resultPage)) {
+  throw new Error('SearchResultsPage must not expose unavailable camera/gallery search icons');
 }
 
 if (!/IdlePanel\(\)[\s\S]*?historyTerms[\s\S]*?SEARCH_SUGGESTIONS[\s\S]*?this\.submitSearch\(term\)/.test(resultPage)) {
@@ -158,7 +172,6 @@ for (const needle of [
   'openUnifiedSearch',
   'unifiedSearchQuery',
   'this.showUnifiedSearch = true',
-  'onOpenCameraSearch',
   'onOpenCapture',
   'getClothingById',
   'onOpenProfileResult',
@@ -173,8 +186,36 @@ if (!/TextInput\(\{ text: this\.searchQuery[\s\S]*?\.onClick\(\(\) => \{[\s\S]*?
   throw new Error('WardrobePage search field must open the idle search page when tapped');
 }
 
+for (const needle of [
+  'SearchResultsPage',
+  'openUnifiedSearch',
+  'unifiedSearchQuery',
+  'this.showUnifiedSearch = true',
+  'onOpenSearchTarget',
+  'openStoreVisitSearchResult',
+  'SearchEntityType.Store',
+  'SearchEntityType.StoreVisit',
+  ".accessibilityText('执行搜索')"
+]) {
+  if (!storePage.includes(needle)) {
+    throw new Error(`StoreVisitPage missing unified search integration: ${needle}`);
+  }
+}
+
+if (!/TextInput\(\{ text: this\.searchQuery[\s\S]*?\.onClick\(\(\) => \{[\s\S]*?this\.openSearch\(\)[\s\S]*?\.onSubmit\(\(\) => \{[\s\S]*?this\.openSearch\(\)/.test(storePage)) {
+  throw new Error('StoreVisitPage search field must open the unified search page when tapped or submitted');
+}
+
+if (/SearchResultsPage\(\{[\s\S]*?onOpenCameraSearch:/.test(storePage)) {
+  throw new Error('StoreVisitPage must not expose camera search from unified search');
+}
+
 if (!/WardrobePage\(\{[\s\S]*?onOpenCapture: \(\) => \{[\s\S]*?this\.startCameraCapture\(\)/.test(indexPage)) {
-  throw new Error('Index must connect search camera action directly to the camera flow');
+  throw new Error('Index must keep the main wardrobe capture flow connected');
+}
+
+if (!/StoreVisitPage\(\{[\s\S]*?searchRepository: this\.runtime\.searchRepository[\s\S]*?clothingRepository: this\.runtime\.clothingRepository[\s\S]*?outfitRepository: this\.runtime\.outfitRepository[\s\S]*?onOpenSearchTarget/.test(indexPage)) {
+  throw new Error('Index must connect the store page to unified search routing');
 }
 
 if (!/SearchEntityType\.Store[\s\S]*?SearchEntityType\.StoreVisit[\s\S]*?AppMainTab\.Store[\s\S]*?AppMainTab\.Profile/.test(indexPage)) {

@@ -1,4 +1,8 @@
+import { ClothingRepository } from '../data/repositories/ClothingRepository';
+import { OutfitRepository } from '../data/repositories/OutfitRepository';
+import { SearchRepository } from '../data/repositories/SearchRepository';
 import { StoreRepository } from '../data/repositories/StoreRepository';
+import { SearchEntityType } from '../domain/search/SearchModels';
 import { StoreVisit, StoreVisitStatus } from '../domain/store/StoreModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
@@ -6,6 +10,7 @@ import { YibuqueColor, YibuqueMotion, YibuqueRadius, YibuqueShadow } from '../th
 import { ArrayDataSource } from '../utils/ArrayDataSource';
 import { toIsoDate } from '../utils/date';
 import { userFacingError } from '../utils/userFacingError';
+import { SearchResultsPage } from './SearchResultsPage';
 import { StoreVisitDetailPage } from './StoreVisitDetailPage';
 import { StoreVisitEditPage } from './StoreVisitEditPage';
 
@@ -36,11 +41,16 @@ export struct StoreVisitPage {
   @Prop initialVisitId: string = '';
   @Prop initialSearchQuery: string = '';
   storeRepository?: StoreRepository = undefined;
+  searchRepository?: SearchRepository = undefined;
+  clothingRepository?: ClothingRepository = undefined;
+  outfitRepository?: OutfitRepository = undefined;
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
   photoStorage?: PhotoStorage = undefined;
   onEditorVisibilityChange: (visible: boolean) => void = () => {};
   onCreateStoreVisit: () => void = () => {};
   onInitialVisitConsumed: () => void = () => {};
+  onOpenSearchTarget: (entityType: SearchEntityType, id: string, title: string) => void =
+    (_entityType: SearchEntityType, _id: string, _title: string) => {};
 
   @State private visits: StoreVisit[] = [];
   @State private storeVisitDataSource: ArrayDataSource<StoreVisit> = new ArrayDataSource<StoreVisit>();
@@ -53,10 +63,16 @@ export struct StoreVisitPage {
   @State private loading: boolean = false;
   @State private errorMessage: string = '';
   @State private pressedVisitCardId: string = '';
+  @State private showUnifiedSearch: boolean = false;
+  @State private unifiedSearchQuery: string = '';
   private nestedPageTransitionInProgress: boolean = false;
 
   aboutToAppear(): void {
     this.loadStoreVisits();
+  }
+
+  aboutToDisappear(): void {
+    this.onEditorVisibilityChange(false);
   }
 
   private async loadStoreVisits(): Promise<void> {
@@ -217,6 +233,58 @@ export struct StoreVisitPage {
     this.refreshStoreVisitDataSource();
   }
 
+  private openUnifiedSearch(query: string): void {
+    this.unifiedSearchQuery = query;
+    this.animateNestedPageChange(() => {
+      this.showUnifiedSearch = true;
+      this.onEditorVisibilityChange(true);
+    });
+  }
+
+  private closeUnifiedSearch(): void {
+    this.animateNestedPageChange(() => {
+      this.showUnifiedSearch = false;
+      this.onEditorVisibilityChange(false);
+    });
+  }
+
+  private openSearch(): void {
+    this.openUnifiedSearch(this.searchQuery);
+  }
+
+  private async openStoreVisitSearchResult(entityType: SearchEntityType, id: string, title: string): Promise<void> {
+    if (entityType === SearchEntityType.Store) {
+      this.searchQuery = title;
+      this.refreshStoreVisitDataSource();
+      this.closeUnifiedSearch();
+      return;
+    }
+    if (entityType !== SearchEntityType.StoreVisit) {
+      return;
+    }
+
+    let targetVisit: StoreVisit | undefined = undefined;
+    for (const visit of this.visits) {
+      if (visit.id === id) {
+        targetVisit = visit;
+        break;
+      }
+    }
+
+    if (targetVisit === undefined && this.storeRepository !== undefined) {
+      targetVisit = await this.storeRepository.getStoreVisitById(id);
+    }
+
+    if (targetVisit !== undefined) {
+      this.detailVisitId = targetVisit.id;
+      this.animateNestedPageChange(() => {
+        this.showUnifiedSearch = false;
+        this.showDetail = true;
+        this.onEditorVisibilityChange(true);
+      });
+    }
+  }
+
   private isSearching(): boolean {
     return this.searchQuery.trim().length > 0;
   }
@@ -372,6 +440,35 @@ export struct StoreVisitPage {
         }
       })
         .transition(TransitionEffect.OPACITY)
+    } else if (this.showUnifiedSearch) {
+      SearchResultsPage({
+        query: this.unifiedSearchQuery,
+        searchRepository: this.searchRepository,
+        clothingRepository: this.clothingRepository,
+        outfitRepository: this.outfitRepository,
+        onOpenClothingResult: (id: string) => {
+          this.onOpenSearchTarget(SearchEntityType.Clothing, id, '');
+        },
+        onOpenOutfitResult: (id: string) => {
+          this.onOpenSearchTarget(SearchEntityType.Outfit, id, '');
+        },
+        onOpenStoreResult: (entityType: SearchEntityType, id: string, title: string) => {
+          this.openStoreVisitSearchResult(entityType, id, title);
+        },
+        onOpenWishlistResult: (id: string) => {
+          this.onOpenSearchTarget(SearchEntityType.Wishlist, id, '');
+        },
+        onOpenWearLogResult: (id: string) => {
+          this.onOpenSearchTarget(SearchEntityType.WearLog, id, '');
+        },
+        onOpenProfileResult: (entityType: SearchEntityType, id: string) => {
+          this.onOpenSearchTarget(entityType, id, '');
+        },
+        onClose: () => {
+          this.closeUnifiedSearch();
+        }
+      })
+        .transition(TransitionEffect.OPACITY)
     } else {
       Column() {
         this.StoreVisitControls()
@@ -405,9 +502,17 @@ export struct StoreVisitPage {
     Column({ space: 14 }) {
       Row({ space: 10 }) {
         Row({ space: 9 }) {
-          SymbolGlyph($r('sys.symbol.magnifyingglass'))
-            .fontSize(18)
-            .fontColor([TEXT_MUTED])
+          Stack({ alignContent: Alignment.Center }) {
+            SymbolGlyph($r('sys.symbol.magnifyingglass'))
+              .fontSize(18)
+              .fontColor([TEXT_MUTED])
+          }
+          .width(44)
+          .height(46)
+          .accessibilityText('执行搜索')
+          .onClick(() => {
+            this.openSearch();
+          })
 
           TextInput({ text: this.searchQuery, placeholder: '搜索商场、品牌、试穿记录' })
             .height(46)
@@ -421,6 +526,12 @@ export struct StoreVisitPage {
             .onChange((value: string) => {
               this.searchQuery = value;
               this.refreshStoreVisitDataSource();
+            })
+            .onClick(() => {
+              this.openSearch();
+            })
+            .onSubmit(() => {
+              this.openSearch();
             })
         }
         .height(48)

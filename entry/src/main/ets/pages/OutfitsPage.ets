@@ -526,9 +526,6 @@ export struct OutfitsPage {
         onOpenProfileResult: (entityType: SearchEntityType, id: string) => {
           this.onOpenSearchTarget(entityType, id, '');
         },
-        onOpenCameraSearch: () => {
-          this.onOpenCapture();
-        },
         onClose: () => {
           this.closeUnifiedSearch();
         }

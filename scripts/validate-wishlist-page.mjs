@@ -5,6 +5,11 @@ const indexPath = 'entry/src/main/ets/pages/Index.ets';
 const index = fs.readFileSync(indexPath, 'utf8');
 const routePath = 'entry/src/main/ets/app/AppRoute.ets';
 const route = fs.readFileSync(routePath, 'utf8');
+const wishlistRouteStart = index.indexOf('WishlistPage({');
+const wishlistRouteEnd = index.indexOf('})\n              .layoutWeight', wishlistRouteStart);
+const wishlistRoute = wishlistRouteStart >= 0 && wishlistRouteEnd > wishlistRouteStart ?
+  index.slice(wishlistRouteStart, wishlistRouteEnd) :
+  '';
 
 for (const needle of [
   'SearchBar',
@@ -21,8 +26,6 @@ for (const needle of [
   'onOpenWishlistItem',
   'onClose',
   'onBack',
-  'onOpenCapture',
-  'onOpenCameraSearch',
   'initialScope: SearchEntityType.Wishlist',
   'ForEach'
 ]) {
@@ -33,7 +36,6 @@ for (const needle of [
 
 for (const needle of [
   'onBack();',
-  'this.onOpenCapture();',
   "accessibilityText('返回我的')"
 ]) {
   if (!text.includes(needle)) {
@@ -50,16 +52,18 @@ if (/onClose:\s*\(\) => \{[\s\S]*?this\.onClose\(\);/.test(text)) {
   throw new Error('WishlistPage search close must not invoke the parent close callback');
 }
 
-if (!/SearchResultsPage\(\{[\s\S]*?onOpenCameraSearch:\s*\(\) => \{[\s\S]*?this\.onOpenCapture\(\);/.test(text)) {
-  throw new Error('WishlistPage must forward camera search to the parent capture flow');
+if (/SearchResultsPage\(\{[\s\S]*?onOpenCameraSearch:/.test(text)) {
+  throw new Error('WishlistPage must not expose camera search from wishlist search');
+}
+
+if (wishlistRoute.includes('onOpenCapture:')) {
+  throw new Error('Index must not wire wishlist search to quick capture');
 }
 
 for (const needle of [
   'onClose: () => {',
   'onBack: () => {',
-  'onOpenCapture: () => {',
   'this.resetMainRoute(AppMainTab.Profile);',
-  'this.openQuickActions();',
   'returnToCaptureSource',
   'params.quickCaptureSourceRouteKind = this.activeRoute.kind'
 ]) {

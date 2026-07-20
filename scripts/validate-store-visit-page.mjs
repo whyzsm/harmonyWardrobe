@@ -23,9 +23,15 @@ for (const needle of [
   '家去过',
   '家想去',
   'StoreRepository',
+  'SearchRepository',
   'listStoreVisits',
   'filterStoreVisits',
   'isSearching',
+  'SearchResultsPage',
+  'openUnifiedSearch',
+  'showUnifiedSearch',
+  'openStoreVisitSearchResult',
+  'onOpenSearchTarget',
   'routeVisits',
   'hasTodayRoute',
   'toIsoDate',
@@ -69,6 +75,10 @@ for (const needle of ['StoreVisitPage({', 'storeRepository: this.runtime.storeRe
   }
 }
 
+if (!/StoreVisitPage\(\{[\s\S]*?searchRepository: this\.runtime\.searchRepository[\s\S]*?clothingRepository: this\.runtime\.clothingRepository[\s\S]*?outfitRepository: this\.runtime\.outfitRepository[\s\S]*?onOpenSearchTarget/.test(index)) {
+  throw new Error('Index must wire StoreVisitPage to the unified search runtime and result router');
+}
+
 for (const needle of ['衣柜', '逛店', '穿搭', 'onOpenWardrobe', 'onOpenStoreVisit', 'onOpenOutfit']) {
   if (!quickSheet.includes(needle)) {
     throw new Error(`QuickCaptureSheet missing category quick action ${needle}`);
@@ -93,6 +103,14 @@ for (const needle of ['StoreVisitStatus', 'focusTags', 'onEditorVisibilityChange
 
 if (page.includes('onSaveAndCapture') || page.includes('onOpenCapture')) {
   throw new Error('StoreVisitPage must not keep the removed save-and-capture flow');
+}
+
+if (!/StoreVisitControls\(\)[\s\S]*?TextInput\(\{ text: this\.searchQuery[\s\S]*?\.onClick\(\(\) => \{[\s\S]*?this\.openSearch\(\)[\s\S]*?\.onSubmit\(\(\) => \{[\s\S]*?this\.openSearch\(\)/.test(page)) {
+  throw new Error('StoreVisitPage search input must enter unified search on tap or submit');
+}
+
+if (/SearchResultsPage\(\{[\s\S]*?onOpenCameraSearch:/.test(page)) {
+  throw new Error('StoreVisitPage unified search must not expose camera/gallery search');
 }
 
 if (page.includes('WishlistRepository')) {
