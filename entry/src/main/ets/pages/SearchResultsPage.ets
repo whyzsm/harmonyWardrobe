@@ -110,7 +110,7 @@ export struct SearchResultsPage {
 
   aboutToAppear(): void {
     const initialQuery = this.query.trim();
-    this.searchText = initialQuery.length > 0 ? this.query : DEFAULT_SEARCH_TERM;
+    this.searchText = initialQuery.length > 0 ? this.query : '';
     this.activeQuery = initialQuery;
     this.selectedScope = this.initialScope ?? 'all';
     if (this.activeQuery.length > 0) {

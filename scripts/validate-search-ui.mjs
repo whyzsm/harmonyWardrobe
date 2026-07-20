@@ -110,8 +110,8 @@ if (!/const DEFAULT_SEARCH_TERM = '上衣'/.test(resultPage)) {
   throw new Error('SearchResultsPage must default empty searches to 上衣');
 }
 
-if (!/aboutToAppear\(\)[\s\S]*?const initialQuery = this\.query\.trim\(\)[\s\S]*?this\.searchText = initialQuery\.length > 0 \? this\.query : DEFAULT_SEARCH_TERM[\s\S]*?this\.activeQuery = initialQuery/.test(resultPage)) {
-  throw new Error('SearchResultsPage must initialize empty query with the default clothing term');
+if (!/aboutToAppear\(\)[\s\S]*?const initialQuery = this\.query\.trim\(\)[\s\S]*?this\.searchText = initialQuery\.length > 0 \? this\.query : ''[\s\S]*?this\.activeQuery = initialQuery/.test(resultPage)) {
+  throw new Error('SearchResultsPage must keep the input empty until the user submits an empty search');
 }
 
 if (!/submitSearch\(term: string = ''\)[\s\S]*?const trimmedQuery = this\.searchText\.trim\(\)[\s\S]*?const nextQuery = trimmedQuery\.length > 0 \? trimmedQuery : DEFAULT_SEARCH_TERM[\s\S]*?this\.searchText = nextQuery/.test(resultPage)) {
@@ -120,6 +120,10 @@ if (!/submitSearch\(term: string = ''\)[\s\S]*?const trimmedQuery = this\.search
 
 if (!/SearchHeader\(\)[\s\S]*?TextInput\(\{ text: this\.searchText, placeholder: '搜索衣服、商场、穿搭' \}\)[\s\S]*?this\.clearSearch\(\)[\s\S]*?this\.submitSearch\(\)/.test(resultPage)) {
   throw new Error('SearchResultsPage must implement the designed search controls');
+}
+
+if (!/TextInput\(\{ text: this\.searchText, placeholder: '搜索衣服、商场、穿搭' \}\)[\s\S]*?\.fontColor\(YibuqueColor\.textPrimary\)[\s\S]*?\.placeholderColor\(YibuqueColor\.textTertiary\)/.test(resultPage)) {
+  throw new Error('SearchResultsPage search input must keep actual input and placeholder colors separate');
 }
 
 if (/SearchHeader\(\)[\s\S]*?sys\.symbol\.(camera_fill|picture)/.test(resultPage)) {
