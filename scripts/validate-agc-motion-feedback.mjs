@@ -12,6 +12,15 @@ const clothingEdit = fs.readFileSync('entry/src/main/ets/pages/ClothingEditPage.
 const outfitEdit = fs.readFileSync('entry/src/main/ets/pages/OutfitEditPage.ets', 'utf8');
 const quickCapture = fs.readFileSync('entry/src/main/ets/components/QuickCaptureSheet.ets', 'utf8');
 const tokens = fs.readFileSync('entry/src/main/ets/theme/Tokens.ets', 'utf8');
+const fullScreenTransition = 'YibuqueMotion.fullScreenPageTransition';
+const sheetTransition = 'YibuqueMotion.sheetTransition';
+
+if (!/fullScreenPageTransition:\s*350/.test(tokens)) {
+  throw new Error('YibuqueMotion.fullScreenPageTransition must be 350ms');
+}
+if (!/sheetTransition:\s*300/.test(tokens)) {
+  throw new Error('YibuqueMotion.sheetTransition must remain 300ms');
+}
 
 function methodSource(source, methodName) {
   const signature = new RegExp(`private (?:async )?${methodName}\\(`).exec(source);
@@ -40,11 +49,24 @@ function matchingBraceEnd(source, bodyStart) {
   return -1;
 }
 
-function assertAnimationHelper(source, file, helperName) {
+function assertAnimationHelper(source, file, helperName, durationExpression) {
   const helper = methodSource(source, helperName);
-  const animatedChange = /this\.getUIContext\(\)\.animateTo\(\{\s*duration: 300,\s*curve: Curve\.EaseOut\s*\},\s*\(\) => \{\s*change\(\);\s*\}\);/;
-  if (!animatedChange.test(helper)) {
-    throw new Error(`${file} ${helperName} must run changes inside a 300ms UIContext animation`);
+  const requiredFragments = [
+    `duration: ${durationExpression}`,
+    'curve: Curve.EaseOut',
+    'onFinish: () => {',
+    'change();',
+    'InProgress = false'
+  ];
+  for (const fragment of requiredFragments) {
+    if (!helper.includes(fragment)) {
+      throw new Error(`${file} ${helperName} missing animated transition fragment: ${fragment}`);
+    }
+  }
+
+  if (!/if \(this\.\w+TransitionInProgress\) \{\s*return;\s*\}/.test(helper) ||
+    !/this\.\w+TransitionInProgress = true;/.test(helper)) {
+    throw new Error(`${file} ${helperName} must ignore duplicate transitions while one is running`);
   }
 }
 
@@ -184,9 +206,20 @@ for (let pageIndex = 0; pageIndex < topLevelPages.length; pageIndex++) {
 }
 
 const transitionToRoute = methodSource(index, 'transitionToRoute');
-const animatedRouteAssignment = /this\.getUIContext\(\)\.animateTo\(\{\s*duration: 300,\s*curve: Curve\.EaseOut\s*\},\s*\(\) => \{\s*this\.activeRoute = route;\s*this\.featureNestedContentVisible = false;\s*\}\);/;
-if (!animatedRouteAssignment.test(transitionToRoute)) {
-  throw new Error('Index activeRoute assignment must stay inside the UIContext animation closure');
+for (const fragment of [
+  `duration: ${fullScreenTransition}`,
+  'this.activeRoute = route;',
+  'this.featureNestedContentVisible = false;',
+  'onFinish: () => {',
+  'this.routeTransitionInProgress = false;'
+]) {
+  if (!transitionToRoute.includes(fragment)) {
+    throw new Error(`Index transitionToRoute missing animated route fragment: ${fragment}`);
+  }
+}
+if (!/if \(this\.routeTransitionInProgress\) \{\s*return;\s*\}/.test(transitionToRoute) ||
+  !/this\.routeTransitionInProgress = true;/.test(transitionToRoute)) {
+  throw new Error('Index transitionToRoute must ignore duplicate route transitions while one is running');
 }
 
 for (const methodName of [
@@ -229,7 +262,7 @@ for (const [file, source, states] of [
   ['StoreVisitPage', storeVisit, ['showEditor', 'showDetail']],
   ['WishlistPage', wishlist, ['showEditor', 'showUnifiedSearch']]
 ]) {
-  assertAnimationHelper(source, file, 'animateNestedPageChange');
+  assertAnimationHelper(source, file, 'animateNestedPageChange', fullScreenTransition);
   assertStateAssignmentsAnimated(source, file, states, 'animateNestedPageChange');
   if (source.includes('TransitionEffect.OPACITY.animation(')) {
     throw new Error(`${file} nested transition timing must come from one UIContext animation context`);
@@ -245,7 +278,7 @@ assertComponentTransitions(storeVisit, 'StoreVisitPage',
 assertComponentTransitions(wishlist, 'WishlistPage',
   ['WishlistEditPage', 'SearchResultsPage'], 3);
 
-assertAnimationHelper(profile, 'ProfilePage', 'animateSheetChange');
+assertAnimationHelper(profile, 'ProfilePage', 'animateSheetChange', sheetTransition);
 assertStateAssignmentsAnimated(profile, 'ProfilePage',
   ['isEditingMeasurements', 'isEditingDistricts', 'isEditingBudget'], 'animateSheetChange');
 

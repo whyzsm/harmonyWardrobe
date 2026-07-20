@@ -173,12 +173,12 @@ for (const [page, callback] of [
   }
 }
 
-for (const [page, callback] of [
-  [outfitsPage, 'this.closeUnifiedSearch();\n          this.onOpenSearchTarget'],
-  [wardrobePage, 'this.closeUnifiedSearch();\n          this.onOpenSearchTarget']
-]) {
-  if (!page.includes(callback)) {
-    throw new Error(`Search result navigation must close the current search before routing: ${callback}`);
+for (const page of [outfitsPage, wardrobePage]) {
+  if (!page.includes('this.onOpenSearchTarget(')) {
+    throw new Error('Search result navigation must forward external results to the parent route');
+  }
+  if (page.includes('this.closeUnifiedSearch();\n          this.onOpenSearchTarget')) {
+    throw new Error('Search result navigation must not start a nested close animation before parent routing');
   }
 }
 

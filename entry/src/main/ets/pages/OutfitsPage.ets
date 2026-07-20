@@ -8,7 +8,7 @@ import { SearchEntityType } from '../domain/search/SearchModels';
 import { WearLog } from '../domain/wearLog/WearLogModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
+import { YibuqueColor, YibuqueMotion, YibuqueRadius } from '../theme/Tokens';
 import { ArrayDataSource } from '../utils/ArrayDataSource';
 import { userFacingError } from '../utils/userFacingError';
 import { OutfitDetailPage } from './OutfitDetailPage';
@@ -80,6 +80,7 @@ export struct OutfitsPage {
   @State private pressedOutfitCardId: string = '';
   @State private showUnifiedSearch: boolean = false;
   @State private unifiedSearchQuery: string = '';
+  private nestedPageTransitionInProgress: boolean = false;
 
   aboutToAppear(): void {
     this.loadOutfits();
@@ -264,9 +265,17 @@ export struct OutfitsPage {
   }
 
   private animateNestedPageChange(change: () => void): void {
+    if (this.nestedPageTransitionInProgress) {
+      return;
+    }
+
+    this.nestedPageTransitionInProgress = true;
     this.getUIContext().animateTo({
-      duration: 300,
-      curve: Curve.EaseOut
+      duration: YibuqueMotion.fullScreenPageTransition,
+      curve: Curve.EaseOut,
+      onFinish: () => {
+        this.nestedPageTransitionInProgress = false;
+      }
     }, () => {
       change();
     });
@@ -500,30 +509,24 @@ export struct OutfitsPage {
         clothingRepository: this.clothingRepository,
         outfitRepository: this.outfitRepository,
         onOpenClothingResult: (id: string) => {
-          this.closeUnifiedSearch();
           this.onOpenSearchTarget(SearchEntityType.Clothing, id, '');
         },
         onOpenOutfitResult: (id: string) => {
           this.openOutfitSearchResult(id);
         },
         onOpenStoreResult: (entityType: SearchEntityType, id: string, title: string) => {
-          this.closeUnifiedSearch();
           this.onOpenSearchTarget(entityType, id, title);
         },
         onOpenWishlistResult: (id: string) => {
-          this.closeUnifiedSearch();
           this.onOpenSearchTarget(SearchEntityType.Wishlist, id, '');
         },
         onOpenWearLogResult: (id: string) => {
-          this.closeUnifiedSearch();
           this.onOpenSearchTarget(SearchEntityType.WearLog, id, '');
         },
         onOpenProfileResult: (entityType: SearchEntityType, id: string) => {
-          this.closeUnifiedSearch();
           this.onOpenSearchTarget(entityType, id, '');
         },
         onOpenCameraSearch: () => {
-          this.closeUnifiedSearch();
           this.onOpenCapture();
         },
         onClose: () => {

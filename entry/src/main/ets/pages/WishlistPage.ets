@@ -7,7 +7,7 @@ import { SearchEntityType } from '../domain/search/SearchModels';
 import { WishlistItem } from '../domain/wishlist/WishlistModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { YibuqueColor, YibuqueFontSize, YibuqueRadius } from '../theme/Tokens';
+import { YibuqueColor, YibuqueFontSize, YibuqueMotion, YibuqueRadius } from '../theme/Tokens';
 import { SearchResultsPage } from './SearchResultsPage';
 import { WishlistEditPage } from './WishlistEditPage';
 
@@ -40,6 +40,7 @@ export struct WishlistPage {
   @State private loading: boolean = false;
   @State private errorMessage: string = '';
   @State private openedFromInitialRoute: boolean = false;
+  private nestedPageTransitionInProgress: boolean = false;
 
   aboutToAppear(): void {
     this.loadWishlistItems();
@@ -89,9 +90,17 @@ export struct WishlistPage {
   }
 
   private animateNestedPageChange(change: () => void): void {
+    if (this.nestedPageTransitionInProgress) {
+      return;
+    }
+
+    this.nestedPageTransitionInProgress = true;
     this.getUIContext().animateTo({
-      duration: 300,
-      curve: Curve.EaseOut
+      duration: YibuqueMotion.fullScreenPageTransition,
+      curve: Curve.EaseOut,
+      onFinish: () => {
+        this.nestedPageTransitionInProgress = false;
+      }
     }, () => {
       change();
     });
@@ -217,7 +226,6 @@ export struct WishlistPage {
           });
         },
         onOpenCameraSearch: () => {
-          this.closeUnifiedSearch();
           if (this.onOpenCapture !== undefined) {
             this.onOpenCapture();
           }

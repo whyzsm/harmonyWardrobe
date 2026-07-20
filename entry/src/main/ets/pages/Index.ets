@@ -16,7 +16,7 @@ import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { SearchEntityType } from '../domain/search/SearchModels';
 import { StoreVisit } from '../domain/store/StoreModels';
 import { PhotoSource } from '../media/PhotoModels';
-import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
+import { YibuqueColor, YibuqueMotion, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
 import { MAX_USER_PHOTOS } from '../utils/photoSelection';
 import { userFacingError } from '../utils/userFacingError';
 import { CaptureEditPage } from './CaptureEditPage';
@@ -38,6 +38,7 @@ struct Index {
   @State private featureNestedContentVisible: boolean = false;
   @State private quickActionErrorMessage: string = '';
   @State private isCapturing: boolean = false;
+  private routeTransitionInProgress: boolean = false;
   private runtime?: WardrobeRuntime = undefined;
 
   aboutToAppear(): void {
@@ -87,9 +88,17 @@ struct Index {
   }
 
   private transitionToRoute(route: AppRoute): void {
+    if (this.routeTransitionInProgress) {
+      return;
+    }
+
+    this.routeTransitionInProgress = true;
     this.getUIContext().animateTo({
-      duration: 300,
-      curve: Curve.EaseOut
+      duration: YibuqueMotion.fullScreenPageTransition,
+      curve: Curve.EaseOut,
+      onFinish: () => {
+        this.routeTransitionInProgress = false;
+      }
     }, () => {
       this.activeRoute = route;
       this.featureNestedContentVisible = false;

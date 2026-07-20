@@ -2,7 +2,7 @@ import { StoreRepository } from '../data/repositories/StoreRepository';
 import { StoreVisit, StoreVisitStatus } from '../domain/store/StoreModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
+import { YibuqueColor, YibuqueMotion, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 import { ArrayDataSource } from '../utils/ArrayDataSource';
 import { toIsoDate } from '../utils/date';
 import { userFacingError } from '../utils/userFacingError';
@@ -53,6 +53,7 @@ export struct StoreVisitPage {
   @State private loading: boolean = false;
   @State private errorMessage: string = '';
   @State private pressedVisitCardId: string = '';
+  private nestedPageTransitionInProgress: boolean = false;
 
   aboutToAppear(): void {
     this.loadStoreVisits();
@@ -163,9 +164,17 @@ export struct StoreVisitPage {
   }
 
   private animateNestedPageChange(change: () => void): void {
+    if (this.nestedPageTransitionInProgress) {
+      return;
+    }
+
+    this.nestedPageTransitionInProgress = true;
     this.getUIContext().animateTo({
-      duration: 300,
-      curve: Curve.EaseOut
+      duration: YibuqueMotion.fullScreenPageTransition,
+      curve: Curve.EaseOut,
+      onFinish: () => {
+        this.nestedPageTransitionInProgress = false;
+      }
     }, () => {
       change();
     });

@@ -11,7 +11,7 @@ import {
   PROFILE_WEIGHT_MIN_KG,
   UserProfile
 } from '../domain/profile/ProfileModels';
-import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
+import { YibuqueColor, YibuqueMotion, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 import { userFacingError } from '../utils/userFacingError';
 
 const DEFAULT_FREQUENT_DISTRICTS: string[] = ['静安嘉里', 'iapm', '小众买手店', 'TX 淮海'];
@@ -152,6 +152,7 @@ export struct ProfilePage {
   @State private isEditingDistricts: boolean = false;
   @State private districtDraft: string[] = [];
   @State private districtInput: string = '';
+  private sheetTransitionInProgress: boolean = false;
   @State private frequentDistricts: string[] = [];
   @State private monthlyBudget: number = -1;
   @State private commonBudgets: number[] = DEFAULT_COMMON_BUDGETS.slice();
@@ -364,9 +365,17 @@ export struct ProfilePage {
   }
 
   private animateSheetChange(change: () => void): void {
+    if (this.sheetTransitionInProgress) {
+      return;
+    }
+
+    this.sheetTransitionInProgress = true;
     this.getUIContext().animateTo({
-      duration: 300,
-      curve: Curve.EaseOut
+      duration: YibuqueMotion.sheetTransition,
+      curve: Curve.EaseOut,
+      onFinish: () => {
+        this.sheetTransitionInProgress = false;
+      }
     }, () => {
       change();
     });

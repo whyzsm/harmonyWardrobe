@@ -119,6 +119,11 @@ export interface YibuqueShadowTokens {
   sheetHandle: ShadowOptions;
 }
 
+export interface YibuqueMotionTokens {
+  fullScreenPageTransition: number;
+  sheetTransition: number;
+}
+
 export interface AppThemeRadiusTokens {
   sm: number;
   md: number;
@@ -276,4 +281,9 @@ export const YibuqueShadow: YibuqueShadowTokens = {
   editorSheet: { radius: 24, color: '#12000000', offsetX: 0, offsetY: -6 },
   badge: { radius: 8, color: '#16000000', offsetX: 0, offsetY: 3 },
   sheetHandle: { radius: 28, color: '#29000000', offsetX: 0, offsetY: -8 }
+};
+
+export const YibuqueMotion: YibuqueMotionTokens = {
+  fullScreenPageTransition: 350,
+  sheetTransition: 300
 };
