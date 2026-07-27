@@ -124,6 +124,11 @@ if ((editPage.match(/categoryNames: this\.categoryNamesForSave\(\)/g) ?? []).len
   throw new Error('OutfitEditPage must save all selected categories on create and update');
 }
 
+if (!/const CUSTOM_CATEGORY_INPUT_ID[\s\S]*?private openCustomCategoryInput\(\): void[\s\S]*?inputAlreadyVisible[\s\S]*?focusCustomCategoryInput\(\)[\s\S]*?private focusCustomCategoryInput\(\): void[\s\S]*?getFocusController\(\)\.requestFocus\(CUSTOM_CATEGORY_INPUT_ID\)/.test(editPage) ||
+  !/TextInput\(\{ text: this\.categoryDraft[\s\S]*?\.id\(CUSTOM_CATEGORY_INPUT_ID\)[\s\S]*?\.onAppear\(\(\) => \{[\s\S]*?this\.focusCustomCategoryInput\(\)/.test(editPage)) {
+  throw new Error('OutfitEditPage custom category action must focus the input after it appears and when reopened');
+}
+
 if (/firstPhotoUrisForClothingItemIds|selectedPhotoUris/.test(editPage)) {
   throw new Error('OutfitEditPage must not derive uploaded outfit photos from selected clothing items');
 }

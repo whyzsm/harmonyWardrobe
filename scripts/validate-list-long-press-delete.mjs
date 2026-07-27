@@ -44,7 +44,9 @@ const pageChecks = [
     detailClose: 'this.closeClothingDetail()',
     title: "title: '删除衣物'",
     overlayLabel: "label: '删除衣物'",
-    toast: '衣物已删除'
+    toast: '衣物已删除',
+    cardBuilder: 'WardrobeSearchResultCard',
+    imageAspectRatio: 'this.wardrobeCardAspectRatio(index)'
   },
   {
     path: 'entry/src/main/ets/pages/OutfitsPage.ets',
@@ -60,7 +62,9 @@ const pageChecks = [
     detailClose: 'this.closeOutfitDetail()',
     title: "title: '删除穿搭'",
     overlayLabel: "label: '删除穿搭'",
-    toast: '穿搭已删除'
+    toast: '穿搭已删除',
+    cardBuilder: 'OutfitWallCard',
+    imageAspectRatio: 'this.outfitStackAspectRatio(index)'
   },
   {
     path: 'entry/src/main/ets/pages/StoreVisitPage.ets',
@@ -76,7 +80,9 @@ const pageChecks = [
     detailClose: 'this.closeDetail()',
     title: "title: '删除逛店记录'",
     overlayLabel: "label: '删除逛店记录'",
-    toast: '逛店记录已删除'
+    toast: '逛店记录已删除',
+    cardBuilder: 'StoreVisitResultCard',
+    imageAspectRatio: 'this.cardAspectRatio(index)'
   }
 ];
 
@@ -166,6 +172,22 @@ for (const check of pageChecks) {
   );
   if (!detailDeletePattern.test(page)) {
     throw new Error(`${check.path} detail deletion must close the detail page after repository success`);
+  }
+
+  const priorityLongPressPattern = new RegExp(
+    `${check.cardBuilder}\\([^)]*\\)[\\s\\S]*?\\.priorityGesture\\(\\s*LongPressGesture\\(\\{ repeat: false, duration: 500 \\}\\)`
+  );
+  if (!priorityLongPressPattern.test(page)) {
+    throw new Error(`${check.path} image long press must take priority over WaterFlow scrolling on real devices`);
+  }
+
+  const cardStart = page.indexOf(`  ${check.cardBuilder}(`);
+  const nextBuilder = page.indexOf('\n  @Builder', cardStart + check.cardBuilder.length);
+  const cardBody = nextBuilder < 0 ? page.substring(cardStart) : page.substring(cardStart, nextBuilder);
+  const overlayStart = cardBody.indexOf('DeleteImageOverlay({');
+  const fixedImageContainer = `\n      .width('100%')\n      .aspectRatio(${check.imageAspectRatio})`;
+  if (cardStart < 0 || overlayStart < 0 || cardBody.indexOf(fixedImageContainer, overlayStart) < 0) {
+    throw new Error(`${check.path} delete overlay container must use the same aspect ratio as its card image`);
   }
 }
 

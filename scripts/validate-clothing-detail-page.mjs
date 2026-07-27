@@ -104,6 +104,13 @@ if (!/Text\(this\.itemCategoryLabel\(\)\)[\s\S]*?\.fontColor\(YibuqueColor\.icon
   throw new Error('ClothingDetailPage category badge must match the profile blue icon accent style');
 }
 
+const clothingSummaryCard = detail.match(/@Builder\s+SummaryCard\(\)\s*\{[\s\S]*?\n  \}\n\n  @Builder\s+PurchaseCard/)?.[0] ?? '';
+const clothingSummaryTitle = clothingSummaryCard.match(/Text\(this\.itemName\(\)\)[\s\S]*?(?=\n\n\s+Text\(this\.photoCountText\(\)\))/)?.[0] ?? '';
+if (clothingSummaryTitle.length === 0 || /\.maxLines\(|\.textOverflow\(/.test(clothingSummaryTitle) ||
+  !clothingSummaryTitle.includes('.lineHeight(28)') || !clothingSummaryCard.includes('.alignItems(VerticalAlign.Top)')) {
+  throw new Error('ClothingDetailPage summary title must wrap fully while keeping the category badge top-aligned');
+}
+
 if (detail.includes('暂未填写备注') || !/private hasItemNote\(\): boolean[\s\S]*?if \(this\.hasItemNote\(\)\)[\s\S]*?Text\(this\.itemNote\(\)\)/.test(detail)) {
   throw new Error('ClothingDetailPage must hide the note block when no note exists');
 }

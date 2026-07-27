@@ -70,16 +70,16 @@ export struct QuickCaptureSheet {
         .height(44)
         .alignItems(VerticalAlign.Center)
 
-        this.ActionCard('衣柜', '新增衣物', 'wardrobe', this.isSelectedCategory('wardrobe'), () => {
-          this.onOpenWardrobe();
+        this.ActionCard('穿搭', '新增穿搭', 'outfit', this.isSelectedCategory('outfit'), () => {
+          this.onOpenOutfit();
         })
 
         this.ActionCard('逛店', '新增逛店记录', 'store', this.isSelectedCategory('store'), () => {
           this.onOpenStoreVisit();
         })
 
-        this.ActionCard('穿搭', '新增穿搭', 'outfit', this.isSelectedCategory('outfit'), () => {
-          this.onOpenOutfit();
+        this.ActionCard('衣柜', '新增衣物', 'wardrobe', this.isSelectedCategory('wardrobe'), () => {
+          this.onOpenWardrobe();
         })
       }
       .width('100%')

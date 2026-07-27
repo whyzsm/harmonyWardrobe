@@ -35,6 +35,7 @@ function editableOutfitTitle(title: string): string {
 
 const OUTFIT_DISPLAY_SOURCE_PHOTO = OutfitDisplaySource.Photo;
 const OUTFIT_DISPLAY_SOURCE_WARDROBE = OutfitDisplaySource.Wardrobe;
+const CUSTOM_CATEGORY_INPUT_ID = 'outfit_custom_category_input';
 
 @Component
 export struct OutfitEditPage {
@@ -154,7 +155,19 @@ export struct OutfitEditPage {
       return;
     }
 
+    const inputAlreadyVisible = this.showCustomCategoryInput;
     this.showCustomCategoryInput = true;
+    if (inputAlreadyVisible) {
+      this.focusCustomCategoryInput();
+    }
+  }
+
+  private focusCustomCategoryInput(): void {
+    try {
+      this.getUIContext().getFocusController().requestFocus(CUSTOM_CATEGORY_INPUT_ID);
+    } catch (error) {
+      this.errorMessage = userFacingError(error, '分类输入框暂时无法聚焦');
+    }
   }
 
   private updateCategoryDraft(value: string): void {
@@ -777,6 +790,7 @@ export struct OutfitEditPage {
 
       if (this.showCustomCategoryInput) {
         TextInput({ text: this.categoryDraft, placeholder: '输入分类名称' })
+          .id(CUSTOM_CATEGORY_INPUT_ID)
           .width('100%')
           .height(48)
           .padding({ left: 14, right: 14 })
@@ -790,6 +804,9 @@ export struct OutfitEditPage {
             color: this.categoryValidationError().length > 0 ? YibuqueColor.danger : YibuqueColor.borderMedium
           })
           .enabled(!this.isSaving && this.deletingCategoryId.length === 0)
+          .onAppear(() => {
+            this.focusCustomCategoryInput();
+          })
           .onChange((value: string) => {
             this.updateCategoryDraft(value);
           })

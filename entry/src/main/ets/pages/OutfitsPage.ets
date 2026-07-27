@@ -1,5 +1,6 @@
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { DeleteImageOverlay } from '../components/DeleteImageOverlay';
+import { SavedFilterNotice } from '../components/SavedFilterNotice';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { SearchRepository } from '../data/repositories/SearchRepository';
 import { WearLogRepository } from '../data/repositories/WearLogRepository';
@@ -70,6 +71,7 @@ export struct OutfitsPage {
   @State private pressedOutfitCardId: string = '';
   @State private deletingOutfitId: string = '';
   @State private deleteOverlayOutfitId: string = '';
+  @State private savedOutfitOutsideCurrentFilterId: string = '';
   @State private showUnifiedSearch: boolean = false;
   @State private unifiedSearchQuery: string = '';
   private outfitCardClickBlockedUntil: number = 0;
@@ -329,7 +331,25 @@ export struct OutfitsPage {
 
     this.outfits = nextOutfits;
     this.refreshOutfitDataSource();
+    this.savedOutfitOutsideCurrentFilterId = this.filterOutfits().some((outfit: OutfitTemplate) => outfit.id === savedOutfit.id)
+      ? ''
+      : savedOutfit.id;
     this.refreshOutfitCategories();
+  }
+
+  private savedOutfitIsOutsideCurrentFilter(): boolean {
+    if (this.savedOutfitOutsideCurrentFilterId.length === 0) {
+      return false;
+    }
+
+    return !this.filterOutfits().some((outfit: OutfitTemplate) => outfit.id === this.savedOutfitOutsideCurrentFilterId);
+  }
+
+  private showAllOutfitsFromSaveNotice(): void {
+    this.searchQuery = '';
+    this.selectedCategoryId = '';
+    this.savedOutfitOutsideCurrentFilterId = '';
+    this.refreshOutfitDataSource();
   }
 
   private async refreshOutfitCategories(): Promise<void> {
@@ -444,10 +464,14 @@ export struct OutfitsPage {
     this.closeWearLogEditor();
   }
 
-  private closeOutfitEditor(): void {
+  private closeOutfitEditor(returnToList: boolean = false): void {
     this.animateNestedPageChange(() => {
       this.showOutfitEditor = false;
       this.selectedOutfitId = '';
+      if (returnToList) {
+        this.showOutfitDetail = false;
+        this.detailOutfitId = '';
+      }
       this.onNestedPageVisibilityChange(this.showOutfitDetail);
     });
   }
@@ -518,7 +542,7 @@ export struct OutfitsPage {
         photoStorage: this.photoStorage,
         onSave: (outfit: OutfitTemplate) => {
           this.upsertOutfit(outfit);
-          this.closeOutfitEditor();
+          this.closeOutfitEditor(true);
         },
         onCancel: () => {
           this.closeOutfitEditor();
@@ -597,6 +621,12 @@ export struct OutfitsPage {
         Column({ space: 14 }) {
           this.OutfitSearchHeader()
           this.FilterStrip()
+          SavedFilterNotice({
+            visible: this.savedOutfitIsOutsideCurrentFilter(),
+            onViewAll: () => {
+              this.showAllOutfitsFromSaveNotice();
+            }
+          })
           this.OutfitGuideCard()
 
           if (this.loading) {
@@ -958,7 +988,7 @@ export struct OutfitsPage {
       .onClick(() => {
         this.handleOutfitCardClick(outfit);
       })
-      .gesture(
+      .priorityGesture(
         LongPressGesture({ repeat: false, duration: 500 })
           .onAction(() => {
             this.showOutfitDeleteOverlay(outfit);

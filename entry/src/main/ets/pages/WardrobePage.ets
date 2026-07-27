@@ -2,6 +2,7 @@ import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { SearchRepository } from '../data/repositories/SearchRepository';
 import { DeleteImageOverlay } from '../components/DeleteImageOverlay';
+import { SavedFilterNotice } from '../components/SavedFilterNotice';
 import { ClothingCategory } from '../domain/clothing/ClothingCategory';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { SearchEntityType } from '../domain/search/SearchModels';
@@ -57,6 +58,7 @@ export struct WardrobePage {
   @State private pressedWardrobeItemId: string = '';
   @State private deletingClothingId: string = '';
   @State private deleteOverlayClothingId: string = '';
+  @State private savedClothingOutsideCurrentFilterId: string = '';
   private clothingCardClickBlockedUntil: number = 0;
   private nestedPageTransitionInProgress: boolean = false;
 
@@ -242,10 +244,15 @@ export struct WardrobePage {
     });
   }
 
-  private closeEditor(): void {
+  private closeEditor(returnToList: boolean = false): void {
     this.animateNestedPageChange(() => {
       this.showEditor = false;
       this.editingClothingId = '';
+      if (returnToList) {
+        this.showClothingDetail = false;
+        this.detailClothingId = '';
+        this.onDetailModeChange(false);
+      }
       this.onClothingEditorVisibilityChange(false);
       this.onNestedPageVisibilityChange(this.showClothingDetail);
     });
@@ -301,6 +308,24 @@ export struct WardrobePage {
     }
 
     this.clothingItems = nextItems;
+    this.refreshClothingDataSource();
+    this.savedClothingOutsideCurrentFilterId = this.filterClothingItems().some((item: ClothingItem) => item.id === savedItem.id)
+      ? ''
+      : savedItem.id;
+  }
+
+  private savedClothingIsOutsideCurrentFilter(): boolean {
+    if (this.savedClothingOutsideCurrentFilterId.length === 0) {
+      return false;
+    }
+
+    return !this.filterClothingItems().some((item: ClothingItem) => item.id === this.savedClothingOutsideCurrentFilterId);
+  }
+
+  private showAllClothingFromSaveNotice(): void {
+    this.searchQuery = '';
+    this.selectedCategoryLabel = '全部';
+    this.savedClothingOutsideCurrentFilterId = '';
     this.refreshClothingDataSource();
   }
 
@@ -437,10 +462,7 @@ export struct WardrobePage {
         photoStorage: this.photoStorage,
         onSave: (item: ClothingItem) => {
           this.upsertClothingItem(item);
-          this.closeEditor();
-          if (this.showClothingDetail) {
-            this.detailClothingId = item.id;
-          }
+          this.closeEditor(true);
         },
         onCancel: () => {
           this.closeEditor();
@@ -519,6 +541,13 @@ export struct WardrobePage {
       }
 
       this.WardrobeSearchTabs()
+
+      SavedFilterNotice({
+        visible: this.savedClothingIsOutsideCurrentFilter(),
+        onViewAll: () => {
+          this.showAllClothingFromSaveNotice();
+        }
+      })
 
       if (this.visibleClothingItems().length === 0) {
         Column({ space: 10 }) {
@@ -749,7 +778,8 @@ export struct WardrobePage {
         }
       }
       .width('100%')
-      .gesture(
+      .aspectRatio(this.wardrobeCardAspectRatio(index))
+      .priorityGesture(
         LongPressGesture({ repeat: false, duration: 500 })
           .onAction(() => {
             this.showClothingDeleteOverlay(item);

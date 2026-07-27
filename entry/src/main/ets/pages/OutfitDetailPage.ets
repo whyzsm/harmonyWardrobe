@@ -353,8 +353,7 @@ export struct OutfitDetailPage {
             .fontSize(22)
             .fontWeight(FontWeight.Regular)
             .fontColor(YibuqueColor.textPrimary)
-            .maxLines(2)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .lineHeight(28)
 
           Text(`${this.categoryText()} · ${this.photoCountText()}`)
             .fontSize(13)
@@ -374,7 +373,7 @@ export struct OutfitDetailPage {
           .border({ width: 1, color: YibuqueColor.iconAccentSurface })
       }
       .width('100%')
-      .alignItems(VerticalAlign.Center)
+      .alignItems(VerticalAlign.Top)
 
       if (this.hasNoteText()) {
         Text(this.noteText())

@@ -2,9 +2,9 @@
 
 ## 产品方向 / Product Direction
 
-`衣不缺` 是一款本地优先、图片优先的个人衣柜与逛店记录应用。核心流程是点击底部相机，从“衣柜 / 逛店 / 穿搭”中选择新增目标；直接进入对应新增页面后，仍可通过拍照或相册选择添加记录。
+`衣不缺` 是一款本地优先、图片优先的个人衣柜与逛店记录应用。核心流程是点击底部相机，从“穿搭 / 逛店 / 衣柜”中选择新增目标；直接进入对应新增页面后，仍可通过拍照或相册选择添加记录。
 
-`Yibuque` is a local-first, image-first personal wardrobe and store-visit app. The primary flow starts from the bottom camera, opens a `衣柜 / 逛店 / 穿搭` create destination, and keeps camera or gallery capture available inside the relevant create page.
+`Yibuque` is a local-first, image-first personal wardrobe and store-visit app. The primary flow starts from the bottom camera, opens a `穿搭 / 逛店 / 衣柜` create destination, and keeps camera or gallery capture available inside the relevant create page.
 
 视觉方向采用轻量白底、浅灰表面、黑色正文、蓝色选中强调和黑色主操作。页面应以真实照片为主要内容，保持低文字密度、清晰层级和安静的工具感。
 
@@ -112,14 +112,18 @@ The app opens the Outfits page by default on a cold start and highlights the Out
 
 快捷录入弹层使用白色贴底面板、顶部圆角、灰色遮罩和中性阴影；面板底部必须贴到屏幕底部，不能悬浮露出遮罩。标题为“快捷录入”，右侧“取消”使用蓝色强调色。
 
+三个入口从上到下依次为“穿搭 / 逛店 / 衣柜”。
+
 The quick capture sheet uses a white bottom-attached panel, rounded top corners, a gray scrim, and a neutral shadow; the panel must reach the bottom edge instead of floating above the scrim. Its title is `快捷录入`, with a blue `取消` action.
 
-- “衣柜”：黑色主卡片、深灰图标底板和白色衣物系统图标。
-- `衣柜`: black primary card with a dark-gray icon surface and a white shirt system icon.
-- “逛店”：白色描边卡片、浅蓝图标底板和蓝色店铺图标。
-- `逛店`: white outlined card with a light-blue icon surface and a blue store icon.
+The three actions appear from top to bottom as `Outfit / Store Visit / Wardrobe`.
+
 - “穿搭”：白色描边卡片、浅蓝图标底板和蓝色衣架图标。
 - `穿搭`: white outlined card with a light-blue icon surface and a blue hanger icon.
+- “逛店”：白色描边卡片、浅蓝图标底板和蓝色店铺图标。
+- `逛店`: white outlined card with a light-blue icon surface and a blue store icon.
+- “衣柜”：黑色主卡片、深灰图标底板和白色衣物系统图标。
+- `衣柜`: black primary card with a dark-gray icon surface and a white shirt system icon.
 
 ### 卡片与空态 / Cards And Empty States
 
@@ -167,7 +171,11 @@ Use item, try-on, and tag modes with a large preview, recognition badge, categor
 
 使用搜索、状态筛选、路线卡和双列图片墙。loading、empty、error 和重试状态必须保留。
 
+逛店详情主图点击后进入全屏等比预览；多图支持左右滑动，并显示当前序号和关闭操作，与衣柜和穿搭详情保持一致。
+
 Use search, status filters, a route card, and a two-column photo wall. Preserve loading, empty, error, and retry states.
+
+Tapping the store-visit detail hero image opens a full-screen contain preview. Multiple images support horizontal swiping with a position counter and close action, matching wardrobe and outfit details.
 
 ### 我的 / Profile
 

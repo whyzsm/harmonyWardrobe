@@ -34,7 +34,6 @@ for (const needle of [
   'activeQuery',
   'selectedScope',
   'historyTerms',
-  'SEARCH_SUGGESTIONS',
   'DEFAULT_SEARCH_TERM',
   'submitSearch',
   'clearSearch',
@@ -66,7 +65,6 @@ for (const needle of [
   "placeholder: '搜索衣服、商场、穿搭'",
   "Text('搜索')",
   "Text('历史记录')",
-  "Text('猜你想搜')",
   "'全部'",
   "'衣柜'",
   "'逛店'",
@@ -141,8 +139,14 @@ if (/SearchHeader\(\)[\s\S]*?sys\.symbol\.(camera_fill|picture)/.test(resultPage
   throw new Error('SearchResultsPage must not expose unavailable camera/gallery search icons');
 }
 
-if (!/IdlePanel\(\)[\s\S]*?historyTerms[\s\S]*?SEARCH_SUGGESTIONS[\s\S]*?this\.submitSearch\(term\)/.test(resultPage)) {
-  throw new Error('SearchResultsPage must render interactive history and suggestion chips');
+if (!/IdlePanel\(\)[\s\S]*?historyTerms[\s\S]*?this\.SearchChip\(term\)[\s\S]*?this\.submitSearch\(term\)/.test(resultPage)) {
+  throw new Error('SearchResultsPage must render interactive history chips');
+}
+
+for (const forbiddenSuggestion of ['SEARCH_SUGGESTIONS', "Text('猜你想搜')", '连衣裙尺码', '周末快闪店', '黑白针织', '小众买手店']) {
+  if (resultPage.includes(forbiddenSuggestion)) {
+    throw new Error(`SearchResultsPage must not render fixed search suggestions: ${forbiddenSuggestion}`);
+  }
 }
 
 if (!/ResultsPanel\(\)[\s\S]*?List\(\)[\s\S]*?LazyForEach\(this\.visualResultDataSource[\s\S]*?ListItem\(\)[\s\S]*?this\.ResultCard\(result/.test(resultPage)) {

@@ -411,8 +411,7 @@ export struct ClothingDetailPage {
             .fontSize(22)
             .fontWeight(FontWeight.Regular)
             .fontColor(YibuqueColor.textPrimary)
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
+            .lineHeight(28)
 
           Text(this.photoCountText())
             .fontSize(13)
@@ -433,7 +432,7 @@ export struct ClothingDetailPage {
           .border({ width: 1, color: YibuqueColor.iconAccentSurface })
       }
       .width('100%')
-      .alignItems(VerticalAlign.Center)
+      .alignItems(VerticalAlign.Top)
 
       if (this.hasItemNote()) {
         Text(this.itemNote())

@@ -31,7 +31,6 @@ const SEARCH_SCOPES: SearchScopeOption[] = [
   { key: 'outfits', label: '穿搭' }
 ];
 
-const SEARCH_SUGGESTIONS: string[] = ['连衣裙尺码', '周末快闪店', '黑白针织', '小众买手店'];
 const DEFAULT_SEARCH_TERM = '上衣';
 
 function entityTypeLabel(entityType: SearchEntityType): string {
@@ -573,28 +572,11 @@ export struct SearchResultsPage {
         if (this.historyTerms.length > 0) {
           Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
             ForEach(this.historyTerms, (term: string) => {
-              this.SearchChip(term, false)
+              this.SearchChip(term)
             }, (term: string) => term)
           }
           .width('100%')
         }
-      }
-      .width('100%')
-      .alignItems(HorizontalAlign.Start)
-
-      Column({ space: 12 }) {
-        Text('猜你想搜')
-          .width('100%')
-          .fontSize(20)
-          .fontWeight(FontWeight.Regular)
-          .fontColor(YibuqueColor.textPrimary)
-
-        Flex({ wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
-          ForEach(SEARCH_SUGGESTIONS, (term: string) => {
-            this.SearchChip(term, true)
-          }, (term: string) => term)
-        }
-        .width('100%')
       }
       .width('100%')
       .alignItems(HorizontalAlign.Start)
@@ -606,7 +588,7 @@ export struct SearchResultsPage {
   }
 
   @Builder
-  SearchChip(term: string, suggested: boolean) {
+  SearchChip(term: string) {
     Text(term)
       .constraintSize({ minHeight: 44 })
       .padding({ left: 15, right: 15 })
@@ -614,9 +596,9 @@ export struct SearchResultsPage {
       .fontSize(14)
       .fontColor(YibuqueColor.textPrimary)
       .textAlign(TextAlign.Center)
-      .backgroundColor(suggested ? YibuqueColor.cardSoftGray : YibuqueColor.bgDefault)
+      .backgroundColor(YibuqueColor.bgDefault)
       .borderRadius(YibuqueRadius.full)
-      .border({ width: suggested ? 0 : 1, color: YibuqueColor.borderLight })
+      .border({ width: 1, color: YibuqueColor.borderLight })
       .onClick(() => {
         this.submitSearch(term);
       })

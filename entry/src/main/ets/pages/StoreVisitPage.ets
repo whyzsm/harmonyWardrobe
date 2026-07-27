@@ -7,6 +7,7 @@ import { SearchEntityType } from '../domain/search/SearchModels';
 import { StoreVisit, StoreVisitStatus } from '../domain/store/StoreModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
+import { SavedFilterNotice } from '../components/SavedFilterNotice';
 import { YibuqueColor, YibuqueMotion, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 import { ArrayDataSource } from '../utils/ArrayDataSource';
 import { toIsoDate } from '../utils/date';
@@ -66,6 +67,7 @@ export struct StoreVisitPage {
   @State private pressedVisitCardId: string = '';
   @State private deletingVisitId: string = '';
   @State private deleteOverlayVisitId: string = '';
+  @State private savedVisitOutsideCurrentFilterId: string = '';
   @State private showUnifiedSearch: boolean = false;
   @State private unifiedSearchQuery: string = '';
   private visitCardClickBlockedUntil: number = 0;
@@ -224,10 +226,14 @@ export struct StoreVisitPage {
     });
   }
 
-  private closeEditor(): void {
+  private closeEditor(returnToList: boolean = false): void {
     this.animateNestedPageChange(() => {
       this.showEditor = false;
       this.editingVisitId = '';
+      if (returnToList) {
+        this.showDetail = false;
+        this.detailVisitId = '';
+      }
       this.onEditorVisibilityChange(this.showDetail);
     });
   }
@@ -316,6 +322,24 @@ export struct StoreVisitPage {
       nextVisits.unshift(savedVisit);
     }
     this.visits = nextVisits;
+    this.refreshStoreVisitDataSource();
+    this.savedVisitOutsideCurrentFilterId = this.filterStoreVisits().some((visit: StoreVisit) => visit.id === savedVisit.id)
+      ? ''
+      : savedVisit.id;
+  }
+
+  private savedVisitIsOutsideCurrentFilter(): boolean {
+    if (this.savedVisitOutsideCurrentFilterId.length === 0) {
+      return false;
+    }
+
+    return !this.filterStoreVisits().some((visit: StoreVisit) => visit.id === this.savedVisitOutsideCurrentFilterId);
+  }
+
+  private showAllVisitsFromSaveNotice(): void {
+    this.searchQuery = '';
+    this.selectedStatus = 'all';
+    this.savedVisitOutsideCurrentFilterId = '';
     this.refreshStoreVisitDataSource();
   }
 
@@ -478,7 +502,7 @@ export struct StoreVisitPage {
         photoStorage: this.photoStorage,
         onSave: (visit: StoreVisit) => {
           this.upsertVisit(visit);
-          this.closeEditor();
+          this.closeEditor(true);
         },
         onCancel: () => {
           this.closeEditor();
@@ -533,6 +557,13 @@ export struct StoreVisitPage {
     } else {
       Column() {
         this.StoreVisitControls()
+
+        SavedFilterNotice({
+          visible: this.savedVisitIsOutsideCurrentFilter(),
+          onViewAll: () => {
+            this.showAllVisitsFromSaveNotice();
+          }
+        })
 
         if (this.loading) {
           this.LoadingState()
@@ -782,7 +813,8 @@ export struct StoreVisitPage {
         }
       }
       .width('100%')
-      .gesture(
+      .aspectRatio(this.cardAspectRatio(index))
+      .priorityGesture(
         LongPressGesture({ repeat: false, duration: 500 })
           .onAction(() => {
             this.showVisitDeleteOverlay(visit);

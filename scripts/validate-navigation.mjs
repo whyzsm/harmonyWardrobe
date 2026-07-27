@@ -64,6 +64,20 @@ for (const action of ['衣柜', '逛店', '穿搭']) {
   }
 }
 
+const quickCaptureActionsInOrder = [
+  "this.ActionCard('穿搭', '新增穿搭', 'outfit'",
+  "this.ActionCard('逛店', '新增逛店记录', 'store'",
+  "this.ActionCard('衣柜', '新增衣物', 'wardrobe'"
+];
+let previousQuickCaptureActionIndex = -1;
+for (const quickCaptureAction of quickCaptureActionsInOrder) {
+  const quickCaptureActionIndex = sheet.indexOf(quickCaptureAction);
+  if (quickCaptureActionIndex <= previousQuickCaptureActionIndex) {
+    throw new Error(`QuickCaptureSheet missing or out of order: ${quickCaptureAction}`);
+  }
+  previousQuickCaptureActionIndex = quickCaptureActionIndex;
+}
+
 for (const copy of ['新增衣物', '新增逛店记录', '新增穿搭']) {
   if (!sheet.includes(copy)) {
     throw new Error(`QuickCaptureSheet missing create copy ${copy}`);

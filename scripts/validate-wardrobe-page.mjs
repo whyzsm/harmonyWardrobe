@@ -172,6 +172,11 @@ if (!/WardrobeSearchResultCard\(item: ClothingItem, index: number\)[\s\S]*?CardC
   throw new Error('Wardrobe card should render title and secondary text in one compact row');
 }
 
+if (!/private closeEditor\(returnToList: boolean = false\)[\s\S]*?this\.showEditor = false;[\s\S]*?if \(returnToList\) \{[\s\S]*?this\.showClothingDetail = false;[\s\S]*?this\.detailClothingId = '';[\s\S]*?this\.onDetailModeChange\(false\);[\s\S]*?onNestedPageVisibilityChange\(this\.showClothingDetail\)/.test(text) ||
+  !/ClothingEditPage\(\{[\s\S]*?onSave: \(item: ClothingItem\) => \{[\s\S]*?this\.upsertClothingItem\(item\);[\s\S]*?this\.closeEditor\(true\);[\s\S]*?onCancel: \(\) => \{[\s\S]*?this\.closeEditor\(\);/.test(text)) {
+  throw new Error('WardrobePage must return to the wardrobe waterfall after save while cancel returns to detail');
+}
+
 for (const forbidden of ['wardrobe_demo_', 'designDemoResource', 'DEMO_META', 'debug://']) {
   if (text.includes(forbidden)) {
     throw new Error(`WardrobePage must not include test data fallback ${forbidden}`);

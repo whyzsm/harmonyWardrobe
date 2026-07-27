@@ -132,6 +132,11 @@ if (!/OutfitWallCard\([\s\S]*?\.onClick\(\(\) => \{[\s\S]*?handleOutfitCardClick
   throw new Error('OutfitsPage list cards must open the read-only detail page');
 }
 
+if (!/private closeOutfitEditor\(returnToList: boolean = false\)[\s\S]*?this\.showOutfitEditor = false;[\s\S]*?if \(returnToList\) \{[\s\S]*?this\.showOutfitDetail = false;[\s\S]*?this\.detailOutfitId = '';[\s\S]*?onNestedPageVisibilityChange\(this\.showOutfitDetail\)/.test(text) ||
+  !/OutfitEditPage\(\{[\s\S]*?onSave: \(outfit: OutfitTemplate\) => \{[\s\S]*?this\.upsertOutfit\(outfit\);[\s\S]*?this\.closeOutfitEditor\(true\);[\s\S]*?onCancel: \(\) => \{[\s\S]*?this\.closeOutfitEditor\(\);/.test(text)) {
+  throw new Error('OutfitsPage must return to the outfit waterfall after save while cancel returns to detail');
+}
+
 if (!/WaterFlow\(\)[\s\S]*?LazyForEach\(this\.outfitDataSource[\s\S]*?FlowItem\(\)[\s\S]*?this\.OutfitWallCard\(outfit, index\)/.test(text)) {
   throw new Error('OutfitsPage must render outfit cards as lazy native FlowItems');
 }
@@ -218,6 +223,13 @@ if ((detail.match(/Swiper\(\)/g) ?? []).length < 2) {
 
 if (!/private displayOutfitTitle\(\): string[\s\S]*?穿搭\|美搭[\s\S]*?Text\(this\.displayOutfitTitle\(\)\)/.test(detail)) {
   throw new Error('OutfitDetailPage must hide generated date titles');
+}
+
+const outfitSummaryCard = detail.match(/@Builder\s+SummaryCard\(\)\s*\{[\s\S]*?\n  \}\n\n  @Builder\s+ClothingItemsCard/)?.[0] ?? '';
+const outfitSummaryTitle = outfitSummaryCard.match(/Text\(this\.displayOutfitTitle\(\)\)[\s\S]*?(?=\n\n\s+Text\(`\$\{this\.categoryText\(\)\} · \$\{this\.photoCountText\(\)\}`\))/)?.[0] ?? '';
+if (outfitSummaryTitle.length === 0 || /\.maxLines\(|\.textOverflow\(/.test(outfitSummaryTitle) ||
+  !outfitSummaryTitle.includes('.lineHeight(28)') || !outfitSummaryCard.includes('.alignItems(VerticalAlign.Top)')) {
+  throw new Error('OutfitDetailPage summary title must wrap fully while keeping the item count badge top-aligned');
 }
 
 if (!/private categoryText\(\): string[\s\S]*?categoryNames[\s\S]*?categoryNames\.join\('、'\)[\s\S]*?Text\(`\$\{this\.categoryText\(\)\} · \$\{this\.photoCountText\(\)\}`\)/.test(detail)) {

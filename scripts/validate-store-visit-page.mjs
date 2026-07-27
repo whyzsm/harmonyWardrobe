@@ -95,6 +95,11 @@ if (!page.includes('StoreVisitEditPage({')) {
   throw new Error('StoreVisitPage must keep the real edit record flow');
 }
 
+if (!/private closeEditor\(returnToList: boolean = false\)[\s\S]*?this\.showEditor = false;[\s\S]*?if \(returnToList\) \{[\s\S]*?this\.showDetail = false;[\s\S]*?this\.detailVisitId = '';[\s\S]*?onEditorVisibilityChange\(this\.showDetail\)/.test(page) ||
+  !/StoreVisitEditPage\(\{[\s\S]*?onSave: \(visit: StoreVisit\) => \{[\s\S]*?this\.upsertVisit\(visit\);[\s\S]*?this\.closeEditor\(true\);[\s\S]*?onCancel: \(\) => \{[\s\S]*?this\.closeEditor\(\);/.test(page)) {
+  throw new Error('StoreVisitPage must return to the store-visit list after save while cancel returns to detail');
+}
+
 for (const needle of ['StoreVisitStatus', 'focusTags', 'onEditorVisibilityChange']) {
   if (!page.includes(needle)) {
     throw new Error(`StoreVisitPage missing functional ${needle}`);
@@ -154,12 +159,53 @@ if (!/Text\(this\.statusLabel\)[\s\S]*?\.fontColor\(YibuqueColor\.iconAccent\)[\
   throw new Error('StoreVisitDetailPage status badge must match the profile blue icon accent style');
 }
 
+const storeSummaryCard = detail.match(/@Builder\s+SummaryCard\(\)\s*\{[\s\S]*?\n  \}\n\n  @Builder\s+DeleteAction/)?.[0] ?? '';
+const storeSummaryTitle = storeSummaryCard.match(/Text\(this\.visit\?\.storeNameSnapshot \?\? '逛店记录'\)[\s\S]*?(?=\n\n\s+Text\(this\.photoCountText\(\)\))/)?.[0] ?? '';
+if (storeSummaryTitle.length === 0 || /\.maxLines\(|\.textOverflow\(/.test(storeSummaryTitle) ||
+  !storeSummaryTitle.includes('.lineHeight(28)') || !storeSummaryCard.includes('.alignItems(VerticalAlign.Top)')) {
+  throw new Error('StoreVisitDetailPage summary title must wrap fully while keeping the status badge top-aligned');
+}
+
 if (detail.includes('暂未填写备注') || !/private hasNoteText\(\): boolean[\s\S]*?if \(this\.hasNoteText\(\)\)[\s\S]*?Text\(this\.noteText\(\)\)/.test(detail)) {
   throw new Error('StoreVisitDetailPage must hide the note block when no note exists');
 }
 
 if (!/onDelete:\s*\(visit: StoreVisit\)[\s\S]*?DeleteAction\(\)[\s\S]*?删除逛店记录/.test(detail)) {
   throw new Error('StoreVisitDetailPage must own the store visit delete action');
+}
+
+for (const needle of [
+  'showPhotoPreview',
+  'selectedPhotoIndex',
+  'photoCount()',
+  'normalizePhotoIndex',
+  'photoUriAt',
+  'currentPhotoIndex',
+  'selectPhoto',
+  'openPhotoPreview',
+  'closePhotoPreview',
+  'PreviewPhotoSwiper',
+  'PhotoPreviewOverlay',
+  "Text('关闭')",
+  '.objectFit(ImageFit.Contain)',
+  'this.openPhotoPreview(index)',
+  '左右滑动'
+]) {
+  if (!detail.includes(needle)) {
+    throw new Error(`StoreVisitDetailPage missing photo preview flow ${needle}`);
+  }
+}
+
+if ((detail.match(/Swiper\(\)/g) ?? []).length < 2) {
+  throw new Error('StoreVisitDetailPage should use Swiper for both hero and full-screen preview');
+}
+
+if (!/if \(this\.photoCount\(\) === 1\)[\s\S]*?Image\(this\.photoUriAt\(0\)\)/.test(detail)) {
+  throw new Error('StoreVisitDetailPage must render a static image when only one photo exists');
+}
+
+if (detail.includes('PhotoCarousel')) {
+  throw new Error('StoreVisitDetailPage must own photo selection so hero taps open the matching preview image');
 }
 
 for (const forbidden of ['家已试穿', '家想回头看']) {
