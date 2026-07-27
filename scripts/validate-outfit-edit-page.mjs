@@ -245,7 +245,7 @@ if ((editPage.match(/\.enabled\(!this\.isChoosingPhotos && !this\.isSaving\)/g) 
   throw new Error('OutfitEditPage camera and gallery actions must be disabled during photo selection or save');
 }
 
-for (const forbidden of ['onDelete:', 'isDeleting', 'DeleteAction', 'confirmDeleteOutfit', '删除穿搭']) {
+for (const forbidden of ['deleteOutfit(', 'isDeleting', 'DeleteAction', 'confirmDeleteOutfit', '删除穿搭']) {
   if (editPage.includes(forbidden)) {
     throw new Error(`OutfitEditPage must move deletion to the detail page: ${forbidden}`);
   }

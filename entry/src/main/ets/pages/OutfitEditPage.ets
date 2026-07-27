@@ -1,4 +1,5 @@
 import { ClothingPicker } from '../components/ClothingPicker';
+import { OutfitCategoryManagerSheet } from '../components/OutfitCategoryManagerSheet';
 import { PhotoCarousel } from '../components/PhotoCarousel';
 import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import {
@@ -7,12 +8,18 @@ import {
   UpdateOutfitInput
 } from '../data/repositories/OutfitRepository';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
-import { OutfitDisplaySource, OutfitTemplate } from '../domain/outfit/OutfitModels';
+import {
+  OUTFIT_CATEGORY_MAX_LENGTH,
+  OutfitCategory,
+  OutfitDisplaySource,
+  OutfitTemplate
+} from '../domain/outfit/OutfitModels';
 import { PhotoSource } from '../media/PhotoModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
 import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
 import { appendPhotoUris, MAX_USER_PHOTOS, remainingPhotoSlots } from '../utils/photoSelection';
+import { normalizeSearchText } from '../utils/text';
 import { userFacingError } from '../utils/userFacingError';
 
 function optionalText(value: string): string | undefined {
@@ -46,12 +53,18 @@ export struct OutfitEditPage {
   @State private photoUris: string[] = [];
   @State private selectedPhotoIndex: number = 0;
   @State private displaySource: OutfitDisplaySource = OUTFIT_DISPLAY_SOURCE_PHOTO;
+  @State private categories: OutfitCategory[] = [];
+  @State private categoryName: string = '';
+  @State private categoryDraft: string = '';
+  @State private showCustomCategoryInput: boolean = false;
+  @State private showCategoryManager: boolean = false;
   @State private note: string = '';
   @State private isSaving: boolean = false;
   @State private isChoosingPhotos: boolean = false;
   @State private errorMessage: string = '';
 
   aboutToAppear(): void {
+    this.loadOutfitCategories();
     if (this.initialOutfit === undefined) {
       return;
     }
@@ -64,11 +77,107 @@ export struct OutfitEditPage {
     if (this.photoUris.length === 0 && this.clothingItemIds.length > 0) {
       this.displaySource = OUTFIT_DISPLAY_SOURCE_WARDROBE;
     }
+    this.categoryName = this.initialOutfit.categoryName ?? '';
     this.note = this.initialOutfit.note ?? '';
   }
 
+  private async loadOutfitCategories(): Promise<void> {
+    if (this.outfitRepository === undefined) {
+      return;
+    }
+
+    try {
+      this.categories = await this.outfitRepository.listOutfitCategories();
+      if (this.categories.length === 0 && this.categoryName.length === 0) {
+        this.showCustomCategoryInput = true;
+      }
+    } catch (error) {
+      this.errorMessage = userFacingError(error, '加载分类失败');
+    }
+  }
+
+  private normalizedCategoryName(): string {
+    return this.categoryName.normalize('NFKC').trim().replace(/\s+/g, ' ');
+  }
+
+  private categoryValidationError(): string {
+    const name = this.normalizedCategoryName();
+    if (name.length === 0) {
+      return '';
+    }
+    if (name.length > OUTFIT_CATEGORY_MAX_LENGTH) {
+      return `分类名称最多 ${OUTFIT_CATEGORY_MAX_LENGTH} 个字符`;
+    }
+
+    const normalizedName = normalizeSearchText(name);
+    if (normalizedName === normalizeSearchText('全部') || normalizedName === normalizeSearchText('未分类')) {
+      return '不能使用“全部”或“未分类”';
+    }
+
+    return '';
+  }
+
+  private isCategorySelected(category: OutfitCategory): boolean {
+    const selectedName = normalizeSearchText(this.normalizedCategoryName());
+    return selectedName.length > 0 && selectedName === normalizeSearchText(category.name);
+  }
+
+  private selectCategory(category: OutfitCategory): void {
+    if (this.isSaving) {
+      return;
+    }
+
+    if (this.isCategorySelected(category)) {
+      this.categoryName = '';
+    } else {
+      this.categoryName = category.name;
+    }
+    this.categoryDraft = '';
+    this.showCustomCategoryInput = false;
+  }
+
+  private openCustomCategoryInput(): void {
+    if (this.isSaving) {
+      return;
+    }
+
+    this.categoryDraft = this.isSavedCategoryName(this.categoryName) ? '' : this.categoryName;
+    this.categoryName = this.categoryDraft;
+    this.showCustomCategoryInput = true;
+  }
+
+  private isSavedCategoryName(name: string): boolean {
+    const normalizedName = normalizeSearchText(name);
+    for (const category of this.categories) {
+      if (normalizeSearchText(category.name) === normalizedName) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private updateCategoryDraft(value: string): void {
+    this.categoryDraft = value;
+    this.categoryName = value;
+  }
+
+  private async deleteOutfitCategory(category: OutfitCategory): Promise<void> {
+    if (this.outfitRepository === undefined) {
+      throw new Error('穿搭分类数据不可用，请稍后重试');
+    }
+
+    await this.outfitRepository.deleteOutfitCategory(category.id);
+    if (this.isCategorySelected(category)) {
+      this.categoryName = '';
+      this.categoryDraft = '';
+      this.showCustomCategoryInput = false;
+    }
+    this.categories = await this.outfitRepository.listOutfitCategories();
+  }
+
   private canSave(): boolean {
-    return !this.isSaving && !this.isChoosingPhotos && this.hasRequiredSourcePhoto();
+    return !this.isSaving && !this.isChoosingPhotos && this.hasRequiredSourcePhoto() &&
+      this.categoryValidationError().length === 0;
   }
 
   private hasSelectedPhoto(): boolean {
@@ -88,6 +197,9 @@ export struct OutfitEditPage {
   }
 
   private saveButtonLabel(): string {
+    if (this.categoryValidationError().length > 0) {
+      return '检查分类名称';
+    }
     if (this.hasRequiredSourcePhoto()) {
       return '保存穿搭';
     }
@@ -247,6 +359,7 @@ export struct OutfitEditPage {
   private createInput(): CreateOutfitInput {
     return {
       title: this.normalizedTitle(),
+      categoryName: optionalText(this.categoryName),
       photoUris: this.photoUris,
       clothingItemIds: this.clothingItemIds,
       displaySource: this.displaySource,
@@ -258,6 +371,7 @@ export struct OutfitEditPage {
     return {
       id,
       title: this.normalizedTitle(),
+      categoryName: optionalText(this.categoryName),
       photoUris: this.photoUris,
       clothingItemIds: this.clothingItemIds,
       displaySource: this.displaySource,
@@ -512,6 +626,118 @@ export struct OutfitEditPage {
   }
 
   @Builder
+  CategoryChip(category: OutfitCategory) {
+    Button() {
+      Text(category.name)
+        .fontSize(13)
+        .fontWeight(FontWeight.Regular)
+        .fontColor(this.isCategorySelected(category) ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
+        .maxLines(1)
+        .textOverflow({ overflow: TextOverflow.Ellipsis })
+    }
+    .height(40)
+    .constraintSize({ minWidth: 64, maxWidth: 168 })
+    .padding({ left: 14, right: 14 })
+    .margin({ right: 8, bottom: 8 })
+    .backgroundColor(this.isCategorySelected(category) ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
+    .borderRadius(YibuqueRadius.full)
+    .border({
+      width: 1,
+      color: this.isCategorySelected(category) ? YibuqueColor.borderStrong : YibuqueColor.borderMedium
+    })
+    .enabled(!this.isSaving)
+    .accessibilityText(`${category.name}${this.isCategorySelected(category) ? '，已选中' : ''}`)
+    .onClick(() => {
+      this.selectCategory(category);
+    })
+  }
+
+  @Builder
+  OutfitCategoryField() {
+    Column({ space: 10 }) {
+      Row({ space: 8 }) {
+        Text('分类（选填）')
+          .layoutWeight(1)
+          .fontSize(14)
+          .fontColor(YibuqueColor.textSecondary)
+
+        if (this.categories.length > 0) {
+          Button() {
+            SymbolGlyph($r('sys.symbol.list_bullet'))
+              .fontSize(18)
+              .fontColor([YibuqueColor.textPrimary])
+          }
+          .width(44)
+          .height(44)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.full)
+          .enabled(!this.isSaving)
+          .accessibilityText('管理穿搭分类')
+          .onClick(() => {
+            this.showCategoryManager = true;
+          })
+        }
+      }
+      .width('100%')
+      .alignItems(VerticalAlign.Center)
+
+      Flex({ direction: FlexDirection.Row, wrap: FlexWrap.Wrap, justifyContent: FlexAlign.Start }) {
+        ForEach(this.categories, (category: OutfitCategory) => {
+          this.CategoryChip(category)
+        }, (category: OutfitCategory) => category.id)
+
+        Button('自定义分类')
+          .height(40)
+          .padding({ left: 14, right: 14 })
+          .margin({ right: 8, bottom: 8 })
+          .fontSize(13)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(this.showCustomCategoryInput ? YibuqueColor.textInverse : YibuqueColor.textPrimary)
+          .backgroundColor(this.showCustomCategoryInput ? YibuqueColor.actionBlack : YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.full)
+          .border({
+            width: 1,
+            color: this.showCustomCategoryInput ? YibuqueColor.borderStrong : YibuqueColor.borderMedium
+          })
+          .enabled(!this.isSaving)
+          .onClick(() => {
+            this.openCustomCategoryInput();
+          })
+      }
+      .width('100%')
+
+      if (this.showCustomCategoryInput) {
+        TextInput({ text: this.categoryDraft, placeholder: '输入分类名称' })
+          .width('100%')
+          .height(48)
+          .padding({ left: 14, right: 14 })
+          .fontSize(15)
+          .fontColor(YibuqueColor.textPrimary)
+          .placeholderColor(YibuqueColor.textTertiary)
+          .backgroundColor(YibuqueColor.cardSoftGray)
+          .borderRadius(YibuqueRadius.lg)
+          .border({
+            width: 1,
+            color: this.categoryValidationError().length > 0 ? YibuqueColor.danger : YibuqueColor.borderMedium
+          })
+          .enabled(!this.isSaving)
+          .onChange((value: string) => {
+            this.updateCategoryDraft(value);
+          })
+
+        if (this.categoryValidationError().length > 0) {
+          Text(this.categoryValidationError())
+            .width('100%')
+            .fontSize(12)
+            .fontColor(YibuqueColor.danger)
+        }
+      }
+    }
+    .width('100%')
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
   OutfitInfoCard(clothingTitle: string, clothingDescription: string) {
     Column({ space: YibuqueSpacing.md }) {
       Text('穿搭信息（选填）')
@@ -529,6 +755,8 @@ export struct OutfitEditPage {
         .onChange((value: string) => {
           this.title = value;
         })
+
+      this.OutfitCategoryField()
 
       ClothingPicker({
         title: clothingTitle,
@@ -619,47 +847,63 @@ export struct OutfitEditPage {
   }
 
   build() {
-    Column() {
-      SecondaryPageHeader({
-        title: this.initialOutfit === undefined ? '创建穿搭' : '编辑穿搭',
-        backAccessibilityText: '返回穿搭',
-        onBack: () => {
-          this.onCancel();
-        }
-      })
-
-      Scroll() {
-        Column({ space: YibuqueSpacing.lg }) {
-          this.DisplaySourceSelector()
-
-          if (this.displaySource === OUTFIT_DISPLAY_SOURCE_PHOTO) {
-            this.PhotoSelector('上传这套穿搭照片', '整体、细节或上身效果都可以')
-            this.OutfitInfoCard('关联衣柜单品（选填）', '可以把这套穿搭关联到已有衣服，方便以后回看。')
-          } else {
-            this.OutfitInfoCard('选择衣柜单品', '至少选择一件有照片的衣物，也可以补充上传穿搭照片。')
-            this.PhotoSelector('补充穿搭照片（选填）', '有整体照或上身照时可以放这里')
+    Stack() {
+      Column() {
+        SecondaryPageHeader({
+          title: this.initialOutfit === undefined ? '创建穿搭' : '编辑穿搭',
+          backAccessibilityText: '返回穿搭',
+          onBack: () => {
+            this.onCancel();
           }
+        })
 
-          if (this.errorMessage.length > 0) {
-            Text(this.errorMessage)
-              .fontSize(13)
-              .fontColor(YibuqueColor.danger)
+        Scroll() {
+          Column({ space: YibuqueSpacing.lg }) {
+            this.DisplaySourceSelector()
+
+            if (this.displaySource === OUTFIT_DISPLAY_SOURCE_PHOTO) {
+              this.PhotoSelector('上传这套穿搭照片', '整体、细节或上身效果都可以')
+              this.OutfitInfoCard('关联衣柜单品（选填）', '可以把这套穿搭关联到已有衣服，方便以后回看。')
+            } else {
+              this.OutfitInfoCard('选择衣柜单品', '至少选择一件有照片的衣物，也可以补充上传穿搭照片。')
+              this.PhotoSelector('补充穿搭照片（选填）', '有整体照或上身照时可以放这里')
+            }
+
+            if (this.errorMessage.length > 0) {
+              Text(this.errorMessage)
+                .fontSize(13)
+                .fontColor(YibuqueColor.danger)
+            }
+
           }
-
+          .width('100%')
+          .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.lg, bottom: 112 })
+          .alignItems(HorizontalAlign.Start)
         }
         .width('100%')
-        .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.lg, bottom: 112 })
-        .alignItems(HorizontalAlign.Start)
+        .layoutWeight(1)
+        .scrollBar(BarState.Off)
+        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
+
+        this.SaveAction()
       }
       .width('100%')
-      .layoutWeight(1)
-      .scrollBar(BarState.Off)
-      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
+      .height('100%')
+      .backgroundColor(YibuqueColor.bgBase)
 
-      this.SaveAction()
+      if (this.showCategoryManager) {
+        OutfitCategoryManagerSheet({
+          categories: this.categories,
+          onClose: () => {
+            this.showCategoryManager = false;
+          },
+          onDelete: async (category: OutfitCategory): Promise<void> => {
+            await this.deleteOutfitCategory(category);
+          }
+        })
+      }
     }
     .width('100%')
     .height('100%')
-    .backgroundColor(YibuqueColor.bgBase)
   }
 }

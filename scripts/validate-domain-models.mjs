@@ -3,7 +3,7 @@ import fs from 'node:fs';
 const checks = [
   ['entry/src/main/ets/domain/clothing/ClothingCategory.ets', ['Top', 'Pants', 'Shorts', 'LongSkirt', 'HalfSkirt']],
   ['entry/src/main/ets/domain/clothing/ClothingModels.ets', ['ClothingItem', 'PurchaseInfo']],
-  ['entry/src/main/ets/domain/outfit/OutfitModels.ets', ['OutfitTemplate']],
+  ['entry/src/main/ets/domain/outfit/OutfitModels.ets', ['OutfitCategory', 'OutfitTemplate']],
   ['entry/src/main/ets/domain/wearLog/WearLogModels.ets', ['WearLog']],
   ['entry/src/main/ets/domain/wishlist/WishlistModels.ets', ['WishlistItem']],
   ['entry/src/main/ets/domain/search/SearchModels.ets', ['SearchEntityType', 'SearchResult', 'Store', 'StoreVisit']],
@@ -14,7 +14,8 @@ const checks = [
 const interfaceFields = [
   ['entry/src/main/ets/domain/clothing/ClothingModels.ets', 'PurchaseInfo', ['storeName', 'price', 'purchaseDate', 'note']],
   ['entry/src/main/ets/domain/clothing/ClothingModels.ets', 'ClothingItem', ['id', 'name', 'category', 'photoUris', 'note', 'purchaseInfo', 'createdAt', 'updatedAt']],
-  ['entry/src/main/ets/domain/outfit/OutfitModels.ets', 'OutfitTemplate', ['id', 'title', 'photoUris', 'clothingItemIds', 'note', 'createdAt', 'updatedAt']],
+  ['entry/src/main/ets/domain/outfit/OutfitModels.ets', 'OutfitCategory', ['id', 'name', 'usageCount']],
+  ['entry/src/main/ets/domain/outfit/OutfitModels.ets', 'OutfitTemplate', ['id', 'title', 'photoUris', 'clothingItemIds', 'categoryId', 'categoryName', 'note', 'createdAt', 'updatedAt']],
   ['entry/src/main/ets/domain/wearLog/WearLogModels.ets', 'WearLog', ['id', 'outfitTemplateId', 'outfitTitleSnapshot', 'clothingItemIdsSnapshot', 'wornDate', 'photoUris', 'placeText', 'note', 'createdAt', 'updatedAt']],
   ['entry/src/main/ets/domain/wishlist/WishlistModels.ets', 'WishlistItem', ['id', 'title', 'photoUris', 'storeName', 'price', 'note', 'createdAt', 'updatedAt']],
   ['entry/src/main/ets/domain/search/SearchModels.ets', 'SearchResult', ['entityType', 'entityId', 'title']],

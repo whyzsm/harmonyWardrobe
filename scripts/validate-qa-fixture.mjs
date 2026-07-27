@@ -68,7 +68,7 @@ const profilePage = fs.readFileSync('entry/src/main/ets/pages/ProfilePage.ets', 
 const qa = fs.readFileSync(qaPath, 'utf8');
 for (const needle of [
   '衣不缺',
-  '衣柜 / 逛店 / 相机 / 穿搭 / 我的',
+  '穿搭 / 衣柜 / 相机 / 逛街 / 我的',
   '面板包含 `衣柜`、`逛店`、`穿搭`',
   '拍照',
   '相册入口',
@@ -78,6 +78,9 @@ for (const needle of [
   '全宽搜索框',
   '双列原生瀑布流',
   '图片左上角显示分类图标',
+  '长按衣物卡片',
+  '长按穿搭卡片',
+  '长按逛店卡片',
   '逛店',
   '我的',
   '身高',

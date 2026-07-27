@@ -67,6 +67,7 @@ for (const needle of [
   'buildOutfitSearchDocument',
   'SearchEntityType',
   'OutfitTemplate',
+  'OutfitCategory',
   'OutfitDisplaySource',
   'WearLog',
   'createId',
@@ -79,6 +80,8 @@ for (const needle of [
   'updateOutfit',
   'deleteOutfit',
   'listOutfits',
+  'listOutfitCategories',
+  'deleteOutfitCategory',
   'getOutfitCount',
   'getOutfitById',
   'loadRecentWearLogs'
@@ -88,8 +91,10 @@ for (const needle of [
 
 assertIncludes(source, 'display_source', 'repository must persist the outfit display source');
 assertIncludes(source, 'displaySource', 'repository must hydrate the outfit display source');
+assertIncludes(source, 'category_id', 'repository must persist the outfit category relation');
+assertIncludes(source, 'categoryName', 'repository must hydrate the outfit category name');
 
-for (const method of ['createOutfit', 'updateOutfit', 'deleteOutfit']) {
+for (const method of ['createOutfit', 'updateOutfit', 'deleteOutfit', 'deleteOutfitCategory']) {
   assertMatches(
     source,
     new RegExp(`${method}\\s*\\([^)]*\\)\\s*:\\s*Promise<[^>]+>\\s*{[\\s\\S]*?this\\.database\\.transaction`, 'm'),
@@ -103,6 +108,10 @@ assertMatches(source, /new\s+DeleteCleanupService\s*\([\s\S]*photoStorage\s*\)/,
 assertMatches(source, /INSERT\s+INTO\s+outfit_templates/i, 'createOutfit must insert outfit_templates');
 assertMatches(source, /UPDATE\s+outfit_templates/i, 'updateOutfit must update outfit_templates');
 assertMatches(source, /DELETE\s+FROM\s+outfit_templates/i, 'deleteOutfit must delete outfit_templates');
+assertMatches(source, /INSERT\s+INTO\s+outfit_categories/i, 'saving an outfit must create categories with a parameterized insert');
+assert.equal(/INSERT\s+OR\s+IGNORE\s+INTO\s+outfit_categories/i.test(source), false, 'Harmony RDB must not silently ignore parameterized custom-category inserts');
+assertMatches(source, /UPDATE\s+outfit_templates\s+SET\s+category_id\s*=\s*NULL\s+WHERE\s+category_id\s*=\s*\?/i, 'deleting a category must move its outfits into the all view');
+assertMatches(source, /DELETE\s+FROM\s+outfit_categories\s+WHERE\s+id\s*=\s*\?/i, 'repository must delete category rows');
 assertMatches(source, /INSERT\s+INTO\s+outfit_photos/i, 'repository must insert outfit_photos');
 assert.equal(/INSERT_OUTFIT_PHOTO_SQL[\s\S]*COALESCE[\s\S]*VALUES/.test(source), false, 'INSERT outfit photo columns must not include derived values');
 assertMatches(source, /DELETE\s+FROM\s+outfit_photos\s+WHERE\s+outfit_id\s*=\s*\?/i, 'repository must replace outfit_photos by outfit_id');

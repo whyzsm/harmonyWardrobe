@@ -56,5 +56,5 @@ export function createAppRoute(kind: AppRouteKind, mainTab: AppMainTab, params: 
 }
 
 export function createInitialAppRoute(): AppRoute {
-  return createAppRoute(AppRouteKind.Main, AppMainTab.Wardrobe, createDefaultAppRouteParams());
+  return createAppRoute(AppRouteKind.Main, AppMainTab.Outfit, createDefaultAppRouteParams());
 }

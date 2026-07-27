@@ -100,9 +100,13 @@ Top navigation uses a white or translucent white background, a soft gray divider
 
 ### 底部导航 / Bottom Navigation
 
-底部导航为宽度 90% 的黑色半透明悬浮胶囊，包含衣柜、逛店、相机、穿搭、我的。中间相机保留 `d8daa86` 的橙-蓝-青蓝三段彩色圆形图标，不显示“拍照”文字；它是本规范中唯一允许保留彩色渐变的操作入口。
+底部导航为宽度 90% 的黑色半透明悬浮胶囊，依次包含穿搭、衣柜、相机、逛街、我的。中间相机保留 `d8daa86` 的橙-蓝-青蓝三段彩色圆形图标，不显示“拍照”文字；它是本规范中唯一允许保留彩色渐变的操作入口。
 
-The bottom navigation is a 90%-wide translucent black floating capsule with wardrobe, store, camera, outfit, and profile entries. Keep the `d8daa86` orange-blue-cyan gradient camera icon without a `拍照` label; it is the only action in this system allowed to retain a multicolor gradient.
+应用冷启动默认进入“穿搭”页，并高亮底部“穿搭”入口。
+
+The bottom navigation is a 90%-wide translucent black floating capsule with outfit, wardrobe, camera, shopping, and profile entries, in that order. Keep the `d8daa86` orange-blue-cyan gradient camera icon without a `拍照` label; it is the only action in this system allowed to retain a multicolor gradient.
+
+The app opens the Outfits page by default on a cold start and highlights the Outfits entry in the bottom navigation.
 
 ### 快捷录入 / Quick Capture Sheet
 
@@ -123,6 +127,10 @@ The quick capture sheet uses a white bottom-attached panel, rounded top corners,
 
 Cards use white or `cardSoftGray` with soft gray borders. Prefer real images. Missing images use neutral placeholders, and design examples must never be presented as user data.
 
+长按衣柜、穿搭或逛店主列表的卡片图片后，图片上显示半透明深色蒙层和居中的红色删除按钮；松手后蒙层继续保留，点击蒙层空白处可关闭。点击删除按钮后必须二次确认。短按仍进入详情，详情页保留可见删除入口，统一搜索结果不提供长按删除。
+
+Long-pressing a card image in the main wardrobe, outfit, or store-visit list shows a translucent dark image overlay with a centered red delete button. The overlay remains after release and closes when its empty area is tapped. The delete button opens destructive confirmation. A regular tap still opens details, visible delete actions remain available on detail pages, and unified search results do not expose long-press deletion.
+
 空态必须说明下一步动作；需要 CTA 时使用黑色，不使用蓝色或粉色。
 
 Empty states must explain the next action. When a CTA is needed, use black rather than blue or pink.
@@ -137,9 +145,17 @@ Keep search, categories, and the two-column waterfall. Real photos dominate, ima
 
 ### 穿搭 / Outfits
 
-使用场景筛选、真实衣物数量引导和双列穿搭墙。每张穿搭卡可显示两张组合图片，标题与元信息保持紧凑。
+使用本地自定义分类筛选、真实衣物数量引导和双列瀑布穿搭墙。`全部` 是唯一固定筛选，未分类穿搭也显示在其中；`周末 / 通勤` 是可删除的初始分类，不提供默认 `逛店` 分类。每张穿搭卡可显示两张组合图片，标题与元信息保持紧凑。
 
-Use scene filters, real wardrobe-count guidance, and a two-column outfit wall. Each outfit card may show two combined photos with compact title and metadata.
+新增或编辑穿搭时可以选择已有分类或手动输入分类。手动输入的分类必须与穿搭在同一个 SQLite 事务中成功保存后才进入分类列表。删除分类不删除穿搭或照片，相关穿搭解除分类关联并继续显示在 `全部` 中。
+
+穿搭详情主图点击后进入全屏等比预览；多图支持左右滑动，并显示当前序号和关闭操作，与衣柜详情保持一致。
+
+Use local custom-category filters, real wardrobe-count guidance, and a two-column waterfall outfit wall. `All` is the only fixed filter and also contains uncategorized outfits. `Weekend / Commute` are removable starter categories, with no default shopping category. Each outfit card may show two combined photos with compact title and metadata.
+
+When creating or editing an outfit, users can select an existing category or enter one manually. A manually entered category joins the category list only after it and the outfit are committed in the same SQLite transaction. Deleting a category keeps its outfits and photos, clears their category relation, and leaves them visible under `All`.
+
+Tapping the hero image on an outfit detail opens a full-screen contain preview. Multiple images support horizontal swiping with a position counter and close action, matching wardrobe details.
 
 ### 拍照录入 / Capture
 

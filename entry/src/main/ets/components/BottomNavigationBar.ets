@@ -2,7 +2,7 @@ import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 
 @Component
 export struct BottomNavigationBar {
-  @Prop selected: string = 'wardrobe';
+  @Prop selected: string = 'outfit';
   @State private captureButtonScale: number = 1.0;
   @State private pressedTab: string = '';
   onSelectWardrobe: () => void = () => {};
@@ -13,8 +13,8 @@ export struct BottomNavigationBar {
 
   build() {
     Row() {
+      this.NavItem('outfit', '穿搭')
       this.NavItem('wardrobe', '衣柜')
-      this.NavItem('store', '逛店')
 
       Stack({ alignContent: Alignment.Center }) {
         this.CameraIcon()
@@ -35,7 +35,7 @@ export struct BottomNavigationBar {
         this.onOpenCapture();
       })
 
-      this.NavItem('outfit', '穿搭')
+      this.NavItem('store', '逛街')
       this.NavItem('profile', '我的')
     }
     .width('90%')

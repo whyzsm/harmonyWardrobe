@@ -79,7 +79,9 @@ export function buildClothingSearchDocument(item: ClothingItem): SearchDocument 
 
 export function buildOutfitSearchDocument(outfit: OutfitTemplate, clothingNames: string[]): SearchDocument {
   const title = normalizeSearchText(outfit.title);
+  const category = normalizeOptionalText(outfit.categoryName);
   const body = joinSearchText([
+    outfit.categoryName,
     outfit.note,
     ...clothingNames
   ]);
@@ -89,7 +91,8 @@ export function buildOutfitSearchDocument(outfit: OutfitTemplate, clothingNames:
     entityId: outfit.id,
     title,
     body,
-    ngrams: buildSearchNgramText([title, body])
+    category,
+    ngrams: buildSearchNgramText([title, body, category])
   };
 }
 

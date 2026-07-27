@@ -1,4 +1,5 @@
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
+import { DeleteImageOverlay } from '../components/DeleteImageOverlay';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { SearchRepository } from '../data/repositories/SearchRepository';
 import { StoreRepository } from '../data/repositories/StoreRepository';
@@ -63,8 +64,11 @@ export struct StoreVisitPage {
   @State private loading: boolean = false;
   @State private errorMessage: string = '';
   @State private pressedVisitCardId: string = '';
+  @State private deletingVisitId: string = '';
+  @State private deleteOverlayVisitId: string = '';
   @State private showUnifiedSearch: boolean = false;
   @State private unifiedSearchQuery: string = '';
+  private visitCardClickBlockedUntil: number = 0;
   private nestedPageTransitionInProgress: boolean = false;
 
   aboutToAppear(): void {
@@ -323,17 +327,73 @@ export struct StoreVisitPage {
     await this.storeRepository.deleteStoreVisit(visit.id);
     this.visits = this.visits.filter((existingVisit: StoreVisit) => existingVisit.id !== visit.id);
     this.refreshStoreVisitDataSource();
-    if (this.detailVisitId === visit.id) {
-      this.animateNestedPageChange(() => {
-        this.showDetail = false;
-        this.detailVisitId = '';
-        this.showEditor = false;
-        this.editingVisitId = '';
-        this.onEditorVisibilityChange(false);
-      });
-    } else {
-      this.closeEditor();
+  }
+
+  private confirmDeleteVisitFromList(visit: StoreVisit): void {
+    if (this.deletingVisitId.length > 0) {
+      return;
     }
+
+    this.pressedVisitCardId = '';
+    AlertDialog.show({
+      title: '删除逛店记录',
+      message: `确定删除“${visit.storeNameSnapshot}”的这条逛店记录吗？本地照片会一并移除，门店资料仍会保留。`,
+      primaryButton: {
+        value: '取消',
+        action: () => {
+          this.deleteOverlayVisitId = '';
+        }
+      },
+      secondaryButton: {
+        value: '删除',
+        fontColor: YibuqueColor.danger,
+        action: () => {
+          this.deleteVisitFromList(visit);
+        }
+      }
+    });
+  }
+
+  private async deleteVisitFromList(visit: StoreVisit): Promise<void> {
+    if (this.deletingVisitId.length > 0) {
+      return;
+    }
+
+    this.deletingVisitId = visit.id;
+    try {
+      await this.deleteStoreVisit(visit);
+      this.getUIContext().getPromptAction().showToast({ message: '逛店记录已删除' });
+    } catch (error) {
+      this.getUIContext().getPromptAction().showToast({
+        message: userFacingError(error, '删除逛店记录失败')
+      });
+    } finally {
+      this.deletingVisitId = '';
+      this.deleteOverlayVisitId = '';
+    }
+  }
+
+  private showVisitDeleteOverlay(visit: StoreVisit): void {
+    if (this.deletingVisitId.length > 0) {
+      return;
+    }
+
+    this.pressedVisitCardId = '';
+    this.deleteOverlayVisitId = visit.id;
+    this.visitCardClickBlockedUntil = Date.now() + 60000;
+  }
+
+  private handleVisitCardClick(visit: StoreVisit): void {
+    if (Date.now() <= this.visitCardClickBlockedUntil) {
+      return;
+    }
+
+    if (this.deleteOverlayVisitId.length > 0) {
+      this.deleteOverlayVisitId = '';
+      return;
+    }
+
+    this.openVisitDetail(visit);
   }
 
   private coverPhotoUri(visit: StoreVisit): string {
@@ -437,6 +497,7 @@ export struct StoreVisitPage {
         },
         onDelete: async (visit: StoreVisit): Promise<void> => {
           await this.deleteStoreVisit(visit);
+          this.closeDetail();
         }
       })
         .transition(TransitionEffect.OPACITY)
@@ -703,8 +764,33 @@ export struct StoreVisitPage {
         }
         .width('100%')
         .padding({ top: 8, right: 8 })
+
+        if (this.deleteOverlayVisitId === visit.id) {
+          DeleteImageOverlay({
+            label: '删除逛店记录',
+            deleting: this.deletingVisitId === visit.id,
+            cornerRadius: YibuqueRadius.xxl,
+            onDelete: () => {
+              this.visitCardClickBlockedUntil = Date.now() + 300;
+              this.confirmDeleteVisitFromList(visit);
+            },
+            onDismiss: () => {
+              this.visitCardClickBlockedUntil = Date.now() + 300;
+              this.deleteOverlayVisitId = '';
+            }
+          })
+        }
       }
       .width('100%')
+      .gesture(
+        LongPressGesture({ repeat: false, duration: 500 })
+          .onAction(() => {
+            this.showVisitDeleteOverlay(visit);
+          })
+          .onActionEnd(() => {
+            this.visitCardClickBlockedUntil = Date.now() + 300;
+          })
+      )
 
       Row({ space: 8 }) {
         Text(visit.storeNameSnapshot)
@@ -739,8 +825,9 @@ export struct StoreVisitPage {
     })
     .accessibilityText(`${visit.storeNameSnapshot}，${this.visitBadge(visit)}，${this.visitMeta(visit)}`)
     .onClick(() => {
-      this.openVisitDetail(visit);
+      this.handleVisitCardClick(visit);
     })
+    .accessibilityTextHint('长按图片可显示删除操作')
   }
 
   @Builder

@@ -1,4 +1,3 @@
-import { PhotoCarousel } from '../components/PhotoCarousel';
 import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { OutfitDisplaySource, OutfitTemplate } from '../domain/outfit/OutfitModels';
@@ -12,9 +11,11 @@ export struct OutfitDetailPage {
   onBack: () => void = () => {};
   onEdit: (outfit: OutfitTemplate) => void = () => {};
   onDelete: (outfit: OutfitTemplate) => Promise<void> = async (_outfit: OutfitTemplate): Promise<void> => {};
+  @State private showPhotoPreview: boolean = false;
   @State private showDeleteConfirm: boolean = false;
   @State private isDeleting: boolean = false;
   @State private deleteErrorMessage: string = '';
+  @State private selectedPhotoIndex: number = 0;
 
   private photoUris(): string[] {
     return this.outfit?.photoUris ?? [];
@@ -49,6 +50,52 @@ export struct OutfitDetailPage {
     }
 
     return uploadedPhotoUris.length > 0 ? uploadedPhotoUris : clothingPhotoUris;
+  }
+
+  private photoCount(): number {
+    return this.detailPhotoUris().length;
+  }
+
+  private normalizePhotoIndex(index: number): number {
+    const count = this.photoCount();
+    if (count === 0 || index < 0) {
+      return 0;
+    }
+    if (index >= count) {
+      return count - 1;
+    }
+
+    return index;
+  }
+
+  private photoUriAt(index: number): string {
+    const photos = this.detailPhotoUris();
+    if (photos.length === 0) {
+      return '';
+    }
+
+    return photos[this.normalizePhotoIndex(index)];
+  }
+
+  private currentPhotoIndex(): number {
+    return this.normalizePhotoIndex(this.selectedPhotoIndex);
+  }
+
+  private selectPhoto(index: number): void {
+    this.selectedPhotoIndex = this.normalizePhotoIndex(index);
+  }
+
+  private openPhotoPreview(index: number = this.selectedPhotoIndex): void {
+    if (this.photoCount() === 0) {
+      return;
+    }
+
+    this.selectPhoto(index);
+    this.showPhotoPreview = true;
+  }
+
+  private closePhotoPreview(): void {
+    this.showPhotoPreview = false;
   }
 
   private noteText(): string {
@@ -122,6 +169,11 @@ export struct OutfitDetailPage {
     return count > 0 ? `${count} 张照片` : '暂无照片';
   }
 
+  private categoryText(): string {
+    const categoryName = this.outfit?.categoryName?.trim() ?? '';
+    return categoryName.length > 0 ? categoryName : '未分类';
+  }
+
   @Builder
   DetailTopBar() {
     SecondaryPageHeader({
@@ -142,30 +194,154 @@ export struct OutfitDetailPage {
 
   @Builder
   HeroPhoto() {
-    if (this.detailPhotoUris().length > 0) {
-      PhotoCarousel({
-        photoUris: this.detailPhotoUris(),
-        cornerRadius: YibuqueRadius.xxxl
-      })
-        .width('100%')
-        .height(280)
-    } else {
-      Column({ space: YibuqueSpacing.sm }) {
-        SymbolGlyph($r('sys.symbol.hanger_and_towels'))
-          .fontSize(48)
-          .fontColor([YibuqueColor.textPrimary])
+    Stack({ alignContent: Alignment.BottomStart }) {
+      if (this.photoCount() > 0) {
+        if (this.photoCount() === 1) {
+          Image(this.photoUriAt(0))
+            .width('100%')
+            .height('100%')
+            .objectFit(ImageFit.Cover)
+            .onClick(() => {
+              this.openPhotoPreview(0);
+            })
+        } else {
+          Swiper() {
+            ForEach(this.detailPhotoUris(), (photoUri: string, index: number) => {
+              Image(photoUri)
+                .width('100%')
+                .height('100%')
+                .objectFit(ImageFit.Cover)
+                .onClick(() => {
+                  this.openPhotoPreview(index);
+                })
+            }, (photoUri: string, index: number) => `${photoUri}-${index}`)
+          }
+          .width('100%')
+          .height('100%')
+          .index(this.currentPhotoIndex())
+          .indicator(false)
+          .loop(true)
+          .onChange((index: number) => {
+            this.selectPhoto(index);
+          })
+        }
+      } else {
+        Column({ space: YibuqueSpacing.sm }) {
+          SymbolGlyph($r('sys.symbol.hanger_and_towels'))
+            .fontSize(48)
+            .fontColor([YibuqueColor.textPrimary])
 
-        Text('暂无照片')
-          .fontSize(14)
-          .fontColor(YibuqueColor.textSecondary)
+          Text('暂无照片')
+            .fontSize(14)
+            .fontColor(YibuqueColor.textSecondary)
+        }
+        .width('100%')
+        .height('100%')
+        .justifyContent(FlexAlign.Center)
+        .alignItems(HorizontalAlign.Center)
+        .backgroundColor(YibuqueColor.cardMuted)
+      }
+    }
+    .width('100%')
+    .height(280)
+    .borderRadius(YibuqueRadius.xxxl)
+    .clip(true)
+    .shadow(YibuqueShadow.card)
+  }
+
+  @Builder
+  PreviewPhotoSwiper() {
+    if (this.photoCount() === 1) {
+      Image(this.photoUriAt(0))
+        .width('100%')
+        .height('78%')
+        .objectFit(ImageFit.Contain)
+    } else {
+      Swiper() {
+        ForEach(this.detailPhotoUris(), (photoUri: string, index: number) => {
+          Image(photoUri)
+            .width('100%')
+            .height('100%')
+            .objectFit(ImageFit.Contain)
+        }, (photoUri: string, index: number) => `${photoUri}-${index}`)
       }
       .width('100%')
-      .height(280)
-      .justifyContent(FlexAlign.Center)
-      .alignItems(HorizontalAlign.Center)
-      .backgroundColor(YibuqueColor.cardMuted)
-      .borderRadius(YibuqueRadius.xxxl)
+      .height('78%')
+      .index(this.currentPhotoIndex())
+      .indicator(false)
+      .loop(true)
+      .onChange((index: number) => {
+        this.selectPhoto(index);
+      })
     }
+  }
+
+  @Builder
+  PhotoPreviewOverlay() {
+    Stack({ alignContent: Alignment.Center }) {
+      Column()
+        .width('100%')
+        .height('100%')
+        .backgroundColor(YibuqueColor.overlayDark)
+        .onClick(() => {
+          this.closePhotoPreview();
+        })
+
+      this.PreviewPhotoSwiper()
+
+      Row() {
+        Column({ space: 3 }) {
+          Text(this.displayOutfitTitle())
+            .fontSize(16)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textInverse)
+            .maxLines(1)
+            .textOverflow({ overflow: TextOverflow.Ellipsis })
+
+          if (this.photoCount() > 1) {
+            Text(`${this.currentPhotoIndex() + 1} / ${this.photoCount()}`)
+              .fontSize(12)
+              .fontWeight(FontWeight.Regular)
+              .fontColor(YibuqueColor.textInverse)
+              .opacity(0.86)
+          }
+        }
+        .layoutWeight(1)
+        .alignItems(HorizontalAlign.Start)
+
+        Text('关闭')
+          .height(40)
+          .padding({ left: 18, right: 18 })
+          .fontSize(15)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textPrimary)
+          .textAlign(TextAlign.Center)
+          .backgroundColor(YibuqueColor.cardWhite)
+          .borderRadius(YibuqueRadius.full)
+          .onClick(() => {
+            this.closePhotoPreview();
+          })
+      }
+      .width('100%')
+      .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.xxl })
+      .position({ x: 0, y: 0 })
+      .alignItems(VerticalAlign.Center)
+
+      if (this.photoCount() > 1) {
+        Text('左右滑动')
+          .height(32)
+          .padding({ left: 14, right: 14 })
+          .fontSize(13)
+          .fontColor(YibuqueColor.textInverse)
+          .textAlign(TextAlign.Center)
+          .backgroundColor(YibuqueColor.overlayDark)
+          .borderRadius(YibuqueRadius.full)
+          .margin({ bottom: YibuqueSpacing.xxl })
+          .align(Alignment.Bottom)
+      }
+    }
+    .width('100%')
+    .height('100%')
   }
 
   @Builder
@@ -180,7 +356,7 @@ export struct OutfitDetailPage {
             .maxLines(2)
             .textOverflow({ overflow: TextOverflow.Ellipsis })
 
-          Text(this.photoCountText())
+          Text(`${this.categoryText()} · ${this.photoCountText()}`)
             .fontSize(13)
             .fontColor(YibuqueColor.textSecondary)
         }
@@ -316,38 +492,47 @@ export struct OutfitDetailPage {
   }
 
   build() {
-    Column() {
-      this.DetailTopBar()
+    Stack() {
+      Column() {
+        this.DetailTopBar()
 
-      if (this.outfit === undefined) {
-        Column({ space: YibuqueSpacing.lg }) {
-          Text('穿搭不存在')
-            .fontSize(24)
-            .fontColor(YibuqueColor.textPrimary)
-
-          Text('可能已经被删除，请返回穿搭重新选择。')
-            .fontSize(14)
-            .fontColor(YibuqueColor.textSecondary)
-        }
-        .width('100%')
-        .layoutWeight(1)
-        .justifyContent(FlexAlign.Center)
-        .alignItems(HorizontalAlign.Center)
-      } else {
-        Scroll() {
+        if (this.outfit === undefined) {
           Column({ space: YibuqueSpacing.lg }) {
-            this.HeroPhoto()
-            this.SummaryCard()
-            this.ClothingItemsCard()
-            this.DeleteAction()
+            Text('穿搭不存在')
+              .fontSize(24)
+              .fontColor(YibuqueColor.textPrimary)
+
+            Text('可能已经被删除，请返回穿搭重新选择。')
+              .fontSize(14)
+              .fontColor(YibuqueColor.textSecondary)
           }
           .width('100%')
-          .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.sm, bottom: YibuqueSpacing.section })
-          .alignItems(HorizontalAlign.Start)
+          .layoutWeight(1)
+          .justifyContent(FlexAlign.Center)
+          .alignItems(HorizontalAlign.Center)
+        } else {
+          Scroll() {
+            Column({ space: YibuqueSpacing.lg }) {
+              this.HeroPhoto()
+              this.SummaryCard()
+              this.ClothingItemsCard()
+              this.DeleteAction()
+            }
+            .width('100%')
+            .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.sm, bottom: YibuqueSpacing.section })
+            .alignItems(HorizontalAlign.Start)
+          }
+          .width('100%')
+          .layoutWeight(1)
+          .scrollBar(BarState.Off)
         }
-        .width('100%')
-        .layoutWeight(1)
-        .scrollBar(BarState.Off)
+      }
+      .width('100%')
+      .height('100%')
+      .backgroundColor(YibuqueColor.bgBase)
+
+      if (this.showPhotoPreview) {
+        this.PhotoPreviewOverlay()
       }
     }
     .width('100%')

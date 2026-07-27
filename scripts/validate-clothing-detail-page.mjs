@@ -95,7 +95,8 @@ if (/Text\(|linearGradient/.test(heroPhotoWithImage)) {
   throw new Error('ClothingDetailPage hero photo must not overlay text, counters, or gradient on the image');
 }
 
-if (!/WardrobeSearchResultCard\(item: ClothingItem[\s\S]*?this\.openClothingDetail\(item\)/.test(wardrobe)) {
+if (!/WardrobeSearchResultCard\(item: ClothingItem[\s\S]*?this\.handleClothingCardClick\(item\)/.test(wardrobe) ||
+  !/private handleClothingCardClick\(item: ClothingItem\): void[\s\S]*?this\.openClothingDetail\(item\)/.test(wardrobe)) {
   throw new Error('WardrobeSearchResultCard should open the clothing detail page');
 }
 

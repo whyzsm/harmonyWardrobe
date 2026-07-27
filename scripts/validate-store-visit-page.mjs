@@ -145,7 +145,8 @@ if (!/visitStatus\(visit: StoreVisit\)[\s\S]*?visit\.status !== undefined[\s\S]*
   throw new Error('StoreVisitPage must prefer the saved status before legacy note inference');
 }
 
-if (!/StoreVisitResultCard\([\s\S]*?\.onClick\(\(\) => \{[\s\S]*?openVisitDetail\(visit\)/.test(page)) {
+if (!/StoreVisitResultCard\([\s\S]*?\.onClick\(\(\) => \{[\s\S]*?handleVisitCardClick\(visit\)/.test(page) ||
+  !/private handleVisitCardClick\(visit: StoreVisit\): void[\s\S]*?openVisitDetail\(visit\)/.test(page)) {
   throw new Error('StoreVisitPage list cards must open the read-only detail page');
 }
 

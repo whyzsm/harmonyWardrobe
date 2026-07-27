@@ -6,6 +6,7 @@ const runtime = fs.readFileSync('entry/src/main/ets/app/WardrobeRuntimeFactory.e
 const storeNormalizedName = fs.readFileSync('entry/src/main/ets/data/migrations/V6StoreNormalizedName.ets', 'utf8');
 const profileSizes = fs.readFileSync('entry/src/main/ets/data/migrations/V8ProfileSizes.ets', 'utf8');
 const outfitDisplaySource = fs.readFileSync('entry/src/main/ets/data/migrations/V9OutfitDisplaySource.ets', 'utf8');
+const outfitCategories = fs.readFileSync('entry/src/main/ets/data/migrations/V10OutfitCategories.ets', 'utf8');
 
 for (const needle of ['Migration', 'version', 'up', 'transaction', 'getString']) {
   if (!migration.includes(needle)) throw new Error(`Migration.ets missing ${needle}`);
@@ -29,5 +30,23 @@ for (const needle of ['V9OutfitDisplaySource', 'version: number = 9', 'display_s
   if (!outfitDisplaySource.includes(needle)) throw new Error(`V9OutfitDisplaySource.ets missing ${needle}`);
 }
 for (const needle of ['v9OutfitDisplaySource', 'V9OutfitDisplaySource']) {
+  if (!runtime.includes(needle)) throw new Error(`WardrobeRuntimeFactory.ets missing ${needle}`);
+}
+for (const needle of [
+  'V10OutfitCategories',
+  'version: number = 10',
+  'outfit_categories',
+  'normalized_name',
+  'category_id',
+  'idx_outfit_templates_category_id',
+  "'周末'",
+  "'通勤'"
+]) {
+  if (!outfitCategories.includes(needle)) throw new Error(`V10OutfitCategories.ets missing ${needle}`);
+}
+if (outfitCategories.includes("'逛店'")) {
+  throw new Error('V10OutfitCategories.ets must not seed the removed 逛店 category');
+}
+for (const needle of ['v10OutfitCategories', 'V10OutfitCategories']) {
   if (!runtime.includes(needle)) throw new Error(`WardrobeRuntimeFactory.ets missing ${needle}`);
 }

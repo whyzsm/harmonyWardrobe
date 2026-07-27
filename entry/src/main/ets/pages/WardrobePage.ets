@@ -1,6 +1,7 @@
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { SearchRepository } from '../data/repositories/SearchRepository';
+import { DeleteImageOverlay } from '../components/DeleteImageOverlay';
 import { ClothingCategory } from '../domain/clothing/ClothingCategory';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { SearchEntityType } from '../domain/search/SearchModels';
@@ -54,6 +55,9 @@ export struct WardrobePage {
   @State private loading: boolean = false;
   @State private errorMessage: string = '';
   @State private pressedWardrobeItemId: string = '';
+  @State private deletingClothingId: string = '';
+  @State private deleteOverlayClothingId: string = '';
+  private clothingCardClickBlockedUntil: number = 0;
   private nestedPageTransitionInProgress: boolean = false;
 
   aboutToAppear(): void {
@@ -308,7 +312,73 @@ export struct WardrobePage {
     await this.clothingRepository.deleteClothing(item.id);
     this.clothingItems = this.clothingItems.filter((existingItem: ClothingItem) => existingItem.id !== item.id);
     this.refreshClothingDataSource();
-    this.closeClothingDetail();
+  }
+
+  private confirmDeleteClothingFromList(item: ClothingItem): void {
+    if (this.deletingClothingId.length > 0) {
+      return;
+    }
+
+    this.pressedWardrobeItemId = '';
+    AlertDialog.show({
+      title: '删除衣物',
+      message: `确定删除“${this.displayItemTitle(item)}”吗？本地照片会一并移除，关联穿搭将解除该单品。`,
+      primaryButton: {
+        value: '取消',
+        action: () => {
+          this.deleteOverlayClothingId = '';
+        }
+      },
+      secondaryButton: {
+        value: '删除',
+        fontColor: YibuqueColor.danger,
+        action: () => {
+          this.deleteClothingFromList(item);
+        }
+      }
+    });
+  }
+
+  private async deleteClothingFromList(item: ClothingItem): Promise<void> {
+    if (this.deletingClothingId.length > 0) {
+      return;
+    }
+
+    this.deletingClothingId = item.id;
+    try {
+      await this.deleteClothingItem(item);
+      this.getUIContext().getPromptAction().showToast({ message: '衣物已删除' });
+    } catch (error) {
+      this.getUIContext().getPromptAction().showToast({
+        message: userFacingError(error, '删除衣物失败')
+      });
+    } finally {
+      this.deletingClothingId = '';
+      this.deleteOverlayClothingId = '';
+    }
+  }
+
+  private showClothingDeleteOverlay(item: ClothingItem): void {
+    if (this.deletingClothingId.length > 0) {
+      return;
+    }
+
+    this.pressedWardrobeItemId = '';
+    this.deleteOverlayClothingId = item.id;
+    this.clothingCardClickBlockedUntil = Date.now() + 60000;
+  }
+
+  private handleClothingCardClick(item: ClothingItem): void {
+    if (Date.now() <= this.clothingCardClickBlockedUntil) {
+      return;
+    }
+
+    if (this.deleteOverlayClothingId.length > 0) {
+      this.deleteOverlayClothingId = '';
+      return;
+    }
+
+    this.openClothingDetail(item);
   }
 
   private openUnifiedSearch(query: string): void {
@@ -388,6 +458,7 @@ export struct WardrobePage {
         },
         onDelete: async (item: ClothingItem): Promise<void> => {
           await this.deleteClothingItem(item);
+          this.closeClothingDetail();
         }
       })
         .transition(TransitionEffect.OPACITY)
@@ -660,8 +731,33 @@ export struct WardrobePage {
         .width('100%')
         .padding({ left: 8, right: 8, top: 8 })
         .alignItems(VerticalAlign.Top)
+
+        if (this.deleteOverlayClothingId === item.id) {
+          DeleteImageOverlay({
+            label: '删除衣物',
+            deleting: this.deletingClothingId === item.id,
+            cornerRadius: YibuqueRadius.xxl,
+            onDelete: () => {
+              this.clothingCardClickBlockedUntil = Date.now() + 300;
+              this.confirmDeleteClothingFromList(item);
+            },
+            onDismiss: () => {
+              this.clothingCardClickBlockedUntil = Date.now() + 300;
+              this.deleteOverlayClothingId = '';
+            }
+          })
+        }
       }
       .width('100%')
+      .gesture(
+        LongPressGesture({ repeat: false, duration: 500 })
+          .onAction(() => {
+            this.showClothingDeleteOverlay(item);
+          })
+          .onActionEnd(() => {
+            this.clothingCardClickBlockedUntil = Date.now() + 300;
+          })
+      )
 
       Row({ space: 8 }) {
         Text(this.displayItemTitle(item))
@@ -694,8 +790,9 @@ export struct WardrobePage {
       }
     })
     .onClick(() => {
-      this.openClothingDetail(item);
+      this.handleClothingCardClick(item);
     })
+    .accessibilityTextHint('长按图片可显示删除操作')
   }
 
   @Builder

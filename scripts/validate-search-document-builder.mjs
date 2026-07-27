@@ -168,9 +168,12 @@ assert.match(clothingDocument.ngrams, /\bsoh\b/);
 const outfitDocument = context.buildOutfitSearchDocument({
   id: 'outfit-1',
   title: 'Work Look',
+  categoryName: '通勤',
   note: 'Client meeting'
 }, ['Silk Shirt', '', 'Wide Pants']);
 assert.equal(outfitDocument.entityType, SearchEntityType.Outfit);
+assert.equal(outfitDocument.category, '通勤');
+assert.match(outfitDocument.body, /通勤/);
 assert.match(outfitDocument.body, /client meeting/);
 assert.match(outfitDocument.body, /silk shirt/);
 assert.match(outfitDocument.body, /wide pants/);

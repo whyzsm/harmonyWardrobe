@@ -9,17 +9,20 @@ for (const needle of [
   'OutfitEmptyState',
   'OutfitRepository',
   'OutfitTemplate',
-  "{ label: '全部' }",
-  "{ label: '逛店'",
-  "{ label: '周末'",
-  "{ label: '通勤'",
+  'OutfitCategory',
+  'OutfitCategoryManagerSheet',
+  'selectedCategoryId',
+  'listOutfitCategories',
+  'deleteOutfitCategory',
+  "this.CategoryFilterChip('', '全部', true)",
+  'ForEach(this.categories',
   '从已有单品开始搭配',
   '先添加衣物再创建穿搭',
   'OutfitGuideCard',
   'Column({ space: 14 })',
-  'Row({ space: 6 })',
-  '.constraintSize({ minWidth: 0, minHeight: 44 })',
-  '.padding({ left: 8, right: 8 })',
+  'Row({ space: 8 })',
+  '.scrollable(ScrollDirection.Horizontal)',
+  '.constraintSize({ minWidth: 76, maxWidth: 168 })',
   '.layoutWeight(1)',
   'OutfitDetailPage',
   'OutfitSearchHeader',
@@ -64,12 +67,22 @@ if (!/private filterOutfits\(\): OutfitTemplate\[\][\s\S]*?normalizedQuery\s*=\s
   throw new Error('OutfitsPage search must filter outfits by the entered query');
 }
 
-if (!/OutfitSearchHeader\(\)[\s\S]*?TextInput\(\{ text: this\.searchQuery, placeholder: '搜索穿搭、场景、备注' \}\)[\s\S]*?this\.refreshOutfitDataSource\(\)[\s\S]*?this\.openSearch\(\)/.test(text)) {
+if (!/OutfitSearchHeader\(\)[\s\S]*?TextInput\(\{ text: this\.searchQuery, placeholder: '搜索穿搭、分类、备注' \}\)[\s\S]*?this\.refreshOutfitDataSource\(\)[\s\S]*?this\.openSearch\(\)/.test(text)) {
   throw new Error('OutfitsPage search header must match the wardrobe search interaction');
 }
 
-if (!/FilterStrip\(\)[\s\S]*?Row\(\{ space: 6 \}\)[\s\S]*?\.layoutWeight\(1\)[\s\S]*?\.height\(44\)[\s\S]*?\.padding\(\{ left: 20, right: 20 \}\)/.test(text)) {
-  throw new Error('OutfitsPage filter strip must keep the same vertical spacing as the wardrobe tabs');
+if (!/FilterStrip\(\)[\s\S]*?Scroll\(\)[\s\S]*?ForEach\(this\.categories[\s\S]*?\.scrollable\(ScrollDirection\.Horizontal\)[\s\S]*?\.padding\(\{ left: 20, right: 20 \}\)/.test(text)) {
+  throw new Error('OutfitsPage filter strip must render database categories in a horizontal scroller');
+}
+
+if (!/private filterOutfits\(\): OutfitTemplate\[\][\s\S]*?this\.selectedCategoryId\.length === 0[\s\S]*?outfit\.categoryId === this\.selectedCategoryId/.test(text)) {
+  throw new Error('OutfitsPage must keep uncategorized outfits in all and filter saved categories by id');
+}
+
+for (const removedCategoryCode of ['OUTFIT_SCENE_FILTERS', 'OutfitSceneFilter', "{ label: '逛店'", "label === '逛店'"]) {
+  if (text.includes(removedCategoryCode)) {
+    throw new Error(`OutfitsPage must not retain hard-coded category logic: ${removedCategoryCode}`);
+  }
 }
 
 if (!/else if \(this\.showUnifiedSearch\)[\s\S]*?SearchResultsPage\(\{[\s\S]*?searchRepository: this\.searchRepository[\s\S]*?onOpenOutfitResult/.test(text)) {
@@ -108,8 +121,17 @@ if (/Button\('创建穿搭'\)/.test(text)) {
   throw new Error('OutfitsPage empty state must not render a create-outfit button');
 }
 
-if (!/OutfitWallCard\([\s\S]*?\.onClick\(\(\) => \{[\s\S]*?openOutfitDetail\(outfit\)/.test(text)) {
+if (!/OutfitWallCard\([\s\S]*?\.onClick\(\(\) => \{[\s\S]*?handleOutfitCardClick\(outfit\)/.test(text) ||
+  !/private handleOutfitCardClick\(outfit: OutfitTemplate\): void[\s\S]*?openOutfitDetail\(outfit\)/.test(text)) {
   throw new Error('OutfitsPage list cards must open the read-only detail page');
+}
+
+if (!/WaterFlow\(\)[\s\S]*?LazyForEach\(this\.outfitDataSource[\s\S]*?FlowItem\(\)[\s\S]*?this\.OutfitWallCard\(outfit, index\)/.test(text)) {
+  throw new Error('OutfitsPage must render outfit cards as lazy native FlowItems');
+}
+
+if (text.includes('Grid()') || text.includes('GridItem()') || text.includes('outfitTopMargin')) {
+  throw new Error('OutfitsPage must not simulate a waterfall with grid rows or manual card offsets');
 }
 
 if (!/private displayPhotoUris\(outfit: OutfitTemplate\): string\[\] \{[\s\S]*?outfit\.displaySource === OutfitDisplaySource\.Wardrobe[\s\S]*?return clothingPhotoUris\.length > 0 \? clothingPhotoUris : outfit\.photoUris;[\s\S]*?return outfit\.photoUris\.length > 0 \? outfit\.photoUris : clothingPhotoUris;/.test(text)) {
@@ -147,8 +169,34 @@ if (!/private detailPhotoUris\(\): string\[\] \{[\s\S]*?const uploadedPhotoUris 
   throw new Error('OutfitDetailPage must follow the saved display source with fallback');
 }
 
+for (const needle of [
+  'showPhotoPreview',
+  'selectedPhotoIndex',
+  'normalizePhotoIndex',
+  'openPhotoPreview',
+  'closePhotoPreview',
+  'PreviewPhotoSwiper',
+  'PhotoPreviewOverlay',
+  "Text('关闭')",
+  '.objectFit(ImageFit.Contain)',
+  'this.openPhotoPreview(index)',
+  '左右滑动'
+]) {
+  if (!detail.includes(needle)) {
+    throw new Error(`OutfitDetailPage missing photo preview flow ${needle}`);
+  }
+}
+
+if ((detail.match(/Swiper\(\)/g) ?? []).length < 2) {
+  throw new Error('OutfitDetailPage should use Swiper for both hero and full-screen preview');
+}
+
 if (!/private displayOutfitTitle\(\): string[\s\S]*?穿搭\|美搭[\s\S]*?Text\(this\.displayOutfitTitle\(\)\)/.test(detail)) {
   throw new Error('OutfitDetailPage must hide generated date titles');
+}
+
+if (!/private categoryText\(\): string[\s\S]*?categoryName[\s\S]*?Text\(`\$\{this\.categoryText\(\)\} · \$\{this\.photoCountText\(\)\}`\)/.test(detail)) {
+  throw new Error('OutfitDetailPage must display the persisted category with an uncategorized fallback');
 }
 
 if (detail.includes('暂未填写备注') || !/private hasNoteText\(\): boolean[\s\S]*?if \(this\.hasNoteText\(\)\)[\s\S]*?Text\(this\.noteText\(\)\)/.test(detail)) {

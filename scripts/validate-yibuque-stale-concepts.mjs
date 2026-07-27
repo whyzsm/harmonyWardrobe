@@ -45,7 +45,8 @@ for (const removedFile of [
 
 for (const file of userFacingFiles) {
   const text = read(file);
-  const forbiddenConcepts = file.endsWith('/ProfilePage.ets')
+  const allowsShoppingCopy = file.endsWith('/ProfilePage.ets') || file.endsWith('/BottomNavigationBar.ets');
+  const forbiddenConcepts = allowsShoppingCopy
     ? ['首页', '心愿单', '点赞', '收藏', '评论', '关注']
     : ['首页', '逛街', '心愿单', '点赞', '收藏', '评论', '关注'];
   for (const forbidden of forbiddenConcepts) {

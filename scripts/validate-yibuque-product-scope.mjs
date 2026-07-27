@@ -61,7 +61,7 @@ for (const forbidden of [
   mustNotInclude(wardrobe, wardrobePath, forbidden);
 }
 
-for (const needle of ['衣柜', '逛店', '穿搭', '我的']) {
+for (const needle of ['穿搭', '衣柜', '逛街', '我的']) {
   mustInclude(nav, navPath, needle);
 }
 

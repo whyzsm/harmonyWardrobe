@@ -1,16 +1,26 @@
 import fs from 'node:fs';
 
 const indexPath = 'entry/src/main/ets/pages/Index.ets';
+const appRoutePath = 'entry/src/main/ets/app/AppRoute.ets';
 const navPath = 'entry/src/main/ets/components/BottomNavigationBar.ets';
 const sheetPath = 'entry/src/main/ets/components/QuickCaptureSheet.ets';
 
 const index = fs.readFileSync(indexPath, 'utf8');
+const appRoute = fs.readFileSync(appRoutePath, 'utf8');
 const nav = fs.readFileSync(navPath, 'utf8');
 const sheet = fs.readFileSync(sheetPath, 'utf8');
 const outfitsPage = fs.readFileSync('entry/src/main/ets/pages/OutfitsPage.ets', 'utf8');
 const wardrobePage = fs.readFileSync('entry/src/main/ets/pages/WardrobePage.ets', 'utf8');
 const storePage = fs.readFileSync('entry/src/main/ets/pages/StoreVisitPage.ets', 'utf8');
 const wishlistPage = fs.readFileSync('entry/src/main/ets/pages/WishlistPage.ets', 'utf8');
+
+if (!/createInitialAppRoute\(\): AppRoute \{[\s\S]*?AppMainTab\.Outfit/.test(appRoute)) {
+  throw new Error('AppRoute must open the outfit tab by default');
+}
+
+if (!nav.includes("@Prop selected: string = 'outfit'")) {
+  throw new Error('BottomNavigationBar default selection must match the initial outfit tab');
+}
 
 function flatCallbackBody(text, callbackName) {
   const match = text.match(new RegExp(`${callbackName}: \\(\\) => \\{([^{}]*)\\}`));
@@ -32,10 +42,20 @@ for (const needle of [
   }
 }
 
-for (const label of ['衣柜', '逛店', '穿搭', '我的']) {
-  if (!nav.includes(label)) {
-    throw new Error(`BottomNavigationBar missing ${label}`);
+const navigationItemsInOrder = [
+  "this.NavItem('outfit', '穿搭')",
+  "this.NavItem('wardrobe', '衣柜')",
+  'this.CameraIcon()',
+  "this.NavItem('store', '逛街')",
+  "this.NavItem('profile', '我的')"
+];
+let previousNavigationItemIndex = -1;
+for (const navigationItem of navigationItemsInOrder) {
+  const navigationItemIndex = nav.indexOf(navigationItem);
+  if (navigationItemIndex <= previousNavigationItemIndex) {
+    throw new Error(`BottomNavigationBar missing or out of order: ${navigationItem}`);
   }
+  previousNavigationItemIndex = navigationItemIndex;
 }
 
 for (const action of ['衣柜', '逛店', '穿搭']) {

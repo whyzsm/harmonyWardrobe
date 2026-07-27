@@ -7,29 +7,37 @@ import { DeleteCleanupService } from './DeleteCleanupService';
 import { SearchRepository } from './SearchRepository';
 import { SearchIndexMode } from '../searchIndex/SearchCapability';
 import { PhotoStorage } from '../../media/PhotoStorage';
-import { OutfitDisplaySource, OutfitTemplate } from '../../domain/outfit/OutfitModels';
+import {
+  OUTFIT_CATEGORY_MAX_LENGTH,
+  OutfitCategory,
+  OutfitDisplaySource,
+  OutfitTemplate
+} from '../../domain/outfit/OutfitModels';
 import { WearLog } from '../../domain/wearLog/WearLogModels';
 import { buildOutfitSearchDocument } from '../../domain/search/SearchDocumentBuilder';
 import { SearchEntityType } from '../../domain/search/SearchModels';
 import { createId } from '../../utils/id';
 import { toIsoDateTime } from '../../utils/date';
+import { normalizeSearchText } from '../../utils/text';
 
 const INSERT_OUTFIT_SQL = `
   INSERT INTO outfit_templates (
     id,
     title,
+    category_id,
     note,
     display_source,
     created_at,
     updated_at
   )
-  VALUES (?, ?, ?, ?, ?, ?)
+  VALUES (?, ?, ?, ?, ?, ?, ?)
 `;
 
 const UPDATE_OUTFIT_SQL = `
   UPDATE outfit_templates
   SET
     title = ?,
+    category_id = ?,
     note = ?,
     display_source = ?,
     updated_at = ?
@@ -40,6 +48,48 @@ const DELETE_OUTFIT_SQL = 'DELETE FROM outfit_templates WHERE id = ?';
 const DELETE_OUTFIT_PHOTOS_SQL = 'DELETE FROM outfit_photos WHERE outfit_id = ?';
 const DELETE_OUTFIT_ITEMS_SQL = 'DELETE FROM outfit_items WHERE outfit_id = ?';
 const COUNT_OUTFITS_SQL = 'SELECT COUNT(*) AS total_count FROM outfit_templates';
+const DELETE_OUTFIT_CATEGORY_SQL = 'DELETE FROM outfit_categories WHERE id = ?';
+const CLEAR_OUTFIT_CATEGORY_SQL = 'UPDATE outfit_templates SET category_id = NULL WHERE category_id = ?';
+
+const INSERT_OUTFIT_CATEGORY_SQL = `
+  INSERT INTO outfit_categories (
+    id,
+    name,
+    normalized_name,
+    sort_order,
+    created_at,
+    updated_at
+  )
+  VALUES (?, ?, ?, 1000, ?, ?)
+`;
+
+const LIST_OUTFIT_CATEGORIES_SQL = `
+  SELECT
+    categories.id,
+    categories.name,
+    COUNT(outfits.id) AS usage_count
+  FROM outfit_categories AS categories
+  LEFT JOIN outfit_templates AS outfits ON outfits.category_id = categories.id
+  GROUP BY categories.id, categories.name, categories.sort_order, categories.created_at
+  ORDER BY categories.sort_order ASC, categories.created_at ASC, categories.name ASC
+`;
+
+const SELECT_OUTFIT_CATEGORY_BY_NORMALIZED_NAME_SQL = `
+  SELECT
+    categories.id,
+    categories.name,
+    COUNT(outfits.id) AS usage_count
+  FROM outfit_categories AS categories
+  LEFT JOIN outfit_templates AS outfits ON outfits.category_id = categories.id
+  WHERE categories.normalized_name = ?
+  GROUP BY categories.id, categories.name
+`;
+
+const SELECT_OUTFIT_IDS_BY_CATEGORY_SQL = `
+  SELECT id
+  FROM outfit_templates
+  WHERE category_id = ?
+`;
 
 const INSERT_OUTFIT_PHOTO_SQL = `
   INSERT INTO outfit_photos (
@@ -62,25 +112,31 @@ const INSERT_OUTFIT_ITEM_SQL = `
 
 const SELECT_OUTFIT_BY_ID_SQL = `
   SELECT
-    id,
-    title,
-    COALESCE(note, '') AS note,
-    COALESCE(display_source, 'photo') AS display_source,
-    created_at,
-    updated_at
-  FROM outfit_templates
-  WHERE id = ?
+    outfits.id,
+    outfits.title,
+    COALESCE(outfits.category_id, '') AS category_id,
+    COALESCE(categories.name, '') AS category_name,
+    COALESCE(outfits.note, '') AS note,
+    COALESCE(outfits.display_source, 'photo') AS display_source,
+    outfits.created_at,
+    outfits.updated_at
+  FROM outfit_templates AS outfits
+  LEFT JOIN outfit_categories AS categories ON categories.id = outfits.category_id
+  WHERE outfits.id = ?
 `;
 
 const BASE_LIST_OUTFITS_SQL = `
   SELECT
-    id,
-    title,
-    COALESCE(note, '') AS note,
-    COALESCE(display_source, 'photo') AS display_source,
-    created_at,
-    updated_at
-  FROM outfit_templates
+    outfits.id,
+    outfits.title,
+    COALESCE(outfits.category_id, '') AS category_id,
+    COALESCE(categories.name, '') AS category_name,
+    COALESCE(outfits.note, '') AS note,
+    COALESCE(outfits.display_source, 'photo') AS display_source,
+    outfits.created_at,
+    outfits.updated_at
+  FROM outfit_templates AS outfits
+  LEFT JOIN outfit_categories AS categories ON categories.id = outfits.category_id
 `;
 
 const SELECT_OUTFIT_PHOTOS_SQL = `
@@ -130,6 +186,8 @@ const SELECT_WEAR_LOG_PHOTOS_SQL = `
 interface OutfitRow {
   id: string;
   title: string;
+  categoryId?: string;
+  categoryName?: string;
   note?: string;
   displaySource: OutfitDisplaySource;
   createdAt: string;
@@ -150,6 +208,7 @@ interface WearLogRow {
 
 export interface CreateOutfitInput {
   title: string;
+  categoryName?: string;
   photoUris?: string[];
   clothingItemIds?: string[];
   displaySource?: OutfitDisplaySource;
@@ -159,6 +218,7 @@ export interface CreateOutfitInput {
 export interface UpdateOutfitInput {
   id: string;
   title: string;
+  categoryName?: string;
   photoUris?: string[];
   clothingItemIds?: string[];
   displaySource?: OutfitDisplaySource;
@@ -181,6 +241,27 @@ function toSqlNullableText(value?: string): string | null {
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : null;
+}
+
+function normalizeOutfitCategoryName(value?: string): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  const name = value.normalize('NFKC').trim().replace(/\s+/g, ' ');
+  if (name.length === 0) {
+    return undefined;
+  }
+  if (name.length > OUTFIT_CATEGORY_MAX_LENGTH) {
+    throw new Error(`分类名称最多 ${OUTFIT_CATEGORY_MAX_LENGTH} 个字符`);
+  }
+
+  const normalizedName = normalizeSearchText(name);
+  if (normalizedName === normalizeSearchText('全部') || normalizedName === normalizeSearchText('未分类')) {
+    throw new Error('“全部”和“未分类”不能作为自定义分类');
+  }
+
+  return name;
 }
 
 function normalizePhotoUris(photoUris?: string[]): string[] {
@@ -284,12 +365,15 @@ export class OutfitRepository {
   async createOutfit(input: CreateOutfitInput): Promise<OutfitTemplate> {
     return this.database.transaction(async () => {
       const now = toIsoDateTime(new Date());
+      const category = await this.resolveOutfitCategory(input.categoryName, now);
       const item: OutfitTemplate = {
         id: createId('outfit'),
         title: input.title.trim(),
         photoUris: normalizePhotoUris(input.photoUris),
         clothingItemIds: normalizeClothingItemIds(input.clothingItemIds),
         displaySource: normalizeDisplaySource(input.displaySource),
+        categoryId: category?.id,
+        categoryName: category?.name,
         note: toSqlNullableText(input.note) ?? undefined,
         createdAt: now,
         updatedAt: now
@@ -311,19 +395,24 @@ export class OutfitRepository {
         throw new Error(`Outfit not found: ${input.id}`);
       }
 
+      const now = toIsoDateTime(new Date());
+      const category = await this.resolveOutfitCategory(input.categoryName, now);
       const item: OutfitTemplate = {
         id: input.id,
         title: input.title.trim(),
         photoUris: normalizePhotoUris(input.photoUris),
         clothingItemIds: normalizeClothingItemIds(input.clothingItemIds),
         displaySource: normalizeDisplaySource(input.displaySource ?? existing.displaySource),
+        categoryId: category?.id,
+        categoryName: category?.name,
         note: toSqlNullableText(input.note) ?? undefined,
         createdAt: existing.createdAt,
-        updatedAt: toIsoDateTime(new Date())
+        updatedAt: now
       };
 
       await this.database.executeSql(UPDATE_OUTFIT_SQL, [
         item.title,
+        item.categoryId ?? null,
         item.note ?? null,
         item.displaySource,
         item.updatedAt,
@@ -348,8 +437,57 @@ export class OutfitRepository {
   }
 
   async listOutfits(): Promise<OutfitTemplate[]> {
-    const rows = await this.readOutfitRows(`${BASE_LIST_OUTFITS_SQL} ORDER BY updated_at DESC`);
+    const rows = await this.readOutfitRows(`${BASE_LIST_OUTFITS_SQL} ORDER BY outfits.updated_at DESC`);
     return this.hydrateOutfits(rows);
+  }
+
+  async listOutfitCategories(): Promise<OutfitCategory[]> {
+    const resultSet = await this.database.querySql(LIST_OUTFIT_CATEGORIES_SQL);
+    const categories: OutfitCategory[] = [];
+
+    try {
+      let hasRow = resultSet.goToFirstRow();
+      while (hasRow) {
+        categories.push(this.readOutfitCategoryRow(resultSet));
+        hasRow = resultSet.goToNextRow();
+      }
+    } finally {
+      resultSet.close();
+    }
+
+    return categories;
+  }
+
+  async deleteOutfitCategory(id: string): Promise<number> {
+    return this.database.transaction(async () => {
+      const outfitIds = await this.readOutfitIdsByCategory(id);
+      const affectedOutfits: OutfitTemplate[] = [];
+      for (const outfitId of outfitIds) {
+        const outfit = await this.getOutfitByIdInTransaction(outfitId);
+        if (outfit !== undefined) {
+          affectedOutfits.push(outfit);
+        }
+      }
+
+      await this.database.executeSql(CLEAR_OUTFIT_CATEGORY_SQL, [id]);
+      await this.database.executeSql(DELETE_OUTFIT_CATEGORY_SQL, [id]);
+
+      for (const outfit of affectedOutfits) {
+        const clearedOutfit: OutfitTemplate = {
+          id: outfit.id,
+          title: outfit.title,
+          photoUris: outfit.photoUris,
+          clothingItemIds: outfit.clothingItemIds,
+          displaySource: outfit.displaySource,
+          note: outfit.note,
+          createdAt: outfit.createdAt,
+          updatedAt: outfit.updatedAt
+        };
+        await this.upsertSearchDocument(clearedOutfit);
+      }
+
+      return outfitIds.length;
+    });
   }
 
   async getOutfitCount(): Promise<number> {
@@ -413,11 +551,78 @@ export class OutfitRepository {
     return [
       item.id,
       item.title,
+      item.categoryId ?? null,
       item.note ?? null,
       item.displaySource,
       item.createdAt,
       item.updatedAt
     ];
+  }
+
+  private async resolveOutfitCategory(categoryName: string | undefined, now: string): Promise<OutfitCategory | undefined> {
+    const name = normalizeOutfitCategoryName(categoryName);
+    if (name === undefined) {
+      return undefined;
+    }
+
+    const normalizedName = normalizeSearchText(name);
+    const existing = await this.findOutfitCategoryByNormalizedName(normalizedName);
+    if (existing !== undefined) {
+      return existing;
+    }
+
+    const category: OutfitCategory = {
+      id: createId('outfit_category'),
+      name,
+      usageCount: 0
+    };
+    await this.database.executeSql(INSERT_OUTFIT_CATEGORY_SQL, [
+      category.id,
+      category.name,
+      normalizedName,
+      now,
+      now
+    ]);
+
+    return category;
+  }
+
+  private async findOutfitCategoryByNormalizedName(normalizedName: string): Promise<OutfitCategory | undefined> {
+    const resultSet = await this.database.querySql(SELECT_OUTFIT_CATEGORY_BY_NORMALIZED_NAME_SQL, [normalizedName]);
+    try {
+      if (!resultSet.goToFirstRow()) {
+        return undefined;
+      }
+
+      return this.readOutfitCategoryRow(resultSet);
+    } finally {
+      resultSet.close();
+    }
+  }
+
+  private readOutfitCategoryRow(resultSet: MigrationResultSet): OutfitCategory {
+    return {
+      id: resultSet.getString('id'),
+      name: resultSet.getString('name'),
+      usageCount: resultSet.getNumber('usage_count')
+    };
+  }
+
+  private async readOutfitIdsByCategory(categoryId: string): Promise<string[]> {
+    const resultSet = await this.database.querySql(SELECT_OUTFIT_IDS_BY_CATEGORY_SQL, [categoryId]);
+    const outfitIds: string[] = [];
+
+    try {
+      let hasRow = resultSet.goToFirstRow();
+      while (hasRow) {
+        outfitIds.push(resultSet.getString('id'));
+        hasRow = resultSet.goToNextRow();
+      }
+    } finally {
+      resultSet.close();
+    }
+
+    return outfitIds;
   }
 
   private async replacePhotoRows(outfitId: string, photoUris: string[]): Promise<void> {
@@ -505,6 +710,8 @@ export class OutfitRepository {
         photoUris: await this.readPhotoUris(row.id),
         clothingItemIds: await this.readClothingItemIds(row.id),
         displaySource: row.displaySource,
+        categoryId: row.categoryId,
+        categoryName: row.categoryName,
         note: row.note,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt
@@ -535,6 +742,8 @@ export class OutfitRepository {
     return {
       id: resultSet.getString('id'),
       title: resultSet.getString('title'),
+      categoryId: optionalString(resultSet.getString('category_id')),
+      categoryName: optionalString(resultSet.getString('category_name')),
       note: optionalString(resultSet.getString('note')),
       displaySource: parseDisplaySource(resultSet.getString('display_source')),
       createdAt: resultSet.getString('created_at'),
