@@ -1,6 +1,5 @@
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { DeleteImageOverlay } from '../components/DeleteImageOverlay';
-import { OutfitCategoryManagerSheet } from '../components/OutfitCategoryManagerSheet';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { SearchRepository } from '../data/repositories/SearchRepository';
 import { WearLogRepository } from '../data/repositories/WearLogRepository';
@@ -72,7 +71,6 @@ export struct OutfitsPage {
   @State private deletingOutfitId: string = '';
   @State private deleteOverlayOutfitId: string = '';
   @State private showUnifiedSearch: boolean = false;
-  @State private showCategoryManager: boolean = false;
   @State private unifiedSearchQuery: string = '';
   private outfitCardClickBlockedUntil: number = 0;
   private nestedPageTransitionInProgress: boolean = false;
@@ -139,7 +137,7 @@ export struct OutfitsPage {
     const normalizedQuery = this.searchQuery.trim().toLowerCase();
 
     return this.outfits.filter((outfit: OutfitTemplate) => {
-      const searchableText = `${outfit.title} ${outfit.categoryName ?? ''} ${outfit.note ?? ''}`.toLowerCase();
+      const searchableText = `${outfit.title} ${outfit.categoryNames.join(' ')} ${outfit.note ?? ''}`.toLowerCase();
       const matchesQuery = normalizedQuery.length === 0 || searchableText.includes(normalizedQuery);
       if (!matchesQuery) {
         return false;
@@ -149,7 +147,7 @@ export struct OutfitsPage {
         return true;
       }
 
-      return outfit.categoryId === this.selectedCategoryId;
+      return outfit.categoryIds.includes(this.selectedCategoryId);
     });
   }
 
@@ -198,10 +196,13 @@ export struct OutfitsPage {
     return index % 4 === 2 ? 1 / 1.18 : 1 / 1.48;
   }
 
-  private outfitMeta(outfit: OutfitTemplate): string {
+  private outfitCategoryLabel(outfit: OutfitTemplate): string {
+    return outfit.categoryNames.length > 0 ? outfit.categoryNames.join('、') : '未分类';
+  }
+
+  private outfitDetailMeta(outfit: OutfitTemplate): string {
     const note = outfit.note?.trim() ?? '';
-    const detail = note.length > 0 ? note : `${outfit.clothingItemIds.length} 件单品`;
-    return `${outfit.categoryName ?? '未分类'} · ${detail}`;
+    return note.length > 0 ? note : `${outfit.clothingItemIds.length} 件单品`;
   }
 
   private displayOutfitTitle(outfit: OutfitTemplate): string {
@@ -345,17 +346,14 @@ export struct OutfitsPage {
     }
   }
 
-  private async deleteOutfitCategory(category: OutfitCategory): Promise<void> {
+  private async refreshOutfitsAfterCategoryChange(): Promise<void> {
     if (this.outfitRepository === undefined) {
-      throw new Error('穿搭分类数据不可用，请稍后重试');
+      return;
     }
 
-    await this.outfitRepository.deleteOutfitCategory(category.id);
-    if (this.selectedCategoryId === category.id) {
-      this.selectedCategoryId = '';
-    }
     this.outfits = await this.outfitRepository.listOutfits();
     this.categories = await this.outfitRepository.listOutfitCategories();
+    this.ensureSelectedCategoryExists();
     this.refreshOutfitDataSource();
   }
 
@@ -524,6 +522,9 @@ export struct OutfitsPage {
         },
         onCancel: () => {
           this.closeOutfitEditor();
+        },
+        onCategoriesChange: async (): Promise<void> => {
+          await this.refreshOutfitsAfterCategoryChange();
         }
       })
         .transition(TransitionEffect.OPACITY)
@@ -698,17 +699,6 @@ export struct OutfitsPage {
         .backgroundColor(YibuqueColor.bgDefault)
         .transition(TransitionEffect.OPACITY)
 
-        if (this.showCategoryManager) {
-          OutfitCategoryManagerSheet({
-            categories: this.categories,
-            onClose: () => {
-              this.showCategoryManager = false;
-            },
-            onDelete: async (category: OutfitCategory): Promise<void> => {
-              await this.deleteOutfitCategory(category);
-            }
-          })
-        }
       }
       .width('100%')
       .height('100%')
@@ -816,7 +806,7 @@ export struct OutfitsPage {
 
   @Builder
   FilterStrip() {
-    Row({ space: 8 }) {
+    Row() {
       Scroll() {
         Row({ space: 8 }) {
           this.CategoryFilterChip('', '全部', true)
@@ -827,28 +817,11 @@ export struct OutfitsPage {
         }
         .height(44)
       }
-      .layoutWeight(1)
+      .width('100%')
       .height(44)
       .align(Alignment.Start)
       .scrollable(ScrollDirection.Horizontal)
       .scrollBar(BarState.Off)
-
-      if (this.categories.length > 0) {
-        Button() {
-          SymbolGlyph($r('sys.symbol.list_bullet'))
-            .fontSize(18)
-            .fontColor([YibuqueColor.textPrimary])
-        }
-        .width(44)
-        .height(44)
-        .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.full)
-        .border({ width: 1, color: YibuqueColor.borderMedium })
-        .accessibilityText('管理穿搭分类')
-        .onClick(() => {
-          this.showCategoryManager = true;
-        })
-      }
     }
     .width('100%')
     .height(44)
@@ -968,7 +941,7 @@ export struct OutfitsPage {
           DeleteImageOverlay({
             label: '删除穿搭',
             deleting: this.deletingOutfitId === outfit.id,
-            cornerRadius: YibuqueRadius.xs,
+            cornerRadius: YibuqueRadius.xxl,
             onDelete: () => {
               this.outfitCardClickBlockedUntil = Date.now() + 300;
               this.confirmDeleteOutfitFromList(outfit);
@@ -997,18 +970,32 @@ export struct OutfitsPage {
 
       Row({ space: 8 }) {
         Column({ space: 2 }) {
-          Text(this.displayOutfitTitle(outfit))
-            .fontSize(14)
-            .fontWeight(FontWeight.Regular)
-            .fontColor(YibuqueColor.textPrimary)
-            .lineHeight(17)
-            .maxLines(1)
-            .textOverflow({ overflow: TextOverflow.Ellipsis })
-            .onClick(() => {
-              this.handleOutfitCardClick(outfit);
-            })
+          Row({ space: 6 }) {
+            Text(this.displayOutfitTitle(outfit))
+              .layoutWeight(1)
+              .fontSize(14)
+              .fontWeight(FontWeight.Regular)
+              .fontColor(YibuqueColor.textPrimary)
+              .lineHeight(17)
+              .maxLines(1)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
+              .onClick(() => {
+                this.handleOutfitCardClick(outfit);
+              })
 
-          Text(this.outfitMeta(outfit))
+            Text(this.outfitCategoryLabel(outfit))
+              .constraintSize({ maxWidth: 72 })
+              .fontSize(11)
+              .fontColor(YibuqueColor.textTertiary)
+              .lineHeight(17)
+              .maxLines(1)
+              .textAlign(TextAlign.End)
+              .textOverflow({ overflow: TextOverflow.Ellipsis })
+          }
+          .width('100%')
+          .alignItems(VerticalAlign.Center)
+
+          Text(this.outfitDetailMeta(outfit))
             .fontSize(11)
             .fontColor(YibuqueColor.textTertiary)
             .lineHeight(15)
@@ -1053,15 +1040,13 @@ export struct OutfitsPage {
       .justifyContent(FlexAlign.Center)
       .alignItems(HorizontalAlign.Center)
       .backgroundColor(YibuqueColor.cardSoftGray)
-      .borderRadius(YibuqueRadius.xs)
-      .border({ width: 1, color: YibuqueColor.borderLight })
+      .borderRadius(YibuqueRadius.xxl)
     } else {
       Image(this.displayPhotoUriAt(outfit, 0))
         .width('100%')
         .height('100%')
         .objectFit(ImageFit.Cover)
-        .borderRadius(YibuqueRadius.xs)
-        .border({ width: 1, color: YibuqueColor.borderLight })
+        .borderRadius(YibuqueRadius.xxl)
     }
   }
 
@@ -1082,15 +1067,13 @@ export struct OutfitsPage {
         .justifyContent(FlexAlign.Center)
         .alignItems(HorizontalAlign.Center)
         .backgroundColor(YibuqueColor.cardSoftGray)
-        .borderRadius(YibuqueRadius.xs)
-        .border({ width: 1, color: YibuqueColor.borderLight })
+        .borderRadius(YibuqueRadius.xxl)
     } else {
       Image(this.displayPhotoUriAt(outfit, slot))
         .width('100%')
         .layoutWeight(weight)
         .objectFit(ImageFit.Cover)
-        .borderRadius(YibuqueRadius.xs)
-        .border({ width: 1, color: YibuqueColor.borderLight })
+        .borderRadius(YibuqueRadius.xxl)
     }
   }
 }

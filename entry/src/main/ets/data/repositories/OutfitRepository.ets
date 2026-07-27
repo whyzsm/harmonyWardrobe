@@ -47,9 +47,11 @@ const UPDATE_OUTFIT_SQL = `
 const DELETE_OUTFIT_SQL = 'DELETE FROM outfit_templates WHERE id = ?';
 const DELETE_OUTFIT_PHOTOS_SQL = 'DELETE FROM outfit_photos WHERE outfit_id = ?';
 const DELETE_OUTFIT_ITEMS_SQL = 'DELETE FROM outfit_items WHERE outfit_id = ?';
+const DELETE_OUTFIT_CATEGORY_RELATIONS_SQL = 'DELETE FROM outfit_template_categories WHERE outfit_id = ?';
 const COUNT_OUTFITS_SQL = 'SELECT COUNT(*) AS total_count FROM outfit_templates';
 const DELETE_OUTFIT_CATEGORY_SQL = 'DELETE FROM outfit_categories WHERE id = ?';
-const CLEAR_OUTFIT_CATEGORY_SQL = 'UPDATE outfit_templates SET category_id = NULL WHERE category_id = ?';
+const DELETE_CATEGORY_RELATIONS_SQL = 'DELETE FROM outfit_template_categories WHERE category_id = ?';
+const UPDATE_LEGACY_OUTFIT_CATEGORY_SQL = 'UPDATE outfit_templates SET category_id = ? WHERE id = ?';
 
 const INSERT_OUTFIT_CATEGORY_SQL = `
   INSERT INTO outfit_categories (
@@ -67,9 +69,9 @@ const LIST_OUTFIT_CATEGORIES_SQL = `
   SELECT
     categories.id,
     categories.name,
-    COUNT(outfits.id) AS usage_count
+    COUNT(DISTINCT relations.outfit_id) AS usage_count
   FROM outfit_categories AS categories
-  LEFT JOIN outfit_templates AS outfits ON outfits.category_id = categories.id
+  LEFT JOIN outfit_template_categories AS relations ON relations.category_id = categories.id
   GROUP BY categories.id, categories.name, categories.sort_order, categories.created_at
   ORDER BY categories.sort_order ASC, categories.created_at ASC, categories.name ASC
 `;
@@ -78,17 +80,37 @@ const SELECT_OUTFIT_CATEGORY_BY_NORMALIZED_NAME_SQL = `
   SELECT
     categories.id,
     categories.name,
-    COUNT(outfits.id) AS usage_count
+    COUNT(DISTINCT relations.outfit_id) AS usage_count
   FROM outfit_categories AS categories
-  LEFT JOIN outfit_templates AS outfits ON outfits.category_id = categories.id
+  LEFT JOIN outfit_template_categories AS relations ON relations.category_id = categories.id
   WHERE categories.normalized_name = ?
   GROUP BY categories.id, categories.name
 `;
 
 const SELECT_OUTFIT_IDS_BY_CATEGORY_SQL = `
-  SELECT id
-  FROM outfit_templates
+  SELECT outfit_id
+  FROM outfit_template_categories
   WHERE category_id = ?
+  ORDER BY outfit_id ASC
+`;
+
+const INSERT_OUTFIT_CATEGORY_RELATION_SQL = `
+  INSERT INTO outfit_template_categories (
+    outfit_id,
+    category_id,
+    sort_order
+  )
+  VALUES (?, ?, ?)
+`;
+
+const SELECT_OUTFIT_CATEGORY_RELATIONS_SQL = `
+  SELECT
+    relations.category_id,
+    categories.name AS category_name
+  FROM outfit_template_categories AS relations
+  INNER JOIN outfit_categories AS categories ON categories.id = relations.category_id
+  WHERE relations.outfit_id = ?
+  ORDER BY relations.sort_order ASC, categories.sort_order ASC, categories.created_at ASC
 `;
 
 const INSERT_OUTFIT_PHOTO_SQL = `
@@ -114,14 +136,11 @@ const SELECT_OUTFIT_BY_ID_SQL = `
   SELECT
     outfits.id,
     outfits.title,
-    COALESCE(outfits.category_id, '') AS category_id,
-    COALESCE(categories.name, '') AS category_name,
     COALESCE(outfits.note, '') AS note,
     COALESCE(outfits.display_source, 'photo') AS display_source,
     outfits.created_at,
     outfits.updated_at
   FROM outfit_templates AS outfits
-  LEFT JOIN outfit_categories AS categories ON categories.id = outfits.category_id
   WHERE outfits.id = ?
 `;
 
@@ -129,14 +148,11 @@ const BASE_LIST_OUTFITS_SQL = `
   SELECT
     outfits.id,
     outfits.title,
-    COALESCE(outfits.category_id, '') AS category_id,
-    COALESCE(categories.name, '') AS category_name,
     COALESCE(outfits.note, '') AS note,
     COALESCE(outfits.display_source, 'photo') AS display_source,
     outfits.created_at,
     outfits.updated_at
   FROM outfit_templates AS outfits
-  LEFT JOIN outfit_categories AS categories ON categories.id = outfits.category_id
 `;
 
 const SELECT_OUTFIT_PHOTOS_SQL = `
@@ -186,12 +202,15 @@ const SELECT_WEAR_LOG_PHOTOS_SQL = `
 interface OutfitRow {
   id: string;
   title: string;
-  categoryId?: string;
-  categoryName?: string;
   note?: string;
   displaySource: OutfitDisplaySource;
   createdAt: string;
   updatedAt: string;
+}
+
+interface OutfitCategorySelection {
+  ids: string[];
+  names: string[];
 }
 
 interface WearLogRow {
@@ -208,7 +227,7 @@ interface WearLogRow {
 
 export interface CreateOutfitInput {
   title: string;
-  categoryName?: string;
+  categoryNames?: string[];
   photoUris?: string[];
   clothingItemIds?: string[];
   displaySource?: OutfitDisplaySource;
@@ -218,7 +237,7 @@ export interface CreateOutfitInput {
 export interface UpdateOutfitInput {
   id: string;
   title: string;
-  categoryName?: string;
+  categoryNames?: string[];
   photoUris?: string[];
   clothingItemIds?: string[];
   displaySource?: OutfitDisplaySource;
@@ -262,6 +281,29 @@ function normalizeOutfitCategoryName(value?: string): string | undefined {
   }
 
   return name;
+}
+
+function normalizeOutfitCategoryNames(categoryNames?: string[]): string[] {
+  if (categoryNames === undefined) {
+    return [];
+  }
+
+  const names: string[] = [];
+  const seen = new Set<string>();
+  for (const categoryName of categoryNames) {
+    const name = normalizeOutfitCategoryName(categoryName);
+    if (name === undefined) {
+      continue;
+    }
+
+    const normalizedName = normalizeSearchText(name);
+    if (!seen.has(normalizedName)) {
+      seen.add(normalizedName);
+      names.push(name);
+    }
+  }
+
+  return names;
 }
 
 function normalizePhotoUris(photoUris?: string[]): string[] {
@@ -365,21 +407,26 @@ export class OutfitRepository {
   async createOutfit(input: CreateOutfitInput): Promise<OutfitTemplate> {
     return this.database.transaction(async () => {
       const now = toIsoDateTime(new Date());
-      const category = await this.resolveOutfitCategory(input.categoryName, now);
+      const categories = await this.resolveOutfitCategories(input.categoryNames, now);
+      const categoryIds = categories.map((category: OutfitCategory) => category.id);
+      const categoryNames = categories.map((category: OutfitCategory) => category.name);
       const item: OutfitTemplate = {
         id: createId('outfit'),
         title: input.title.trim(),
         photoUris: normalizePhotoUris(input.photoUris),
         clothingItemIds: normalizeClothingItemIds(input.clothingItemIds),
         displaySource: normalizeDisplaySource(input.displaySource),
-        categoryId: category?.id,
-        categoryName: category?.name,
+        categoryIds,
+        categoryNames,
+        categoryId: categoryIds[0],
+        categoryName: categoryNames[0],
         note: toSqlNullableText(input.note) ?? undefined,
         createdAt: now,
         updatedAt: now
       };
 
       await this.database.executeSql(INSERT_OUTFIT_SQL, this.outfitBindArgs(item));
+      await this.replaceCategoryRows(item.id, item.categoryIds);
       await this.replacePhotoRows(item.id, item.photoUris);
       await this.replaceClothingRows(item.id, item.clothingItemIds);
       await this.upsertSearchDocument(item);
@@ -396,15 +443,19 @@ export class OutfitRepository {
       }
 
       const now = toIsoDateTime(new Date());
-      const category = await this.resolveOutfitCategory(input.categoryName, now);
+      const categories = await this.resolveOutfitCategories(input.categoryNames, now);
+      const categoryIds = categories.map((category: OutfitCategory) => category.id);
+      const categoryNames = categories.map((category: OutfitCategory) => category.name);
       const item: OutfitTemplate = {
         id: input.id,
         title: input.title.trim(),
         photoUris: normalizePhotoUris(input.photoUris),
         clothingItemIds: normalizeClothingItemIds(input.clothingItemIds),
         displaySource: normalizeDisplaySource(input.displaySource ?? existing.displaySource),
-        categoryId: category?.id,
-        categoryName: category?.name,
+        categoryIds,
+        categoryNames,
+        categoryId: categoryIds[0],
+        categoryName: categoryNames[0],
         note: toSqlNullableText(input.note) ?? undefined,
         createdAt: existing.createdAt,
         updatedAt: now
@@ -419,6 +470,7 @@ export class OutfitRepository {
         item.id
       ]);
 
+      await this.replaceCategoryRows(item.id, item.categoryIds);
       await this.replacePhotoRows(item.id, item.photoUris);
       await this.replaceClothingRows(item.id, item.clothingItemIds);
       await this.upsertSearchDocument(item);
@@ -431,6 +483,7 @@ export class OutfitRepository {
     await this.database.transaction(async () => {
       await this.deleteCleanupService.deleteObjectPhotos('outfit_photos', 'outfit_id', id);
       await this.database.executeSql(DELETE_OUTFIT_ITEMS_SQL, [id]);
+      await this.database.executeSql(DELETE_OUTFIT_CATEGORY_RELATIONS_SQL, [id]);
       await this.database.executeSql(DELETE_OUTFIT_SQL, [id]);
       await this.searchRepository.deleteDocumentInTransaction(SearchEntityType.Outfit, id);
     });
@@ -461,29 +514,17 @@ export class OutfitRepository {
   async deleteOutfitCategory(id: string): Promise<number> {
     return this.database.transaction(async () => {
       const outfitIds = await this.readOutfitIdsByCategory(id);
-      const affectedOutfits: OutfitTemplate[] = [];
-      for (const outfitId of outfitIds) {
-        const outfit = await this.getOutfitByIdInTransaction(outfitId);
-        if (outfit !== undefined) {
-          affectedOutfits.push(outfit);
-        }
-      }
-
-      await this.database.executeSql(CLEAR_OUTFIT_CATEGORY_SQL, [id]);
+      await this.database.executeSql(DELETE_CATEGORY_RELATIONS_SQL, [id]);
       await this.database.executeSql(DELETE_OUTFIT_CATEGORY_SQL, [id]);
 
-      for (const outfit of affectedOutfits) {
-        const clearedOutfit: OutfitTemplate = {
-          id: outfit.id,
-          title: outfit.title,
-          photoUris: outfit.photoUris,
-          clothingItemIds: outfit.clothingItemIds,
-          displaySource: outfit.displaySource,
-          note: outfit.note,
-          createdAt: outfit.createdAt,
-          updatedAt: outfit.updatedAt
-        };
-        await this.upsertSearchDocument(clearedOutfit);
+      for (const outfitId of outfitIds) {
+        const outfit = await this.getOutfitByIdInTransaction(outfitId);
+        if (outfit === undefined) {
+          continue;
+        }
+
+        await this.database.executeSql(UPDATE_LEGACY_OUTFIT_CATEGORY_SQL, [outfit.categoryIds[0] ?? null, outfit.id]);
+        await this.upsertSearchDocument(outfit);
       }
 
       return outfitIds.length;
@@ -559,32 +600,32 @@ export class OutfitRepository {
     ];
   }
 
-  private async resolveOutfitCategory(categoryName: string | undefined, now: string): Promise<OutfitCategory | undefined> {
-    const name = normalizeOutfitCategoryName(categoryName);
-    if (name === undefined) {
-      return undefined;
+  private async resolveOutfitCategories(categoryNames: string[] | undefined, now: string): Promise<OutfitCategory[]> {
+    const categories: OutfitCategory[] = [];
+    for (const name of normalizeOutfitCategoryNames(categoryNames)) {
+      const normalizedName = normalizeSearchText(name);
+      const existing = await this.findOutfitCategoryByNormalizedName(normalizedName);
+      if (existing !== undefined) {
+        categories.push(existing);
+        continue;
+      }
+
+      const category: OutfitCategory = {
+        id: createId('outfit_category'),
+        name,
+        usageCount: 0
+      };
+      await this.database.executeSql(INSERT_OUTFIT_CATEGORY_SQL, [
+        category.id,
+        category.name,
+        normalizedName,
+        now,
+        now
+      ]);
+      categories.push(category);
     }
 
-    const normalizedName = normalizeSearchText(name);
-    const existing = await this.findOutfitCategoryByNormalizedName(normalizedName);
-    if (existing !== undefined) {
-      return existing;
-    }
-
-    const category: OutfitCategory = {
-      id: createId('outfit_category'),
-      name,
-      usageCount: 0
-    };
-    await this.database.executeSql(INSERT_OUTFIT_CATEGORY_SQL, [
-      category.id,
-      category.name,
-      normalizedName,
-      now,
-      now
-    ]);
-
-    return category;
+    return categories;
   }
 
   private async findOutfitCategoryByNormalizedName(normalizedName: string): Promise<OutfitCategory | undefined> {
@@ -615,7 +656,7 @@ export class OutfitRepository {
     try {
       let hasRow = resultSet.goToFirstRow();
       while (hasRow) {
-        outfitIds.push(resultSet.getString('id'));
+        outfitIds.push(resultSet.getString('outfit_id'));
         hasRow = resultSet.goToNextRow();
       }
     } finally {
@@ -623,6 +664,18 @@ export class OutfitRepository {
     }
 
     return outfitIds;
+  }
+
+  private async replaceCategoryRows(outfitId: string, categoryIds: string[]): Promise<void> {
+    await this.database.executeSql(DELETE_OUTFIT_CATEGORY_RELATIONS_SQL, [outfitId]);
+
+    for (let index = 0; index < categoryIds.length; index += 1) {
+      await this.database.executeSql(INSERT_OUTFIT_CATEGORY_RELATION_SQL, [
+        outfitId,
+        categoryIds[index],
+        index
+      ]);
+    }
   }
 
   private async replacePhotoRows(outfitId: string, photoUris: string[]): Promise<void> {
@@ -704,14 +757,17 @@ export class OutfitRepository {
     const items: OutfitTemplate[] = [];
 
     for (const row of rows) {
+      const categories = await this.readOutfitCategorySelection(row.id);
       items.push({
         id: row.id,
         title: row.title,
         photoUris: await this.readPhotoUris(row.id),
         clothingItemIds: await this.readClothingItemIds(row.id),
         displaySource: row.displaySource,
-        categoryId: row.categoryId,
-        categoryName: row.categoryName,
+        categoryIds: categories.ids,
+        categoryNames: categories.names,
+        categoryId: categories.ids[0],
+        categoryName: categories.names[0],
         note: row.note,
         createdAt: row.createdAt,
         updatedAt: row.updatedAt
@@ -742,13 +798,30 @@ export class OutfitRepository {
     return {
       id: resultSet.getString('id'),
       title: resultSet.getString('title'),
-      categoryId: optionalString(resultSet.getString('category_id')),
-      categoryName: optionalString(resultSet.getString('category_name')),
       note: optionalString(resultSet.getString('note')),
       displaySource: parseDisplaySource(resultSet.getString('display_source')),
       createdAt: resultSet.getString('created_at'),
       updatedAt: resultSet.getString('updated_at')
     };
+  }
+
+  private async readOutfitCategorySelection(outfitId: string): Promise<OutfitCategorySelection> {
+    const resultSet = await this.database.querySql(SELECT_OUTFIT_CATEGORY_RELATIONS_SQL, [outfitId]);
+    const ids: string[] = [];
+    const names: string[] = [];
+
+    try {
+      let hasRow = resultSet.goToFirstRow();
+      while (hasRow) {
+        ids.push(resultSet.getString('category_id'));
+        names.push(resultSet.getString('category_name'));
+        hasRow = resultSet.goToNextRow();
+      }
+    } finally {
+      resultSet.close();
+    }
+
+    return { ids, names };
   }
 
   private async readPhotoUris(outfitId: string): Promise<string[]> {

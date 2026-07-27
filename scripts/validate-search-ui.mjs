@@ -52,6 +52,11 @@ for (const needle of [
   'onOpenProfileResult',
   'searchRequestVersion',
   'inputErrorMessage',
+  "import { window } from '@kit.ArkUI'",
+  'getLastWindow',
+  'setWindowSystemBarProperties',
+  'searchHeaderSurface',
+  'aboutToDisappear',
   'SearchEntityType.WearLog',
   'SearchEntityType.Wishlist',
   'initialScope',
@@ -112,6 +117,12 @@ if (!/const DEFAULT_SEARCH_TERM = '上衣'/.test(resultPage)) {
 
 if (!/aboutToAppear\(\)[\s\S]*?const initialQuery = this\.query\.trim\(\)[\s\S]*?this\.searchText = initialQuery\.length > 0 \? this\.query : ''[\s\S]*?this\.activeQuery = initialQuery/.test(resultPage)) {
   throw new Error('SearchResultsPage must keep the input empty until the user submits an empty search');
+}
+
+if (!/private async applySearchStatusBarColor\(\)[\s\S]*?window\.getLastWindow\([\s\S]*?statusBarColor: YibuqueColor\.searchHeaderSurface[\s\S]*?isStatusBarLightIcon: true/.test(resultPage) ||
+  !/aboutToDisappear\(\)[\s\S]*?this\.restoreSearchStatusBarColor\(\)/.test(resultPage) ||
+  !/private async restoreSearchStatusBarColor\(\)[\s\S]*?this\.previousStatusBarColor[\s\S]*?this\.previousStatusBarLightIcon/.test(resultPage)) {
+  throw new Error('SearchResultsPage status bar must match the search header surface and restore on exit');
 }
 
 if (!/submitSearch\(term: string = ''\)[\s\S]*?const trimmedQuery = this\.searchText\.trim\(\)[\s\S]*?const nextQuery = trimmedQuery\.length > 0 \? trimmedQuery : DEFAULT_SEARCH_TERM[\s\S]*?this\.searchText = nextQuery/.test(resultPage)) {

@@ -147,13 +147,13 @@ Keep search, categories, and the two-column waterfall. Real photos dominate, ima
 
 使用本地自定义分类筛选、真实衣物数量引导和双列瀑布穿搭墙。`全部` 是唯一固定筛选，未分类穿搭也显示在其中；`周末 / 通勤` 是可删除的初始分类，不提供默认 `逛店` 分类。每张穿搭卡可显示两张组合图片，标题与元信息保持紧凑。
 
-新增或编辑穿搭时可以选择已有分类或手动输入分类。手动输入的分类必须与穿搭在同一个 SQLite 事务中成功保存后才进入分类列表。删除分类不删除穿搭或照片，相关穿搭解除分类关联并继续显示在 `全部` 中。
+新增穿搭默认选中 `通勤`；新增或编辑时可以多选已有分类，并可手动输入一个额外分类。手动输入的分类必须与穿搭在同一个 SQLite 事务中成功保存后才进入分类列表。已保存分类的删除入口直接显示在编辑页分类胶囊右侧，使用与常逛商圈标签一致的 `×`，不提供独立分类管理弹层。删除前必须二次确认；删除分类不删除穿搭或照片，只移除对应分类关联，相关穿搭继续显示在 `全部` 中。
 
 穿搭详情主图点击后进入全屏等比预览；多图支持左右滑动，并显示当前序号和关闭操作，与衣柜详情保持一致。
 
 Use local custom-category filters, real wardrobe-count guidance, and a two-column waterfall outfit wall. `All` is the only fixed filter and also contains uncategorized outfits. `Weekend / Commute` are removable starter categories, with no default shopping category. Each outfit card may show two combined photos with compact title and metadata.
 
-When creating or editing an outfit, users can select an existing category or enter one manually. A manually entered category joins the category list only after it and the outfit are committed in the same SQLite transaction. Deleting a category keeps its outfits and photos, clears their category relation, and leaves them visible under `All`.
+New outfits select `Commute` by default. When creating or editing, users can select multiple saved categories and enter one additional category manually. A manually entered category joins the category list only after it and the outfit are committed in the same SQLite transaction. Saved categories expose an inline `x` on their editor chips, matching the frequent-district tag position, with no separate category manager sheet. Deletion requires confirmation, keeps outfits and photos, removes only the matching category relation, and leaves the outfits visible under `All`.
 
 Tapping the hero image on an outfit detail opens a full-screen contain preview. Multiple images support horizontal swiping with a position counter and close action, matching wardrobe details.
 

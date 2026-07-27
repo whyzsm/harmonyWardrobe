@@ -170,8 +170,8 @@ export struct OutfitDetailPage {
   }
 
   private categoryText(): string {
-    const categoryName = this.outfit?.categoryName?.trim() ?? '';
-    return categoryName.length > 0 ? categoryName : '未分类';
+    const categoryNames = this.outfit?.categoryNames ?? [];
+    return categoryNames.length > 0 ? categoryNames.join('、') : '未分类';
   }
 
   @Builder

@@ -15,7 +15,7 @@ const interfaceFields = [
   ['entry/src/main/ets/domain/clothing/ClothingModels.ets', 'PurchaseInfo', ['storeName', 'price', 'purchaseDate', 'note']],
   ['entry/src/main/ets/domain/clothing/ClothingModels.ets', 'ClothingItem', ['id', 'name', 'category', 'photoUris', 'note', 'purchaseInfo', 'createdAt', 'updatedAt']],
   ['entry/src/main/ets/domain/outfit/OutfitModels.ets', 'OutfitCategory', ['id', 'name', 'usageCount']],
-  ['entry/src/main/ets/domain/outfit/OutfitModels.ets', 'OutfitTemplate', ['id', 'title', 'photoUris', 'clothingItemIds', 'categoryId', 'categoryName', 'note', 'createdAt', 'updatedAt']],
+  ['entry/src/main/ets/domain/outfit/OutfitModels.ets', 'OutfitTemplate', ['id', 'title', 'photoUris', 'clothingItemIds', 'categoryIds', 'categoryNames', 'categoryId', 'categoryName', 'note', 'createdAt', 'updatedAt']],
   ['entry/src/main/ets/domain/wearLog/WearLogModels.ets', 'WearLog', ['id', 'outfitTemplateId', 'outfitTitleSnapshot', 'clothingItemIdsSnapshot', 'wornDate', 'photoUris', 'placeText', 'note', 'createdAt', 'updatedAt']],
   ['entry/src/main/ets/domain/wishlist/WishlistModels.ets', 'WishlistItem', ['id', 'title', 'photoUris', 'storeName', 'price', 'note', 'createdAt', 'updatedAt']],
   ['entry/src/main/ets/domain/search/SearchModels.ets', 'SearchResult', ['entityType', 'entityId', 'title']],

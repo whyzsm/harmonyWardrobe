@@ -28,7 +28,7 @@ The domain layer lives under `entry/src/main/ets/domain`. It defines wardrobe bu
 
 数据层位于 `entry/src/main/ets/data`。它负责数据库访问、迁移、仓储和派生搜索索引。SQLite 业务表是事实来源；搜索索引数据可以重建，并应通过仓储操作保持一致。
 
-穿搭分类保存在 `outfit_categories`，穿搭模板通过可空 `category_id` 关联分类。手动分类的创建与穿搭保存必须在同一仓储事务中完成。删除分类时只清空相关穿搭的分类关联并重建其搜索文档，不删除穿搭、关联衣物或照片。
+穿搭分类保存在 `outfit_categories`，穿搭与分类通过 `outfit_template_categories` 多对多关联；`outfit_templates.category_id` 仅保留首分类兼容镜像，不作为读取来源。手动分类的创建、关系替换与穿搭保存必须在同一仓储事务中完成。删除分类时只删除对应关系并重建受影响穿搭的搜索文档，不删除穿搭、其它分类关系、关联衣物或照片。
 
 The data layer lives under `entry/src/main/ets/data`. It owns database access, migrations, repositories, and the derived search index. SQLite business tables are the source of truth; search index data is rebuildable and should be kept consistent through repository operations.
 

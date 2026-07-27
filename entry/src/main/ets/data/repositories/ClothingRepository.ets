@@ -126,6 +126,16 @@ const SELECT_OUTFIT_CLOTHING_IDS_SQL = `
   ORDER BY sort_order ASC
 `;
 
+const SELECT_OUTFIT_CATEGORIES_FOR_SEARCH_SQL = `
+  SELECT
+    relations.category_id,
+    categories.name AS category_name
+  FROM outfit_template_categories AS relations
+  INNER JOIN outfit_categories AS categories ON categories.id = relations.category_id
+  WHERE relations.outfit_id = ?
+  ORDER BY relations.sort_order ASC, categories.sort_order ASC, categories.created_at ASC
+`;
+
 const SELECT_CLOTHING_NAMES_SQL = `
   SELECT id, name
   FROM clothing_items
@@ -171,6 +181,11 @@ interface OutfitSearchRow {
   displaySource: OutfitDisplaySource;
   createdAt: string;
   updatedAt: string;
+}
+
+interface OutfitCategorySearchSelection {
+  ids: string[];
+  names: string[];
 }
 
 export interface CreateClothingInput {
@@ -499,6 +514,7 @@ export class ClothingRepository {
       }
 
       const clothingItemIds = await this.readOutfitClothingItemIds(outfitId);
+      const categories = await this.readOutfitCategoriesForSearch(outfitId);
       const clothingNames = await this.loadClothingNames(clothingItemIds);
       await this.searchRepository.upsertDocumentInTransaction(buildOutfitSearchDocument({
         id: outfit.id,
@@ -506,6 +522,10 @@ export class ClothingRepository {
         photoUris: [],
         clothingItemIds,
         displaySource: outfit.displaySource,
+        categoryIds: categories.ids,
+        categoryNames: categories.names,
+        categoryId: categories.ids[0],
+        categoryName: categories.names[0],
         note: outfit.note,
         createdAt: outfit.createdAt,
         updatedAt: outfit.updatedAt
@@ -574,6 +594,25 @@ export class ClothingRepository {
     }
 
     return clothingItemIds;
+  }
+
+  private async readOutfitCategoriesForSearch(outfitId: string): Promise<OutfitCategorySearchSelection> {
+    const resultSet = await this.database.querySql(SELECT_OUTFIT_CATEGORIES_FOR_SEARCH_SQL, [outfitId]);
+    const ids: string[] = [];
+    const names: string[] = [];
+
+    try {
+      let hasRow = resultSet.goToFirstRow();
+      while (hasRow) {
+        ids.push(resultSet.getString('category_id'));
+        names.push(resultSet.getString('category_name'));
+        hasRow = resultSet.goToNextRow();
+      }
+    } finally {
+      resultSet.close();
+    }
+
+    return { ids, names };
   }
 
   private async loadClothingNames(clothingItemIds: string[]): Promise<string[]> {

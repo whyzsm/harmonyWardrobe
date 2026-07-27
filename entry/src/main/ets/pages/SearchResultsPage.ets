@@ -1,3 +1,5 @@
+import common from '@ohos.app.ability.common';
+import { window } from '@kit.ArkUI';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { SearchRepository } from '../data/repositories/SearchRepository';
@@ -107,14 +109,64 @@ export struct SearchResultsPage {
   @State private errorMessage: string = '';
   @State private inputErrorMessage: string = '';
   private searchRequestVersion: number = 0;
+  private searchWindow?: window.Window = undefined;
+  private previousStatusBarColor: string = YibuqueColor.bgDefault;
+  private previousStatusBarLightIcon: boolean = true;
+  private searchStatusBarColorApplied: boolean = false;
 
   aboutToAppear(): void {
+    this.applySearchStatusBarColor();
     const initialQuery = this.query.trim();
     this.searchText = initialQuery.length > 0 ? this.query : '';
     this.activeQuery = initialQuery;
     this.selectedScope = this.initialScope ?? 'all';
     if (this.activeQuery.length > 0) {
       this.performSearch(this.activeQuery);
+    }
+  }
+
+  aboutToDisappear(): void {
+    this.restoreSearchStatusBarColor();
+  }
+
+  private async applySearchStatusBarColor(): Promise<void> {
+    const hostContext = this.getUIContext().getHostContext();
+    if (hostContext === undefined) {
+      return;
+    }
+
+    try {
+      const searchWindow = await window.getLastWindow(hostContext as common.Context);
+      const previousProperties = searchWindow.getWindowSystemBarProperties();
+      this.searchWindow = searchWindow;
+      this.previousStatusBarColor = previousProperties.statusBarColor ?? YibuqueColor.bgDefault;
+      this.previousStatusBarLightIcon = previousProperties.isStatusBarLightIcon ?? true;
+      await searchWindow.setWindowSystemBarProperties({
+        statusBarColor: YibuqueColor.searchHeaderSurface,
+        isStatusBarLightIcon: true
+      });
+      this.searchStatusBarColorApplied = true;
+    } catch (_error) {
+      this.searchWindow = undefined;
+    }
+  }
+
+  private async restoreSearchStatusBarColor(): Promise<void> {
+    if (!this.searchStatusBarColorApplied || this.searchWindow === undefined) {
+      return;
+    }
+
+    const searchWindow = this.searchWindow;
+    this.searchStatusBarColorApplied = false;
+    try {
+      await searchWindow.setWindowSystemBarProperties({
+        statusBarColor: this.previousStatusBarColor,
+        isStatusBarLightIcon: this.previousStatusBarLightIcon
+      });
+    } catch (_error) {
+      // The window may already be closing; there is nothing to restore in that case.
+    } finally {
+      this.searchWindow = undefined;
     }
   }
 

@@ -138,6 +138,9 @@ assertMatches(source, /SELECT_OUTFIT_IDS_BY_CLOTHING_ID_SQL/, 'clothing updates 
 assertMatches(source, /rebuildOutfitSearchDocumentsForClothing\s*\(\s*item\.id\s*\)/, 'clothing update must rebuild affected outfit search documents');
 assertMatches(source, /rebuildOutfitSearchDocuments\s*\(\s*affectedOutfitIds\s*\)/, 'clothing delete must rebuild affected outfit search documents after relation removal');
 assertMatches(source, /buildOutfitSearchDocument\s*\(/, 'affected outfit search documents must be rebuilt with outfit search documents');
+assertMatches(source, /SELECT_OUTFIT_CATEGORIES_FOR_SEARCH_SQL[\s\S]*FROM\s+outfit_template_categories[\s\S]*WHERE\s+relations\.outfit_id\s*=\s*\?/i, 'affected outfit search rebuilds must load all category relations');
+assertMatches(source, /categoryIds:\s*categories\.ids/, 'affected outfit search documents must preserve category ids');
+assertMatches(source, /categoryNames:\s*categories\.names/, 'affected outfit search documents must preserve category names');
 assertMatches(source, /WHERE\s+id\s+IN\s+\(\{placeholders\}\)/i, 'affected outfit clothing name lookup must use generated SQL placeholders');
 assertMatches(source, /SELECT_CLOTHING_NAMES_SQL\.replace\s*\(\s*['"`]\{placeholders\}['"`]\s*,\s*placeholders\s*\)/, 'affected outfit clothing name lookup must replace placeholders only, not values');
 assertMatches(source, /getClothingById\s*\([^)]*\)\s*:\s*Promise<ClothingItem\s*\|\s*undefined>/, 'getClothingById must return ClothingItem | undefined');

@@ -17,6 +17,8 @@ export interface OutfitTemplate {
   photoUris: string[];
   clothingItemIds: string[];
   displaySource: OutfitDisplaySource;
+  categoryIds: string[];
+  categoryNames: string[];
   categoryId?: string;
   categoryName?: string;
   note?: string;

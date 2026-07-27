@@ -54,7 +54,7 @@ for (const needle of [
   '选衣柜单品',
   'linkedClothingPhotoUris',
   'displayPhotoUris',
-  'formatTimeForTitle',
+  'editableOutfitTitle',
   'pickGalleryPhotos',
   'capturePhoto',
   'copyToAppStorage',
@@ -108,6 +108,22 @@ if (!editPage.includes('[...this.initialOutfit.photoUris]')) {
   throw new Error('OutfitEditPage must clone initial uploaded photoUris without deriving them from wardrobe items');
 }
 
+if (!editPage.includes('[...this.initialOutfit.categoryNames]')) {
+  throw new Error('OutfitEditPage must clone every persisted category before editing');
+}
+
+if (!/@State private categoryNames: string\[\] = \[\];[\s\S]*?private isCategorySelected[\s\S]*?for \(const categoryName of this\.categoryNames\)[\s\S]*?private selectCategory[\s\S]*?this\.categoryNames\.filter[\s\S]*?this\.categoryNames\.concat/.test(editPage)) {
+  throw new Error('OutfitEditPage category chips must independently toggle a multi-select array');
+}
+
+if (!/this\.initialOutfit === undefined && this\.categoryNames\.length === 0[\s\S]*?normalizeSearchText\('通勤'\)[\s\S]*?this\.categoryNames = \[category\.name\]/.test(editPage)) {
+  throw new Error('OutfitEditPage must default new outfits to the saved commute category');
+}
+
+if ((editPage.match(/categoryNames: this\.categoryNamesForSave\(\)/g) ?? []).length !== 2) {
+  throw new Error('OutfitEditPage must save all selected categories on create and update');
+}
+
 if (/firstPhotoUrisForClothingItemIds|selectedPhotoUris/.test(editPage)) {
   throw new Error('OutfitEditPage must not derive uploaded outfit photos from selected clothing items');
 }
@@ -135,6 +151,16 @@ if (editPage.includes('this.title.trim().length > 0 &&')) {
 
 if (!/title:\s*this\.normalizedTitle\(\)/.test(editPage)) {
   throw new Error('OutfitEditPage must save a normalized/generated title');
+}
+
+if (!/function editableOutfitTitle\(title: string\): string[\s\S]*?穿搭\|美搭[\s\S]*?return match === null \? title : match\[1\];/.test(editPage) ||
+  !editPage.includes('this.title = editableOutfitTitle(this.initialOutfit.title);')) {
+  throw new Error('OutfitEditPage must hide dates from historical generated titles while preserving custom titles');
+}
+
+if (!/private normalizedTitle\(\): string[\s\S]*?return trimmedTitle\.length > 0 \? trimmedTitle : '穿搭';/.test(editPage) ||
+  editPage.includes('formatTimeForTitle')) {
+  throw new Error('OutfitEditPage default titles must not contain a generated date or time');
 }
 
 for (const needle of [
@@ -245,7 +271,7 @@ if ((editPage.match(/\.enabled\(!this\.isChoosingPhotos && !this\.isSaving\)/g) 
   throw new Error('OutfitEditPage camera and gallery actions must be disabled during photo selection or save');
 }
 
-for (const forbidden of ['deleteOutfit(', 'isDeleting', 'DeleteAction', 'confirmDeleteOutfit', '删除穿搭']) {
+for (const forbidden of ['deleteOutfit(', 'isDeleting', 'DeleteAction', 'confirmDeleteOutfit(', '删除穿搭']) {
   if (editPage.includes(forbidden)) {
     throw new Error(`OutfitEditPage must move deletion to the detail page: ${forbidden}`);
   }

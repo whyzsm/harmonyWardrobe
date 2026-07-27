@@ -79,9 +79,9 @@ export function buildClothingSearchDocument(item: ClothingItem): SearchDocument 
 
 export function buildOutfitSearchDocument(outfit: OutfitTemplate, clothingNames: string[]): SearchDocument {
   const title = normalizeSearchText(outfit.title);
-  const category = normalizeOptionalText(outfit.categoryName);
+  const category = normalizeOptionalText(outfit.categoryNames.join(' '));
   const body = joinSearchText([
-    outfit.categoryName,
+    ...outfit.categoryNames,
     outfit.note,
     ...clothingNames
   ]);

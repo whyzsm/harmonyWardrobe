@@ -10,10 +10,10 @@ for (const needle of [
   'OutfitRepository',
   'OutfitTemplate',
   'OutfitCategory',
-  'OutfitCategoryManagerSheet',
   'selectedCategoryId',
   'listOutfitCategories',
-  'deleteOutfitCategory',
+  'refreshOutfitsAfterCategoryChange',
+  'onCategoriesChange',
   "this.CategoryFilterChip('', '全部', true)",
   'ForEach(this.categories',
   '从已有单品开始搭配',
@@ -51,7 +51,7 @@ for (const needle of [
   'SingleOutfitPhoto',
   'YibuqueColor.overlayDark',
   '暂无照片',
-  'borderRadius(YibuqueRadius.xs)',
+  'borderRadius(YibuqueRadius.xxl)',
   '正在加载穿搭',
   '重试',
   '拍照或从相册选图后，按分类收进穿搭。',
@@ -75,13 +75,19 @@ if (!/FilterStrip\(\)[\s\S]*?Scroll\(\)[\s\S]*?ForEach\(this\.categories[\s\S]*?
   throw new Error('OutfitsPage filter strip must render database categories in a horizontal scroller');
 }
 
-if (!/private filterOutfits\(\): OutfitTemplate\[\][\s\S]*?this\.selectedCategoryId\.length === 0[\s\S]*?outfit\.categoryId === this\.selectedCategoryId/.test(text)) {
+if (!/private filterOutfits\(\): OutfitTemplate\[\][\s\S]*?outfit\.categoryNames\.join\(' '\)[\s\S]*?this\.selectedCategoryId\.length === 0[\s\S]*?outfit\.categoryIds\.includes\(this\.selectedCategoryId\)/.test(text)) {
   throw new Error('OutfitsPage must keep uncategorized outfits in all and filter saved categories by id');
 }
 
 for (const removedCategoryCode of ['OUTFIT_SCENE_FILTERS', 'OutfitSceneFilter', "{ label: '逛店'", "label === '逛店'"]) {
   if (text.includes(removedCategoryCode)) {
     throw new Error(`OutfitsPage must not retain hard-coded category logic: ${removedCategoryCode}`);
+  }
+}
+
+for (const misplacedCategoryManager of ['OutfitCategoryManagerSheet', 'showCategoryManager', '管理穿搭分类']) {
+  if (text.includes(misplacedCategoryManager)) {
+    throw new Error(`OutfitsPage must keep category deletion on editor chips and omit ${misplacedCategoryManager}`);
   }
 }
 
@@ -142,6 +148,19 @@ if (!/OutfitWallCard\(outfit: OutfitTemplate, index: number\)[\s\S]*?if \(this\.
   throw new Error('OutfitsPage cards must render a single full image for one photo and stacked images only for two or more photos');
 }
 
+const outfitPhotoBuilders = text.match(/@Builder\n  SingleOutfitPhoto\(outfit: OutfitTemplate\) \{([\s\S]*?)\n  \}\n\n  @Builder\n  OutfitPhoto\(outfit: OutfitTemplate, slot: number, weight: number\) \{([\s\S]*?)\n  \}\n\}/);
+
+if (outfitPhotoBuilders === null ||
+  (outfitPhotoBuilders[1].match(/\.borderRadius\(YibuqueRadius\.xxl\)/g) ?? []).length !== 2 ||
+  (outfitPhotoBuilders[2].match(/\.borderRadius\(YibuqueRadius\.xxl\)/g) ?? []).length !== 2 ||
+  !/cornerRadius: YibuqueRadius\.xxl/.test(text)) {
+  throw new Error('OutfitsPage waterfall photos and delete overlay must match the wardrobe corner radius');
+}
+
+if (outfitPhotoBuilders[1].includes('.border(') || outfitPhotoBuilders[2].includes('.border(')) {
+  throw new Error('OutfitsPage waterfall photos must match the wardrobe images without an extra border');
+}
+
 if (!/if \(this\.displayPhotoCount\(outfit\) > 2\)[\s\S]*?Text\(`\+\$\{this\.displayPhotoCount\(outfit\) - 2\}`\)[\s\S]*?YibuqueColor\.overlayDark/.test(text)) {
   throw new Error('OutfitsPage cards must show a compact +N badge for extra display photos');
 }
@@ -153,6 +172,12 @@ if (/private photoUriAt\(outfit: OutfitTemplate/.test(text) || /this\.photoUriAt
 if (!/private displayOutfitTitle\(outfit: OutfitTemplate\)[\s\S]*?穿搭\|美搭[\s\S]*?return match === null \? outfit\.title : match\[1\]/.test(text) ||
   !text.includes('Text(this.displayOutfitTitle(outfit))')) {
   throw new Error('OutfitsPage waterfall titles must hide generated dates without changing custom titles');
+}
+
+if (!/private outfitCategoryLabel\(outfit: OutfitTemplate\): string[\s\S]*?outfit\.categoryNames\.length > 0 \? outfit\.categoryNames\.join\('、'\) : '未分类'/.test(text) ||
+  !/private outfitDetailMeta\(outfit: OutfitTemplate\): string[\s\S]*?outfit\.note\?\.trim\(\)[\s\S]*?return note\.length > 0 \? note : `\$\{outfit\.clothingItemIds\.length\} 件单品`/.test(text) ||
+  !/OutfitWallCard\(outfit: OutfitTemplate, index: number\)[\s\S]*?Row\(\{ space: 6 \}\)[\s\S]*?Text\(this\.displayOutfitTitle\(outfit\)\)[\s\S]*?\.layoutWeight\(1\)[\s\S]*?Text\(this\.outfitCategoryLabel\(outfit\)\)[\s\S]*?\.textAlign\(TextAlign\.End\)[\s\S]*?Text\(this\.outfitDetailMeta\(outfit\)\)/.test(text)) {
+  throw new Error('OutfitsPage waterfall cards must place the category to the right of the title and keep detail metadata below');
 }
 
 if (!/else if \(this\.outfits\.length === 0\) \{[\s\S]*?\.justifyContent\(FlexAlign\.Start\)/.test(text)) {
@@ -195,8 +220,8 @@ if (!/private displayOutfitTitle\(\): string[\s\S]*?穿搭\|美搭[\s\S]*?Text\(
   throw new Error('OutfitDetailPage must hide generated date titles');
 }
 
-if (!/private categoryText\(\): string[\s\S]*?categoryName[\s\S]*?Text\(`\$\{this\.categoryText\(\)\} · \$\{this\.photoCountText\(\)\}`\)/.test(detail)) {
-  throw new Error('OutfitDetailPage must display the persisted category with an uncategorized fallback');
+if (!/private categoryText\(\): string[\s\S]*?categoryNames[\s\S]*?categoryNames\.join\('、'\)[\s\S]*?Text\(`\$\{this\.categoryText\(\)\} · \$\{this\.photoCountText\(\)\}`\)/.test(detail)) {
+  throw new Error('OutfitDetailPage must display every persisted category with an uncategorized fallback');
 }
 
 if (detail.includes('暂未填写备注') || !/private hasNoteText\(\): boolean[\s\S]*?if \(this\.hasNoteText\(\)\)[\s\S]*?Text\(this\.noteText\(\)\)/.test(detail)) {
