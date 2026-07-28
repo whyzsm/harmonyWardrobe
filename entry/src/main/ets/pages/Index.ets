@@ -38,6 +38,8 @@ struct Index {
   @State private featureNestedContentVisible: boolean = false;
   @State private quickActionErrorMessage: string = '';
   @State private isCapturing: boolean = false;
+  @StorageProp('windowTopInsetVp') private windowTopInsetVp: number = 0;
+  @StorageProp('windowBottomInsetVp') private windowBottomInsetVp: number = 0;
   private routeTransitionInProgress: boolean = false;
   private runtime?: WardrobeRuntime = undefined;
 
@@ -364,6 +366,7 @@ struct Index {
       }
       .width('100%')
       .height('100%')
+      .padding({ top: this.windowTopInsetVp, bottom: this.windowBottomInsetVp })
       .justifyContent(FlexAlign.Center)
       .alignItems(HorizontalAlign.Center)
       .backgroundColor(YibuqueColor.bgDefault)
@@ -673,6 +676,8 @@ struct Index {
       }
       .width('100%')
       .height('100%')
+      .padding({ top: this.windowTopInsetVp, bottom: this.windowBottomInsetVp })
+      .backgroundColor(YibuqueColor.bgDefault)
     }
   }
 

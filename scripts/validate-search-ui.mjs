@@ -117,7 +117,7 @@ if (!/aboutToAppear\(\)[\s\S]*?const initialQuery = this\.query\.trim\(\)[\s\S]*
   throw new Error('SearchResultsPage must keep the input empty until the user submits an empty search');
 }
 
-if (!/private async applySearchStatusBarColor\(\)[\s\S]*?window\.getLastWindow\([\s\S]*?statusBarColor: YibuqueColor\.searchHeaderSurface[\s\S]*?isStatusBarLightIcon: true/.test(resultPage) ||
+if (!/private async applySearchStatusBarColor\(\)[\s\S]*?window\.getLastWindow\([\s\S]*?statusBarColor: YibuqueColor\.searchHeaderSurface[\s\S]*?isStatusBarLightIcon: false/.test(resultPage) ||
   !/aboutToDisappear\(\)[\s\S]*?this\.restoreSearchStatusBarColor\(\)/.test(resultPage) ||
   !/private async restoreSearchStatusBarColor\(\)[\s\S]*?this\.previousStatusBarColor[\s\S]*?this\.previousStatusBarLightIcon/.test(resultPage)) {
   throw new Error('SearchResultsPage status bar must match the search header surface and restore on exit');

@@ -110,7 +110,7 @@ export struct SearchResultsPage {
   private searchRequestVersion: number = 0;
   private searchWindow?: window.Window = undefined;
   private previousStatusBarColor: string = YibuqueColor.bgDefault;
-  private previousStatusBarLightIcon: boolean = true;
+  private previousStatusBarLightIcon: boolean = false;
   private searchStatusBarColorApplied: boolean = false;
 
   aboutToAppear(): void {
@@ -139,10 +139,10 @@ export struct SearchResultsPage {
       const previousProperties = searchWindow.getWindowSystemBarProperties();
       this.searchWindow = searchWindow;
       this.previousStatusBarColor = previousProperties.statusBarColor ?? YibuqueColor.bgDefault;
-      this.previousStatusBarLightIcon = previousProperties.isStatusBarLightIcon ?? true;
+      this.previousStatusBarLightIcon = previousProperties.isStatusBarLightIcon ?? false;
       await searchWindow.setWindowSystemBarProperties({
         statusBarColor: YibuqueColor.searchHeaderSurface,
-        isStatusBarLightIcon: true
+        isStatusBarLightIcon: false
       });
       this.searchStatusBarColorApplied = true;
     } catch (_error) {
