@@ -27,6 +27,7 @@ export struct CategoryTabs {
     }
     .scrollable(ScrollDirection.Horizontal)
     .scrollBar(BarState.Off)
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     .width('100%')
   }
 }

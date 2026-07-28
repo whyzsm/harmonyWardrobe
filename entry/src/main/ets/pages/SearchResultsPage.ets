@@ -7,7 +7,7 @@ import { ClothingCategory } from '../domain/clothing/ClothingCategory';
 import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { SearchEntityType, SearchResult } from '../domain/search/SearchModels';
-import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
 import { ArrayDataSource } from '../utils/ArrayDataSource';
 import { userFacingError } from '../utils/userFacingError';
 
@@ -82,6 +82,7 @@ function clothingCategoryLabel(category: ClothingCategory): string {
 
 @Component
 export struct SearchResultsPage {
+  @StorageProp('windowBottomInsetVp') private windowBottomInsetVp: number = YibuqueSpacing.bottomSafe;
   @Prop query: string = '';
   @Prop initialScope?: SearchEntityType = undefined;
   searchRepository?: SearchRepository = undefined;
@@ -542,6 +543,7 @@ export struct SearchResultsPage {
     .constraintSize({ minHeight: 44 })
     .scrollable(ScrollDirection.Horizontal)
     .scrollBar(BarState.Off)
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
   }
 
   @Builder
@@ -583,7 +585,7 @@ export struct SearchResultsPage {
     }
     .width('100%')
     .layoutWeight(1)
-    .padding({ left: 20, right: 20, top: 14, bottom: 36 })
+    .padding({ left: 20, right: 20, top: 14, bottom: 36 + this.windowBottomInsetVp })
     .alignItems(HorizontalAlign.Start)
   }
 
@@ -622,7 +624,12 @@ export struct SearchResultsPage {
       }
       .width('100%')
       .layoutWeight(1)
-      .padding({ left: 20, right: 20, top: 28 })
+      .padding({
+        left: 20,
+        right: 20,
+        top: 28,
+        bottom: YibuqueSpacing.bottomSafe + this.windowBottomInsetVp
+      })
       .alignItems(HorizontalAlign.Start)
     } else {
       List() {
@@ -635,8 +642,9 @@ export struct SearchResultsPage {
       }
       .width('100%')
       .layoutWeight(1)
-      .padding({ left: 20, right: 20, top: 14, bottom: 24 })
+      .padding({ left: 20, right: 20, top: 14, bottom: 24 + this.windowBottomInsetVp })
       .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     }
   }
 
@@ -759,8 +767,9 @@ export struct SearchResultsPage {
     }
     .width('100%')
     .layoutWeight(1)
-    .padding({ left: 20, right: 20, top: 14, bottom: 24 })
+    .padding({ left: 20, right: 20, top: 14, bottom: 24 + this.windowBottomInsetVp })
     .scrollBar(BarState.Off)
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
   }
 
   @Builder
@@ -784,7 +793,12 @@ export struct SearchResultsPage {
     }
     .width('100%')
     .layoutWeight(1)
-    .padding({ left: 20, right: 20, top: 28 })
+    .padding({
+      left: 20,
+      right: 20,
+      top: 28,
+      bottom: YibuqueSpacing.bottomSafe + this.windowBottomInsetVp
+    })
     .alignItems(HorizontalAlign.Start)
   }
 }

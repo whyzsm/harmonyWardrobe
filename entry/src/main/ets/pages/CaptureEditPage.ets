@@ -10,7 +10,7 @@ import { toIsoDate } from '../utils/date';
 import { appendPhotoUris, MAX_USER_PHOTOS, remainingPhotoSlots } from '../utils/photoSelection';
 import { userFacingError } from '../utils/userFacingError';
 import { PhotoCarousel } from '../components/PhotoCarousel';
-import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
 
 interface CaptureCategoryOption {
   label: string;
@@ -88,6 +88,7 @@ function categoryLabel(category: ClothingCategory): string {
 
 @Component
 export struct CaptureEditPage {
+  @StorageProp('windowBottomInsetVp') private windowBottomInsetVp: number = YibuqueSpacing.bottomSafe;
   @Prop initialPhotoUris: string[] = [];
   @Prop capturedAt: string = '';
   @Prop clothingItems: ClothingItem[] = [];
@@ -402,12 +403,13 @@ export struct CaptureEditPage {
         this.RecentCaptures()
         }
         .width('100%')
-        .padding({ left: 20, right: 20, top: 14, bottom: 116 })
+        .padding({ left: 20, right: 20, top: 14, bottom: 116 + this.windowBottomInsetVp })
         .alignItems(HorizontalAlign.Start)
       }
       .width('100%')
       .layoutWeight(1)
       .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     }
     .width('100%')
     .height('100%')
@@ -453,6 +455,7 @@ export struct CaptureEditPage {
     }
     .scrollable(ScrollDirection.Horizontal)
     .scrollBar(BarState.Off)
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     .width('100%')
   }
 

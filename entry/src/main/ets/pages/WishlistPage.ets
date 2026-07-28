@@ -7,7 +7,14 @@ import { SearchEntityType } from '../domain/search/SearchModels';
 import { WishlistItem } from '../domain/wishlist/WishlistModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { YibuqueColor, YibuqueFontSize, YibuqueMotion, YibuqueRadius } from '../theme/Tokens';
+import {
+  YibuqueColor,
+  YibuqueFontSize,
+  YibuqueMotion,
+  YibuqueRadius,
+  YibuqueSpacing,
+  YibuqueTransition
+} from '../theme/Tokens';
 import { SearchResultsPage } from './SearchResultsPage';
 import { WishlistEditPage } from './WishlistEditPage';
 
@@ -21,6 +28,7 @@ function priceText(item: WishlistItem): string {
 
 @Component
 export struct WishlistPage {
+  @StorageProp('windowBottomInsetVp') private windowBottomInsetVp: number = YibuqueSpacing.bottomSafe;
   wishlistRepository?: WishlistRepository = undefined;
   searchRepository?: SearchRepository = undefined;
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
@@ -211,7 +219,7 @@ export struct WishlistPage {
           }
         }
       })
-        .transition(TransitionEffect.OPACITY)
+        .transition(YibuqueTransition.fullScreenOpacity)
     } else if (this.showUnifiedSearch) {
       SearchResultsPage({
         query: this.unifiedSearchQuery,
@@ -228,9 +236,10 @@ export struct WishlistPage {
           this.closeUnifiedSearch();
         }
       })
-        .transition(TransitionEffect.OPACITY)
+        .transition(YibuqueTransition.fullScreenOpacity)
     } else {
-      Column({ space: 16 }) {
+      Scroll() {
+        Column({ space: 16 }) {
       Row() {
         Stack({ alignContent: Alignment.Center }) {
           SymbolGlyph($r('sys.symbol.arrow_left'))
@@ -322,13 +331,17 @@ export struct WishlistPage {
             })
         }, (item: WishlistItem) => item.id)
       }
-    }
-    .width('100%')
-    .height('100%')
-    .padding(20)
-    .alignItems(HorizontalAlign.Start)
-    .backgroundColor(YibuqueColor.bgGray)
-    .transition(TransitionEffect.OPACITY)
+        }
+        .width('100%')
+        .padding({ left: 20, right: 20, top: 20, bottom: 20 + this.windowBottomInsetVp })
+        .alignItems(HorizontalAlign.Start)
+      }
+      .width('100%')
+      .height('100%')
+      .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
+      .backgroundColor(YibuqueColor.bgGray)
+      .transition(YibuqueTransition.fullScreenOpacity)
     }
   }
 }

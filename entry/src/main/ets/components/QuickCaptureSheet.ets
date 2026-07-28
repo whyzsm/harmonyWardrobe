@@ -3,6 +3,7 @@ import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../t
 @Component
 export struct QuickCaptureSheet {
   @Prop selectedCategory: string = 'wardrobe';
+  @Prop bottomInsetVp: number = 0;
   onOpenWardrobe: () => void = () => {};
   onOpenStoreVisit: () => void = () => {};
   onOpenOutfit: () => void = () => {};
@@ -83,7 +84,12 @@ export struct QuickCaptureSheet {
         })
       }
       .width('100%')
-      .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: 22, bottom: 24 })
+      .padding({
+        left: YibuqueSpacing.pageX,
+        right: YibuqueSpacing.pageX,
+        top: 22,
+        bottom: YibuqueSpacing.bottomSafe + this.bottomInsetVp
+      })
       .backgroundColor(YibuqueColor.cardWhite)
       .borderRadius({ topLeft: YibuqueRadius.sheet, topRight: YibuqueRadius.sheet, bottomLeft: 0, bottomRight: 0 })
       .shadow(YibuqueShadow.editorSheet)

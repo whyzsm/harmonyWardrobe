@@ -8,7 +8,14 @@ import { StoreVisit, StoreVisitStatus } from '../domain/store/StoreModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
 import { SavedFilterNotice } from '../components/SavedFilterNotice';
-import { YibuqueColor, YibuqueMotion, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
+import {
+  YibuqueColor,
+  YibuqueMotion,
+  YibuqueRadius,
+  YibuqueShadow,
+  YibuqueSpacing,
+  YibuqueTransition
+} from '../theme/Tokens';
 import { ArrayDataSource } from '../utils/ArrayDataSource';
 import { toIsoDate } from '../utils/date';
 import { userFacingError } from '../utils/userFacingError';
@@ -70,6 +77,7 @@ export struct StoreVisitPage {
   @State private savedVisitOutsideCurrentFilterId: string = '';
   @State private showUnifiedSearch: boolean = false;
   @State private unifiedSearchQuery: string = '';
+  @StorageProp('windowBottomInsetVp') private windowBottomInsetVp: number = YibuqueSpacing.bottomSafe;
   private visitCardClickBlockedUntil: number = 0;
   private nestedPageTransitionInProgress: boolean = false;
 
@@ -508,7 +516,7 @@ export struct StoreVisitPage {
           this.closeEditor();
         }
       })
-        .transition(TransitionEffect.OPACITY)
+        .transition(YibuqueTransition.fullScreenOpacity)
     } else if (this.showDetail) {
       StoreVisitDetailPage({
         visit: this.detailVisit(),
@@ -524,7 +532,7 @@ export struct StoreVisitPage {
           this.closeDetail();
         }
       })
-        .transition(TransitionEffect.OPACITY)
+        .transition(YibuqueTransition.fullScreenOpacity)
     } else if (this.showUnifiedSearch) {
       SearchResultsPage({
         query: this.unifiedSearchQuery,
@@ -553,7 +561,7 @@ export struct StoreVisitPage {
           this.closeUnifiedSearch();
         }
       })
-        .transition(TransitionEffect.OPACITY)
+        .transition(YibuqueTransition.fullScreenOpacity)
     } else {
       Column() {
         this.StoreVisitControls()
@@ -585,7 +593,7 @@ export struct StoreVisitPage {
       .padding({ left: 20, right: 20, top: 8, bottom: 0 })
       .alignItems(HorizontalAlign.Start)
       .backgroundColor(PAGE_BACKGROUND)
-      .transition(TransitionEffect.OPACITY)
+      .transition(YibuqueTransition.fullScreenOpacity)
     }
   }
 
@@ -746,11 +754,15 @@ export struct StoreVisitPage {
     .columnsTemplate('1fr 1fr')
     .columnsGap(16)
     .rowsGap(8)
-    .padding({ top: 4, bottom: 56 })
+    .padding({
+      top: 4,
+      bottom: YibuqueSpacing.mainNavigationClearance + this.windowBottomInsetVp
+    })
     .width('100%')
     .height('100%')
     .layoutWeight(1)
     .scrollBar(BarState.Off)
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
   }
 
   @Builder

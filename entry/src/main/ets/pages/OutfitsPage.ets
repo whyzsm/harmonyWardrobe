@@ -10,7 +10,13 @@ import { SearchEntityType } from '../domain/search/SearchModels';
 import { WearLog } from '../domain/wearLog/WearLogModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { YibuqueColor, YibuqueMotion, YibuqueRadius } from '../theme/Tokens';
+import {
+  YibuqueColor,
+  YibuqueMotion,
+  YibuqueRadius,
+  YibuqueSpacing,
+  YibuqueTransition
+} from '../theme/Tokens';
 import { ArrayDataSource } from '../utils/ArrayDataSource';
 import { userFacingError } from '../utils/userFacingError';
 import { OutfitDetailPage } from './OutfitDetailPage';
@@ -74,6 +80,7 @@ export struct OutfitsPage {
   @State private savedOutfitOutsideCurrentFilterId: string = '';
   @State private showUnifiedSearch: boolean = false;
   @State private unifiedSearchQuery: string = '';
+  @StorageProp('windowBottomInsetVp') private windowBottomInsetVp: number = YibuqueSpacing.bottomSafe;
   private outfitCardClickBlockedUntil: number = 0;
   private nestedPageTransitionInProgress: boolean = false;
 
@@ -551,7 +558,7 @@ export struct OutfitsPage {
           await this.refreshOutfitsAfterCategoryChange();
         }
       })
-        .transition(TransitionEffect.OPACITY)
+        .transition(YibuqueTransition.fullScreenOpacity)
     } else if (this.showWearLogEditor) {
       WearLogEditPage({
         initialWearLog: this.selectedWearLogForEditor(),
@@ -570,7 +577,7 @@ export struct OutfitsPage {
           this.closeWearLogEditor();
         }
       })
-        .transition(TransitionEffect.OPACITY)
+        .transition(YibuqueTransition.fullScreenOpacity)
     } else if (this.showOutfitDetail) {
       OutfitDetailPage({
         outfit: this.detailOutfit(),
@@ -586,7 +593,7 @@ export struct OutfitsPage {
           this.closeOutfitDetail();
         }
       })
-        .transition(TransitionEffect.OPACITY)
+        .transition(YibuqueTransition.fullScreenOpacity)
     } else if (this.showUnifiedSearch) {
       SearchResultsPage({
         query: this.unifiedSearchQuery,
@@ -615,7 +622,7 @@ export struct OutfitsPage {
           this.closeUnifiedSearch();
         }
       })
-        .transition(TransitionEffect.OPACITY)
+        .transition(YibuqueTransition.fullScreenOpacity)
     } else {
       Stack() {
         Column({ space: 14 }) {
@@ -720,14 +727,19 @@ export struct OutfitsPage {
           .rowsGap(8)
           .width('100%')
           .layoutWeight(1)
-          .padding({ left: 20, right: 20, bottom: 96 })
+          .padding({
+            left: 20,
+            right: 20,
+            bottom: YibuqueSpacing.mainNavigationClearance + this.windowBottomInsetVp
+          })
           .scrollBar(BarState.Off)
+          .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
           }
         }
         .width('100%')
         .height('100%')
         .backgroundColor(YibuqueColor.bgDefault)
-        .transition(TransitionEffect.OPACITY)
+        .transition(YibuqueTransition.fullScreenOpacity)
 
       }
       .width('100%')
@@ -852,6 +864,7 @@ export struct OutfitsPage {
       .align(Alignment.Start)
       .scrollable(ScrollDirection.Horizontal)
       .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     }
     .width('100%')
     .height(44)

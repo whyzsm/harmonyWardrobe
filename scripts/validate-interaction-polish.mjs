@@ -35,7 +35,7 @@ for (const [file, source, method] of [
   mustMatch(source, file, new RegExp(`${method}\\(\\);`), `${method} must be invoked from the date field`);
 }
 
-const routeTransitionCount = (index.match(/\.transition\(TransitionEffect\.OPACITY\)/g) ?? []).length;
+const routeTransitionCount = (index.match(/\.transition\(YibuqueTransition\.fullScreenOpacity\)/g) ?? []).length;
 if (routeTransitionCount < 9) {
   throw new Error(`Index.ets must apply route/page transitions to every top-level page branch, found ${routeTransitionCount}`);
 }

@@ -81,6 +81,7 @@ function optionalText(value: string): string | undefined {
 
 @Component
 export struct ClothingEditPage {
+  @StorageProp('windowBottomInsetVp') private windowBottomInsetVp: number = YibuqueSpacing.bottomSafe;
   @Prop initialItem?: ClothingItem = undefined;
   clothingRepository?: ClothingRepository = undefined;
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
@@ -618,7 +619,12 @@ export struct ClothingEditPage {
       }
     }
     .width('100%')
-    .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: 16, bottom: 32 })
+    .padding({
+      left: YibuqueSpacing.pageX,
+      right: YibuqueSpacing.pageX,
+      top: 16,
+      bottom: 32 + this.windowBottomInsetVp
+    })
     .backgroundColor(YibuqueColor.cardWhite)
   }
 

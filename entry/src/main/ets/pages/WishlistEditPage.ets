@@ -9,7 +9,7 @@ import { WishlistItem } from '../domain/wishlist/WishlistModels';
 import { PhotoSource } from '../media/PhotoModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { YibuqueColor, YibuqueRadius } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
 
 function optionalText(value: string): string | undefined {
   const trimmed = value.trim();
@@ -18,6 +18,7 @@ function optionalText(value: string): string | undefined {
 
 @Component
 export struct WishlistEditPage {
+  @StorageProp('windowBottomInsetVp') private windowBottomInsetVp: number = YibuqueSpacing.bottomSafe;
   @Prop initialItem?: WishlistItem = undefined;
   wishlistRepository?: WishlistRepository = undefined;
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
@@ -344,12 +345,13 @@ export struct WishlistEditPage {
           })
         }
         .width('100%')
-        .padding(20)
+        .padding({ left: 20, right: 20, top: 20, bottom: 20 + this.windowBottomInsetVp })
         .alignItems(HorizontalAlign.Start)
       }
       .width('100%')
       .layoutWeight(1)
       .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     }
     .width('100%')
     .height('100%')

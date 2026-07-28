@@ -1,7 +1,14 @@
 import { ClothingCategory } from '../domain/clothing/ClothingCategory';
 import { ClothingItem, PurchaseInfo } from '../domain/clothing/ClothingModels';
 import { SecondaryPageHeader } from '../components/SecondaryPageHeader';
-import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
+import {
+  YibuqueColor,
+  YibuqueMotion,
+  YibuqueRadius,
+  YibuqueShadow,
+  YibuqueSpacing,
+  YibuqueTransition
+} from '../theme/Tokens';
 import { userFacingError } from '../utils/userFacingError';
 
 function labelForCategory(category: ClothingCategory): string {
@@ -63,6 +70,7 @@ function purchaseInfoHasContent(info?: PurchaseInfo): boolean {
 
 @Component
 export struct ClothingDetailPage {
+  @StorageProp('windowBottomInsetVp') private windowBottomInsetVp: number = YibuqueSpacing.bottomSafe;
   @Prop item?: ClothingItem = undefined;
   onBack: () => void = () => {};
   onEdit: (item: ClothingItem) => void = () => {};
@@ -72,6 +80,7 @@ export struct ClothingDetailPage {
   @State private isDeleting: boolean = false;
   @State private deleteErrorMessage: string = '';
   @State private selectedPhotoIndex: number = 0;
+  private photoPreviewTransitionInProgress: boolean = false;
 
   private photoUris(): string[] {
     return this.item?.photoUris ?? [];
@@ -156,11 +165,28 @@ export struct ClothingDetailPage {
     }
 
     this.selectPhoto(index);
-    this.showPhotoPreview = true;
+    this.animatePhotoPreview(true);
   }
 
   private closePhotoPreview(): void {
-    this.showPhotoPreview = false;
+    this.animatePhotoPreview(false);
+  }
+
+  private animatePhotoPreview(visible: boolean): void {
+    if (this.photoPreviewTransitionInProgress || this.showPhotoPreview === visible) {
+      return;
+    }
+
+    this.photoPreviewTransitionInProgress = true;
+    this.getUIContext().animateTo({
+      duration: YibuqueMotion.fullScreenPageTransition,
+      curve: Curve.EaseOut,
+      onFinish: () => {
+        this.photoPreviewTransitionInProgress = false;
+      }
+    }, () => {
+      this.showPhotoPreview = visible;
+    });
   }
 
   private confirmDelete(): void {
@@ -400,6 +426,7 @@ export struct ClothingDetailPage {
     }
     .width('100%')
     .height('100%')
+    .transition(YibuqueTransition.fullScreenOpacity)
   }
 
   @Builder
@@ -589,13 +616,19 @@ export struct ClothingDetailPage {
               this.DeleteAction()
             }
             .width('100%')
-            .padding({ left: YibuqueSpacing.pageX, right: YibuqueSpacing.pageX, top: YibuqueSpacing.sm, bottom: YibuqueSpacing.section })
+            .padding({
+              left: YibuqueSpacing.pageX,
+              right: YibuqueSpacing.pageX,
+              top: YibuqueSpacing.sm,
+              bottom: YibuqueSpacing.section + this.windowBottomInsetVp
+            })
             .alignItems(HorizontalAlign.Start)
           }
           .width('100%')
           .layoutWeight(1)
           .backgroundColor(YibuqueColor.bgBase)
           .scrollBar(BarState.Off)
+          .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
         }
         .width('100%')
         .height('100%')

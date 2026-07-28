@@ -47,6 +47,7 @@ function dateFromStorage(value: string): Date {
 
 @Component
 export struct WearLogEditPage {
+  @StorageProp('windowBottomInsetVp') private windowBottomInsetVp: number = YibuqueSpacing.bottomSafe;
   @Prop initialWearLog?: WearLog = undefined;
   @Prop initialOutfitTemplateId: string = '';
   @Prop outfits: OutfitTemplate[] = [];
@@ -398,12 +399,18 @@ export struct WearLogEditPage {
           })
         }
         .width('100%')
-        .padding(YibuqueSpacing.pageX)
+        .padding({
+          left: YibuqueSpacing.pageX,
+          right: YibuqueSpacing.pageX,
+          top: YibuqueSpacing.pageX,
+          bottom: YibuqueSpacing.pageX + this.windowBottomInsetVp
+        })
         .alignItems(HorizontalAlign.Start)
       }
       .width('100%')
       .layoutWeight(1)
       .scrollBar(BarState.Off)
+      .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
     }
     .width('100%')
     .height('100%')

@@ -39,6 +39,7 @@ const CUSTOM_CATEGORY_INPUT_ID = 'outfit_custom_category_input';
 
 @Component
 export struct OutfitEditPage {
+  @StorageProp('windowBottomInsetVp') private windowBottomInsetVp: number = YibuqueSpacing.bottomSafe;
   @Prop initialOutfit?: OutfitTemplate = undefined;
   @Prop clothingItems: ClothingItem[] = [];
   outfitRepository?: OutfitRepository = undefined;
@@ -594,6 +595,7 @@ export struct OutfitEditPage {
           .align(Alignment.Start)
           .scrollable(ScrollDirection.Horizontal)
           .scrollBar(BarState.Off)
+          .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
         }
         .width('100%')
         .padding({ left: 4, right: 4 })
@@ -927,7 +929,7 @@ export struct OutfitEditPage {
       }
     }
     .width('100%')
-    .padding({ left: 20, right: 20, top: 20, bottom: 16 })
+    .padding({ left: 20, right: 20, top: 20, bottom: 16 + this.windowBottomInsetVp })
     .backgroundColor(YibuqueColor.cardWhite)
     .shadow(YibuqueShadow.editorSheet)
   }

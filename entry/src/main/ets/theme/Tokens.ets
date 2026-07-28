@@ -92,6 +92,7 @@ export interface YibuqueSpacingTokens {
   pageX: number;
   cardX: number;
   bottomSafe: number;
+  mainNavigationClearance: number;
 }
 
 export interface YibuqueRadiusTokens {
@@ -122,6 +123,11 @@ export interface YibuqueShadowTokens {
 export interface YibuqueMotionTokens {
   fullScreenPageTransition: number;
   sheetTransition: number;
+}
+
+export interface YibuqueTransitionTokens {
+  fullScreenOpacity: TransitionEffect;
+  sheetOpacity: TransitionEffect;
 }
 
 export interface AppThemeRadiusTokens {
@@ -255,7 +261,8 @@ export const YibuqueSpacing: YibuqueSpacingTokens = {
   section: 28,
   pageX: 20,
   cardX: 24,
-  bottomSafe: 24
+  bottomSafe: 24,
+  mainNavigationClearance: 96
 };
 
 export const YibuqueRadius: YibuqueRadiusTokens = {
@@ -286,4 +293,15 @@ export const YibuqueShadow: YibuqueShadowTokens = {
 export const YibuqueMotion: YibuqueMotionTokens = {
   fullScreenPageTransition: 350,
   sheetTransition: 300
+};
+
+export const YibuqueTransition: YibuqueTransitionTokens = {
+  fullScreenOpacity: TransitionEffect.OPACITY.animation({
+    duration: YibuqueMotion.fullScreenPageTransition,
+    curve: Curve.EaseOut
+  }),
+  sheetOpacity: TransitionEffect.OPACITY.animation({
+    duration: YibuqueMotion.sheetTransition,
+    curve: Curve.FastOutSlowIn
+  })
 };

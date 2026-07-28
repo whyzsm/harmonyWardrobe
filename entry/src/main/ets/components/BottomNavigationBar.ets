@@ -3,6 +3,7 @@ import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
 @Component
 export struct BottomNavigationBar {
   @Prop selected: string = 'outfit';
+  @Prop bottomInsetVp: number = 0;
   @State private captureButtonScale: number = 1.0;
   @State private pressedTab: string = '';
   onSelectWardrobe: () => void = () => {};
@@ -45,7 +46,7 @@ export struct BottomNavigationBar {
     .borderRadius(YibuqueRadius.sheet)
     .shadow(YibuqueShadow.bottomNavigation)
     .alignItems(VerticalAlign.Center)
-    .margin({ bottom: 0 })
+    .margin({ bottom: this.bottomInsetVp })
   }
 
   @Builder

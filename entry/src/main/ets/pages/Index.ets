@@ -16,7 +16,13 @@ import { OutfitTemplate } from '../domain/outfit/OutfitModels';
 import { SearchEntityType } from '../domain/search/SearchModels';
 import { StoreVisit } from '../domain/store/StoreModels';
 import { PhotoSource } from '../media/PhotoModels';
-import { YibuqueColor, YibuqueMotion, YibuqueRadius, YibuqueSpacing } from '../theme/Tokens';
+import {
+  YibuqueColor,
+  YibuqueMotion,
+  YibuqueRadius,
+  YibuqueSpacing,
+  YibuqueTransition
+} from '../theme/Tokens';
 import { MAX_USER_PHOTOS } from '../utils/photoSelection';
 import { userFacingError } from '../utils/userFacingError';
 import { CaptureEditPage } from './CaptureEditPage';
@@ -386,7 +392,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY)
+              .transition(YibuqueTransition.fullScreenOpacity)
           } else if (this.activeRoute.kind === AppRouteKind.OutfitEditor) {
             OutfitEditPage({
               clothingItems: this.activeRoute.params.outfitClothingItems,
@@ -401,7 +407,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY)
+              .transition(YibuqueTransition.fullScreenOpacity)
           } else if (this.activeRoute.kind === AppRouteKind.StoreEditor) {
             StoreVisitEditPage({
               storeRepository: this.runtime.storeRepository,
@@ -415,7 +421,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY)
+              .transition(YibuqueTransition.fullScreenOpacity)
           } else if (this.activeRoute.kind === AppRouteKind.Wishlist) {
             WishlistPage({
               wishlistRepository: this.runtime.wishlistRepository,
@@ -434,7 +440,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY)
+              .transition(YibuqueTransition.fullScreenOpacity)
           } else if (this.activeRoute.kind === AppRouteKind.CaptureEditor) {
             CaptureEditPage({
               initialPhotoUris: this.activeRoute.params.capturePhotoUris,
@@ -460,7 +466,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY)
+              .transition(YibuqueTransition.fullScreenOpacity)
           } else if (this.activeRoute.mainTab === AppMainTab.Wardrobe) {
             WardrobePage({
               clothingRepository: this.runtime.clothingRepository,
@@ -502,7 +508,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY)
+              .transition(YibuqueTransition.fullScreenOpacity)
           } else if (this.activeRoute.mainTab === AppMainTab.Store) {
             StoreVisitPage({
               initialVisitId: this.activeRoute.params.storeVisitId,
@@ -546,7 +552,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY)
+              .transition(YibuqueTransition.fullScreenOpacity)
           } else if (this.activeRoute.mainTab === AppMainTab.Outfit) {
             OutfitsPage({
               initialOutfitId: this.activeRoute.params.outfitId,
@@ -596,7 +602,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY)
+              .transition(YibuqueTransition.fullScreenOpacity)
           } else {
             ProfilePage({
               profileRepository: this.runtime.profileRepository,
@@ -611,7 +617,7 @@ struct Index {
               }
             })
               .layoutWeight(1)
-              .transition(TransitionEffect.OPACITY)
+              .transition(YibuqueTransition.fullScreenOpacity)
           }
 
           if (this.quickActionErrorMessage.length > 0) {
@@ -631,6 +637,7 @@ struct Index {
           Column() {
             BottomNavigationBar({
               selected: this.activeRoute.mainTab,
+              bottomInsetVp: this.windowBottomInsetVp,
               onSelectWardrobe: () => {
                 this.resetMainRoute(AppMainTab.Wardrobe);
                 this.quickActionErrorMessage = '';
@@ -659,6 +666,7 @@ struct Index {
         if (this.activeRoute.kind === AppRouteKind.QuickCapture) {
           QuickCaptureSheet({
             selectedCategory: this.activeRoute.mainTab,
+            bottomInsetVp: this.windowBottomInsetVp,
             onOpenWardrobe: () => {
               this.openQuickClothingEditor();
             },
@@ -676,7 +684,7 @@ struct Index {
       }
       .width('100%')
       .height('100%')
-      .padding({ top: this.windowTopInsetVp, bottom: this.windowBottomInsetVp })
+      .padding({ top: this.windowTopInsetVp })
       .backgroundColor(YibuqueColor.bgDefault)
     }
   }

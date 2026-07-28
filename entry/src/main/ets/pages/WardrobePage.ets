@@ -8,7 +8,14 @@ import { ClothingItem } from '../domain/clothing/ClothingModels';
 import { SearchEntityType } from '../domain/search/SearchModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { YibuqueColor, YibuqueMotion, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
+import {
+  YibuqueColor,
+  YibuqueMotion,
+  YibuqueRadius,
+  YibuqueShadow,
+  YibuqueSpacing,
+  YibuqueTransition
+} from '../theme/Tokens';
 import { ArrayDataSource } from '../utils/ArrayDataSource';
 import { userFacingError } from '../utils/userFacingError';
 import { ClothingDetailPage } from './ClothingDetailPage';
@@ -59,6 +66,7 @@ export struct WardrobePage {
   @State private deletingClothingId: string = '';
   @State private deleteOverlayClothingId: string = '';
   @State private savedClothingOutsideCurrentFilterId: string = '';
+  @StorageProp('windowBottomInsetVp') private windowBottomInsetVp: number = YibuqueSpacing.bottomSafe;
   private clothingCardClickBlockedUntil: number = 0;
   private nestedPageTransitionInProgress: boolean = false;
 
@@ -468,7 +476,7 @@ export struct WardrobePage {
           this.closeEditor();
         }
       })
-        .transition(TransitionEffect.OPACITY)
+        .transition(YibuqueTransition.fullScreenOpacity)
     } else if (this.showClothingDetail) {
       ClothingDetailPage({
         item: this.detailItem(),
@@ -483,7 +491,7 @@ export struct WardrobePage {
           this.closeClothingDetail();
         }
       })
-        .transition(TransitionEffect.OPACITY)
+        .transition(YibuqueTransition.fullScreenOpacity)
     } else if (this.showUnifiedSearch) {
       SearchResultsPage({
         query: this.unifiedSearchQuery,
@@ -512,7 +520,7 @@ export struct WardrobePage {
           this.closeUnifiedSearch();
         }
       })
-        .transition(TransitionEffect.OPACITY)
+        .transition(YibuqueTransition.fullScreenOpacity)
     } else {
       Column({ space: 14 }) {
       this.WardrobeSearchHeader()
@@ -598,7 +606,7 @@ export struct WardrobePage {
     .padding({ left: 20, right: 20, top: 14, bottom: 0 })
     .alignItems(HorizontalAlign.Start)
     .backgroundColor(YibuqueColor.cardWhite)
-    .transition(TransitionEffect.OPACITY)
+    .transition(YibuqueTransition.fullScreenOpacity)
     }
   }
 
@@ -715,11 +723,15 @@ export struct WardrobePage {
     .columnsTemplate('1fr 1fr')
     .columnsGap(16)
     .rowsGap(8)
-    .padding({ top: 4, bottom: 56 })
+    .padding({
+      top: 4,
+      bottom: YibuqueSpacing.mainNavigationClearance + this.windowBottomInsetVp
+    })
     .width('100%')
     .height('100%')
     .layoutWeight(1)
     .scrollBar(BarState.Off)
+    .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
   }
 
   @Builder

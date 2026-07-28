@@ -11,6 +11,9 @@ const wishlist = fs.readFileSync('entry/src/main/ets/pages/WishlistPage.ets', 'u
 const clothingEdit = fs.readFileSync('entry/src/main/ets/pages/ClothingEditPage.ets', 'utf8');
 const outfitEdit = fs.readFileSync('entry/src/main/ets/pages/OutfitEditPage.ets', 'utf8');
 const quickCapture = fs.readFileSync('entry/src/main/ets/components/QuickCaptureSheet.ets', 'utf8');
+const clothingDetail = fs.readFileSync('entry/src/main/ets/pages/ClothingDetailPage.ets', 'utf8');
+const outfitDetail = fs.readFileSync('entry/src/main/ets/pages/OutfitDetailPage.ets', 'utf8');
+const storeVisitDetail = fs.readFileSync('entry/src/main/ets/pages/StoreVisitDetailPage.ets', 'utf8');
 const tokens = fs.readFileSync('entry/src/main/ets/theme/Tokens.ets', 'utf8');
 const fullScreenTransition = 'YibuqueMotion.fullScreenPageTransition';
 const sheetTransition = 'YibuqueMotion.sheetTransition';
@@ -20,6 +23,9 @@ if (!/fullScreenPageTransition:\s*350/.test(tokens)) {
 }
 if (!/sheetTransition:\s*300/.test(tokens)) {
   throw new Error('YibuqueMotion.sheetTransition must remain 300ms');
+}
+if (!/fullScreenOpacity:\s*TransitionEffect\.OPACITY\.animation\(\{[\s\S]*?duration:\s*YibuqueMotion\.fullScreenPageTransition/.test(tokens)) {
+  throw new Error('YibuqueTransition.fullScreenOpacity must declare the full-screen duration explicitly');
 }
 
 function methodSource(source, methodName) {
@@ -89,7 +95,7 @@ function assertStateAssignmentsAnimated(source, file, stateNames, helperName) {
 }
 
 function assertComponentTransitions(source, file, componentNames, expectedCount) {
-  const transition = '.transition(TransitionEffect.OPACITY)';
+  const transition = '.transition(YibuqueTransition.fullScreenOpacity)';
   const transitionCount = source.split(transition).length - 1;
   if (transitionCount !== expectedCount) {
     throw new Error(`${file} must keep ${expectedCount} nested root opacity transitions, found ${transitionCount}`);
@@ -187,7 +193,7 @@ const topLevelPages = [
   'OutfitsPage',
   'ProfilePage'
 ];
-const routeTransition = '.transition(TransitionEffect.OPACITY)';
+const routeTransition = '.transition(YibuqueTransition.fullScreenOpacity)';
 
 for (let pageIndex = 0; pageIndex < topLevelPages.length; pageIndex++) {
   const page = topLevelPages[pageIndex];
@@ -283,7 +289,7 @@ assertStateAssignmentsAnimated(profile, 'ProfilePage',
   ['isEditingMeasurements', 'isEditingDistricts', 'isEditingBudget'], 'animateSheetChange');
 
 for (const builderName of ['MeasurementSheet', 'DistrictSheet', 'BudgetSheet']) {
-  if (!builderSource(profile, builderName).includes('.transition(TransitionEffect.OPACITY)')) {
+  if (!builderSource(profile, builderName).includes('.transition(YibuqueTransition.sheetOpacity)')) {
     throw new Error(`ProfilePage ${builderName} root must keep an opacity transition`);
   }
 }
@@ -291,16 +297,37 @@ for (const builderName of ['MeasurementSheet', 'DistrictSheet', 'BudgetSheet']) 
 for (const needle of [
   '.backgroundColor(YibuqueColor.scrimLight)',
   '.hitTestBehavior(HitTestMode.Block)',
-  '.transition(TransitionEffect.OPACITY)'
+  '.transition(YibuqueTransition.sheetOpacity)'
 ]) {
   if (!profile.includes(needle)) {
     throw new Error(`ProfilePage blocking scrim missing ${needle}`);
   }
 }
 
-const profileTransitionCount = profile.split('.transition(TransitionEffect.OPACITY)').length - 1;
+const profileTransitionCount = profile.split('.transition(YibuqueTransition.sheetOpacity)').length - 1;
 if (profileTransitionCount !== 4) {
   throw new Error(`ProfilePage must keep one scrim and three sheet transitions, found ${profileTransitionCount}`);
+}
+
+for (const [file, source] of [
+  ['ClothingDetailPage', clothingDetail],
+  ['OutfitDetailPage', outfitDetail],
+  ['StoreVisitDetailPage', storeVisitDetail]
+]) {
+  const previewTransition = methodSource(source, 'animatePhotoPreview');
+  for (const fragment of [
+    'duration: YibuqueMotion.fullScreenPageTransition',
+    'curve: Curve.EaseOut',
+    'this.showPhotoPreview = visible;',
+    'this.photoPreviewTransitionInProgress = false;'
+  ]) {
+    if (!previewTransition.includes(fragment)) {
+      throw new Error(`${file} photo preview must use the full-screen transition: ${fragment}`);
+    }
+  }
+  if (!source.includes('.transition(YibuqueTransition.fullScreenOpacity)')) {
+    throw new Error(`${file} photo preview overlay must declare its transition timing`);
+  }
 }
 
 console.log('PASS');

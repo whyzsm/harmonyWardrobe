@@ -8,7 +8,7 @@ import { StoreVisit, StoreVisitStatus } from '../domain/store/StoreModels';
 import { PhotoSource } from '../media/PhotoModels';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
-import { YibuqueColor, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
+import { YibuqueColor, YibuqueRadius, YibuqueShadow, YibuqueSpacing } from '../theme/Tokens';
 import { toIsoDate } from '../utils/date';
 import { appendPhotoUris, MAX_USER_PHOTOS, remainingPhotoSlots } from '../utils/photoSelection';
 import { userFacingError } from '../utils/userFacingError';
@@ -33,6 +33,7 @@ function optionalText(value: string): string | undefined {
 
 @Component
 export struct StoreVisitEditPage {
+  @StorageProp('windowBottomInsetVp') private windowBottomInsetVp: number = YibuqueSpacing.bottomSafe;
   @Prop initialVisit?: StoreVisit = undefined;
   storeRepository?: StoreRepository = undefined;
   photoPickerAdapter?: PhotoPickerAdapter = undefined;
@@ -250,12 +251,13 @@ export struct StoreVisitEditPage {
             }
           }
           .width('100%')
-          .padding({ left: 20, right: 20, top: 28, bottom: 112 })
+          .padding({ left: 20, right: 20, top: 28, bottom: 112 + this.windowBottomInsetVp })
           .alignItems(HorizontalAlign.Start)
         }
         .width('100%')
         .layoutWeight(1)
         .scrollBar(BarState.Off)
+        .edgeEffect(EdgeEffect.Spring, { alwaysEnabled: true })
       }
       .width('100%')
       .height('100%')
@@ -592,7 +594,7 @@ export struct StoreVisitEditPage {
         })
     }
     .width('100%')
-    .padding({ left: 20, right: 20, top: 20, bottom: 16 })
+    .padding({ left: 20, right: 20, top: 20, bottom: 16 + this.windowBottomInsetVp })
     .backgroundColor(YibuqueColor.cardWhite)
     .shadow(YibuqueShadow.editorSheet)
   }

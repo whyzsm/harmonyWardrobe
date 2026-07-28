@@ -11,7 +11,14 @@ import {
   PROFILE_WEIGHT_MIN_KG,
   UserProfile
 } from '../domain/profile/ProfileModels';
-import { YibuqueColor, YibuqueMotion, YibuqueRadius, YibuqueShadow } from '../theme/Tokens';
+import {
+  YibuqueColor,
+  YibuqueMotion,
+  YibuqueRadius,
+  YibuqueShadow,
+  YibuqueSpacing,
+  YibuqueTransition
+} from '../theme/Tokens';
 import { userFacingError } from '../utils/userFacingError';
 
 const DEFAULT_FREQUENT_DISTRICTS: string[] = ['静安嘉里', 'iapm', '小众买手店', 'TX 淮海'];
@@ -131,6 +138,7 @@ function describeLocalState(profile: UserProfile): string {
 
 @Component
 export struct ProfilePage {
+  @StorageProp('windowBottomInsetVp') private windowBottomInsetVp: number = YibuqueSpacing.bottomSafe;
   profileRepository?: ProfileRepository = undefined;
   clothingRepository?: ClothingRepository = undefined;
   storeRepository?: StoreRepository = undefined;
@@ -628,7 +636,12 @@ export struct ProfilePage {
           this.LocalStorageSection()
         }
         .width('100%')
-        .padding({ left: 20, right: 20, top: 2, bottom: 132 })
+        .padding({
+          left: 20,
+          right: 20,
+          top: 2,
+          bottom: 132 + this.windowBottomInsetVp
+        })
         .alignItems(HorizontalAlign.Start)
       }
       .width('100%')
@@ -643,7 +656,7 @@ export struct ProfilePage {
           .height('100%')
           .backgroundColor(YibuqueColor.scrimLight)
           .hitTestBehavior(HitTestMode.Block)
-          .transition(TransitionEffect.OPACITY)
+          .transition(YibuqueTransition.sheetOpacity)
           .onClick(() => {
             if (this.isEditingMeasurements) {
               this.cancelMeasurementEditor();
@@ -1178,12 +1191,12 @@ export struct ProfilePage {
       .margin({ top: 14 })
     }
     .width('100%')
-    .padding({ left: 20, right: 20, top: 18, bottom: 34 })
+    .padding({ left: 20, right: 20, top: 18, bottom: 34 + this.windowBottomInsetVp })
     .alignItems(HorizontalAlign.Start)
     .backgroundColor(YibuqueColor.bgDefault)
     .borderRadius({ topLeft: YibuqueRadius.sheet, topRight: YibuqueRadius.sheet, bottomLeft: 0, bottomRight: 0 })
     .shadow(YibuqueShadow.editorSheet)
-    .transition(TransitionEffect.OPACITY)
+    .transition(YibuqueTransition.sheetOpacity)
   }
 
   @Builder
@@ -1334,12 +1347,12 @@ export struct ProfilePage {
       .margin({ top: 14 })
     }
     .width('100%')
-    .padding({ left: 20, right: 20, top: 18, bottom: 34 })
+    .padding({ left: 20, right: 20, top: 18, bottom: 34 + this.windowBottomInsetVp })
     .alignItems(HorizontalAlign.Start)
     .backgroundColor(YibuqueColor.bgDefault)
     .borderRadius({ topLeft: YibuqueRadius.sheet, topRight: YibuqueRadius.sheet, bottomLeft: 0, bottomRight: 0 })
     .shadow(YibuqueShadow.editorSheet)
-    .transition(TransitionEffect.OPACITY)
+    .transition(YibuqueTransition.sheetOpacity)
   }
 
   @Builder
@@ -1486,12 +1499,12 @@ export struct ProfilePage {
       .margin({ top: 14 })
     }
     .width('100%')
-    .padding({ left: 20, right: 20, top: 18, bottom: 34 })
+    .padding({ left: 20, right: 20, top: 18, bottom: 34 + this.windowBottomInsetVp })
     .alignItems(HorizontalAlign.Start)
     .backgroundColor(YibuqueColor.bgDefault)
     .borderRadius({ topLeft: YibuqueRadius.sheet, topRight: YibuqueRadius.sheet, bottomLeft: 0, bottomRight: 0 })
     .shadow(YibuqueShadow.sheetHandle)
-    .transition(TransitionEffect.OPACITY)
+    .transition(YibuqueTransition.sheetOpacity)
   }
 
   @Builder

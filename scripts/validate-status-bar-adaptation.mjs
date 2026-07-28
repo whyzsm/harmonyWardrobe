@@ -21,6 +21,8 @@ for (const needle of [
 
 for (const needle of [
   "getWindowAvoidArea(window.AvoidAreaType.TYPE_SYSTEM)",
+  'window.AvoidAreaType.TYPE_NAVIGATION_INDICATOR',
+  'YibuqueSpacing.bottomSafe',
   "AppStorage.setOrCreate('windowTopInsetVp'",
   "AppStorage.setOrCreate('windowBottomInsetVp'"
 ]) {
@@ -32,7 +34,8 @@ for (const needle of [
 for (const needle of [
   "@StorageProp('windowTopInsetVp')",
   "@StorageProp('windowBottomInsetVp')",
-  '.padding({ top: this.windowTopInsetVp, bottom: this.windowBottomInsetVp })'
+  '.padding({ top: this.windowTopInsetVp })',
+  'bottomInsetVp: this.windowBottomInsetVp'
 ]) {
   if (!index.includes(needle)) {
     throw new Error(`${indexPath} missing safe-area padding: ${needle}`);
