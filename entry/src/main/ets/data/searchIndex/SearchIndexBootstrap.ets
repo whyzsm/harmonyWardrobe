@@ -117,6 +117,11 @@ export class SearchIndexBootstrap {
     const documents = await buildDocuments(dependencies);
     await dependencies.searchRepository.rebuildSearchIndex(documents);
   }
+
+  static async refresh(dependencies: SearchIndexBootstrapDependencies): Promise<void> {
+    await SearchIndexBootstrap.ensureReady(dependencies);
+    await SearchIndexBootstrap.rebuild(dependencies);
+  }
 }
 
 async function ensureSearchIndexStateTable(database: MigrationDatabase): Promise<void> {

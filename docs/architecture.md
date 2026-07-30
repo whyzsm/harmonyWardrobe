@@ -28,9 +28,13 @@ The domain layer lives under `entry/src/main/ets/domain`. It defines wardrobe bu
 
 数据层位于 `entry/src/main/ets/data`。它负责数据库访问、迁移、仓储和派生搜索索引。SQLite 业务表是事实来源；搜索索引数据可以重建，并应通过仓储操作保持一致。
 
+`data/backup/LocalBackupService` 负责一次性本地迁移：使用 `RdbStore.backup/restore` 保存和恢复 SQLite 快照，以分块文件流保存应用私有照片，并在恢复后重写照片 URI、补齐迁移和重建搜索索引。备份文件由用户通过系统文件选择器保存，应用不提供网络上传或自动同步。
+
 穿搭分类保存在 `outfit_categories`，穿搭与分类通过 `outfit_template_categories` 多对多关联；`outfit_templates.category_id` 仅保留首分类兼容镜像，不作为读取来源。手动分类的创建、关系替换与穿搭保存必须在同一仓储事务中完成。删除分类时只删除对应关系并重建受影响穿搭的搜索文档，不删除穿搭、其它分类关系、关联衣物或照片。
 
 The data layer lives under `entry/src/main/ets/data`. It owns database access, migrations, repositories, and the derived search index. SQLite business tables are the source of truth; search index data is rebuildable and should be kept consistent through repository operations.
+
+`data/backup/LocalBackupService` owns one-time local migration. It snapshots and restores SQLite through `RdbStore.backup/restore`, streams app-private photos into the backup file, rewrites photo URIs after restore, and then runs migrations and rebuilds the search index. Backups are chosen by the user through the system document picker; the app does not upload or automatically sync them.
 
 Outfit categories are stored in `outfit_categories`, while outfit templates reference them through nullable `category_id`. A manually entered category and its outfit must be saved in the same repository transaction. Deleting a category only clears affected outfit relations and rebuilds their search documents; it does not delete outfits, linked clothing, or photos.
 

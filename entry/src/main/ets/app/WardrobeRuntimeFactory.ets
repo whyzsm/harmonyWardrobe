@@ -1,4 +1,5 @@
 import common from '@ohos.app.ability.common';
+import { LocalBackupService } from '../data/backup/LocalBackupService';
 import { DatabaseProvider } from '../data/database/DatabaseProvider';
 import { MigrationRunner } from '../data/migrations/MigrationRunner';
 import { v1InitialSchema } from '../data/migrations/V1InitialSchema';
@@ -20,7 +21,7 @@ import { StoreRepository } from '../data/repositories/StoreRepository';
 import { WearLogRepository } from '../data/repositories/WearLogRepository';
 import { WishlistRepository } from '../data/repositories/WishlistRepository';
 import { detectSearchCapability, SearchIndexMode } from '../data/searchIndex/SearchCapability';
-import { SearchIndexBootstrap } from '../data/searchIndex/SearchIndexBootstrap';
+import { SearchIndexBootstrap, SearchIndexBootstrapDependencies } from '../data/searchIndex/SearchIndexBootstrap';
 import { HarmonyPhotoFileSystem } from '../media/HarmonyPhotoFileSystem';
 import { PhotoPickerAdapter } from '../media/PhotoPickerAdapter';
 import { PhotoStorage } from '../media/PhotoStorage';
@@ -37,6 +38,7 @@ export interface WardrobeRuntimeDependencies {
   searchRepository: SearchRepository;
   photoPickerAdapter: PhotoPickerAdapter;
   photoStorage: PhotoStorage;
+  backupService: LocalBackupService;
 }
 
 export class WardrobeRuntimeFactory {
@@ -67,8 +69,7 @@ export class WardrobeRuntimeFactory {
     const storeRepository = new StoreRepository(database, searchIndexMode, photoStorage);
     const profileRepository = new ProfileRepository(database);
     const searchRepository = new SearchRepository(database, searchIndexMode);
-
-    await SearchIndexBootstrap.ensureReady({
+    const searchIndexDependencies: SearchIndexBootstrapDependencies = {
       database,
       searchIndexMode,
       searchRepository,
@@ -77,6 +78,17 @@ export class WardrobeRuntimeFactory {
       wearLogRepository,
       wishlistRepository,
       storeRepository
+    };
+
+    await SearchIndexBootstrap.ensureReady(searchIndexDependencies);
+    const backupService = new LocalBackupService(context, database, {
+      afterDatabaseRestored: async () => {
+        await migrationRunner.runMigrations();
+        await detectSearchCapability(database);
+      },
+      afterPhotoUrisRemapped: async () => {
+        await SearchIndexBootstrap.refresh(searchIndexDependencies);
+      }
     });
 
     return {
@@ -90,7 +102,8 @@ export class WardrobeRuntimeFactory {
       profileRepository,
       searchRepository,
       photoPickerAdapter: PhotoPickerAdapter.withHarmonyProviders(context),
-      photoStorage
+      photoStorage,
+      backupService
     };
   }
 }

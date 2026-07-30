@@ -1,4 +1,5 @@
 import common from '@ohos.app.ability.common';
+import { LocalBackupService } from '../data/backup/LocalBackupService';
 import { DatabaseProvider } from '../data/database/DatabaseProvider';
 import { WardrobeRuntimeFactory } from './WardrobeRuntimeFactory';
 import { ClothingRepository } from '../data/repositories/ClothingRepository';
@@ -24,6 +25,7 @@ export class WardrobeRuntime {
   readonly searchRepository: SearchRepository;
   readonly photoPickerAdapter: PhotoPickerAdapter;
   readonly photoStorage: PhotoStorage;
+  readonly backupService: LocalBackupService;
 
   private constructor(
     database: DatabaseProvider,
@@ -36,7 +38,8 @@ export class WardrobeRuntime {
     profileRepository: ProfileRepository,
     searchRepository: SearchRepository,
     photoPickerAdapter: PhotoPickerAdapter,
-    photoStorage: PhotoStorage
+    photoStorage: PhotoStorage,
+    backupService: LocalBackupService
   ) {
     this.database = database;
     this.searchIndexMode = searchIndexMode;
@@ -49,6 +52,7 @@ export class WardrobeRuntime {
     this.searchRepository = searchRepository;
     this.photoPickerAdapter = photoPickerAdapter;
     this.photoStorage = photoStorage;
+    this.backupService = backupService;
   }
 
   static async create(context: common.Context): Promise<WardrobeRuntime> {
@@ -65,7 +69,8 @@ export class WardrobeRuntime {
       dependencies.profileRepository,
       dependencies.searchRepository,
       dependencies.photoPickerAdapter,
-      dependencies.photoStorage
+      dependencies.photoStorage,
+      dependencies.backupService
     );
   }
 }

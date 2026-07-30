@@ -609,6 +609,7 @@ struct Index {
               clothingRepository: this.runtime.clothingRepository,
               storeRepository: this.runtime.storeRepository,
               outfitRepository: this.runtime.outfitRepository,
+              backupService: this.runtime.backupService,
               onOpenWishlist: () => {
                 this.openWishlistPage('');
               },

@@ -1,4 +1,5 @@
 import { ClothingRepository, ClothingSummary } from '../data/repositories/ClothingRepository';
+import { LocalBackupService } from '../data/backup/LocalBackupService';
 import { OutfitRepository } from '../data/repositories/OutfitRepository';
 import { ProfileRepository } from '../data/repositories/ProfileRepository';
 import { StoreRepository } from '../data/repositories/StoreRepository';
@@ -143,6 +144,7 @@ export struct ProfilePage {
   clothingRepository?: ClothingRepository = undefined;
   storeRepository?: StoreRepository = undefined;
   outfitRepository?: OutfitRepository = undefined;
+  backupService?: LocalBackupService = undefined;
   onOpenWishlist: () => void = () => {};
   onNestedPageVisibilityChange: (visible: boolean) => void = (_visible: boolean) => {};
 
@@ -173,6 +175,7 @@ export struct ProfilePage {
   @State private wardrobeItemCount: number = 0;
   @State private storeVisitCount: number = 0;
   @State private outfitCount: number = 0;
+  @State private isMigratingData: boolean = false;
   aboutToAppear(): void {
     this.loadProfile();
     this.loadActivitySummary();
@@ -278,6 +281,71 @@ export struct ProfilePage {
       this.monthlySpent = 0;
       this.storeVisitCount = 0;
       this.outfitCount = 0;
+    }
+  }
+
+  private async exportLocalBackup(): Promise<void> {
+    if (this.backupService === undefined || this.isMigratingData) {
+      return;
+    }
+
+    this.isMigratingData = true;
+    this.errorMessage = '';
+    this.savedMessage = '';
+
+    try {
+      const result = await this.backupService.exportToDocument();
+      if (result !== undefined) {
+        this.savedMessage = `已导出本地备份，包含 ${result.photoCount} 张照片。`;
+      }
+    } catch (error) {
+      this.errorMessage = userFacingError(error as Error, '导出本地备份失败');
+    } finally {
+      this.isMigratingData = false;
+    }
+  }
+
+  private confirmImportLocalBackup(): void {
+    if (this.backupService === undefined || this.isMigratingData) {
+      return;
+    }
+
+    AlertDialog.show({
+      title: '导入本地备份',
+      message: '导入会替换当前应用内的本地记录。请确认已选择正确的备份文件。',
+      primaryButton: {
+        value: '取消',
+        action: () => {}
+      },
+      secondaryButton: {
+        value: '继续导入',
+        action: () => {
+          this.importLocalBackup();
+        }
+      }
+    });
+  }
+
+  private async importLocalBackup(): Promise<void> {
+    if (this.backupService === undefined || this.isMigratingData) {
+      return;
+    }
+
+    this.isMigratingData = true;
+    this.errorMessage = '';
+    this.savedMessage = '';
+
+    try {
+      const result = await this.backupService.importFromDocument();
+      if (result !== undefined) {
+        await this.loadProfile();
+        await this.loadActivitySummary();
+        this.savedMessage = `已导入本地备份，恢复 ${result.photoCount} 张照片。`;
+      }
+    } catch (error) {
+      this.errorMessage = userFacingError(error as Error, '导入本地备份失败');
+    } finally {
+      this.isMigratingData = false;
     }
   }
 
@@ -634,6 +702,7 @@ export struct ProfilePage {
 
           this.BudgetSection()
           this.LocalStorageSection()
+          this.DataMigrationSection()
         }
         .width('100%')
         .padding({
@@ -1217,6 +1286,83 @@ export struct ProfilePage {
     .width('100%')
     .margin({ top: 14 })
     .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  DataMigrationSection() {
+    Column() {
+      this.SectionHeading('数据迁移', '换机或安装商店版')
+
+      Column() {
+        this.DataMigrationRow('导出本地备份', '保存当前记录和私有照片', 'export')
+        Divider().strokeWidth(1).color(YibuqueColor.borderLight)
+        this.DataMigrationRow('导入本地备份', '替换当前应用内的本地记录', 'import')
+      }
+      .width('100%')
+      .padding(14)
+      .alignItems(HorizontalAlign.Start)
+      .backgroundColor(YibuqueColor.cardSoftGray)
+      .borderRadius(YibuqueRadius.xxl)
+      .border({ width: 1, color: YibuqueColor.borderLight })
+    }
+    .width('100%')
+    .margin({ top: 14 })
+    .alignItems(HorizontalAlign.Start)
+  }
+
+  @Builder
+  DataMigrationRow(title: string, subtitle: string, action: string) {
+    Row({ space: 12 }) {
+      Column({ space: 3 }) {
+        Text(title)
+          .width('100%')
+          .fontSize(14)
+          .lineHeight(17)
+          .fontWeight(FontWeight.Regular)
+          .fontColor(YibuqueColor.textPrimary)
+        Text(subtitle)
+          .width('100%')
+          .fontSize(12)
+          .lineHeight(16)
+          .fontColor(YibuqueColor.textSecondary)
+          .maxLines(1)
+          .textOverflow({ overflow: TextOverflow.Ellipsis })
+      }
+      .layoutWeight(1)
+      .alignItems(HorizontalAlign.Start)
+
+      Button() {
+        if (this.isMigratingData) {
+          LoadingProgress()
+            .width(18)
+            .height(18)
+            .color(YibuqueColor.textPrimary)
+        } else {
+          Text(action === 'export' ? '导出' : '导入')
+            .fontSize(13)
+            .fontWeight(FontWeight.Regular)
+            .fontColor(YibuqueColor.textPrimary)
+        }
+      }
+        .width(68)
+        .height(40)
+        .padding({ left: 0, right: 0 })
+        .backgroundColor(YibuqueColor.bgDefault)
+        .borderRadius(YibuqueRadius.full)
+        .border({ width: 1, color: YibuqueColor.borderMedium })
+        .enabled(!this.isMigratingData && this.backupService !== undefined)
+        .accessibilityText(action === 'export' ? '导出本地备份' : '导入本地备份')
+        .onClick(() => {
+          if (action === 'export') {
+            this.exportLocalBackup();
+          } else {
+            this.confirmImportLocalBackup();
+          }
+        })
+    }
+    .width('100%')
+    .height(68)
+    .alignItems(VerticalAlign.Center)
   }
 
   @Builder
