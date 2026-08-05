@@ -1,0 +1,2 @@
+# GitHub Linguist does not yet recognize ArkTS .ets files directly.
+*.ets linguist-language=TypeScript
