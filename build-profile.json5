@@ -3,7 +3,6 @@
     "products": [
       {
         "name": "default",
-        "signingConfig": "default",
         "compileSdkVersion": "6.1.1(24)",
         "compatibleSdkVersion": "6.1.0(23)",
         "runtimeOS": "HarmonyOS",
@@ -16,21 +15,6 @@
       },
       {
         "name": "release"
-      }
-    ],
-    "signingConfigs": [
-      {
-        "name": "default",
-        "type": "HarmonyOS",
-        "material": {
-          "certpath": "/Users/seminzhu/.ohos/config/default_harmonyWardrobe_vVFJKYdbXp8PyJux8GC0mHl-AgHflEkfMHiHf2RtWUw=.cer",
-          "keyAlias": "debugKey",
-          "keyPassword": "0000001BF418002A387A717B91F5E2D069A9FCFDB48F398DFAB7D4AE862027DB02293742667590DC81432E",
-          "profile": "/Users/seminzhu/.ohos/config/default_harmonyWardrobe_vVFJKYdbXp8PyJux8GC0mHl-AgHflEkfMHiHf2RtWUw=.p7b",
-          "signAlg": "SHA256withECDSA",
-          "storeFile": "/Users/seminzhu/.ohos/config/default_harmonyWardrobe_vVFJKYdbXp8PyJux8GC0mHl-AgHflEkfMHiHf2RtWUw=.p12",
-          "storePassword": "0000001B3DF697E24D051C1473F62E0113929554580DE40A0159F97209221A7245649FA08798826445AED7"
-        }
       }
     ]
   },

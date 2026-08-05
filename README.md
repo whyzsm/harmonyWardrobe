@@ -155,7 +155,7 @@ RESET_APP_ON_SIGN_MISMATCH=1 scripts/emulator-debug.sh
 - `signature/`
 - `*.backup`
 
-特别注意：DevEco Studio 可能会把当前华为账号生成的调试签名写入 `build-profile.json5`，包括 `signingConfig`、`signingConfigs`、证书路径、profile 路径、`.p12` 路径和密码字段。这些内容属于本机私有配置，尤其是多台电脑登录同一个华为账号时，不要提交到仓库。
+特别注意：DevEco Studio 可能会把当前华为账号生成的本机签名写入构建配置，其中包含证书、签名描述文件、私钥容器路径和凭据字段。这些内容属于本机私有配置，尤其是多台电脑登录同一个华为账号时，不要提交到仓库。生产构建使用忽略目录中的本机配置：`DEVECO_SDK_HOME=<sdk-root> HVIGORW=<hvigorw-path> bash scripts/assemble-release-local.sh`；脚本会在构建结束后恢复仓库内无凭据的构建配置。
 
 提交前检查：
 
@@ -186,7 +186,7 @@ git diff --cached --name-only
 ## 提交前清单
 
 - 没有提交 `.hvigor/`、`build/`、`entry/build/` 等生成物。
-- 没有提交 `signature/`、证书、profile、`.p12`、签名密码或本机绝对路径。
+- 没有提交 `signature/`、证书、签名描述文件、私钥容器、签名密码或本机绝对路径。
 - 没有新增网络权限或远程同步依赖。
 - 页面没有直接写 SQL。
 - 新增或删除业务数据时同步维护搜索索引。

@@ -36,7 +36,7 @@ git diff --check
 已执行 entry HAP 构建：
 
 ```bash
-/Users/seminzhu/Downloads/command-line-tools/bin/hvigorw --mode module -p product=default -p module=entry@default assembleHap --no-daemon --no-incremental --no-parallel --stacktrace
+<command-line-tools>/bin/hvigorw --mode module -p product=default -p module=entry@default assembleHap --no-daemon --no-incremental --no-parallel --stacktrace
 ```
 
 实际结果：`BUILD SUCCESSFUL`。构建过程提示 `No signingConfig found for product default`，这是当前本地调试构建的预期状态；真实设备安装与签名发布验证需要在配置签名材料后补跑。

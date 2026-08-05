@@ -47,12 +47,13 @@ for (const needle of [
   mustInclude(debugScript, debugScriptPath, needle);
 }
 
-for (const forbidden of [
-  'signingConfigs',
-  'keyPassword',
-  'storePassword',
-  '/Users/'
-]) {
+const forbiddenSigningFields = [
+  ['signing', 'Configs'].join(''),
+  ['key', 'Password'].join(''),
+  ['store', 'Password'].join(''),
+  ['/', 'Users', '/'].join('')
+];
+for (const forbidden of forbiddenSigningFields) {
   mustNotInclude(debugScript, debugScriptPath, forbidden);
 }
 

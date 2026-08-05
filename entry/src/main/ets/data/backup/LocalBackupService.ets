@@ -1,6 +1,6 @@
 import common from '@ohos.app.ability.common';
 import util from '@ohos.util';
-import { fileIo, picker } from '@kit.CoreFileKit';
+import { fileIo, hash, picker } from '@kit.CoreFileKit';
 import { DatabaseProvider } from '../database/DatabaseProvider';
 import {
   LocalBackupExportResult,
@@ -8,11 +8,18 @@ import {
   LocalBackupRestoreResult
 } from './LocalBackupModels';
 
-const ARCHIVE_MAGIC = 'YIBUQUE_BACKUP_V1\n';
-const ARCHIVE_FORMAT_VERSION = 1;
+const ARCHIVE_MAGIC = 'YIBUQUE_BACKUP_V2\n';
+const LEGACY_ARCHIVE_MAGIC = 'YIBUQUE_BACKUP_V1\n';
+const ARCHIVE_FORMAT_VERSION = 2;
+const LEGACY_ARCHIVE_FORMAT_VERSION = 1;
 const ARCHIVE_EXTENSION = 'yibuque-backup';
+const ARCHIVE_SUFFIX = `.${ARCHIVE_EXTENSION}`;
 const PHOTOS_DIRECTORY_NAME = 'photos';
 const DATABASE_ENTRY_NAME = 'database.sqlite';
+const PREVIOUS_DATABASE_ENTRY_NAME = 'previous-database.sqlite';
+const PREVIOUS_PHOTOS_DIRECTORY_NAME = 'previous-photos';
+const FAILED_PHOTOS_DIRECTORY_NAME = 'failed-photos';
+const SHA256_ALGORITHM = 'sha256';
 const FILE_CHUNK_BYTES = 256 * 1024;
 const HEADER_SCAN_BYTES = 512;
 const MAX_MANIFEST_BYTES = 1024 * 1024;
@@ -29,12 +36,14 @@ const PHOTO_TABLE_NAMES: string[] = [
 interface BackupDatabaseEntry {
   fileName: string;
   size: number;
+  checksum?: string;
 }
 
 interface BackupPhotoEntry {
   fileName: string;
   localUri: string;
   size: number;
+  checksum?: string;
 }
 
 interface BackupManifest {
@@ -45,6 +54,7 @@ interface BackupManifest {
 }
 
 interface ArchiveHeader {
+  magic: string;
   headerBytes: number;
   manifestBytes: number;
 }
@@ -92,6 +102,24 @@ function isNonNegativeInteger(value: number): boolean {
   return Number.isInteger(value) && value >= 0 && Number.isSafeInteger(value);
 }
 
+function isSha256Checksum(value: string): boolean {
+  return /^[a-f0-9]{64}$/.test(value);
+}
+
+function archiveMagicForFormatVersion(formatVersion: number): string | undefined {
+  if (formatVersion === ARCHIVE_FORMAT_VERSION) {
+    return ARCHIVE_MAGIC;
+  }
+  if (formatVersion === LEGACY_ARCHIVE_FORMAT_VERSION) {
+    return LEGACY_ARCHIVE_MAGIC;
+  }
+  return undefined;
+}
+
+function isChecksumRequired(formatVersion: number): boolean {
+  return formatVersion === ARCHIVE_FORMAT_VERSION;
+}
+
 function errorText(error: Error | string | RuntimeErrorLike | undefined): string {
   if (error instanceof Error && error.message.length > 0) {
     return error.message;
@@ -114,6 +142,11 @@ function errorText(error: Error | string | RuntimeErrorLike | undefined): string
 function isMissingFileError(error: Error | string | RuntimeErrorLike | undefined): boolean {
   const message = errorText(error).toLowerCase();
   return message.includes('no such file') || message.includes('not found') || message.includes('13900002');
+}
+
+function isAlreadyExistingPathError(error: Error | string | RuntimeErrorLike | undefined): boolean {
+  const message = errorText(error).toLowerCase();
+  return message.includes('file exists') || message.includes('already exists') || message.includes('13900015');
 }
 
 function formatBackupFileName(): string {
@@ -175,14 +208,23 @@ export class LocalBackupService {
       const manifestBuffer = utf8Buffer(JSON.stringify(manifest));
       const headerBuffer = utf8Buffer(`${ARCHIVE_MAGIC}${manifestBuffer.byteLength}\n`);
 
-      destinationFile = await fileIo.open(destinationUri, fileIo.OpenMode.WRITE_ONLY | fileIo.OpenMode.TRUNC);
+      destinationFile = await fileIo.open(
+        destinationUri,
+        fileIo.OpenMode.WRITE_ONLY | fileIo.OpenMode.CREATE | fileIo.OpenMode.TRUNC
+      );
       await this.writeFully(destinationFile.fd, headerBuffer);
       await this.writeFully(destinationFile.fd, manifestBuffer);
-      await this.appendFile(destinationFile.fd, databaseSnapshotPath, manifest.database.size);
+      await this.appendFile(
+        destinationFile.fd,
+        databaseSnapshotPath,
+        manifest.database.size,
+        manifest.database.checksum
+      );
 
       for (const photo of manifest.photos) {
-        await this.appendFile(destinationFile.fd, this.photoPath(photo.fileName), photo.size);
+        await this.appendFile(destinationFile.fd, this.photoPath(photo.fileName), photo.size, photo.checksum);
       }
+      await fileIo.fsync(destinationFile.fd);
 
       const totalBytes = headerBuffer.byteLength + manifestBuffer.byteLength + totalArchivePayloadBytes(manifest);
       return { photoCount: manifest.photos.length, totalBytes };
@@ -206,24 +248,51 @@ export class LocalBackupService {
     const operationDirectory = this.operationDirectory('import');
     const stagedPhotosDirectory = joinPath(operationDirectory, PHOTOS_DIRECTORY_NAME);
     const stagedDatabasePath = joinPath(operationDirectory, DATABASE_ENTRY_NAME);
+    const previousDatabasePath = joinPath(operationDirectory, PREVIOUS_DATABASE_ENTRY_NAME);
+    const previousPhotosDirectory = joinPath(operationDirectory, PREVIOUS_PHOTOS_DIRECTORY_NAME);
+    const failedPhotosDirectory = joinPath(operationDirectory, FAILED_PHOTOS_DIRECTORY_NAME);
+    let photosReplaced = false;
+    let databaseBackedUp = false;
+    let restoreCompleted = false;
+    let preserveOperationDirectory = false;
 
     try {
       const archive = await this.readArchiveInfo(sourceUri);
-      await fileIo.mkdir(stagedPhotosDirectory, true);
+      await this.ensureDirectory(stagedPhotosDirectory);
       await this.stageArchive(sourceUri, archive, stagedDatabasePath, stagedPhotosDirectory);
-      await this.copyStagedPhotosToAppStorage(stagedPhotosDirectory, archive.manifest.photos);
+      await this.verifyStagedArchive(stagedDatabasePath, stagedPhotosDirectory, archive.manifest);
 
       const store = await this.database.getStore();
+      await store.backup(previousDatabasePath);
+      databaseBackedUp = true;
+      await this.replacePhotoStorage(stagedPhotosDirectory, previousPhotosDirectory);
+      photosReplaced = true;
       await store.restore(stagedDatabasePath);
       await this.lifecycle.afterDatabaseRestored();
       await this.remapPhotoUris(archive.manifest.photos);
       await this.lifecycle.afterPhotoUrisRemapped();
+      restoreCompleted = true;
+      await this.removeDirectoryRecursively(previousPhotosDirectory);
 
       return { photoCount: archive.manifest.photos.length };
     } catch (error) {
+      if (photosReplaced && !restoreCompleted) {
+        const rollbackError = await this.rollbackImport(
+          previousDatabasePath,
+          previousPhotosDirectory,
+          failedPhotosDirectory,
+          databaseBackedUp
+        );
+        if (rollbackError !== undefined) {
+          preserveOperationDirectory = true;
+          throw new Error(`${errorText(error as Error)}；恢复原有本地数据失败：${rollbackError}`);
+        }
+      }
       throw new Error(`导入本地备份失败：${errorText(error as Error)}`);
     } finally {
-      await this.cleanupImportDirectory(operationDirectory, stagedDatabasePath, stagedPhotosDirectory);
+      if (!preserveOperationDirectory) {
+        await this.cleanupImportDirectory(operationDirectory);
+      }
     }
   }
 
@@ -231,7 +300,8 @@ export class LocalBackupService {
     const documentPicker = new picker.DocumentViewPicker(this.context);
     const selectedUris = await documentPicker.save({
       newFileNames: [formatBackupFileName()],
-      fileSuffixChoices: [`衣不缺备份|${ARCHIVE_EXTENSION}`]
+      fileSuffixChoices: [`衣不缺备份|${ARCHIVE_SUFFIX}`],
+      autoCreateEmptyFile: true
     });
     return selectedUris.length > 0 ? selectedUris[0] : undefined;
   }
@@ -239,7 +309,7 @@ export class LocalBackupService {
   private async selectImportSource(): Promise<string | undefined> {
     const documentPicker = new picker.DocumentViewPicker(this.context);
     const selectedUris = await documentPicker.select({
-      fileSuffixFilters: [`衣不缺备份|${ARCHIVE_EXTENSION}`],
+      fileSuffixFilters: [`衣不缺备份|${ARCHIVE_SUFFIX}`],
       maxSelectNumber: 1
     });
     return selectedUris.length > 0 ? selectedUris[0] : undefined;
@@ -257,7 +327,8 @@ export class LocalBackupService {
       exportedAt: new Date().toISOString(),
       database: {
         fileName: DATABASE_ENTRY_NAME,
-        size: databaseStat.size
+        size: databaseStat.size,
+        checksum: await this.fileChecksum(databaseSnapshotPath)
       },
       photos
     };
@@ -293,7 +364,8 @@ export class LocalBackupService {
       photos.push({
         fileName,
         localUri: fileUri(photoPath),
-        size: stat.size
+        size: stat.size,
+        checksum: await this.fileChecksum(photoPath)
       });
     }
     return photos;
@@ -312,6 +384,9 @@ export class LocalBackupService {
       await this.discardBytes(sourceFile.fd, header.headerBytes);
       const manifestBuffer = await this.readExact(sourceFile.fd, header.manifestBytes);
       const manifest = this.parseManifest(utf8Text(manifestBuffer));
+      if (header.magic !== archiveMagicForFormatVersion(manifest.formatVersion)) {
+        throw new Error('备份文件头与清单版本不一致。');
+      }
       const expectedSize = header.headerBytes + header.manifestBytes + totalArchivePayloadBytes(manifest);
       if (expectedSize !== archiveSize) {
         throw new Error('备份文件大小校验失败。');
@@ -335,16 +410,21 @@ export class LocalBackupService {
       const buffer = new ArrayBuffer(HEADER_SCAN_BYTES);
       const bytesRead = await fileIo.read(sourceFile.fd, buffer);
       const headerText = utf8Text(buffer.slice(0, bytesRead));
-      if (!headerText.startsWith(ARCHIVE_MAGIC)) {
+      const magic = headerText.startsWith(ARCHIVE_MAGIC)
+        ? ARCHIVE_MAGIC
+        : headerText.startsWith(LEGACY_ARCHIVE_MAGIC)
+          ? LEGACY_ARCHIVE_MAGIC
+          : undefined;
+      if (magic === undefined) {
         throw new Error('不是衣不缺备份文件。');
       }
 
-      const lengthLineEnd = headerText.indexOf('\n', ARCHIVE_MAGIC.length);
+      const lengthLineEnd = headerText.indexOf('\n', magic.length);
       if (lengthLineEnd < 0) {
         throw new Error('备份文件头损坏。');
       }
 
-      const sizeText = headerText.substring(ARCHIVE_MAGIC.length, lengthLineEnd);
+      const sizeText = headerText.substring(magic.length, lengthLineEnd);
       if (!/^\d+$/.test(sizeText)) {
         throw new Error('备份文件清单无效。');
       }
@@ -354,7 +434,7 @@ export class LocalBackupService {
         throw new Error('备份文件清单过大或无效。');
       }
 
-      return { headerBytes: lengthLineEnd + 1, manifestBytes };
+      return { magic, headerBytes: lengthLineEnd + 1, manifestBytes };
     } finally {
       if (sourceFile !== undefined) {
         await this.closeQuietly(sourceFile);
@@ -364,10 +444,15 @@ export class LocalBackupService {
 
   private parseManifest(text: string): BackupManifest {
     const manifest = JSON.parse(text) as BackupManifest;
-    if (manifest.formatVersion !== ARCHIVE_FORMAT_VERSION || manifest.exportedAt.length === 0) {
+    const checksumRequired = isChecksumRequired(manifest.formatVersion);
+    if (archiveMagicForFormatVersion(manifest.formatVersion) === undefined || manifest.exportedAt.length === 0) {
       throw new Error('备份文件版本不受支持。');
     }
-    if (manifest.database.fileName !== DATABASE_ENTRY_NAME || !isPositiveInteger(manifest.database.size)) {
+    if (
+      manifest.database.fileName !== DATABASE_ENTRY_NAME ||
+      !isPositiveInteger(manifest.database.size) ||
+      (checksumRequired && !isSha256Checksum(manifest.database.checksum ?? ''))
+    ) {
       throw new Error('备份数据库信息无效。');
     }
     if (manifest.photos.length > MAX_PHOTO_COUNT) {
@@ -376,7 +461,12 @@ export class LocalBackupService {
 
     const seenNames = new Set<string>();
     for (const photo of manifest.photos) {
-      if (!isSafeFileName(photo.fileName) || !isNonNegativeInteger(photo.size) || photo.localUri.length === 0) {
+      if (
+        !isSafeFileName(photo.fileName) ||
+        !isNonNegativeInteger(photo.size) ||
+        photo.localUri.length === 0 ||
+        (checksumRequired && !isSha256Checksum(photo.checksum ?? ''))
+      ) {
         throw new Error('备份照片信息无效。');
       }
       if (seenNames.has(photo.fileName)) {
@@ -408,22 +498,82 @@ export class LocalBackupService {
     }
   }
 
-  private async copyStagedPhotosToAppStorage(
+  private async verifyStagedArchive(
+    stagedDatabasePath: string,
     stagedPhotosDirectory: string,
-    photos: BackupPhotoEntry[]
+    manifest: BackupManifest
   ): Promise<void> {
-    await fileIo.mkdir(this.photosDirectory(), true);
-    for (const photo of photos) {
-      const stagedPath = joinPath(stagedPhotosDirectory, photo.fileName);
-      const destinationPath = this.photoPath(photo.fileName);
-      if (await this.isExistingFileWithSize(destinationPath, photo.size)) {
-        continue;
-      }
-      if (await this.fileExists(destinationPath)) {
-        throw new Error(`发现同名照片“${photo.fileName}”，已取消导入。`);
-      }
-      await fileIo.copyFile(stagedPath, destinationPath);
+    if (!isChecksumRequired(manifest.formatVersion)) {
+      return;
     }
+    await this.verifyFileChecksum(stagedDatabasePath, '备份数据库', manifest.database.checksum);
+    for (const photo of manifest.photos) {
+      const stagedPath = joinPath(stagedPhotosDirectory, photo.fileName);
+      await this.verifyFileChecksum(stagedPath, `照片“${photo.fileName}”`, photo.checksum);
+    }
+  }
+
+  private async verifyFileChecksum(path: string, displayName: string, expectedChecksum?: string): Promise<void> {
+    const expected = expectedChecksum;
+    if (expected === undefined) {
+      throw new Error(`${displayName}缺少完整性校验信息。`);
+    }
+    if (await this.fileChecksum(path) !== expected) {
+      throw new Error(`${displayName}完整性校验失败。`);
+    }
+  }
+
+  private async replacePhotoStorage(stagedPhotosDirectory: string, previousPhotosDirectory: string): Promise<void> {
+    const activePhotosDirectory = this.photosDirectory();
+    const hadActivePhotos = await this.fileExists(activePhotosDirectory);
+    if (hadActivePhotos) {
+      await fileIo.moveDir(activePhotosDirectory, previousPhotosDirectory);
+    }
+
+    try {
+      await fileIo.moveDir(stagedPhotosDirectory, activePhotosDirectory);
+    } catch (error) {
+      if (hadActivePhotos && await this.fileExists(previousPhotosDirectory)) {
+        try {
+          await fileIo.moveDir(previousPhotosDirectory, activePhotosDirectory);
+        } catch (rollbackError) {
+          throw new Error(`${errorText(error as Error)}；恢复原有照片失败：${errorText(rollbackError as Error)}`);
+        }
+      }
+      throw new Error(errorText(error as Error));
+    }
+  }
+
+  private async rollbackImport(
+    previousDatabasePath: string,
+    previousPhotosDirectory: string,
+    failedPhotosDirectory: string,
+    databaseBackedUp: boolean
+  ): Promise<string | undefined> {
+    let rollbackFailure: string | undefined;
+    if (databaseBackedUp) {
+      try {
+        const store = await this.database.getStore();
+        await store.restore(previousDatabasePath);
+      } catch (error) {
+        rollbackFailure = `数据库：${errorText(error as Error)}`;
+      }
+    }
+
+    try {
+      const activePhotosDirectory = this.photosDirectory();
+      if (await this.fileExists(activePhotosDirectory)) {
+        await fileIo.moveDir(activePhotosDirectory, failedPhotosDirectory);
+      }
+      if (await this.fileExists(previousPhotosDirectory)) {
+        await fileIo.moveDir(previousPhotosDirectory, activePhotosDirectory);
+      }
+      await this.removeDirectoryRecursively(failedPhotosDirectory);
+    } catch (error) {
+      const photoFailure = `照片：${errorText(error as Error)}`;
+      rollbackFailure = rollbackFailure === undefined ? photoFailure : `${rollbackFailure}；${photoFailure}`;
+    }
+    return rollbackFailure;
   }
 
   private async remapPhotoUris(photos: BackupPhotoEntry[]): Promise<void> {
@@ -440,15 +590,26 @@ export class LocalBackupService {
     });
   }
 
-  private async appendFile(destinationFd: number, sourcePath: string, expectedSize: number): Promise<void> {
+  private async appendFile(
+    destinationFd: number,
+    sourcePath: string,
+    expectedSize: number,
+    expectedChecksum?: string
+  ): Promise<void> {
     let sourceFile: fileIo.File | undefined;
     try {
+      if (expectedChecksum === undefined) {
+        throw new Error(`文件“${leafName(sourcePath)}”缺少完整性校验信息。`);
+      }
       sourceFile = await fileIo.open(sourcePath, fileIo.OpenMode.READ_ONLY);
       const currentSize = await this.fileSizeFromFd(sourceFile.fd);
       if (currentSize !== expectedSize) {
         throw new Error(`文件“${leafName(sourcePath)}”在导出时发生变化。`);
       }
       await this.copyExactBytesToFd(sourceFile.fd, expectedSize, destinationFd);
+      if (await this.fileChecksum(sourcePath) !== expectedChecksum) {
+        throw new Error(`文件“${leafName(sourcePath)}”在导出时发生变化。`);
+      }
     } finally {
       if (sourceFile !== undefined) {
         await this.closeQuietly(sourceFile);
@@ -543,9 +704,18 @@ export class LocalBackupService {
     return stat.size;
   }
 
+  private async fileChecksum(path: string): Promise<string> {
+    const checksum = (await hash.hash(path, SHA256_ALGORITHM)).toLowerCase();
+    if (!isSha256Checksum(checksum)) {
+      throw new Error(`文件“${leafName(path)}”完整性校验失败。`);
+    }
+    return checksum;
+  }
+
   private async fileExists(path: string): Promise<boolean> {
     try {
-      return await fileIo.access(path);
+      await fileIo.access(path);
+      return true;
     } catch (error) {
       if (isMissingFileError(error as Error)) {
         return false;
@@ -554,11 +724,14 @@ export class LocalBackupService {
     }
   }
 
-  private async isExistingFileWithSize(path: string, expectedSize: number): Promise<boolean> {
-    if (!await this.fileExists(path)) {
-      return false;
+  private async ensureDirectory(path: string): Promise<void> {
+    try {
+      await fileIo.mkdir(path, true);
+    } catch (error) {
+      if (!isAlreadyExistingPathError(error as Error)) {
+        throw new Error(errorText(error as Error));
+      }
     }
-    return (await fileIo.stat(path)).size === expectedSize;
   }
 
   private photosDirectory(): string {
@@ -581,21 +754,24 @@ export class LocalBackupService {
     await this.removeDirectoryIfPresent(operationDirectory);
   }
 
-  private async cleanupImportDirectory(
-    operationDirectory: string,
-    stagedDatabasePath: string,
-    stagedPhotosDirectory: string
-  ): Promise<void> {
-    await this.removeIfPresent(stagedDatabasePath);
+  private async cleanupImportDirectory(operationDirectory: string): Promise<void> {
+    await this.removeDirectoryRecursively(operationDirectory);
+  }
+
+  private async removeDirectoryRecursively(path: string): Promise<void> {
     try {
-      const photos = await fileIo.listFile(stagedPhotosDirectory);
-      for (const entry of photos) {
-        await this.removeIfPresent(joinPath(stagedPhotosDirectory, leafName(entry)));
+      const entries = await fileIo.listFile(path);
+      for (const entry of entries) {
+        const childPath = joinPath(path, leafName(entry));
+        try {
+          await fileIo.unlink(childPath);
+        } catch (_error) {
+          await this.removeDirectoryRecursively(childPath);
+        }
       }
     } catch (_error) {
     }
-    await this.removeDirectoryIfPresent(stagedPhotosDirectory);
-    await this.removeDirectoryIfPresent(operationDirectory);
+    await this.removeDirectoryIfPresent(path);
   }
 
   private async removeIfPresent(path: string): Promise<void> {

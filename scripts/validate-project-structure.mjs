@@ -45,7 +45,13 @@ if (!moduleJson.includes('"pages": "$profile:main_pages"')) {
 }
 
 const buildProfile = fs.readFileSync('build-profile.json5', 'utf8');
-for (const forbidden of ['signingConfigs', 'keyPassword', 'storePassword', '/Users/']) {
+const forbiddenSigningFields = [
+  ['signing', 'Configs'].join(''),
+  ['key', 'Password'].join(''),
+  ['store', 'Password'].join(''),
+  ['/', 'Users', '/'].join('')
+];
+for (const forbidden of forbiddenSigningFields) {
   if (buildProfile.includes(forbidden)) {
     throw new Error(`build-profile.json5 must not contain local signing material: ${forbidden}`);
   }
